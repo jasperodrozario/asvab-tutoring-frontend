@@ -9,7 +9,9 @@ const menuItems = [
     title: 'Dashboard',
     children: [
       { label: 'View Tutor Request', href: '/admin/tutor-request' },
-      { label: 'Add new content', href: '/admin/add-content' },
+      { label: 'Add Tutoring Package', href: '/admin/tutoring-package' },
+      { label: 'Insert Tutor', href: '/admin/insert-tutor' },
+      { label: 'Insert Course', href: '/admin/insert-course' },
     ],
   },
   {

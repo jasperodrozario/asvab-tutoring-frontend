@@ -233,7 +233,7 @@ export default function Welcome() {
             </h2>
           </div>
           <p className="mt-4 text-muted fs-5">
-            Need help with the ASVAB? We are here for you. No longer do you need to prove yourself as a good student by memorizing whole subjects...
+           Need help with the ASVAB? We are here for you. No longer do you need to prove yourself as a good student by memorizing whole subjects. Now you only need to learn the techniques to excel in your field. ASVAB tutoring provides you with the one-stop solution to help establish your career in the Armed Forces. ASVAB Tutoring was established in 2012 by a group of adroit engineers to simplify and streamline the learning process
           </p>
           <div className="text-center">
             <button className="btn btn-primary-custom mt-4 px-5 py-2">READ MORE</button>
