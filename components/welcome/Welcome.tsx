@@ -102,7 +102,7 @@ export default function Welcome() {
                 <span className="primary-color-custom">ASVAB Tutoring</span>
               </h1>
               <p className="lead mt-3">
-                10,000+ successful candidates. Online Test Prep for the ASVAB, ASTB, OAR, AFOQT, and SIFT.
+                10,000+ successful candidates. Online Test Prep for the ASVAB, ASTB, OAR, AFOQT, and SIFT. Test on live
               </p>
               <button className="btn btn-primary-custom mt-3">ENROLL NOW</button>
 
