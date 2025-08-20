@@ -6,33 +6,49 @@ import { useState, useEffect } from 'react';
 
 const menuItems = [
   {
-    title: 'Dashboard',
+    title: 'Content Management',
     children: [
-      { label: 'View Tutor Request', href: '/admin/tutor-request' },
+      { label: 'Pages', href: '/admin/pages' },
+      { label: 'Blogs', href: '/admin/blogs' },
+      { label: 'Courses', href: '/admin/courses' },
+      { label: 'Teachers', href: '/admin/teachers' },
+      { label: 'FAQ', href: '/admin/faqs' },
+
       { label: 'Add Tutoring Package', href: '/admin/tutoring-package' },
       { label: 'Insert Tutor', href: '/admin/insert-tutor' },
       { label: 'Insert Course', href: '/admin/insert-course' },
     ],
   },
   {
-    title: 'Content Management',
+    title: 'Pricing Management',
     children: [
-      { label: 'Content List', href: '/admin/content-list' },
-      { label: 'Add new content', href: '/admin/add-content' },
+      { label: '1-on-1 tutoring', href: '/admin/content-list' },
+      { label: 'Group-tutoring', href: '/admin/add-content' },
+      { label: 'Web Subscription', href: '/admin/subscription' },
+
     ],
   },
   {
-    title: 'User Management',
+    title: 'Free Practice Test',
     children: [
-      { label: 'Student List', href: '/admin/student-list' },
-      { label: 'Tutor List', href: '/admin/tutor-list' },
+      { label: 'Courses', href: '/admin/student-list' },
+      // { label: 'Tutor List', href: '/admin/tutor-list' },
     ],
   },
   {
-    title: 'Question Management',
+    title: 'Enquiry Management',
     children: [
-      { label: 'Courses', href: '/admin/courses' },
-      { label: 'Questions', href: '/admin/questions' },
+      { label: 'View Tutor Request', href: '/admin/tutor-request' },
+      { label: 'Email Drafts', href: '/admin/email-draft' },
+    ],
+  },
+  {
+    title: 'Settings',
+    children: [
+      { label: 'Site Setting', href: '/admin/site-setting' },
+      { label: 'Change Admin Password', href: '/admin/change-password' },
+
+      // { label: 'Questions', href: '/admin/questions' },
     ],
   },
 ];
@@ -59,14 +75,20 @@ export default function Sidebar() {
       </div>
       <ul className="nav flex-column">
         {menuItems.map(({ title, children }) => (
+
           <li className="nav-item" key={title}>
+
             <button
               className="btn text-start w-100 text-white px-3 py-2 d-flex justify-content-between align-items-center"
               onClick={() => toggleMenu(title)}
             >
-              <span>{title}</span>
+              <span className="d-flex align-items-center gap-2">
+                <i className="bi bi-list"></i>
+                <span>{title}</span>
+              </span>
               <i className={`bi ${openMenus[title] ? 'bi-chevron-up' : 'bi-chevron-down'}`}></i>
             </button>
+
             {openMenus[title] && (
               <ul className="nav flex-column ms-3">
                 {children.map(({ label, href }) => (

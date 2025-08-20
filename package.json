@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ckeditor/ckeditor5-build-classic": "^41.4.2",
+    "@ckeditor/ckeditor5-react": "^11.0.0",
     "bootstrap": "^5.3.7",
     "bootstrap-icons": "^1.13.1",
     "he": "^1.2.0",

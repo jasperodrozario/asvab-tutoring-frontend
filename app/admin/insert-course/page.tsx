@@ -1,22 +1,28 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
+
+// ✅ Dynamically import your CKEditorField (client-side only)
+const CKEditorField = dynamic(
+    () => import("@/components/ckeditor/CKEditorField"),
+    { ssr: false }
+);
 
 export default function InsertCoursePage() {
     const [form, setForm] = useState({
         course_name: "",
-        description: "",
-        ord: "",
-        group_id: "",
-        is_online: "Y",
-        subscribe: "0",
-        app: "0",
-        tutoring: "0",
-        overview: "",
+        header: "",
+        tagline: "",
+        details: "",
         curriculum: "",
         video: "",
+        thumb_pic: "",
+        ord: "",
+        status: "1",
+        course_name_test_prep: "",
         video_title: "",
-        cover_image: "",
+        course_id: "",
     });
 
     const [submitting, setSubmitting] = useState(false);
@@ -28,6 +34,10 @@ export default function InsertCoursePage() {
         setForm((prev) => ({ ...prev, [name]: value }));
     };
 
+    const handleDetailsChange = (data: string) => {
+        setForm((prev) => ({ ...prev, details: data }));
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitting(true);
@@ -35,18 +45,17 @@ export default function InsertCoursePage() {
         const formData = new FormData();
         formData.append("action", "add-course");
         formData.append("course_name", form.course_name.trim());
-        formData.append("description", form.description.trim());
-        formData.append("ord", form.ord || "0");
-        formData.append("group_id", form.group_id || "0");
-        formData.append("is_online", form.is_online || "N");
-        formData.append("subscribe", form.subscribe || "0");
-        formData.append("app", form.app || "0");
-        formData.append("tutoring", form.tutoring || "0");
-        formData.append("overview", form.overview || "");
+        formData.append("header", form.header.trim());
+        formData.append("tagline", form.tagline.trim());
+        formData.append("details", form.details || "");
         formData.append("curriculum", form.curriculum || "");
         formData.append("video", form.video || "");
+        formData.append("thumb_pic", form.thumb_pic || "");
+        formData.append("ord", form.ord || "0");
+        formData.append("status", form.status || "1");
+        formData.append("course_name_test_prep", form.course_name_test_prep || "");
         formData.append("video_title", form.video_title || "");
-        formData.append("cover_image", form.cover_image || "");
+        formData.append("course_id", form.course_id || "");
 
         try {
             const res = await fetch("/api/proxy", {
@@ -60,18 +69,17 @@ export default function InsertCoursePage() {
                 alert("Course added successfully!");
                 setForm({
                     course_name: "",
-                    description: "",
-                    ord: "",
-                    group_id: "",
-                    is_online: "Y",
-                    subscribe: "0",
-                    app: "0",
-                    tutoring: "0",
-                    overview: "",
+                    header: "",
+                    tagline: "",
+                    details: "",
                     curriculum: "",
                     video: "",
+                    thumb_pic: "",
+                    ord: "",
+                    status: "1",
+                    course_name_test_prep: "",
                     video_title: "",
-                    cover_image: "",
+                    course_id: "",
                 });
             } else {
                 alert(data.message || "Submission failed");
@@ -100,115 +108,34 @@ export default function InsertCoursePage() {
                     />
                 </div>
 
-                <div className="col-md-12">
-                    <label className="form-label">Description</label>
-                    <textarea
-                        className="form-control"
-                        name="description"
-                        value={form.description}
-                        onChange={handleChange}
-                        rows={2}
-                        required
-                    />
-                </div>
-
-                <div className="col-md-3">
-                    <label className="form-label">Order</label>
-                    <input
-                        type="number"
-                        className="form-control"
-                        name="ord"
-                        value={form.ord}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
-
-                <div className="col-md-3">
-                    <label className="form-label">Group ID</label>
-                    <input
-                        type="number"
-                        className="form-control"
-                        name="group_id"
-                        value={form.group_id}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
-
-                <div className="col-md-3">
-                    <label className="form-label">Is Online</label>
-                    <select
-                        className="form-select"
-                        name="is_online"
-                        value={form.is_online}
-                        onChange={handleChange}
-                    >
-                        <option value="Y">Yes</option>
-                        <option value="N">No</option>
-                    </select>
-                </div>
-
-                <div className="col-md-3">
-                    <label className="form-label">Tutoring</label>
-                    <select
-                        className="form-select"
-                        name="tutoring"
-                        value={form.tutoring}
-                        onChange={handleChange}
-                    >
-                        <option value="1">Enabled</option>
-                        <option value="0">Disabled</option>
-                    </select>
-                </div>
-
-                <div className="col-md-4">
-                    <label className="form-label">Subscribe</label>
-                    <select
-                        className="form-select"
-                        name="subscribe"
-                        value={form.subscribe}
-                        onChange={handleChange}
-                    >
-                        <option value="1">Yes</option>
-                        <option value="0">No</option>
-                    </select>
-                </div>
-
-                <div className="col-md-4">
-                    <label className="form-label">App</label>
-                    <select
-                        className="form-select"
-                        name="app"
-                        value={form.app}
-                        onChange={handleChange}
-                    >
-                        <option value="1">Yes</option>
-                        <option value="0">No</option>
-                    </select>
-                </div>
-
-                <div className="col-md-4">
-                    <label className="form-label">Cover Image Path</label>
+                <div className="col-md-6">
+                    <label className="form-label">Header</label>
                     <input
                         type="text"
                         className="form-control"
-                        name="cover_image"
-                        value={form.cover_image}
+                        name="header"
+                        value={form.header}
                         onChange={handleChange}
-                        placeholder="e.g., images/cover.jpg"
                     />
                 </div>
 
-                <div className="col-12">
-                    <label className="form-label">Overview</label>
-                    <textarea
+                <div className="col-md-12">
+                    <label className="form-label">Tagline</label>
+                    <input
+                        type="text"
                         className="form-control"
-                        name="overview"
-                        value={form.overview}
+                        name="tagline"
+                        value={form.tagline}
                         onChange={handleChange}
-                        rows={2}
                     />
+                </div>
+
+                {/* ✅ CKEditor for details */}
+                <div className="col-12">
+                    <label className="form-label">Details</label>
+                    <div className="ckeditor-container">
+                        <CKEditorField value={form.details} onChange={handleDetailsChange} />
+                    </div>
                 </div>
 
                 <div className="col-12">
@@ -240,6 +167,64 @@ export default function InsertCoursePage() {
                         className="form-control"
                         name="video_title"
                         value={form.video_title}
+                        onChange={handleChange}
+                    />
+                </div>
+
+                <div className="col-md-6">
+                    <label className="form-label">Thumbnail Path</label>
+                    <input
+                        type="text"
+                        className="form-control"
+                        name="thumb_pic"
+                        value={form.thumb_pic}
+                        onChange={handleChange}
+                        placeholder="e.g., uploads/course/thumb.png"
+                    />
+                </div>
+
+                <div className="col-md-3">
+                    <label className="form-label">Order</label>
+                    <input
+                        type="number"
+                        className="form-control"
+                        name="ord"
+                        value={form.ord}
+                        onChange={handleChange}
+                    />
+                </div>
+
+                <div className="col-md-3">
+                    <label className="form-label">Status</label>
+                    <select
+                        className="form-select"
+                        name="status"
+                        value={form.status}
+                        onChange={handleChange}
+                    >
+                        <option value="1">Active</option>
+                        <option value="0">Inactive</option>
+                    </select>
+                </div>
+
+                <div className="col-md-6">
+                    <label className="form-label">Course Name Test Prep</label>
+                    <input
+                        type="text"
+                        className="form-control"
+                        name="course_name_test_prep"
+                        value={form.course_name_test_prep}
+                        onChange={handleChange}
+                    />
+                </div>
+
+                <div className="col-md-6">
+                    <label className="form-label">Course ID</label>
+                    <input
+                        type="text"
+                        className="form-control"
+                        name="course_id"
+                        value={form.course_id}
                         onChange={handleChange}
                     />
                 </div>

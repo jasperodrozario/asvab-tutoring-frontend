@@ -93,13 +93,13 @@ export default function Navbar() {
               </li>
 
               <li className="nav-item">
-                <Link href="how_it_works.html" className="nav-link text-white">HOW IT WORKS</Link>
+                <Link href="/how-it-works" className="nav-link text-white">HOW IT WORKS</Link>
               </li>
               <li className="nav-item">
                 <Link href="price.html" className="nav-link text-white">PRICING</Link>
               </li>
               <li className="nav-item">
-                <Link href="about.html" className="nav-link text-white">ABOUT US</Link>
+                <Link href="/about-us" className="nav-link text-white">ABOUT US</Link>
               </li>
               <li className="nav-item">
                 <Link href="blog.html" className="nav-link text-white">BLOG</Link>
