@@ -1,26 +1,40 @@
-// app/about-us/page.tsx
+// app/how-it-works/page.tsx
+"use client";
 import React from 'react';
 
-async function fetchHowItWorkPageData() {
+// Define the type for each item
+type HowItWorkItem = {
+  id: number | string;
+  title: string;
+  description: string;
+};
+
+// Fetch function with typed return
+async function fetchHowItWorkPageData(): Promise<HowItWorkItem[]> {
   try {
-    const response = await fetch('https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({ action: 'get-how-it-works' }),
-      // `cache: 'no-store'` disables static rendering to make sure it's dynamic
-      cache: 'no-store',
-    });
+    const response = await fetch(
+      'https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({ action: 'get-how-it-works' }),
+        cache: 'no-store', // disables static rendering for dynamic content
+      }
+    );
 
     const data = await response.json();
-    return data?.isSuccess ? data.data : [];
+
+    // Ensure the return type matches HowItWorkItem[]
+    return data?.isSuccess ? (data.data as HowItWorkItem[]) : [];
   } catch (error) {
     console.error('Failed to fetch How it works page content:', error);
     return [];
   }
 }
 
+// Main page component
 export default async function HowItWorkPage() {
   const aboutItems = await fetchHowItWorkPageData();
 
@@ -29,7 +43,7 @@ export default async function HowItWorkPage() {
       {/* Banner */}
       <div className="banner">
         <h1 className="text-white text-center bg-black bg-opacity-50 py-3 px-4 rounded">
-         How it works
+          How it works
         </h1>
       </div>
 
@@ -39,14 +53,16 @@ export default async function HowItWorkPage() {
         <hr className="mb-4 mt-2" />
 
         {aboutItems.length > 0 ? (
-          aboutItems.map((item: any) => (
+          aboutItems.map((item: HowItWorkItem) => (
             <div key={item.id} className="mb-4">
               <h5 className="text-dark">{item.title}</h5>
               <p className="text-secondary">{item.description}</p>
             </div>
           ))
         ) : (
-          <p className="text-muted">No how it works page content information available at the moment.</p>
+          <p className="text-muted">
+            No how it works page content information available at the moment.
+          </p>
         )}
       </div>
     </section>

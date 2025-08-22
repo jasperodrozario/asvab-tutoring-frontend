@@ -2,20 +2,28 @@
 
 import React, { useState } from 'react';
 import { CKEditor } from '@ckeditor/ckeditor5-react';
-import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import ClassicEditorBase from '@ckeditor/ckeditor5-build-classic';
 
 interface CKEditorFieldProps {
   value?: string;
   onChange?: (data: string) => void;
   placeholder?: string;
+  height?: string;
 }
 
-const CKEditorField: React.FC<CKEditorFieldProps> = ({ value = '', onChange, placeholder }) => {
+const CKEditorField: React.FC<CKEditorFieldProps> = ({
+  value = '',
+  onChange,
+  placeholder,
+  height = '300px'
+}) => {
   const [editorData, setEditorData] = useState(value);
 
   return (
     <CKEditor
-      editor={ClassicEditor}
+      // Temporary fix: allow any type for the editor to pass TS build
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      editor={ClassicEditorBase as any}
       data={editorData}
       config={{
         placeholder: placeholder || 'Start typing...',
@@ -26,9 +34,13 @@ const CKEditorField: React.FC<CKEditorFieldProps> = ({ value = '', onChange, pla
           'blockQuote', 'undo', 'redo', '|',
           'codeBlock', 'math', 'sourceEditing'
         ],
-        fontSize: {
-          options: ['tiny', 'small', 'default', 'big', 'huge']
-        },
+       
+      }}
+      onReady={(editor) => {
+        if (editor.ui.view.editable.element) {
+          editor.ui.view.editable.element.style.height = height;
+          editor.ui.view.editable.element.style.overflowY = 'auto';
+        }
       }}
       onChange={(event, editor) => {
         const data = editor.getData();
