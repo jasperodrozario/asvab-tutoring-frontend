@@ -3,14 +3,38 @@
 import { useState } from "react";
 import dynamic from "next/dynamic";
 
-// Dynamically import CKEditor and ClassicEditor (SSR-safe)
+// Dynamically import CKEditor and ClassicEditor
 const CKEditor = dynamic(
   async () => {
     const { CKEditor } = await import("@ckeditor/ckeditor5-react");
     const ClassicEditor =
       (await import("@ckeditor/ckeditor5-build-classic")).default;
-    return function CKEditorWrapper(props: any) {
-      return <CKEditor editor={ClassicEditor} {...props} />;
+
+    type Props = Omit<React.ComponentProps<typeof CKEditor>, 'editor'>;
+
+    return function CKEditorWrapper(props: Props) {
+      return (
+        <CKEditor
+          editor={ClassicEditor as any} // ✅ TS type fix
+          config={{
+            toolbar: [
+              'heading',
+              '|',
+              'bold',
+              'italic',
+              'underline',
+              'link',
+              'bulletedList',
+              'numberedList',
+              'blockQuote',
+              'insertTable',
+              'undo',
+              'redo',
+            ],
+          }}
+          {...props}
+        />
+      );
     };
   },
   { ssr: false }
@@ -47,10 +71,12 @@ export default function TutoringPackagePage() {
     e: React.ChangeEvent<HTMLInputElement>,
     field: "cover_image" | "payment_methode"
   ) => {
-    if (e.target.files && e.target.files[0]) {
-      setForm((prev) => ({ ...prev, [field]: e.target.files![0] }));
+    const file = e.target.files?.[0]; // safely access the first file
+    if (file) {
+      setForm((prev) => ({ ...prev, [field]: file }));
     }
   };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,15 +94,11 @@ export default function TutoringPackagePage() {
     formData.append("is_group_tutoring", form.is_group_tutoring);
     formData.append("is_web_subcription", form.is_web_subcription);
 
-    if (form.cover_image) {
-      formData.append("cover_image", form.cover_image); // no file.name
-    }
-    if (form.payment_methode) {
-      formData.append("payment_methode", form.payment_methode); // no file.name
-    }
+    if (form.cover_image) formData.append("cover_image", form.cover_image);
+    if (form.payment_methode) formData.append("payment_methode", form.payment_methode);
 
-    // 🔍 Debug: log what files are included
-    for (let pair of formData.entries()) {
+    // Debug log
+    for (const pair of formData.entries()) {
       console.log(pair[0], pair[1]);
     }
 
@@ -86,11 +108,11 @@ export default function TutoringPackagePage() {
         { method: "POST", body: formData }
       );
 
-      const data = await res.json();
+      const data: unknown = await res.json();
       console.log("API Response:", data);
 
-      if (data?.isSuccess) {
-        alert("Tutoring package added successfully!");
+      if ((data as any)?.isSuccess) {
+        alert("✅ Tutoring package added successfully!");
         setForm({
           name: "",
           description: "",
@@ -105,11 +127,11 @@ export default function TutoringPackagePage() {
           payment_methode: null,
         });
       } else {
-        alert(data?.message || "Failed to add package.");
+        alert((data as any)?.message || "❌ Failed to add package.");
       }
     } catch (error) {
       console.error(error);
-      alert("Something went wrong.");
+      alert("❌ Something went wrong.");
     } finally {
       setSubmitting(false);
     }
@@ -220,8 +242,8 @@ export default function TutoringPackagePage() {
           <label className="form-label">Description</label>
           <CKEditor
             data={form.description}
-            onChange={(event: unknown, editor: any) =>
-              setForm((prev) => ({ ...prev, description: editor.getData() }))
+            onChange={(_, editor) =>
+              setForm((prev) => ({ ...prev, description: (editor as any).getData() }))
             }
           />
         </div>

@@ -3,13 +3,39 @@
 import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
 
-// Dynamically import CKEditor so it only loads on client
+// Dynamically import CKEditor (client-only)
 const CKEditor = dynamic(
   async () => {
     const { CKEditor } = await import('@ckeditor/ckeditor5-react');
-    const ClassicEditor = (await import('@ckeditor/ckeditor5-build-classic')).default;
-    return function CKEditorWrapper(props: any) {
-      return <CKEditor editor={ClassicEditor} {...props} />;
+    const ClassicEditor =
+      (await import('@ckeditor/ckeditor5-build-classic')).default;
+
+    // Only allow passing props except "editor"
+    type Props = Omit<React.ComponentProps<typeof CKEditor>, 'editor'>;
+
+    return function CKEditorWrapper(props: Props) {
+      return (
+        <CKEditor
+          editor={ClassicEditor as any} // ✅ cast to fix TS Editor type error
+          config={{
+            toolbar: [
+              'heading',
+              '|',
+              'bold',
+              'italic',
+              'underline',
+              'link',
+              'bulletedList',
+              'numberedList',
+              'blockQuote',
+              'insertTable',
+              'undo',
+              'redo',
+            ],
+          }}
+          {...props}
+        />
+      );
     };
   },
   { ssr: false }
@@ -32,12 +58,12 @@ export default function InsertHowItWorksPage() {
         'https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php',
         { method: 'POST', body: formData }
       );
-      const data = await res.json();
+      const data: unknown = await res.json();
       console.log('Response:', data);
-      alert('How It Works inserted successfully!');
+      alert('✅ How It Works inserted successfully!');
     } catch (error) {
-      console.error(error);
-      alert('Failed to insert How It Works.');
+      console.error('Error inserting How It Works:', error);
+      alert('❌ Failed to insert How It Works.');
     }
   };
 
@@ -62,7 +88,9 @@ export default function InsertHowItWorksPage() {
           <label className="block font-medium">Description</label>
           <CKEditor
             data={description}
-            onChange={(event: any, editor: any) => setDescription(editor.getData())}
+            onChange={(_, editor) =>
+              setDescription((editor as any).getData())
+            }
           />
         </div>
 

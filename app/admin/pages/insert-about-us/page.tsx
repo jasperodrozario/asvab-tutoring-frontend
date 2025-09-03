@@ -7,9 +7,35 @@ import dynamic from 'next/dynamic';
 const CKEditor = dynamic(
   async () => {
     const { CKEditor } = await import('@ckeditor/ckeditor5-react');
-    const ClassicEditor = (await import('@ckeditor/ckeditor5-build-classic')).default;
-    return function CKEditorWrapper(props: any) {
-      return <CKEditor editor={ClassicEditor} {...props} />;
+    const ClassicEditor =
+      (await import('@ckeditor/ckeditor5-build-classic')).default;
+
+    // remove 'editor' from props so it can't be overridden
+    type Props = Omit<React.ComponentProps<typeof CKEditor>, 'editor'>;
+
+    return function CKEditorWrapper(props: Props) {
+      return (
+        <CKEditor
+          editor={ClassicEditor as any} // ✅ type casting fixes TS error
+          config={{
+            toolbar: [
+              'heading',
+              '|',
+              'bold',
+              'italic',
+              'underline',
+              'link',
+              'bulletedList',
+              'numberedList',
+              'blockQuote',
+              'insertTable',
+              'undo',
+              'redo',
+            ],
+          }}
+          {...props}
+        />
+      );
     };
   },
   { ssr: false }
@@ -34,7 +60,7 @@ export default function InsertAboutUsPage() {
       { method: 'POST', body: formData }
     );
 
-    const data = await res.json();
+    const data: unknown = await res.json();
     console.log('Response:', data);
     alert('About Us inserted successfully!');
   };
@@ -43,6 +69,7 @@ export default function InsertAboutUsPage() {
     <div className="p-6">
       <h1 className="text-xl font-semibold mb-4">Insert About Us</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Title */}
         <div>
           <label className="block font-medium">Title</label>
           <input
@@ -54,14 +81,16 @@ export default function InsertAboutUsPage() {
           />
         </div>
 
+        {/* Description */}
         <div>
           <label className="block font-medium">Description</label>
           <CKEditor
             data={description}
-            onChange={(event: any, editor: any) => setDescription(editor.getData())}
+            onChange={(_, editor) => setDescription((editor as any).getData())}
           />
         </div>
 
+        {/* Is Online */}
         <div>
           <label className="block font-medium">Is Online?</label>
           <select
@@ -74,6 +103,7 @@ export default function InsertAboutUsPage() {
           </select>
         </div>
 
+        {/* Submit */}
         <button
           type="submit"
           className="btn btn-primary-custom mt-4 px-5 py-2"
