@@ -418,3 +418,8 @@ a {
   min-height: 200px;
 }
 
+.ck-editor__editable {
+  min-height: 200px; /* adjust as needed */
+}
+
+

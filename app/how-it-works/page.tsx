@@ -1,40 +1,38 @@
 // app/how-it-works/page.tsx
-"use client";
-import React from 'react';
+import React from "react";
 
-// Define the type for each item
 type HowItWorkItem = {
   id: number | string;
   title: string;
   description: string;
 };
 
-// Fetch function with typed return
+// Server-side fetch with caching only per request
 async function fetchHowItWorkPageData(): Promise<HowItWorkItem[]> {
   try {
     const response = await fetch(
-      'https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php',
+      "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
       {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+          "Content-Type": "application/x-www-form-urlencoded",
         },
-        body: new URLSearchParams({ action: 'get-how-it-works' }),
-        cache: 'no-store', // disables static rendering for dynamic content
+        body: new URLSearchParams({ action: "get-how-it-works" }),
+        cache: "force-cache", // cache for the lifetime of request
       }
     );
 
     const data = await response.json();
-
-    // Ensure the return type matches HowItWorkItem[]
     return data?.isSuccess ? (data.data as HowItWorkItem[]) : [];
   } catch (error) {
-    console.error('Failed to fetch How it works page content:', error);
+    console.error("Failed to fetch How it works page content:", error);
     return [];
   }
 }
 
-// Main page component
+// ✅ Force server-rendering (no static HTML)
+export const dynamic = "force-dynamic";
+
 export default async function HowItWorkPage() {
   const aboutItems = await fetchHowItWorkPageData();
 

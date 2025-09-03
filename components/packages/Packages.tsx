@@ -1,36 +1,52 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 
-const packages = [
-  {
-    title: 'SIFT',
-    price: '$85.00 - $960.00',
-    image: '/images/sift.webp',
-  },
-  {
-    title: 'AFOQT',
-    price: '$85.00 - $960.00',
-    image: '/images/afqft_b.webp',
-  },
-  {
-    title: 'OAR',
-    price: '$85.00 - $960.00',
-    image: '/images/oar_g.webp',
-  },
-  {
-    title: 'ASTB',
-    price: '$85.00 - $960.00',
-    image: '/images/astb_b.webp',
-  },
-  {
-    title: 'ASVAB',
-    price: '$75.00 - $700.00',
-    image: '/images/asvab-courses-d.jpg',
-  },
-];
+type TutorPackage = {
+  id: string;
+  name: string;
+  description: string;
+  course_id: string;
+  price: string;
+  sessions: string;
+  free_sessions: string;
+  cover_image: string;
+  payment_methode: string;
+  is_one_to_one: string;
+  is_group_tutoring: string;
+  is_web_subcription: string;
+};
 
 const Packages = () => {
+  const [packages, setPackages] = useState<TutorPackage[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPackages = async () => {
+      try {
+        const formData = new FormData();
+        formData.append('action', 'get-tutor-packages');
+
+        const res = await fetch(
+          'https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php',
+          { method: 'POST', body: formData }
+        );
+
+        const data = await res.json();
+        if (data?.isSuccess) {
+          setPackages(data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching tutor packages:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPackages();
+  }, []);
+
   return (
     <section className="bg-white py-5 text-center">
       <div className="container">
@@ -62,29 +78,37 @@ const Packages = () => {
 
         {/* Packages Grid */}
         <div className="row justify-content-center g-4 mb-5">
-          {packages.map((pkg, index) => (
-            <div key={index} className="col-12 col-sm-6 col-md-4 col-lg-4 hover-lift">
-              <div className="card h-100 shadow-sm">
-                <Image
-                  src={pkg.image}
-                  alt={pkg.title}
-                  width={500}
-                  height={300}
-                  className="card-img-top"
-                  style={{ height: 'auto', objectFit: 'cover' }}
-                />
-                <div className="card-body text-start">
-                  <h5 className="card-title fw-bold text-primary">{pkg.title}</h5>
-                  <p className="card-text text-secondary fw-semibold">{pkg.price}</p>
-                  <div className="text-center">
-                    <a href="#" className="btn btn-secondary-custom btn-sm w-50">
-                      Details
-                    </a>
+          {loading ? (
+            <p>Loading packages...</p>
+          ) : (
+            packages.map((pkg) => (
+              <div key={pkg.id} className="col-12 col-sm-6 col-md-4 col-lg-4 hover-lift">
+                <div className="card h-100 shadow-sm">
+                  <Image
+                    src={`https://test-prep.asvab-tutoring.com/${pkg.cover_image}`}
+                    alt={pkg.name}
+                    width={500}
+                    height={300}
+                    className="card-img-top"
+                    style={{ height: 'auto', objectFit: 'cover' }}
+                  />
+                  <div className="card-body text-start">
+                    <h5 className="card-title fw-bold text-primary">{pkg.name}</h5>
+                    <p className="card-text text-secondary fw-semibold">${pkg.price}</p>
+                    <p className="small text-muted">{pkg.description}</p>
+                    <p className="small">
+                      Sessions: {pkg.sessions} | Free: {pkg.free_sessions}
+                    </p>
+                    <div className="text-center">
+                      <a href="#" className="btn btn-secondary-custom btn-sm w-50">
+                        Details
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
 
         {/* Notes */}
@@ -101,35 +125,6 @@ const Packages = () => {
         <a href="/tutors" className="btn btn-primary-custom fw-semibold text-white px-4 py-2 mb-4">
           ENROLL NOW
         </a>
-      </div>
-
-      {/* Call to Action Section */}
-      <div className="mt-5 position-relative text-white overflow-hidden">
-        <div
-          className="py-5 d-flex flex-column flex-md-row justify-content-between align-items-center rounded bg-cover-overlay w-100"
-          style={{
-            backgroundImage: 'url(/images/productimage.jpg)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-          }}
-        >
-          {/* Dark Overlay */}
-          <div className="position-absolute top-0 start-0 w-100 h-100 bg-black opacity-50"></div>
-
-          {/* Content */}
-          <div className="container position-relative z-1 d-flex flex-column flex-md-row justify-content-between align-items-center">
-            <h3 className="fs-4 fs-md-3 fw-bold text-center text-md-start mb-3 mb-md-0">
-              Great News! Take your Free ASVAB and AFQT exam now!
-            </h3>
-            <a
-              href="get_started.html"
-              className="btn btn-primary-custom text-white fw-semibold d-inline-flex align-items-center gap-2"
-            >
-              <i className="bi bi-hand-index-thumb-fill"></i> Get Started
-            </a>
-          </div>
-        </div>
       </div>
     </section>
   );

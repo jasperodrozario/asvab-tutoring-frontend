@@ -8,11 +8,18 @@ const menuItems = [
   {
     title: 'Content Management',
     children: [
-      { label: 'Pages', href: '/admin/pages' },
+      {
+        label: 'Pages',
+        href: '/admin/pages',
+        children: [ // ✅ Added children under Pages
+          { label: 'About Us', href: '/admin/pages/insert-about-us' },
+          { label: 'How It Works', href: '/admin/pages/insert-how-it-works' },
+        ],
+      },
       { label: 'Blogs', href: '/admin/blogs' },
       { label: 'Courses', href: '/admin/courses' },
       { label: 'Teachers', href: '/admin/teachers' },
-      { label: 'FAQ', href: '/admin/faqs' },
+      { label: 'FAQ', href: '/admin/add-faq' },
 
       { label: 'Add Tutoring Package', href: '/admin/tutoring-package' },
       { label: 'Insert Tutor', href: '/admin/insert-tutor' },
@@ -25,7 +32,6 @@ const menuItems = [
       { label: '1-on-1 tutoring', href: '/admin/content-list' },
       { label: 'Group-tutoring', href: '/admin/add-content' },
       { label: 'Web Subscription', href: '/admin/subscription' },
-
     ],
   },
   {
@@ -47,7 +53,6 @@ const menuItems = [
     children: [
       { label: 'Site Setting', href: '/admin/site-setting' },
       { label: 'Change Admin Password', href: '/admin/change-password' },
-
       // { label: 'Questions', href: '/admin/questions' },
     ],
   },
@@ -75,9 +80,7 @@ export default function Sidebar() {
       </div>
       <ul className="nav flex-column">
         {menuItems.map(({ title, children }) => (
-
           <li className="nav-item" key={title}>
-
             <button
               className="btn text-start w-100 text-white px-3 py-2 d-flex justify-content-between align-items-center"
               onClick={() => toggleMenu(title)}
@@ -91,7 +94,7 @@ export default function Sidebar() {
 
             {openMenus[title] && (
               <ul className="nav flex-column ms-3">
-                {children.map(({ label, href }) => (
+                {children.map(({ label, href, children: subChildren }) => (
                   <li className="nav-item" key={href}>
                     <Link
                       href={href}
@@ -99,6 +102,22 @@ export default function Sidebar() {
                     >
                       {label}
                     </Link>
+
+                    {/* ✅ Render sub-menus if available */}
+                    {subChildren && (
+                      <ul className="nav flex-column ms-3">
+                        {subChildren.map(({ label, href }) => (
+                          <li className="nav-item" key={href}>
+                            <Link
+                              href={href}
+                              className={`nav-link py-1 ${pathname === href ? 'text-warning fw-bold' : 'text-white'}`}
+                            >
+                              {label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </li>
                 ))}
               </ul>
