@@ -1,45 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import dynamic from 'next/dynamic';
-
-// Dynamically import CKEditor so it only loads on client
-const CKEditor = dynamic(
-  async () => {
-    const { CKEditor } = await import('@ckeditor/ckeditor5-react');
-    const ClassicEditor =
-      (await import('@ckeditor/ckeditor5-build-classic')).default;
-
-    // remove 'editor' from props so it can't be overridden
-    type Props = Omit<React.ComponentProps<typeof CKEditor>, 'editor'>;
-
-    return function CKEditorWrapper(props: Props) {
-      return (
-        <CKEditor
-          editor={ClassicEditor as any} // ✅ type casting fixes TS error
-          config={{
-            toolbar: [
-              'heading',
-              '|',
-              'bold',
-              'italic',
-              'underline',
-              'link',
-              'bulletedList',
-              'numberedList',
-              'blockQuote',
-              'insertTable',
-              'undo',
-              'redo',
-            ],
-          }}
-          {...props}
-        />
-      );
-    };
-  },
-  { ssr: false }
-);
+import CKEditorField from '@/components/ckeditor/CKEditorField';
 
 export default function InsertAboutUsPage() {
   const [title, setTitle] = useState('');
@@ -84,9 +46,10 @@ export default function InsertAboutUsPage() {
         {/* Description */}
         <div>
           <label className="block font-medium">Description</label>
-          <CKEditor
-            data={description}
-            onChange={(_, editor) => setDescription((editor as any).getData())}
+          <CKEditorField
+            value={description}
+            onChange={setDescription}
+            placeholder="Enter description..."
           />
         </div>
 

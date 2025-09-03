@@ -1,44 +1,7 @@
 'use client';
 
 import { useState } from "react";
-import dynamic from "next/dynamic";
-
-// Dynamically import CKEditor and ClassicEditor
-const CKEditor = dynamic(
-  async () => {
-    const { CKEditor } = await import("@ckeditor/ckeditor5-react");
-    const ClassicEditor =
-      (await import("@ckeditor/ckeditor5-build-classic")).default;
-
-    type Props = Omit<React.ComponentProps<typeof CKEditor>, 'editor'>;
-
-    return function CKEditorWrapper(props: Props) {
-      return (
-        <CKEditor
-          editor={ClassicEditor as any} // ✅ TS type fix
-          config={{
-            toolbar: [
-              'heading',
-              '|',
-              'bold',
-              'italic',
-              'underline',
-              'link',
-              'bulletedList',
-              'numberedList',
-              'blockQuote',
-              'insertTable',
-              'undo',
-              'redo',
-            ],
-          }}
-          {...props}
-        />
-      );
-    };
-  },
-  { ssr: false }
-);
+import CKEditorField from '@/components/ckeditor/CKEditorField';
 
 export default function TutoringPackagePage() {
   const [form, setForm] = useState({
@@ -71,12 +34,11 @@ export default function TutoringPackagePage() {
     e: React.ChangeEvent<HTMLInputElement>,
     field: "cover_image" | "payment_methode"
   ) => {
-    const file = e.target.files?.[0]; // safely access the first file
+    const file = e.target.files?.[0];
     if (file) {
       setForm((prev) => ({ ...prev, [field]: file }));
     }
   };
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -240,11 +202,11 @@ export default function TutoringPackagePage() {
         {/* CKEditor for Description */}
         <div className="col-12">
           <label className="form-label">Description</label>
-          <CKEditor
-            data={form.description}
-            onChange={(_, editor) =>
-              setForm((prev) => ({ ...prev, description: (editor as any).getData() }))
-            }
+          <CKEditorField
+            value={form.description}
+            onChange={(data) => setForm((prev) => ({ ...prev, description: data }))}
+            placeholder="Enter package description..."
+            height="250px"
           />
         </div>
 
