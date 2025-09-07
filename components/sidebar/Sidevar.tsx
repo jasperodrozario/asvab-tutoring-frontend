@@ -22,8 +22,11 @@ const menuItems = [
       { label: 'FAQ', href: '/admin/add-faq' },
 
       { label: 'Add Tutoring Package', href: '/admin/tutoring-package' },
+       { label: 'Add Tutoring Package Sessions', href: '/admin/tutoring-package-sessions' },
       { label: 'Insert Tutor', href: '/admin/insert-tutor' },
       { label: 'Insert Course', href: '/admin/insert-course' },
+
+      
     ],
   },
   {
