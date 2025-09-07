@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 
 const CKEditorField = dynamic(
@@ -8,53 +8,52 @@ const CKEditorField = dynamic(
   { ssr: false }
 );
 
-interface FormState {
-  name: string;
-  description: string;
+interface Course {
   course_id: string;
-  price: string;
-  sessions: string;
-  free_sessions: string;
-  is_one_to_one: 'Y' | 'N';
-  is_group_tutoring: 'Y' | 'N';
-  is_web_subcription: 'Y' | 'N';
-  cover_image: File | null;
-  payment_methode: File | null;
+  name: string;
+}
+
+interface FormState {
+  course_id: string;
+  title: string;
+  description: string;
+  code_name: string;
+  num_of_sessions: string;
+  order: string;
 }
 
 export default function TutoringPackagePage() {
   const [form, setForm] = useState<FormState>({
-    name: '',
-    description: '',
     course_id: '',
-    price: '',
-    sessions: '',
-    free_sessions: '',
-    is_one_to_one: 'N',
-    is_group_tutoring: 'N',
-    is_web_subcription: 'N',
-    cover_image: null,
-    payment_methode: null,
+    title: '',
+    description: '',
+    code_name: '',
+    num_of_sessions: '',
+    order: '',
   });
 
+  const [courses, setCourses] = useState<Course[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // ✅ Fetch course list
+  useEffect(() => {
+    const fetchCourses = async () => {
+      const formData = new FormData();
+      formData.append('action', 'course-list-tutoring-package');
+
+      const res = await fetch(
+        'https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php',
+        { method: 'POST', body: formData }
+      );
+      const data = await res.json();
+      if (data?.isSuccess) setCourses(data.data);
+    };
+    fetchCourses();
+  }, []);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, checked } = e.target;
-    setForm((prev) => ({ ...prev, [name]: checked ? 'Y' : 'N' }));
-  };
-
-  const handleFileChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    field: 'cover_image' | 'payment_methode'
-  ) => {
-    const file = e.target.files?.[0];
-    if (file) setForm((prev) => ({ ...prev, [field]: file }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -64,8 +63,7 @@ export default function TutoringPackagePage() {
     const formData = new FormData();
     formData.append('action', 'add-tutoring-package');
     Object.entries(form).forEach(([key, value]) => {
-      if (value instanceof File) formData.append(key, value);
-      else formData.append(key, value ?? ''); // ✅ ensure string
+      formData.append(key, value);
     });
 
     try {
@@ -74,23 +72,18 @@ export default function TutoringPackagePage() {
         { method: 'POST', body: formData }
       );
       const data = await res.json();
-      if ((data as any)?.isSuccess) {
+      if (data?.isSuccess) {
         alert('✅ Tutoring package added successfully!');
         setForm({
-          name: '',
-          description: '',
           course_id: '',
-          price: '',
-          sessions: '',
-          free_sessions: '',
-          is_one_to_one: 'N',
-          is_group_tutoring: 'N',
-          is_web_subcription: 'N',
-          cover_image: null,
-          payment_methode: null,
+          title: '',
+          description: '',
+          code_name: '',
+          num_of_sessions: '',
+          order: '',
         });
       } else {
-        alert((data as any)?.message || '❌ Failed to add package');
+        alert(data?.message || '❌ Failed to add package');
       }
     } catch (error) {
       console.error(error);
@@ -104,91 +97,74 @@ export default function TutoringPackagePage() {
     <div className="container my-5">
       <h1 className="mb-4">Add New Tutoring Package</h1>
       <form onSubmit={handleSubmit} className="row g-3">
-        {/* Name */}
-        <div className="col-md-6">
-          <label className="form-label">Package Name</label>
-          <input
-            type="text"
-            className="form-control"
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-            required
-          />
-        </div>
 
-        {/* Course ID */}
+        {/* Course Dropdown */}
         <div className="col-md-6">
-          <label className="form-label">Course ID</label>
-          <input
-            type="text"
-            className="form-control"
+          <label className="form-label">Select Course</label>
+          <select
+            className="form-select"
             name="course_id"
             value={form.course_id}
             onChange={handleChange}
             required
-          />
+          >
+            <option value="">-- Select Course --</option>
+            {courses.map((course) => (
+              <option key={course.course_id} value={course.course_id}>
+                {course.name}
+              </option>
+            ))}
+          </select>
         </div>
 
-        {/* Price */}
+        {/* Title */}
         <div className="col-md-6">
-          <label className="form-label">Price</label>
+          <label className="form-label">Title</label>
           <input
-            type="number"
+            type="text"
             className="form-control"
-            name="price"
-            value={form.price}
+            name="title"
+            value={form.title}
             onChange={handleChange}
             required
           />
         </div>
 
-        {/* Sessions */}
+        {/* Code Name */}
         <div className="col-md-6">
-          <label className="form-label">Total Sessions</label>
+          <label className="form-label">Code Name</label>
           <input
-            type="number"
+            type="text"
             className="form-control"
-            name="sessions"
-            value={form.sessions}
+            name="code_name"
+            value={form.code_name}
             onChange={handleChange}
             required
           />
         </div>
 
-        {/* Free Sessions */}
+        {/* Number of Sessions */}
         <div className="col-md-6">
-          <label className="form-label">Free Sessions</label>
+          <label className="form-label">Number of Sessions</label>
           <input
             type="number"
             className="form-control"
-            name="free_sessions"
-            value={form.free_sessions}
+            name="num_of_sessions"
+            value={form.num_of_sessions}
             onChange={handleChange}
             required
           />
         </div>
 
-        {/* Cover Image */}
+        {/* Order */}
         <div className="col-md-6">
-          <label className="form-label">Cover Image</label>
+          <label className="form-label">Order</label>
           <input
-            type="file"
+            type="number"
             className="form-control"
-            accept="image/*"
-            onChange={(e) => handleFileChange(e, 'cover_image')}
-            required
-          />
-        </div>
-
-        {/* Payment Method */}
-        <div className="col-md-6">
-          <label className="form-label">Payment Method</label>
-          <input
-            type="file"
-            className="form-control"
-            accept="image/*"
-            onChange={(e) => handleFileChange(e, 'payment_methode')}
+            name="order"
+            value={form.order}
+            onChange={handleChange}
             required
           />
         </div>
@@ -202,26 +178,10 @@ export default function TutoringPackagePage() {
           />
         </div>
 
-        {/* Package Type */}
-        <div className="col-12 d-flex gap-4 mt-3">
-          {['is_one_to_one', 'is_group_tutoring', 'is_web_subcription'].map((key) => (
-            <div key={key} className="form-check">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                name={key}
-                checked={(form as any)[key] === 'Y'}
-                onChange={handleCheckboxChange}
-              />
-              <label className="form-check-label">{key.replace(/_/g, ' ')}</label>
-            </div>
-          ))}
-        </div>
-
         <div className="col-12">
           <button
             type="submit"
-            className="btn btn-primary w-50 d-block mx-auto mt-4"
+            className="btn btn-primary-custom mt-4 px-5 py-2"
             disabled={submitting}
           >
             {submitting ? 'Submitting...' : 'Add Package'}
