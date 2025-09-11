@@ -2,8 +2,19 @@
 
 import { useState } from "react";
 
+interface TutorForm {
+  name: string;
+  designation: string;
+  tutor_order: string;
+  photo: string | File; // can be string path or File
+  about: string;
+  education: string;
+  specialization: string;
+  language: string;
+}
+
 export default function InsertTutorPage() {
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<TutorForm>({
     name: "",
     designation: "",
     tutor_order: "",
@@ -27,18 +38,25 @@ export default function InsertTutorPage() {
     e.preventDefault();
     setSubmitting(true);
 
-    const formData = new FormData();
-    formData.append("action", "insert-tutor");
-    formData.append("name", form.name);
-    formData.append("designation", form.designation);
-    formData.append("tutor_order", form.tutor_order);
-    formData.append("photo", form.photo);
-    formData.append("about", form.about);
-    formData.append("education", form.education || "");
-    formData.append("specialization", form.specialization || "");
-    formData.append("language", form.language || "");
-
     try {
+      const formData = new FormData();
+      formData.append("action", "insert-tutor");
+      formData.append("name", form.name);
+      formData.append("designation", form.designation);
+      formData.append("tutor_order", form.tutor_order);
+
+      // Handle File or string for photo
+      if (form.photo instanceof File) {
+        formData.append("photo", form.photo);
+      } else {
+        formData.append("photo", form.photo);
+      }
+
+      formData.append("about", form.about);
+      formData.append("education", form.education || "");
+      formData.append("specialization", form.specialization || "");
+      formData.append("language", form.language || "");
+
       const res = await fetch(
         "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
         {
@@ -119,17 +137,23 @@ export default function InsertTutorPage() {
           />
         </div>
 
-        {/* Photo */}
+        {/* Upload Photo */}
         <div className="col-md-6">
-          <label className="form-label">Photo Path</label>
+          <label className="form-label">Upload Photo</label>
           <input
-            type="text"
+            type="file"
             className="form-control"
             name="photo"
-            value={form.photo}
-            onChange={handleChange}
+            accept="image/*"
+            onChange={(e) => {
+              if (e.target.files && e.target.files[0]) {
+                setForm((prev) => ({
+                  ...prev,
+                  photo: e.target.files![0],
+                }));
+              }
+            }}
             required
-            placeholder="e.g., uploads/tutor/your_image.png"
           />
         </div>
 

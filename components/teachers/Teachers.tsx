@@ -22,10 +22,10 @@ export default function Teachers() {
       formData.append('action', 'get-tutor-list');
 
       try {
-        const res = await fetch(
-          'https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php',
-          { method: 'POST', body: formData }
-        );
+        const res = await fetch("https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php", {
+          method: "POST",
+          body: formData,
+        });
 
         const data = await res.json();
 
@@ -70,12 +70,14 @@ export default function Teachers() {
                 <div className="card h-100 shadow-sm text-center">
                   <div className="pt-4">
                     <Image
-                      src={`https://test-prep.asvab-tutoring.com/practice-test/${teacher.photo}`}
+                      src={teacher.photo} // full URL from API
                       alt={teacher.name || 'Tutor'}
                       width={160}
                       height={160}
                       style={{ objectFit: 'contain' }}
+                      unoptimized={true}
                     />
+
                   </div>
                   <div className="card-body d-flex flex-column text-start px-4">
                     <h5 className="card-title text-center fw-semibold mt-3">

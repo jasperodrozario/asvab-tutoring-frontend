@@ -23,7 +23,7 @@ const CKEditorField: React.FC<CKEditorFieldProps> = ({
     <CKEditor
       // Temporary fix: allow any type for the editor to pass TS build
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      editor={ClassicEditorBase as any}
+      editor={ClassicEditorBase as unknown as any}
       data={editorData}
       config={{
         placeholder: placeholder || 'Start typing...',

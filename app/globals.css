@@ -422,4 +422,17 @@ a {
   min-height: 200px; /* adjust as needed */
 }
 
+/* Custom color for checked radio buttons */
+.form-check-input:checked {
+    background-color: #f2a155 !important;
+    border-color: #f2a155 !important;
+}
+
+/* Optional: hover/focus states */
+.form-check-input:focus {
+    border-color: #f2a155 !important;
+    box-shadow: 0 0 0 0.25rem rgba(242, 161, 85, 0.25);
+}
+
+
 
