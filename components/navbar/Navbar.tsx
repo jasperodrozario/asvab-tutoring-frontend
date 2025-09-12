@@ -84,8 +84,8 @@ export default function Navbar() {
                   SERVICES <FaCaretDown className="fs-4" />
                 </Link>
                 <ul className="dropdown-menu mt-0" aria-labelledby="servicesDropdown">
-                  <li><Link  className="dropdown-item" href="asvab.html">ASVAB</Link></li>
-                  <li><Link className="dropdown-item" href="astb.html">ASTB</Link></li>
+                  <li><Link  className="dropdown-item" href="/course-detail/8">ASVAB</Link></li>
+                  <li><Link className="dropdown-item" href="/course-detail/9">ASTB</Link></li>
                   <li><Link className="dropdown-item" href="oar.html">OAR</Link></li>
                   <li><Link className="dropdown-item" href="afoqt.html">AFOQT</Link></li>
                   <li><Link className="dropdown-item" href="sift.html">SIFT</Link></li>

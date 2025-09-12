@@ -1,5 +1,6 @@
 'use client';
 
+import Link from "next/link";
 import { Suspense, useState, useEffect } from "react";
 import { useParams, useSearchParams } from 'next/navigation';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -77,20 +78,6 @@ interface UserAnswers {
 
 // Utility functions
 
-const htmlEntityDecodeParser = (str: string): string => {
-    if (!str || typeof window === 'undefined') return str || '';
-    try {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(`<!DOCTYPE html><html><body>${str}</body></html>`, 'text/html');
-        return doc.body.textContent || doc.body.innerText || '';
-    } catch (error) {
-        console.warn('Failed to decode with DOMParser:', error);
-        return str;
-    }
-};
-
-const stripHtmlTags = (str: string): string => str ? str.replace(/<[^>]*>/g, '') : '';
-
 function cleanQuestionText(input: string): string {
     if (!input) return "";
     const txt = document.createElement("textarea");
@@ -108,11 +95,6 @@ function cleanQuestionText(input: string): string {
     return decoded.trim();
 }
 
-const cleanText = (str: string): string => {
-    if (!str) return '';
-    return str.replace(/\s+/g, ' ').trim();
-};
-
 const processHtmlContent = (htmlString: string): string => {
     if (!htmlString) return '';
     if (typeof window !== 'undefined') {
@@ -127,27 +109,6 @@ const processHtmlContent = (htmlString: string): string => {
     return htmlString;
 };
 
-const getPlainTextPreview = (htmlString: string, maxLength: number = 100): string => {
-    if (!htmlString) return 'No description available';
-    try {
-        let processedText = htmlEntityDecodeParser(htmlString);
-        processedText = stripHtmlTags(processedText);
-        processedText = cleanText(processedText);
-
-        if (processedText.length > maxLength) {
-            const truncated = processedText.substring(0, maxLength);
-            const lastSpaceIndex = truncated.lastIndexOf(' ');
-            if (lastSpaceIndex > maxLength * 0.8) {
-                processedText = truncated.substring(0, lastSpaceIndex) + '...';
-            } else {
-                processedText = truncated + '...';
-            }
-        }
-        return processedText;
-    } catch {
-        return 'Description unavailable';
-    }
-};
 
 // Main Component
 const CourseDetailPage: React.FC = () => {
@@ -249,10 +210,13 @@ const CourseDetailPage: React.FC = () => {
     return (
         <>
             {/* Page Title */}
-            <div className="page-title-area bg-primary text-white py-5" style={{ marginTop: '110px' }}>
+            <div className="page-title-area text-white py-5">
                 <div className="container text-center">
                     <h2>{courseData.course_header?.toUpperCase() || 'Course Title'}</h2>
-                    <h4>{courseData.course_tagline?.toUpperCase() || 'Course Tagline'}{location && <span> in <b>{location.replace(/-/g, ' ')}</b></span>}</h4>
+                    <h4>
+                        {courseData.course_tagline?.toUpperCase() || 'Course Tagline'}
+                        {location && <span> in <b>{location.replace(/-/g, ' ')}</b></span>}
+                    </h4>
                 </div>
             </div>
 
@@ -269,7 +233,7 @@ const CourseDetailPage: React.FC = () => {
                                             {i < 4 || (courseData.ft_cat_list && courseData.ft_cat_list.length > 0) ? (
                                                 <button
                                                     className={`nav-link ${activeTab === i ? 'active' : ''}`}
-                                                    onClick={() => { setActiveTab(i); if (i === 4) { setTestSubmitted(false); setTestResults(null); setUserAnswers({}) } }}
+                                                    onClick={() => { setActiveTab(i); if (i === 3) { setTestSubmitted(false); setTestResults(null); setUserAnswers({}) } }}
                                                 >{tab}</button>
                                             ) : null}
                                         </li>
@@ -337,10 +301,8 @@ const CourseDetailPage: React.FC = () => {
                                     )}
 
 
-
-
                                     {/* Online Free Test */}
-                                    {activeTab === 4 && courseData.ft_cat_list && (
+                                    {activeTab === 3 && courseData.ft_cat_list && (
                                         <div className="online-test-content container py-4">
                                             <h3 className="text-center mb-4">Online Free Test</h3>
 
@@ -350,7 +312,7 @@ const CourseDetailPage: React.FC = () => {
                                                     <li key={idx} className="nav-item">
                                                         <button className={`nav-link ${activeCategory === idx ? 'active' : ''}`}
                                                             onClick={() => { setActiveCategory(idx); setTestSubmitted(false); setTestResults(null); setUserAnswers({}) }}
-                                                            style={{ backgroundColor: activeCategory === idx ? '#ffb607' : 'transparent', color: activeCategory === idx ? 'white' : '#495057' }}>
+                                                            style={{ backgroundColor: activeCategory === idx ? '#e58a34' : 'transparent', color: activeCategory === idx ? 'white' : '#495057' }}>
                                                             {cat}
                                                         </button>
                                                     </li>
@@ -397,19 +359,28 @@ const CourseDetailPage: React.FC = () => {
                                                                     Question {i + 1}: {res.isCorrect ? 'Correct' : 'Incorrect'}
                                                                 </div>
                                                                 <div className="card-body">
-                                                                    <div dangerouslySetInnerHTML={{ __html: processHtmlContent(res.question) }} />
+                                                                    {/* Question */}
+                                                                   <div>{cleanQuestionText(res.question)}</div>
+
+                                                                    {/* Options */}
                                                                     <div>
                                                                         {res.options.map((opt, oIdx) => {
                                                                             let cls = '';
                                                                             if (oIdx === res.correctAnswer) cls = 'text-success fw-bold';
                                                                             else if (res.userAnswer !== null && oIdx === res.userAnswer && !res.isCorrect) cls = 'text-danger';
-                                                                            return <div key={oIdx} className={`my-2 p-2 rounded ${cls}`} dangerouslySetInnerHTML={{ __html: `${String.fromCharCode(65 + oIdx)}. ${opt}` }} />
+
+                                                                            return (
+                                                                                <div key={oIdx} className={`my-2 p-2 rounded ${cls}`}>
+                                                                                    {String.fromCharCode(65 + oIdx)}. {cleanQuestionText(opt)}
+                                                                                </div>
+                                                                            );
                                                                         })}
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                         ))}
                                                     </div>
+
                                                 )
                                             )}
 
@@ -426,39 +397,46 @@ const CourseDetailPage: React.FC = () => {
                         </div>
 
                         {/* Sidebar: Related Courses */}
+
+
                         <div className="col-lg-4">
                             {courseData.related_courses && courseData.related_courses.length > 0 && (
                                 <div className="related-courses-sidebar sticky-top" style={{ top: '120px' }}>
-                                    <h5 className="text-warning fw-bold mb-4">
+                                    <h4 className="fw-bold mb-4" style={{ color: '#e58a34' }}>
                                         Related Courses{location && ` ${location.replace(/-/g, ' ')}`}
-                                    </h5>
+                                    </h4>
                                     {courseData.related_courses.map((course, i) => (
                                         <div key={i} className="card mb-3">
-                                            <a href={`/course/${course.course_code}`}>
+                                            <Link href={`/course-detail/${encodeURIComponent(course.course_code)}`}>
+
                                                 <img
                                                     src={course.image || '/img/default-course.jpg'}
                                                     alt={course.name}
                                                     className="card-img-top"
-                                                    style={{ height: '120px', objectFit: 'cover' }}
+                                                    style={{ height: '200px', objectFit: 'cover' }}
                                                 />
-                                            </a>
+
+                                            </Link>
                                             <div className="card-body p-2">
-                                                <a href={`/course/${course.course_code}`} className="text-decoration-none">
-                                                    <h6 className="card-title mb-1">{course.name}</h6>
-                                                </a>
-                                                <p className="card-text small mb-2">{getPlainTextPreview(course.details || '', 60)}</p>
-                                                <a
+                                                <Link href={`/course-detail/${encodeURIComponent(course.course_code)}`} className="text-decoration-none">
+                                                    <h6 className="card-title mb-1">{cleanQuestionText(course.name)}</h6>
+                                                </Link>
+                                                <p className="card-text small mb-2">
+                                                    {cleanQuestionText(course.details || '').substring(0, 100) + (course.details && course.details.length > 100 ? '...' : '')}
+                                                </p>
+                                                {/* <a
                                                     href={course.subscribe_button_url || '#'}
                                                     className="btn btn-sm btn-primary w-100"
                                                 >
                                                     Subscribe
-                                                </a>
+                                                </a> */}
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             )}
                         </div>
+
 
 
                     </div>

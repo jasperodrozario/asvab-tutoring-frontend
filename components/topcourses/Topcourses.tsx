@@ -170,9 +170,9 @@ const resolveImageUrl = (path: string): string => {
                       {getPlainTextPreview(course.details, 100)}
                     </p>
                     <div className="text-center mt-auto">
-                      <Link href="#" className="btn btn-secondary-custom btn-sm w-50">
-                        LEARN MORE
-                      </Link>
+                    <Link href={`/course-detail/${encodeURIComponent(course.course_code)}`} className="btn btn-secondary-custom btn-sm w-50">
+  LEARN MORE
+</Link>
                     </div>
                   </div>
                 </div>

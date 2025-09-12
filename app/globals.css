@@ -435,4 +435,42 @@ a {
 }
 
 
+/* Course Detail Page */
+.page-title-area {
+    position: relative;
+    background-image: url('/images/course_detail_page_cover.jpg'); /* set your static image path here */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    overflow: hidden;
+}
 
+.page-title-area::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    backdrop-filter: blur(2px);
+    background-color: rgba(0, 0, 0, 0.7); /* Dark overlay for text readability */
+    z-index: 0;
+}
+
+.page-title-area .container {
+    position: relative;
+    z-index: 1; /* Keep text above overlay */
+}
+
+
+/* Default color for all nav links */
+.nav-tabs .nav-link {
+    color: #e58a34;
+}
+
+/* Active tab color (Bootstrap already applies .active) */
+/* .nav-tabs .nav-link.active {
+    color: #fff; 
+    background-color: #f7ac67; 
+    border-color: #e58a34 #e58a34 #fff;
+} */
