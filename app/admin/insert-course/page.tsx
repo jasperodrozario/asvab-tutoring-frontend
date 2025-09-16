@@ -21,11 +21,11 @@ export default function InsertCoursePage() {
     status: "1",
     course_name_test_prep: "",
     video_title: "",
-    course_id: "",
   });
 
   const [thumbnail, setThumbnail] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [resetCounter, setResetCounter] = useState(0);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -38,6 +38,10 @@ export default function InsertCoursePage() {
 
   const handleDetailsChange = (data: string) => {
     setForm((prev) => ({ ...prev, details: data }));
+  };
+
+  const handleCurriculumChange = (data: string) => {
+    setForm((prev) => ({ ...prev, curriculum: data }));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -62,23 +66,36 @@ export default function InsertCoursePage() {
     formData.append("status", form.status || "1");
     formData.append("course_name_test_prep", form.course_name_test_prep || "");
     formData.append("video_title", form.video_title || "");
-    formData.append("course_id", form.course_id || "");
 
-    // ✅ Append file if selected
     if (thumbnail) {
       formData.append("thumbnail", thumbnail);
     }
 
     try {
-      const res = await fetch("/api/proxy", {
-        method: "POST",
-        body: formData,
-      });
+      const res = await fetch(
+        "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
-      const data = await res.json();
+      const text = await res.text(); // 👈 get raw response
+      console.log("Raw API Response:", text);
 
-      if (data?.isSuccess) {
+      let data: any;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error("Invalid JSON response from API");
+      }
+
+      console.log("Parsed API Response:", data);
+
+      // ✅ adjust according to backend response structure
+      if (data?.isSuccess || data?.success === true || data?.status === "1") {
         alert("Course added successfully!");
+
         setForm({
           course_name: "",
           header: "",
@@ -90,14 +107,14 @@ export default function InsertCoursePage() {
           status: "1",
           course_name_test_prep: "",
           video_title: "",
-          course_id: "",
         });
         setThumbnail(null);
+        setResetCounter((prev) => prev + 1);
       } else {
         alert(data.message || "Submission failed");
       }
     } catch (error) {
-      console.error(error);
+      console.error("API error:", error);
       alert("Something went wrong.");
     } finally {
       setSubmitting(false);
@@ -108,6 +125,7 @@ export default function InsertCoursePage() {
     <div className="container py-5">
       <h2 className="mb-4">Add New Course</h2>
       <form onSubmit={handleSubmit} className="row g-3">
+        {/* Course Name */}
         <div className="col-md-6">
           <label className="form-label">Course Name</label>
           <input
@@ -120,6 +138,7 @@ export default function InsertCoursePage() {
           />
         </div>
 
+        {/* Header */}
         <div className="col-md-6">
           <label className="form-label">Header</label>
           <input
@@ -131,6 +150,7 @@ export default function InsertCoursePage() {
           />
         </div>
 
+        {/* Tagline */}
         <div className="col-md-12">
           <label className="form-label">Tagline</label>
           <input
@@ -142,25 +162,31 @@ export default function InsertCoursePage() {
           />
         </div>
 
-        {/* ✅ CKEditor for details */}
+        {/* Details (CKEditor) */}
         <div className="col-12">
           <label className="form-label">Details</label>
           <div className="ckeditor-container">
-            <CKEditorField value={form.details} onChange={handleDetailsChange} />
+            <CKEditorField
+              key={resetCounter + "-details"}
+              value={form.details}
+              onChange={handleDetailsChange}
+            />
           </div>
         </div>
 
+        {/* Curriculum (CKEditor) */}
         <div className="col-12">
           <label className="form-label">Curriculum</label>
-          <textarea
-            className="form-control"
-            name="curriculum"
-            value={form.curriculum}
-            onChange={handleChange}
-            rows={2}
-          />
+          <div className="ckeditor-container">
+            <CKEditorField
+              key={resetCounter + "-curriculum"}
+              value={form.curriculum}
+              onChange={handleCurriculumChange}
+            />
+          </div>
         </div>
 
+        {/* Video URL */}
         <div className="col-md-6">
           <label className="form-label">Video URL</label>
           <input
@@ -172,6 +198,7 @@ export default function InsertCoursePage() {
           />
         </div>
 
+        {/* Video Title */}
         <div className="col-md-6">
           <label className="form-label">Video Title</label>
           <input
@@ -183,7 +210,7 @@ export default function InsertCoursePage() {
           />
         </div>
 
-        {/* ✅ New File Upload for Thumbnail */}
+        {/* Thumbnail */}
         <div className="col-md-6">
           <label className="form-label">Thumbnail</label>
           <input
@@ -195,6 +222,7 @@ export default function InsertCoursePage() {
           />
         </div>
 
+        {/* Order */}
         <div className="col-md-3">
           <label className="form-label">Order</label>
           <input
@@ -206,6 +234,7 @@ export default function InsertCoursePage() {
           />
         </div>
 
+        {/* Status */}
         <div className="col-md-3">
           <label className="form-label">Status</label>
           <select
@@ -219,6 +248,7 @@ export default function InsertCoursePage() {
           </select>
         </div>
 
+        {/* Course Name Test Prep */}
         <div className="col-md-6">
           <label className="form-label">Course Name Test Prep</label>
           <input
@@ -230,17 +260,7 @@ export default function InsertCoursePage() {
           />
         </div>
 
-        <div className="col-md-6">
-          <label className="form-label">Course ID</label>
-          <input
-            type="text"
-            className="form-control"
-            name="course_id"
-            value={form.course_id}
-            onChange={handleChange}
-          />
-        </div>
-
+        {/* Submit */}
         <div className="col-12">
           <button
             type="submit"

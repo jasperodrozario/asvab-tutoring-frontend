@@ -105,7 +105,7 @@ export default function Navbar() {
                 <Link href="blog.html" className="nav-link text-white">BLOG</Link>
               </li>
               <li className="nav-item">
-                <Link href="online_test.html" className="btn bg-custom-primary text-white">ONLINE TEST</Link>
+                <Link href="https://test-prep.asvab-tutoring.com/register-free" className="btn border text-white">ONLINE TEST</Link>
               </li>
             </ul>
           </div>

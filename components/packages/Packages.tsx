@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 
@@ -103,12 +104,12 @@ const Packages = () => {
                       {pkg.price_range}
                     </p>
                     <div className="text-center">
-                      <a
-                        href="#"
+                      <Link
+                        href={`/tutor-package-details/${pkg.course_id}`}
                         className="btn btn-secondary-custom btn-sm w-50"
                       >
                         Details
-                      </a>
+                      </Link>
                     </div>
                   </div>
                 </div>

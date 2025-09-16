@@ -97,15 +97,15 @@ export default function TopCourses() {
     fetchCourses();
   }, []);
 
-const resolveImageUrl = (path: string): string => {
-  if (!path) return '/images/asvab-courses-d.jpg';
+  const resolveImageUrl = (path: string): string => {
+    if (!path) return '/images/asvab-courses-d.jpg';
 
-  const cleanPath = path.trim(); // ✅ remove trailing spaces
+    const cleanPath = path.trim(); // ✅ remove trailing spaces
 
-  return cleanPath.startsWith('http')
-    ? cleanPath
-    : `https://test-prep.asvab-tutoring.com/${encodeURIComponent(cleanPath)}`;
-};
+    return cleanPath.startsWith('http')
+      ? cleanPath
+      : `https://test-prep.asvab-tutoring.com/${encodeURIComponent(cleanPath)}`;
+  };
 
   if (!mounted) {
     return (
@@ -170,9 +170,9 @@ const resolveImageUrl = (path: string): string => {
                       {getPlainTextPreview(course.details, 100)}
                     </p>
                     <div className="text-center mt-auto">
-                    <Link href={`/course-detail/${encodeURIComponent(course.course_code)}`} className="btn btn-secondary-custom btn-sm w-50">
-  LEARN MORE
-</Link>
+                      <Link href={`/course-detail/${encodeURIComponent(course.course_code)}`} className="btn btn-secondary-custom btn-sm w-50">
+                        LEARN MORE
+                      </Link>
                     </div>
                   </div>
                 </div>
