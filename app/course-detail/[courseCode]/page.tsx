@@ -360,7 +360,7 @@ const CourseDetailPage: React.FC = () => {
                                                                 </div>
                                                                 <div className="card-body">
                                                                     {/* Question */}
-                                                                   <div>{cleanQuestionText(res.question)}</div>
+                                                                    <div>{cleanQuestionText(res.question)}</div>
 
                                                                     {/* Options */}
                                                                     <div>
@@ -385,11 +385,21 @@ const CourseDetailPage: React.FC = () => {
                                             )}
 
                                             {/* Submit / Retake Button */}
-                                            <div className="text-center my-4">
-                                                {!testSubmitted ? <button onClick={submitTest} className="btn btn-primary-custom mt-3">Submit Test</button> :
-                                                    <button onClick={retakeTest} className="btn btn-primary-custom mt-3">Retake This Test</button>
-                                                }
-                                            </div>
+                                            {courseData.ft_ques_list &&
+                                                courseData.ft_ques_list[courseData.ft_cat_list[activeCategory]] &&
+                                                courseData.ft_ques_list[courseData.ft_cat_list[activeCategory]].length > 0 && (
+                                                    <div className="text-center my-4">
+                                                        {!testSubmitted ? (
+                                                            <button onClick={submitTest} className="btn btn-primary-custom mt-3">
+                                                                Submit Test
+                                                            </button>
+                                                        ) : (
+                                                            <button onClick={retakeTest} className="btn btn-primary-custom mt-3">
+                                                                Retake This Test
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                )}
                                         </div>
                                     )}
                                 </div>
