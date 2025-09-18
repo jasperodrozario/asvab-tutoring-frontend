@@ -9,7 +9,7 @@ interface Course {
   course_code: string;
   name: string;
   details: string;
-  image: string;
+  image_src: string;
 }
 
 // HTML Entity Decoder using DOMParser
@@ -157,7 +157,7 @@ export default function TopCourses() {
               <div className="col-sm-6 col-lg-3" key={course.course_id}>
                 <div className="card h-100 shadow-sm hover-lift">
                   <Image
-                    src={resolveImageUrl(course.image)}
+                    src={resolveImageUrl(course.image_src)}
                     alt={course.name || 'Course'}
                     className="card-img-top"
                     width={400}

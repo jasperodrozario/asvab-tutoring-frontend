@@ -3,7 +3,7 @@
 import { useState } from "react";
 import dynamic from "next/dynamic";
 
-// ✅ Dynamically import your CKEditorField (client-side only)
+// ✅ Dynamically import CKEditorField (client-side only)
 const CKEditorField = dynamic(
   () => import("@/components/ckeditor/CKEditorField"),
   { ssr: false }
@@ -21,16 +21,15 @@ export default function InsertCoursePage() {
     status: "1",
     course_name_test_prep: "",
     video_title: "",
+    thumb_pic: null as File | null, // ✅ store selected file
   });
 
-  const [thumbnail, setThumbnail] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null); // ✅ preview URL
   const [submitting, setSubmitting] = useState(false);
   const [resetCounter, setResetCounter] = useState(0);
 
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -46,7 +45,9 @@ export default function InsertCoursePage() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setThumbnail(e.target.files[0]);
+      const file = e.target.files[0];
+      setForm((prev) => ({ ...prev, thumb_pic: file }));
+      setPreview(URL.createObjectURL(file)); // ✅ generate preview
     }
   };
 
@@ -54,24 +55,25 @@ export default function InsertCoursePage() {
     e.preventDefault();
     setSubmitting(true);
 
-    const formData = new FormData();
-    formData.append("action", "add-course");
-    formData.append("course_name", form.course_name.trim());
-    formData.append("header", form.header.trim());
-    formData.append("tagline", form.tagline.trim());
-    formData.append("details", form.details || "");
-    formData.append("curriculum", form.curriculum || "");
-    formData.append("video", form.video || "");
-    formData.append("ord", form.ord || "0");
-    formData.append("status", form.status || "1");
-    formData.append("course_name_test_prep", form.course_name_test_prep || "");
-    formData.append("video_title", form.video_title || "");
-
-    if (thumbnail) {
-      formData.append("thumbnail", thumbnail);
-    }
-
     try {
+      const formData = new FormData();
+      formData.append("action", "add-course");
+      formData.append("course_name", form.course_name.trim());
+      formData.append("header", form.header.trim());
+      formData.append("tagline", form.tagline.trim());
+      formData.append("details", form.details || "");
+      formData.append("curriculum", form.curriculum || "");
+      formData.append("video", form.video || "");
+      formData.append("ord", form.ord || "0");
+      formData.append("status", form.status || "1");
+      formData.append("course_name_test_prep", form.course_name_test_prep || "");
+      formData.append("video_title", form.video_title || "");
+
+      // ✅ append file with original name
+      if (form.thumb_pic) {
+        formData.append("thumb_pic", form.thumb_pic, form.thumb_pic.name);
+      }
+
       const res = await fetch(
         "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
         {
@@ -80,9 +82,7 @@ export default function InsertCoursePage() {
         }
       );
 
-      const text = await res.text(); // 👈 get raw response
-      console.log("Raw API Response:", text);
-
+      const text = await res.text();
       let data: any;
       try {
         data = JSON.parse(text);
@@ -90,12 +90,10 @@ export default function InsertCoursePage() {
         throw new Error("Invalid JSON response from API");
       }
 
-      console.log("Parsed API Response:", data);
-
-      // ✅ adjust according to backend response structure
       if (data?.isSuccess || data?.success === true || data?.status === "1") {
         alert("Course added successfully!");
 
+        // ✅ Reset form and preview
         setForm({
           course_name: "",
           header: "",
@@ -107,11 +105,12 @@ export default function InsertCoursePage() {
           status: "1",
           course_name_test_prep: "",
           video_title: "",
+          thumb_pic: null,
         });
-        setThumbnail(null);
+        setPreview(null);
         setResetCounter((prev) => prev + 1);
       } else {
-        alert(data.message || "Submission failed");
+        alert(data?.message || "Submission failed");
       }
     } catch (error) {
       console.error("API error:", error);
@@ -162,28 +161,24 @@ export default function InsertCoursePage() {
           />
         </div>
 
-        {/* Details (CKEditor) */}
+        {/* Details */}
         <div className="col-12">
           <label className="form-label">Details</label>
-          <div className="ckeditor-container">
-            <CKEditorField
-              key={resetCounter + "-details"}
-              value={form.details}
-              onChange={handleDetailsChange}
-            />
-          </div>
+          <CKEditorField
+            key={resetCounter + "-details"}
+            value={form.details}
+            onChange={handleDetailsChange}
+          />
         </div>
 
-        {/* Curriculum (CKEditor) */}
+        {/* Curriculum */}
         <div className="col-12">
           <label className="form-label">Curriculum</label>
-          <div className="ckeditor-container">
-            <CKEditorField
-              key={resetCounter + "-curriculum"}
-              value={form.curriculum}
-              onChange={handleCurriculumChange}
-            />
-          </div>
+          <CKEditorField
+            key={resetCounter + "-curriculum"}
+            value={form.curriculum}
+            onChange={handleCurriculumChange}
+          />
         </div>
 
         {/* Video URL */}
@@ -210,16 +205,26 @@ export default function InsertCoursePage() {
           />
         </div>
 
-        {/* Thumbnail */}
+        {/* thumb_pic */}
         <div className="col-md-6">
           <label className="form-label">Thumbnail</label>
           <input
             type="file"
             className="form-control"
-            name="thumbnail"
-            onChange={handleFileChange}
+            name="thumb_pic"
             accept="image/*"
+            onChange={handleFileChange}
           />
+
+          {/* Preview */}
+          {preview && (
+            <img
+              src={preview}
+              alt="thumb_pic Preview"
+              className="img-thumb_pic mt-2"
+              width={200}
+            />
+          )}
         </div>
 
         {/* Order */}
@@ -264,7 +269,7 @@ export default function InsertCoursePage() {
         <div className="col-12">
           <button
             type="submit"
-            className="btn btn-primary-custom w-50 mx-auto d-block mt-3"
+            className="btn btn-primary-custom mx-auto d-block mt-3"
             disabled={submitting}
           >
             {submitting ? "Submitting..." : "Add Course"}
