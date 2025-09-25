@@ -4,10 +4,12 @@
 import { useEffect, useState } from "react";
 
 interface Blog {
-  id: string;
-  name: string;
-  author_details: string;
-  pic: string;
+  blog_id: string;
+  blog_title: string;
+  blog_content: string;
+  written_by: string;
+  writer_img: string;
+  created_at: string;
 }
 
 export default function BlogListPage() {
@@ -22,7 +24,7 @@ export default function BlogListPage() {
           {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({ action: "get-blog" }),
+            body: new URLSearchParams({ action: "get-blogs" }),
           }
         );
         const data = await res.json();
@@ -54,16 +56,22 @@ export default function BlogListPage() {
             <div className="text-center py-5">Loading blogs...</div>
           ) : blogs.length > 0 ? (
             blogs.map((blog) => (
-              <div key={blog.id} className="col-md-6 col-lg-4">
+              <div key={blog.blog_id} className="col-md-6 col-lg-4">
                 <div className="card hover-lift shadow cursor-pointer h-100 border-0">
                   <div className="card-body">
-                    <h5 className="card-title mb-2 py-4 px-4">{blog.name}</h5>
+                    <h5 className="card-title mb-2 py-4 px-4">
+                      {blog.blog_title}
+                    </h5>
+
+                    {/* ✅ Author + Date Row */}
                     <div className="d-flex justify-content-between align-items-center mb-3">
                       <div className="d-flex align-items-center">
                         <img
                           src={
-                            blog.pic
-                              ? `https://test-prep.asvab-tutoring.com/practice-test/${blog.pic}`
+                            blog.writer_img &&
+                            blog.writer_img !==
+                              "https://test-prep.asvab-tutoring.com/practice-test/image.php?src=https://test-prep.asvab-tutoring.com/"
+                              ? blog.writer_img
                               : "/images/author_blog.png"
                           }
                           className="rounded-circle me-2"
@@ -72,19 +80,31 @@ export default function BlogListPage() {
                           height="30"
                         />
                         <small className="text-muted">
-                          {blog.author_details}
+                          {blog.written_by || "Unknown Author"}
                         </small>
                       </div>
+
+                      {/* ✅ Right-aligned Date */}
+                      <small className="text-muted text-end">
+                        {new Date(blog.created_at).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </small>
                     </div>
+
+                    {/* ✅ Blog Excerpt */}
                     <p className="card-text text-secondary">
-                    
-                      {blog.name.length > 120
-                        ? blog.name.slice(0, 120) + "..."
-                        : blog.name}
+                      {blog.blog_content.length > 120
+                        ? blog.blog_content.slice(0, 120) + "..."
+                        : blog.blog_content}
                     </p>
+
+                    {/* ✅ Read More */}
                     <div className="text-center">
                       <a
-                        href={`/blog/${blog.id}`}
+                        href={`/blog/${blog.blog_id}`}
                         className="btn btn-primary-custom mt-4 px-3 py-1 text-nowrap"
                       >
                         CONTINUE READING

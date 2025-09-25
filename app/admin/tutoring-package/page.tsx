@@ -34,6 +34,7 @@ export default function TutoringPackagePage() {
 
   const [courses, setCourses] = useState<Course[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [resetCounter, setResetCounter] = useState(0); // 👈 reset trigger
 
   // ✅ Fetch course list
   useEffect(() => {
@@ -74,6 +75,7 @@ export default function TutoringPackagePage() {
       const data = await res.json();
       if (data?.isSuccess) {
         alert('✅ Tutoring package added successfully!');
+        // ✅ Reset form
         setForm({
           course_id: '',
           title: '',
@@ -82,6 +84,7 @@ export default function TutoringPackagePage() {
           num_of_sessions: '',
           order: '',
         });
+        setResetCounter((prev) => prev + 1); // 👈 re-render CKEditor
       } else {
         alert(data?.message || '❌ Failed to add package');
       }
@@ -173,6 +176,7 @@ export default function TutoringPackagePage() {
         <div className="col-12">
           <label className="form-label">Description</label>
           <CKEditorField
+            key={resetCounter} // 👈 force re-render after reset
             value={form.description}
             onChange={(data) => setForm((prev) => ({ ...prev, description: data }))}
           />

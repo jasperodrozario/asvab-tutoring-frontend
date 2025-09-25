@@ -34,6 +34,8 @@ export default function AddTutoringPackageSessions() {
 
   const [packages, setPackages] = useState<Package[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [resetCounter, setResetCounter] = useState(0); // 👈 reset trigger
+  
 
   // ✅ Fetch package list
   useEffect(() => {
@@ -87,6 +89,7 @@ export default function AddTutoringPackageSessions() {
           is_most_popular: '0',
           order: '',
         });
+        setResetCounter((prev) => prev + 1); // 👈 re-render CKEditor
       } else {
         alert(data?.message || '❌ Failed to add session');
       }
@@ -165,6 +168,7 @@ export default function AddTutoringPackageSessions() {
         <div className="col-12">
           <label className="form-label">Feature</label>
           <CKEditorField
+          key={resetCounter} // 👈 force re-render after reset
             value={form.feature}
             onChange={(data) => setForm((prev) => ({ ...prev, feature: data }))}
           />
