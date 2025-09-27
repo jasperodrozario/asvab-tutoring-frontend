@@ -349,10 +349,10 @@ const CourseDetailPage: React.FC = () => {
                                             ) : (
                                                 testResults && (
                                                     <div>
-                                                        <div className="alert alert-info text-center">
+                                                        {/* <div className="alert alert-info text-center">
                                                             <h4>Test Results</h4>
                                                             <p>Score: {testResults.score}/{testResults.totalQuestions} ({testResults.percentage}%)</p>
-                                                        </div>
+                                                        </div> */}
                                                         {testResults.results.map((res, i) => (
                                                             <div key={i} className={`card mb-3 ${res.isCorrect ? 'border-success' : 'border-danger'}`}>
                                                                 <div className={`card-header ${res.isCorrect ? 'bg-success text-white' : 'bg-danger text-white'}`}>
@@ -379,6 +379,10 @@ const CourseDetailPage: React.FC = () => {
                                                                 </div>
                                                             </div>
                                                         ))}
+                                                         <div className="alert alert-info text-center">
+                                                            <h4>Test Results</h4>
+                                                            <p>Score: {testResults.score}/{testResults.totalQuestions} ({testResults.percentage}%)</p>
+                                                        </div>
                                                     </div>
 
                                                 )

@@ -85,16 +85,16 @@ const Packages = () => {
             packages.map((pkg) => (
               <div
                 key={pkg.course_id}
-                className="col-12 col-sm-6 col-md-4 col-lg-4 hover-lift"
+                className="col-sm-6 col-lg-3 hover-lift"
               >
                 <div className="card h-100 shadow-sm">
                   <Image
                     src={encodeURI(pkg.image_src.trim())}
                     alt={pkg.name}
-                    width={500}
-                    height={300}
+                    width={400}
+                    height={200}
                     className="card-img-top"
-                    style={{ height: 'auto', objectFit: 'cover' }}
+                     style={{ height: '200px', objectFit: 'cover' }}
                   />
                   <div className="card-body text-start">
                     <h5 className="card-title fw-bold text-primary">

@@ -45,7 +45,7 @@ export default function Footer() {
             <div className="row">
               <ul className="list-unstyled col-6">
                 <li className="mb-3">
-                  <Link href="/pricing" className="footer-link">
+                  <Link href="/pricing-page" className="footer-link">
                     <span>&gt;&gt;</span> Pricing
                   </Link>
                 </li>

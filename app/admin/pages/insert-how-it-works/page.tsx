@@ -12,13 +12,14 @@ export default function InsertHowItWorksPage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [editorKey, setEditorKey] = useState(0); // new state to force CKEditor reset
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
 
     const formData = new FormData();
-    formData.append('action', 'add-how-it-works');
+    formData.append('action', 'insert-how-it-works');
     formData.append('title', title);
     formData.append('description', description);
 
@@ -28,10 +29,14 @@ export default function InsertHowItWorksPage() {
         { method: 'POST', body: formData }
       );
       const data = await res.json();
+
       if ((data as any)?.isSuccess) {
         alert('✅ How It Works added successfully!');
+
+        // reset form fields
         setTitle('');
         setDescription('');
+        setEditorKey(prev => prev + 1); // force CKEditor remount
       } else {
         alert((data as any)?.message || '❌ Failed to add How It Works');
       }
@@ -62,6 +67,7 @@ export default function InsertHowItWorksPage() {
         <div className="col-12">
           <label className="form-label">Description</label>
           <CKEditorField
+            key={editorKey} // add this to reset
             value={description}
             onChange={(data) => setDescription(data)}
           />
@@ -70,10 +76,10 @@ export default function InsertHowItWorksPage() {
         <div className="col-12">
           <button
             type="submit"
-            className="btn btn-primary w-50 d-block mx-auto mt-4"
+            className="btn btn-primary-custom mx-auto d-block mt-3 w-25"
             disabled={submitting}
           >
-            {submitting ? 'Submitting...' : 'Add How It Works'}
+            {submitting ? 'Submitting...' : 'Add Page'}
           </button>
         </div>
       </form>

@@ -96,7 +96,7 @@ export default function Navbar() {
                 <Link href="/how-it-works" className="nav-link text-white">HOW IT WORKS</Link>
               </li>
               <li className="nav-item">
-                <Link href="price.html" className="nav-link text-white">PRICING</Link>
+                <Link href="/pricing-page" className="nav-link text-white">PRICING</Link>
               </li>
               <li className="nav-item">
                 <Link href="/about-us" className="nav-link text-white">ABOUT US</Link>

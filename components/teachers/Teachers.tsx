@@ -22,10 +22,10 @@ export default function Teachers() {
       formData.append('action', 'get-tutor-list');
 
       try {
-        const res = await fetch("https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php", {
-          method: "POST",
-          body: formData,
-        });
+        const res = await fetch(
+          "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
+          { method: "POST", body: formData }
+        );
 
         const data = await res.json();
 
@@ -43,6 +43,9 @@ export default function Teachers() {
 
     fetchTutors();
   }, []);
+
+  // Only show the first 4 tutors on homepage
+  const homepageTutors = teachers.slice(0, 4);
 
   return (
     <section className="bg-white text-dark py-5 px-3">
@@ -65,19 +68,18 @@ export default function Teachers() {
           <p className="text-center">Loading tutors...</p>
         ) : (
           <div className="row g-4">
-            {teachers.map((teacher) => (
+            {homepageTutors.map((teacher) => (
               <div className="col-md-6" key={teacher.id}>
                 <div className="card h-100 shadow-sm text-center">
                   <div className="pt-4">
                     <Image
                       src={teacher.photo} // full URL from API
                       alt={teacher.name || 'Tutor'}
-                      width={160}
-                      height={160}
+                      width={220}
+                      height={277}
                       style={{ objectFit: 'contain' }}
                       unoptimized={true}
                     />
-
                   </div>
                   <div className="card-body d-flex flex-column text-start px-4">
                     <h5 className="card-title text-center fw-semibold mt-3">
@@ -98,7 +100,7 @@ export default function Teachers() {
 
         <div className="text-center mt-5">
           <Link
-            href="/tutors"
+            href="/tutor-list" // full list page
             className="btn btn-primary-custom text-white fw-semibold px-4 py-2"
           >
             See All Tutors

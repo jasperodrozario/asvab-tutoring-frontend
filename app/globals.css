@@ -314,10 +314,10 @@ a {
 
 /* Common Banner */
 .banner {
-  height: 16rem;
+  height: 18rem;
   background-image: url("/images/about-hero.jpg");
   background-size: cover;
-  background-position: center;
+  background-position: top;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -474,3 +474,9 @@ a {
     background-color: #f7ac67; 
     border-color: #e58a34 #e58a34 #fff;
 } */
+
+@media (prefers-color-scheme: dark) {
+  body, body * {
+    color: #333 !important;
+  }
+}

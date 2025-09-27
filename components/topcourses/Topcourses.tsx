@@ -150,7 +150,7 @@ export default function TopCourses() {
         {loading && <p className="text-center">Loading...</p>}
         {error && <p className="text-center text-danger">{error}</p>}
 
-        <div className="row g-4">
+        <div className="row justify-content-center g-4">
           {!loading &&
             !error &&
             courses.map((course) => (
@@ -160,8 +160,8 @@ export default function TopCourses() {
                     src={resolveImageUrl(course.image_src)}
                     alt={course.name || 'Course'}
                     className="card-img-top"
-                    width={400}
-                    height={200}
+                    width={300}
+                    height={210}
                     style={{ height: '200px', objectFit: 'cover' }}
                   />
                   <div className="card-body d-flex flex-column">

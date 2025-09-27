@@ -12,6 +12,8 @@ const CKEditorField = dynamic(
 export default function InsertAboutUsPage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [editorKey, setEditorKey] = useState(0); // 🔑 used to force reset
+  const [isOnline, setIsOnline] = useState<'Y' | 'N'>('Y');
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -19,9 +21,10 @@ export default function InsertAboutUsPage() {
     setSubmitting(true);
 
     const formData = new FormData();
-    formData.append('action', 'add-about-us');
+    formData.append('action', 'insert-about-us');
     formData.append('title', title);
     formData.append('description', description);
+    formData.append('is_online', isOnline);
 
     try {
       const res = await fetch(
@@ -31,8 +34,11 @@ export default function InsertAboutUsPage() {
       const data = await res.json();
       if ((data as any)?.isSuccess) {
         alert('✅ About Us added successfully!');
+        // reset fields
         setTitle('');
         setDescription('');
+        setIsOnline('Y');
+        setEditorKey((prev) => prev + 1); // 🔄 re-mount CKEditor to reset
       } else {
         alert((data as any)?.message || '❌ Failed to add About Us');
       }
@@ -48,6 +54,7 @@ export default function InsertAboutUsPage() {
     <div className="container my-5">
       <h1 className="mb-4">Insert About Us</h1>
       <form onSubmit={handleSubmit} className="row g-3">
+        {/* Title */}
         <div className="col-12">
           <label className="form-label">Title</label>
           <input
@@ -60,21 +67,55 @@ export default function InsertAboutUsPage() {
           />
         </div>
 
+        {/* Description */}
         <div className="col-12">
           <label className="form-label">Description</label>
           <CKEditorField
+            key={editorKey} // 🔑 ensures CKEditor resets after success
             value={description}
             onChange={(data) => setDescription(data)}
           />
         </div>
 
+        {/* is_online Radio Buttons */}
+        <div className="col-12">
+          <label className="form-label d-block">Is Online?</label>
+          <div className="form-check form-check-inline">
+            <input
+              className="form-check-input"
+              type="radio"
+              id="isOnlineYes"
+              value="Y"
+              checked={isOnline === 'Y'}
+              onChange={(e) => setIsOnline(e.target.value as 'Y')}
+            />
+            <label className="form-check-label" htmlFor="isOnlineYes">
+              Yes
+            </label>
+          </div>
+          <div className="form-check form-check-inline">
+            <input
+              className="form-check-input"
+              type="radio"
+              id="isOnlineNo"
+              value="N"
+              checked={isOnline === 'N'}
+              onChange={(e) => setIsOnline(e.target.value as 'N')}
+            />
+            <label className="form-check-label" htmlFor="isOnlineNo">
+              No
+            </label>
+          </div>
+        </div>
+
+        {/* Submit Button */}
         <div className="col-12">
           <button
             type="submit"
-            className="btn btn-primary w-50 d-block mx-auto mt-4"
+            className="btn btn-primary-custom mx-auto d-block mt-3 w-25"
             disabled={submitting}
           >
-            {submitting ? 'Submitting...' : 'Add About Us'}
+            {submitting ? 'Submitting...' : 'Add Page'}
           </button>
         </div>
       </form>
