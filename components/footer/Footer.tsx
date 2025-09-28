@@ -85,7 +85,7 @@ export default function Footer() {
             <h5 className="fw-semibold mb-3">KEEP IN TOUCH</h5>
             <div className="d-flex gap-3">
               <a
-                href="https://twitter.com"
+                href="https://x.com/asvabtutoring18"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-white text-decoration-none fs-5 footer-icon"
@@ -93,7 +93,7 @@ export default function Footer() {
                 <i className="bi bi-twitter-x"></i>
               </a>
               <a
-                href="https://facebook.com"
+                href="https://www.facebook.com/asvabtutoring"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-white text-decoration-none fs-5 footer-icon"
@@ -101,7 +101,7 @@ export default function Footer() {
                 <i className="bi bi-facebook"></i>
               </a>
               <a
-                href="https://youtube.com"
+                href="https://www.youtube.com/channel/UCCVP6UtL3O2-gQJa9KwRMXw"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-white text-decoration-none fs-5 footer-icon"
@@ -109,7 +109,7 @@ export default function Footer() {
                 <i className="bi bi-youtube"></i>
               </a>
               <a
-                href="https://instagram.com"
+                href="https://www.instagram.com/asvabtutoring/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-white text-decoration-none fs-5 footer-icon"

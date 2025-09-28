@@ -12,17 +12,19 @@ const menuItems = [
         label: 'Pages',
         href: '/admin/pages',
         children: [ // ✅ Added children under Pages
-          { label: 'About Us', href: '/admin/pages/insert-about-us' },
-          { label: 'How It Works', href: '/admin/pages/insert-how-it-works' },
+          { label: 'Insert About Us', href: '/admin/pages/insert-about-us' },
+          { label: 'Insert How It Works', href: '/admin/pages/insert-how-it-works' },
+          { label: 'Insert Pricing', href: '/admin/pages/insert-pricing' },
+
         ],
       },
-      { label: 'Blogs', href: '/admin/blogs' },
-      { label: 'Courses', href: '/admin/courses' },
-      { label: 'Teachers', href: '/admin/teachers' },
-      { label: 'FAQ', href: '/admin/add-faq' },
+      { label: 'Insert Blogs', href: '/admin/blogs' },
+      // { label: 'Courses', href: '/admin/courses' },
+      // { label: 'Teachers', href: '/admin/teachers' },
+      { label: 'Insert FAQ', href: '/admin/add-faq' },
 
-      { label: 'Add Tutoring Package', href: '/admin/tutoring-package' },
-       { label: 'Add Tutoring Package Sessions', href: '/admin/tutoring-package-sessions' },
+      { label: 'Insert Tutoring Package', href: '/admin/tutoring-package' },
+       { label:'Insert Tutoring Package Sessions', href: '/admin/tutoring-package-sessions' },
       { label: 'Insert Tutor', href: '/admin/insert-tutor' },
       { label: 'Insert Course', href: '/admin/insert-course' },
 

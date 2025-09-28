@@ -75,7 +75,7 @@ export default function TutorsListPage() {
                 ) : (
                     <div className="row g-4">
                         {teachers.map((teacher) => (
-                            <div className="col-md-6 col-lg-4" key={teacher.id}>
+                            <div className="col-md-6 col-lg-6" key={teacher.id}>
                                 <div className="card h-100 shadow-sm text-center">
                                     <div className="pt-4">
                                         <Image
