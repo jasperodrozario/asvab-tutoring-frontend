@@ -1,14 +1,16 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+// import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import Cookies from 'js-cookie';
+import { BsEye, BsEyeSlash } from 'react-icons/bs'; // 👁 icons
 
 export default function LoginPage() {
-    const router = useRouter();
+    // const router = useRouter();
     const [username, setUsername] = useState('admin');
     const [password, setPassword] = useState('*&$@!asvab3372008');
     const [error, setError] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -21,7 +23,7 @@ export default function LoginPage() {
 
         try {
             const response = await fetch(
-                'https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php', // direct API URL
+                'https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php',
                 {
                     method: 'POST',
                     headers: {
@@ -34,8 +36,10 @@ export default function LoginPage() {
             const result = await response.json();
 
             if (result.status === 200 && result.isSuccess) {
+                // Set cookie
                 Cookies.set('admin-auth', 'true', { expires: 1 });
-                router.push('/admin');
+                // Reload to update Navbar immediately
+                window.location.href = '/admin';
             } else {
                 setError('Invalid username or password. Please try again.');
             }
@@ -51,6 +55,7 @@ export default function LoginPage() {
                 <h4 className="text-center mb-4">Login to Your Account</h4>
                 {error && <div className="alert alert-danger">{error}</div>}
                 <form onSubmit={handleSubmit}>
+                    {/* Username */}
                     <div className="mb-3">
                         <label htmlFor="username" className="form-label">Username</label>
                         <input
@@ -63,19 +68,39 @@ export default function LoginPage() {
                             required
                         />
                     </div>
-                    <div className="mb-3">
+
+                    {/* Password with toggle */}
+                    <div className="mb-3 position-relative">
                         <label htmlFor="password" className="form-label">Password</label>
                         <input
-                            type="password"
+                            type={showPassword ? 'text' : 'password'}
                             id="password"
-                            className="form-control"
+                            className="form-control pe-5"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
                         />
+                        <span
+                            onClick={() => setShowPassword(!showPassword)}
+                            style={{
+                                position: 'absolute',
+                                right: '10px',
+                                top: '70%',
+                                transform: 'translateY(-50%)',
+                                cursor: 'pointer',
+                                fontSize: '1.2rem',
+                                color: '#666',
+                            }}
+                        >
+                            {showPassword ? <BsEyeSlash /> : <BsEye />}
+                        </span>
                     </div>
+
+                    {/* Submit */}
                     <div className="d-grid">
-                        <button type="submit" className="btn btn-primary-custom w-50 mx-auto">Login</button>
+                        <button type="submit" className="btn btn-primary-custom w-50 mx-auto">
+                            Login
+                        </button>
                     </div>
                 </form>
             </div>
