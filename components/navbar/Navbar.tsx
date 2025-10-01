@@ -98,7 +98,7 @@ export default function Navbar() {
       </div>
 
       {/* Main Navbar */}
-      <nav className="navbar navbar-expand-md bg-custom-secondary text-white py-3 fixed-top" style={{ marginTop: "30px" }}>
+      <nav className="navbar navbar-expand-md bg-custom-secondary text-white py-3 fixed-top navbar-desktop-mt">
         <div className="container-fluid">
           <Link href="/" className="navbar-brand">
             <Image src="/images/asvab-tutoring-logo.webp" width={80} height={80} alt="Logo" />
