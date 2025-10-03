@@ -104,9 +104,11 @@ export default function Welcome() {
                 <span className="primary-color-custom">ASVAB Tutoring</span>
               </h1>
               <p className="lead mt-3">
-                10,000+ successful candidates. Online Test Prep for the ASVAB, ASTB, OAR, AFOQT, and SIFT. Test on live
+                10,000+ successful candidates. Online Test Prep for the ASVAB, ASTB, OAR, AFOQT, and SIFT
               </p>
-              <button className="btn btn-primary-custom mt-3">ENROLL NOW</button>
+              <Link href="https://test-prep.asvab-tutoring.com/">
+                <button className="btn btn-primary-custom mt-3">ENROLL NOW</button>
+              </Link>
 
               <div className="mt-4 bg-white p-3 rounded shadow">
                 <video
@@ -199,18 +201,31 @@ export default function Welcome() {
                 </form>
 
                 <div className="d-flex justify-content-center gap-3 mt-4">
-                  <Image
-                    src="/images/Google_Play_Store_badge_EN.svg"
-                    alt="Google Play"
-                    width={180}
-                    height={40}
-                  />
-                  <Image
-                    src="/images/download-on-the-app-store.svg"
-                    alt="App Store"
-                    width={180}
-                    height={40}
-                  />
+                  <a
+                    href="https://play.google.com/store/apps/details?id=com.asvab.tutoring"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Image
+                      src="/images/Google_Play_Store_badge_EN.svg"
+                      alt="Google Play"
+                      width={180}
+                      height={40}
+                    />
+                  </a>
+
+                  <a
+                    href="https://apps.apple.com/us/app/asvab-tutoring/id1518771904"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Image
+                      src="/images/download-on-the-app-store.svg"
+                      alt="App Store"
+                      width={180}
+                      height={40}
+                    />
+                  </a>
                 </div>
               </div>
             </div>

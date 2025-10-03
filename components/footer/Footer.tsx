@@ -1,12 +1,14 @@
 'use client';
 
 import Link from 'next/link';
+import Image from "next/image";
+
 import { useEffect, useState } from 'react';
 
 export default function Footer() {
   // Add client-side only state to handle rendering
   const [isMounted, setIsMounted] = useState(false);
-  
+
   // Only render the component after it's mounted on the client
   useEffect(() => {
     setIsMounted(true);
@@ -81,43 +83,78 @@ export default function Footer() {
           </div>
 
           {/* Keep in Touch */}
-          <div className="col-12 col-md-6 col-lg-3">
-            <h5 className="fw-semibold mb-3">KEEP IN TOUCH</h5>
-            <div className="d-flex gap-3">
-              <a
-                href="https://x.com/asvabtutoring18"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-white text-decoration-none fs-5 footer-icon"
-              >
-                <i className="bi bi-twitter-x"></i>
-              </a>
-              <a
-                href="https://www.facebook.com/asvabtutoring"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-white text-decoration-none fs-5 footer-icon"
-              >
-                <i className="bi bi-facebook"></i>
-              </a>
-              <a
-                href="https://www.youtube.com/channel/UCCVP6UtL3O2-gQJa9KwRMXw"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-white text-decoration-none fs-5 footer-icon"
-              >
-                <i className="bi bi-youtube"></i>
-              </a>
-              <a
-                href="https://www.instagram.com/asvabtutoring/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-white text-decoration-none fs-5 footer-icon"
-              >
-                <i className="bi bi-instagram"></i>
-              </a>
-            </div>
-          </div>
+          {/* Keep in Touch */}
+          {/* Keep in Touch */}
+<div className="col-12 col-md-6 col-lg-3">
+  <h5 className="fw-semibold mb-3">KEEP IN TOUCH</h5>
+  
+  {/* Social Icons */}
+  <div className="d-flex gap-3 mb-3">
+    <a
+      href="https://x.com/asvabtutoring18"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-white text-decoration-none fs-5 footer-icon"
+    >
+      <i className="bi bi-twitter-x"></i>
+    </a>
+    <a
+      href="https://www.facebook.com/asvabtutoring"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-white text-decoration-none fs-5 footer-icon"
+    >
+      <i className="bi bi-facebook"></i>
+    </a>
+    <a
+      href="https://www.youtube.com/channel/UCCVP6UtL3O2-gQJa9KwRMXw"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-white text-decoration-none fs-5 footer-icon"
+    >
+      <i className="bi bi-youtube"></i>
+    </a>
+    <a
+      href="https://www.instagram.com/asvabtutoring/"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-white text-decoration-none fs-5 footer-icon"
+    >
+      <i className="bi bi-instagram"></i>
+    </a>
+  </div>
+
+  {/* App Store Badges */}
+  <div className="d-flex gap-2 mt-2">
+    <a
+      href="https://play.google.com/store/apps/details?id=com.asvab.tutoring"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <Image
+        src="/images/Google_Play_Store_badge_EN.svg"
+        alt="Google Play"
+        width={150}
+        height={40}
+      />
+    </a>
+
+    <a
+      href="https://apps.apple.com/us/app/asvab-tutoring/id1518771904"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <Image
+        src="/images/download-on-the-app-store.svg"
+        alt="App Store"
+        width={150}
+        height={40}
+      />
+    </a>
+  </div>
+</div>
+
+
 
           {/* Contact */}
           <div className="col-12 col-md-6 col-lg-3">
