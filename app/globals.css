@@ -10,7 +10,7 @@
   }
 } */
 body {
-  padding-top: 150px; /* adjust based on navbar height */
+  padding-top: 120px; 
 }
 
 html,
@@ -501,3 +501,38 @@ a {
     margin-top: 30px !important;
   }
 }
+
+/* === Mobile menu alignment === */
+@media (max-width: 767px) {
+  .navbar-collapse.show {
+    text-align: left;
+  }
+
+  .navbar-nav {
+    align-items: flex-start !important;
+  }
+
+  .navbar-nav .nav-item {
+    width: 100%;
+  }
+
+  /* === Services submenu style ONLY for mobile === */
+  .nav-item.dropdown .dropdown-menu {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding-left: 1rem; /* slight indent */
+    position: static !important; /* ensure it stays inline */
+  }
+
+  .nav-item.dropdown .dropdown-menu .dropdown-item {
+    color: #fff !important;
+    padding: 5px 10px;
+  }
+
+  .nav-item.dropdown .dropdown-menu .dropdown-item:hover {
+    text-decoration: underline;
+    background: none !important;
+  }
+}
+

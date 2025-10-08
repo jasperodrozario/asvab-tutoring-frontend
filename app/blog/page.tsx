@@ -104,7 +104,7 @@ export default function BlogListPage() {
                     {/* ✅ Read More */}
                     <div className="text-center">
                       <a
-                        href={`/blog/${blog.blog_id}`}
+                        href={`/blog-detail/${blog.blog_id}`}
                         className="btn btn-primary-custom mt-4 px-3 py-1 text-nowrap"
                       >
                         CONTINUE READING

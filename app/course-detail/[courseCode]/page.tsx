@@ -227,7 +227,7 @@ const CourseDetailPage: React.FC = () => {
                         <div className="col-lg-8">
                             {/* Tabs */}
                             <div className="single-course-tab">
-                                <ul className="nav nav-tabs mb-4">
+                                {/* <ul className="nav nav-tabs mb-4">
                                     {['Overview', 'Curriculum', 'Course Video', 'Online Free Test'].map((tab, i) => (
                                         <li key={i} className="nav-item">
                                             {i < 4 || (courseData.ft_cat_list && courseData.ft_cat_list.length > 0) ? (
@@ -238,16 +238,72 @@ const CourseDetailPage: React.FC = () => {
                                             ) : null}
                                         </li>
                                     ))}
+                                </ul> */}
+
+                                <ul className="nav nav-tabs mb-4">
+                                    {/* Overview */}
+                                    {courseData.overview && courseData.overview.trim() !== "" && (
+                                        <li className="nav-item">
+                                            <button
+                                                className={`nav-link ${activeTab === 0 ? "active" : ""}`}
+                                                onClick={() => setActiveTab(0)}
+                                            >
+                                                Overview
+                                            </button>
+                                        </li>
+                                    )}
+
+                                    {/* Curriculum */}
+                                    {courseData.curriculum && courseData.curriculum.trim() !== "" && (
+                                        <li className="nav-item">
+                                            <button
+                                                className={`nav-link ${activeTab === 1 ? "active" : ""}`}
+                                                onClick={() => setActiveTab(1)}
+                                            >
+                                                Curriculum
+                                            </button>
+                                        </li>
+                                    )}
+
+                                    {/* Course Video */}
+                                    {courseData.video && courseData.video.length > 0 && (
+                                        <li className="nav-item">
+                                            <button
+                                                className={`nav-link ${activeTab === 2 ? "active" : ""}`}
+                                                onClick={() => setActiveTab(2)}
+                                            >
+                                                Course Video
+                                            </button>
+                                        </li>
+                                    )}
+
+                                    {/* Online Free Test */}
+                                    {courseData.ft_cat_list && courseData.ft_cat_list.length > 0 && (
+                                        <li className="nav-item">
+                                            <button
+                                                className={`nav-link ${activeTab === 3 ? "active" : ""}`}
+                                                onClick={() => {
+                                                    setActiveTab(3);
+                                                    setTestSubmitted(false);
+                                                    setTestResults(null);
+                                                    setUserAnswers({});
+                                                }}
+                                            >
+                                                Online Free Test
+                                            </button>
+                                        </li>
+                                    )}
                                 </ul>
+
 
                                 {/* Tab Content */}
                                 <div className="tab-content">
                                     {/* Overview Tab */}
                                     {activeTab === 0 && (
                                         <div className="overview-tab">
-                                            {courseData.course_name && (
+                                            {/* {courseData.course_name && (
                                                 <h3 className="mb-3"><b>{courseData.course_name}</b></h3>
-                                            )}
+                                            )} */}
                                             <div dangerouslySetInnerHTML={{
                                                 __html: processHtmlContent(courseData.overview || 'No description available')
                                             }} />
@@ -325,24 +381,42 @@ const CourseDetailPage: React.FC = () => {
                                                     courseData.ft_ques_list[courseData.ft_cat_list[activeCategory]].map((q, qIdx) => {
                                                         const options = [q.option_a, q.option_b, q.option_c, q.option_d].filter((opt): opt is string => opt != null);
                                                         return (
-                                                            <div key={qIdx} className="card mb-4" style={{ borderLeft: '4px solid #ecc5a0ff' }}>
+                                                            <div key={qIdx} className="card mb-4" style={{ borderLeft: '3px solid #ecc5a0ff' }}>
                                                                 <div className="card-body">
                                                                     <div className="mb-3 fw-bold">{qIdx + 1}. {cleanQuestionText(q.question)}</div>
                                                                     {options.map((opt, oIdx) => (
-                                                                        <div key={oIdx} className="form-check mb-2">
-                                                                            <input className="form-check-input" type="radio"
+                                                                        <div key={oIdx} className="form-check mb-2 d-flex align-items-center">
+                                                                            <input
+                                                                                className="form-check-input"
+                                                                                type="radio"
                                                                                 name={`q-${activeCategory}-${qIdx}`}
                                                                                 id={`q-${activeCategory}-${qIdx}-o-${oIdx}`}
                                                                                 checked={userAnswers[`${activeCategory}-${qIdx}`] === oIdx}
                                                                                 onChange={() => handleAnswerChange(activeCategory, qIdx, oIdx)}
+                                                                                style={{
+                                                                                    width: '1.5rem',
+                                                                                    height: '1.5rem',
+                                                                                    border: '2px solid #f0ad4e',
+                                                                                    borderRadius: '50%',
+                                                                                    cursor: 'pointer',
+                                                                                    backgroundColor: 'white',
+                                                                                    appearance: 'none', // remove default small circle
+                                                                                    WebkitAppearance: 'none',
+                                                                                    position: 'relative',
+                                                                                }}
                                                                             />
-                                                                            <label className="form-check-label" htmlFor={`q-${activeCategory}-${qIdx}-o-${oIdx}`}>
+                                                                            <label
+                                                                                className="form-check-label ms-2"
+                                                                                htmlFor={`q-${activeCategory}-${qIdx}-o-${oIdx}`}
+                                                                                style={{ cursor: 'pointer' }}
+                                                                            >
                                                                                 {cleanQuestionText(opt)}
                                                                             </label>
                                                                         </div>
                                                                     ))}
                                                                 </div>
                                                             </div>
+
                                                         )
                                                     })
                                                     : <div className="alert alert-info">No questions available for this category.</div>
@@ -379,7 +453,7 @@ const CourseDetailPage: React.FC = () => {
                                                                 </div>
                                                             </div>
                                                         ))}
-                                                         <div className="alert alert-info text-center">
+                                                        <div className="alert alert-info text-center">
                                                             <h4>Test Results</h4>
                                                             <p>Score: {testResults.score}/{testResults.totalQuestions} ({testResults.percentage}%)</p>
                                                         </div>

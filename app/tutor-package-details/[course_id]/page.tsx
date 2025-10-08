@@ -1,6 +1,6 @@
 'use client';
 
-import React, {use, useEffect, useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import Image from 'next/image';
 import styles from '../packageDetails.module.css';
 
@@ -40,7 +40,7 @@ function renderTextWithLineBreaks(text: string) {
 export default function PackageDetailsPage({
   params,
 }: {
- params: Promise<{ course_id: string }>;
+  params: Promise<{ course_id: string }>;
 }) {
   const { course_id } = use(params);
   const [courseData, setCourseData] = useState<any>(null);
@@ -116,55 +116,8 @@ export default function PackageDetailsPage({
         </div>
       </section>
 
-      {/* Description + Related */}
-      <section className="py-5 bg-light">
-        <div className="container">
-          <div className="row g-4">
-            <div className="col-lg-8">
-              <h3 className="mb-3">Description</h3>
-              {renderTextWithLineBreaks(
-                cleanQuestionText(courseData.course_description)
-              )}
-            </div>
 
-            <div className="col-lg-4">
-              <div className="card p-3 shadow-sm">
-                <h5 className="mb-3 text-uppercase fw-bold">Related Courses</h5>
-                {courseData.related_courses?.map((rel: any) => (
-                  <div key={rel.course_id} className="related-course mb-3">
-                    <div className="card border-0">
-                      <Image
-                        src={rel.image}
-                        alt={rel.name}
-                        width={300}
-                        height={200}
-                        className="rounded"
-                      />
-                      <div className="card-body p-2">
-                        <h6 className="mb-1">
-                          {/* ✅ Updated link to match new dynamic route */}
-                          <a
-                            href={`/tutor-package-details/${rel.course_id}`}
-                            className="text-decoration-none"
-                            style={{ color: '#e58a34' }}
-                          >
-                            {rel.name}
-                          </a>
-                        </h6>
-                        <p className="fw-bold mb-0 text-success">
-                          {rel.price_range}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing Packages */}
+{/* Pricing Packages */}
       {courseData.data?.map((pkg: any) => (
         <section key={pkg.package_id} className="py-5">
           <div className="container text-center">
@@ -189,9 +142,8 @@ export default function PackageDetailsPage({
               {pkg.sessions.map((session: any) => (
                 <div
                   key={session.session_id}
-                  className={`${styles.pricingCard} ${
-                    session.is_most_popular === '1' ? styles.mostPopularWrap : ''
-                  }`}
+                  className={`${styles.pricingCard} ${session.is_most_popular === '1' ? styles.mostPopularWrap : ''
+                    }`}
                   style={{
                     flex: '0 0 300px',
                     display: 'flex',
@@ -220,6 +172,61 @@ export default function PackageDetailsPage({
           </div>
         </section>
       ))}
+
+      {/* Description + Related */}
+      <section className="py-5 bg-light">
+        <div className="container">
+          <div className="row g-4">
+            <div className="col-lg-8">
+              <h3 className="mb-3">Description</h3>
+              {renderTextWithLineBreaks(
+                cleanQuestionText(courseData.course_description)
+              )}
+            </div>
+
+            <div className="col-lg-4">
+              <h5 className="mb-3 text-uppercase fw-bold">Related Packages</h5>
+
+              {courseData.related_courses?.length > 0 ? (
+                courseData.related_courses.map((rel: any) => (
+                  <div
+                    key={rel.course_id}
+                    className="card mb-4 shadow-sm border-0"
+                    style={{ borderRadius: "10px" }}
+                  >
+                    <div className="card-body p-3">
+                      <Image
+                        src={rel.image}
+                        alt={rel.name}
+                        width={300}
+                        height={200}
+                        className="rounded mb-3 w-100"
+                        style={{ objectFit: "cover", height: "200px" }}
+                      />
+                      <h6 className="fw-semibold mb-2">
+                        <a
+                          href={`/tutor-package-details/${rel.course_id}`}
+                          className="text-decoration-none"
+                          style={{ color: "#e58a34" }}
+                        >
+                          {rel.name}
+                        </a>
+                      </h6>
+                      <p className="fw-bold text-success mb-0">{rel.price_range}</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-muted">No related packages available.</p>
+              )}
+            </div>
+
+
+          </div>
+        </div>
+      </section>
+
+      
     </main>
   );
 }
