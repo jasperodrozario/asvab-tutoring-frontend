@@ -110,8 +110,8 @@ a {
   display: block;
 }
 
-.custom-dropdown .dropdown-item:hover {
-  background-color: #f0f0f0;
+.dropdown-item:hover {
+  background-color: #f1bf91;
 }
 
 /* Show dropdown on hover for desktop */
@@ -321,7 +321,7 @@ a {
   background-image: url("/images/about-hero.jpg");
   background-size: cover;
   background-position: top;
-  display: flex;
+  display: grid;
   justify-content: center;
   align-items: center;
   position: relative;
@@ -534,5 +534,16 @@ a {
     text-decoration: underline;
     background: none !important;
   }
+}
+
+.breadcrumb-inline {
+  font-size: 2rem; /* same as h1 */
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.breadcrumb-item-inline .hover-underline:hover {
+  text-decoration: underline;
+  opacity: 0.9;
 }
 

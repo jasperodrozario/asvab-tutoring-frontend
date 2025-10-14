@@ -1,5 +1,7 @@
 // app/pricing/page.tsx
 import React from "react";
+import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
+
 
 type PricingPageItem = {
   pricing_id: string;
@@ -41,10 +43,17 @@ export default async function PricingPage() {
   return (
     <section>
       {/* Banner */}
-      <div className="banner mb-5">
-        <h1 className="text-white text-center bg-black bg-opacity-50 py-3 px-4 rounded">
+      <div className="banner bg-black bg-opacity-50 py-3 px-4 rounded flex flex-col items-center text-center">
+        {/* Page Title */}
+        <h1 className="text-white mb-2 text-3xl font-bold">
           Pricing
         </h1>
+
+        {/* Breadcrumb below title */}
+        <Breadcrumb
+          segments={["pricing"]}
+          className="text-white text-base mt-1"
+        />
       </div>
 
       {/* Content */}

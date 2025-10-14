@@ -1,9 +1,11 @@
 'use client';
 
 import Link from "next/link";
+import Image from "next/image";
 import { Suspense, useState, useEffect } from "react";
 import { useParams, useSearchParams } from 'next/navigation';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
 
 // Type definitions
 interface CourseData {
@@ -24,8 +26,8 @@ interface CourseData {
     faqs?: FAQ[];
     // similar_courses?: SimilarCourse[];
     related_courses?: RelatedCourse[];
-
     total_ques?: number;
+    image_src?: string;
 }
 
 interface Question {
@@ -217,6 +219,10 @@ const CourseDetailPage: React.FC = () => {
                         {courseData.course_tagline?.toUpperCase() || 'Course Tagline'}
                         {location && <span> in <b>{location.replace(/-/g, ' ')}</b></span>}
                     </h4>
+                    <Breadcrumb
+                        segments={["course-detail", courseCode]} // path segments
+                        dynamicTitle={courseData?.course_name}    // pass course_name here
+                    />
                 </div>
             </div>
 
@@ -225,6 +231,20 @@ const CourseDetailPage: React.FC = () => {
                 <div className="container">
                     <div className="row">
                         <div className="col-lg-8">
+
+                            {/* Course Image */}
+                            {courseData.image_src && (
+                                <div className="mb-4 text-center">
+                                    <Image
+                                        src={courseData.image_src}
+                                        alt={courseData.course_name || "Course Image"}
+                                        width={800}       // Adjust width as needed
+                                        height={350}      // Adjust height as needed
+                                        className="img-fluid rounded shadow-sm"
+                                    />
+                                </div>
+                            )}
+
                             {/* Tabs */}
                             <div className="single-course-tab">
                                 {/* <ul className="nav nav-tabs mb-4">
@@ -466,7 +486,7 @@ const CourseDetailPage: React.FC = () => {
                                             {courseData.ft_ques_list &&
                                                 courseData.ft_ques_list[courseData.ft_cat_list[activeCategory]] &&
                                                 courseData.ft_ques_list[courseData.ft_cat_list[activeCategory]].length > 0 && (
-                                                    <div className="text-center my-4">
+                                                    <div className="text-center my-4 d-flex justify-content-center align-items-center gap-3">
                                                         {!testSubmitted ? (
                                                             <button onClick={submitTest} className="btn btn-primary-custom mt-3">
                                                                 Submit Test
@@ -476,8 +496,25 @@ const CourseDetailPage: React.FC = () => {
                                                                 Retake This Test
                                                             </button>
                                                         )}
+
+                                                        {/* Scroll to Top Button */}
+                                                        <button
+                                                            onClick={() => {
+                                                                const topElement = document.getElementById("top");
+                                                                if (topElement) {
+                                                                    topElement.scrollIntoView({ behavior: "smooth" });
+                                                                } else {
+                                                                    window.scrollTo({ top: 0, behavior: "smooth" });
+                                                                }
+                                                            }}
+                                                            className="btn btn-outline-secondary mt-3 d-flex align-items-center"
+                                                            title="Go to Top"
+                                                        >
+                                                            <i className="bi bi-arrow-up-circle fs-5 me-1"></i> Top
+                                                        </button>
                                                     </div>
                                                 )}
+
                                         </div>
                                     )}
                                 </div>

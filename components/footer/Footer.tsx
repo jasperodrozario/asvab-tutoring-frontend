@@ -82,7 +82,7 @@ export default function Footer() {
             </div>
           </div>
 
-      
+
           {/* Keep in Touch */}
           <div className="col-12 col-md-6 col-lg-3">
             <h5 className="fw-semibold mb-3">KEEP IN TOUCH</h5>
@@ -164,12 +164,24 @@ export default function Footer() {
             </p>
             <p className="small mb-2">
               <i className="bi bi-envelope-fill me-2 primary-color-custom"></i>
-              info@asvab-tutoring.com
+              <a
+                href="mailto:info@asvab-tutoring.com"
+                className="text-decoration-none text-white"
+              >
+                info@asvab-tutoring.com
+              </a>
             </p>
+
             <p className="small mb-2">
               <i className="bi bi-telephone-fill me-2 primary-color-custom"></i>
-              (718)-200-6396
+              <a
+                href="tel:(718)-200-6396"
+                className="text-decoration-none text-white"
+              >
+                (718)-200-6396
+              </a>
             </p>
+
           </div>
         </div>
 

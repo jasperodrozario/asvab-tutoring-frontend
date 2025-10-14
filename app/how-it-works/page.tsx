@@ -1,5 +1,6 @@
 // app/how-it-works/page.tsx
 import React from "react";
+import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
 
 type HowItWorkItem = {
   id: number | string;
@@ -105,7 +106,19 @@ export default async function HowItWorkPage() {
   return (
     <section>
       {/* Banner */}
-      <div className="banner"> <h1 className="text-white text-center bg-black bg-opacity-50 py-3 px-4 rounded"> How it works </h1> </div>
+      {/* <div className="banner"> <h1 className="text-white text-center bg-black bg-opacity-50 py-3 px-4 rounded"> How it works </h1> </div> */}
+      <div className="banner bg-black bg-opacity-50 py-3 px-4 rounded flex flex-col items-center text-center">
+        {/* Page Title */}
+        <h1 className="text-white mb-2 text-3xl font-bold">
+          How it works
+        </h1>
+
+        {/* Breadcrumb below title */}
+        <Breadcrumb
+          segments={["How-it-works"]}
+          className="text-white text-base mt-1"
+        />
+      </div>
 
 
       {/* Content */}
