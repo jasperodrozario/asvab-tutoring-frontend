@@ -1,6 +1,7 @@
 // app/pricing/page.tsx
 import React from "react";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
+import Packages from "@/components/packages/Packages";
 
 
 type PricingPageItem = {
@@ -86,6 +87,10 @@ export default async function PricingPage() {
           </p>
         )}
       </div>
-    </section>
+
+    <Packages />
+        </section>
+
   );
+
 }
