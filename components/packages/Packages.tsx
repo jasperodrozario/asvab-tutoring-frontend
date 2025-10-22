@@ -12,7 +12,15 @@ type CoursePackage = {
   price_range: string;
 };
 
-const Packages = () => {
+type PackagesProps = {
+  showEnrollButton?: boolean; // default true
+  headingSize?: string; // optional text size class for heading
+};
+
+const Packages = ({
+  showEnrollButton = true,
+  headingSize = 'fs-5', // default smaller heading
+}: PackagesProps) => {
   const [packages, setPackages] = useState<CoursePackage[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -71,7 +79,7 @@ const Packages = () => {
 
         {/* Subheading */}
         <h3
-          className="fw-semibold fs-5 mb-4 text-start"
+          className={`fw-semibold ${headingSize} mb-4 text-start`}
           style={{ maxWidth: '960px', marginInline: 'auto' }}
         >
           Select online Tutoring package:
@@ -94,7 +102,7 @@ const Packages = () => {
                     width={400}
                     height={200}
                     className="card-img-top"
-                     style={{ height: '200px', objectFit: 'cover' }}
+                    style={{ height: '200px', objectFit: 'cover' }}
                   />
                   <div className="card-body text-start">
                     <h5 className="card-title fw-bold text-primary">
@@ -136,13 +144,15 @@ const Packages = () => {
           required. You can cancel the entire service within 7 days.
         </p>
 
-        {/* Enroll Button */}
-        <a
-          href="https://test-prep.asvab-tutoring.com/"
-          className="btn btn-primary-custom fw-semibold text-white px-4 py-2 mb-4"
-        >
-          ENROLL NOW
-        </a>
+        {/* Enroll Button (conditionally visible) */}
+        {showEnrollButton && (
+          <Link
+            href="/pricing-page"
+            className="btn btn-primary-custom fw-semibold text-white px-4 py-2 mb-4"
+          >
+            ENROLL NOW
+          </Link>
+        )}
       </div>
     </section>
   );

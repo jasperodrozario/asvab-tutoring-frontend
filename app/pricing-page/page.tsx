@@ -3,7 +3,6 @@ import React from "react";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
 import Packages from "@/components/packages/Packages";
 
-
 type PricingPageItem = {
   pricing_id: string;
   title: string;
@@ -12,7 +11,64 @@ type PricingPageItem = {
   closing_content: string;
 };
 
-// Server-side fetch with caching only per request
+// Decode HTML entities (same logic as How It Works)
+function decodeHtmlEntitiesServer(input: string): string {
+  if (!input) return input;
+  const entityMap: Record<string, string> = {
+    lt: "<",
+    gt: ">",
+    amp: "&",
+    quot: '"',
+    apos: "'",
+    nbsp: "\u00A0",
+    ndash: "–",
+    mdash: "—",
+    rsquo: "’",
+    lsquo: "‘",
+    ldquo: "“",
+    rdquo: "”",
+    hellip: "…",
+    copy: "©",
+    reg: "®",
+  };
+
+  const entityRegex = /&(#x[0-9A-Fa-f]+|#\d+|[a-zA-Z]+);/g;
+
+  let prev: string | null = null;
+  let decoded = input;
+
+  do {
+    prev = decoded;
+    decoded = decoded.replace(entityRegex, (_match, group) => {
+      if (!group) return _match;
+
+      // Numeric (hex)
+      if (group[0] === "#") {
+        if (group[1] === "x" || group[1] === "X") {
+          const code = parseInt(group.slice(2), 16);
+          return isNaN(code) ? _match : String.fromCharCode(code);
+        } else {
+          const code = parseInt(group.slice(1), 10);
+          return isNaN(code) ? _match : String.fromCharCode(code);
+        }
+      }
+
+      // Named entity
+      return entityMap[group] ?? _match;
+    });
+  } while (decoded !== prev);
+
+  return decoded;
+}
+
+// Convert escaped HTML string into renderable HTML
+function processHtmlForRendering(htmlString: string): string {
+  if (!htmlString) return "";
+  const decoded = decodeHtmlEntitiesServer(htmlString);
+  return decoded.trim();
+}
+
+// Fetch pricing page data
 async function fetchPricingPageData(): Promise<PricingPageItem[]> {
   try {
     const response = await fetch(
@@ -23,7 +79,7 @@ async function fetchPricingPageData(): Promise<PricingPageItem[]> {
           "Content-Type": "application/x-www-form-urlencoded",
         },
         body: new URLSearchParams({ action: "get-pricing-page-content" }),
-        cache: "force-cache", // cache for the lifetime of request
+        cache: "force-cache",
       }
     );
 
@@ -35,7 +91,7 @@ async function fetchPricingPageData(): Promise<PricingPageItem[]> {
   }
 }
 
-// ✅ Force server-rendering (no static HTML)
+// Force server-rendering
 export const dynamic = "force-dynamic";
 
 export default async function PricingPage() {
@@ -46,11 +102,9 @@ export default async function PricingPage() {
       {/* Banner */}
       <div className="banner bg-black bg-opacity-50 py-3 px-4 rounded flex flex-col items-center text-center">
         {/* Page Title */}
-        <h1 className="text-white mb-2 text-3xl font-bold">
-          Pricing
-        </h1>
+        <h1 className="text-white mb-2 text-3xl font-bold">Pricing</h1>
 
-        {/* Breadcrumb below title */}
+        {/* Breadcrumb */}
         <Breadcrumb
           segments={["pricing"]}
           className="text-white text-base mt-1"
@@ -58,39 +112,44 @@ export default async function PricingPage() {
       </div>
 
       {/* Content */}
-      <div className="container py-5">
-        <h2 className="mb-1">Our Pricing Plans</h2>
-        <hr className="mb-4 mt-2" />
-
+      <div className="container pb-5 py-5">
         {pricingItems.length > 0 ? (
-          pricingItems.map((item: PricingPageItem) => (
-            <div key={item.pricing_id} className="mb-5">
-              <h5 className="text-dark">{item.title}</h5>
-              <p className="text-secondary">{item.description}</p>
+          pricingItems.map((item: PricingPageItem) => {
+            const descHtml = processHtmlForRendering(item.description || "");
+            const closingHtml = processHtmlForRendering(
+              item.closing_content || ""
+            );
 
-              {/* Online/Offline status */}
-              {/* <p className="text-primary fw-semibold">
-                {item.is_online === "Y" ? "Available Online" : "Offline Only"}
-              </p> */}
+            return (
+              <div key={item.pricing_id} className="mb-5">
+                <h2 className="text-dark mb-3">{item.title}</h2>
+                <hr className="mb-4 mt-2" />
 
-              {/* Closing content */}
-              {item.closing_content && (
-                <p className="text-muted">
-                  {item.closing_content.replace(/\*\*/g, "")}
-                </p>
-              )}
-            </div>
-          ))
+                {/* Render formatted HTML */}
+                <div
+                  className="text-secondary mb-3"
+                  dangerouslySetInnerHTML={{ __html: descHtml }}
+                />
+
+                {closingHtml && (
+                  <div
+                    className="text-muted"
+                    dangerouslySetInnerHTML={{ __html: closingHtml }}
+                  />
+                )}
+              </div>
+            );
+          })
         ) : (
-          <p className="text-muted">
+          <p className="text-muted text-center">
             No pricing information available at the moment.
           </p>
         )}
       </div>
 
-    <Packages />
-        </section>
+      {/* Packages at bottom */}
+     <Packages showEnrollButton={false} headingSize="fs-2" />
 
+    </section>
   );
-
 }

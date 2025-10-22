@@ -106,9 +106,9 @@ export default function Welcome() {
               <p className="lead mt-3">
                 10,000+ successful candidates. Online Test Prep for the ASVAB, ASTB, OAR, AFOQT, and SIFT
               </p>
-              <Link href="https://test-prep.asvab-tutoring.com/">
+              {/* <Link href="https://test-prep.asvab-tutoring.com/">
                 <button className="btn btn-primary-custom mt-3">ENROLL NOW</button>
-              </Link>
+              </Link> */}
 
               <div className="mt-4 bg-white p-3 rounded shadow">
                 <video
