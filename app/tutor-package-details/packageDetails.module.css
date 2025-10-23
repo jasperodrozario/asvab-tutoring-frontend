@@ -3,7 +3,7 @@
 /* HERO / title area (screenshot-like) */
 .hero {
   padding: 3.5rem 0;
-  background: linear-gradient(180deg, rgba(255,250,245,1) 0%, rgba(255,247,239,1) 100%);
+  /* background: linear-gradient(180deg, rgba(255,250,245,1) 0%, rgba(255,247,239,1) 100%); */
   text-align: center;
 }
 
@@ -108,7 +108,7 @@
 /* Buy button */
 .buyBtn {
   display: inline-block;
-  background: #43a047;
+  /* background: #43a047; */
   color: #fff;
   border: none;
   padding: 0.65rem 1.25rem;

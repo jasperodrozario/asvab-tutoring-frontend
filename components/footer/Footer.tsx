@@ -52,8 +52,8 @@ export default function Footer() {
                   </Link>
                 </li>
                 <li className="mb-3">
-                  <Link href="#top-courses" className="footer-link">
-                    <span>&gt;&gt;</span> Courses
+                  <Link href="/services" className="footer-link">
+                    <span>&gt;&gt;</span> Services
                   </Link>
                 </li>
                 <li className="mb-3">
@@ -69,7 +69,7 @@ export default function Footer() {
                   </Link>
                 </li>
                 <li className="mb-3">
-                  <Link href="#faqs" className="footer-link">
+                  <Link href="/faq" className="footer-link">
                     <span>&gt;&gt;</span> FAQs
                   </Link>
                 </li>
@@ -157,7 +157,15 @@ export default function Footer() {
 
           {/* Contact */}
           <div className="col-12 col-md-6 col-lg-3">
-            <h5 className="fw-semibold mb-3">CONTACT</h5>
+            <h5 className="fw-semibold mb-3">
+              <Link
+                href="/contact-us"
+                className="text-decoration-none text-white"
+                style={{ cursor: "pointer" }}
+              >
+                CONTACT US
+              </Link>
+            </h5>
             <p className="small mb-2">
               <i className="bi bi-geo-alt-fill me-2 primary-color-custom"></i>
               United States

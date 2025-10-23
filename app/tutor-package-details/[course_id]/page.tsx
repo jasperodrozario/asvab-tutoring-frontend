@@ -2,6 +2,7 @@
 
 import React, { use, useEffect, useState } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import styles from '../packageDetails.module.css';
 
 function decodeHtmlEntities(input: string): string {
@@ -43,6 +44,7 @@ export default function PackageDetailsPage({
   params: Promise<{ course_id: string }>;
 }) {
   const { course_id } = use(params);
+  const router = useRouter();
   const [courseData, setCourseData] = useState<any>(null);
 
   useEffect(() => {
@@ -68,7 +70,7 @@ export default function PackageDetailsPage({
     }
 
     fetchCourseData();
-  }, [course_id]);
+  }, [course_id]); // 🔑 fetch new data when URL param changes
 
   if (!courseData) {
     return <p className="text-center py-5">Loading...</p>;
@@ -116,8 +118,7 @@ export default function PackageDetailsPage({
         </div>
       </section>
 
-
-{/* Pricing Packages */}
+      {/* Pricing Packages */}
       {courseData.data?.map((pkg: any) => (
         <section key={pkg.package_id} className="py-5">
           <div className="container text-center">
@@ -162,10 +163,6 @@ export default function PackageDetailsPage({
                       {renderTextWithLineBreaks(cleanQuestionText(session.feature))}
                     </div>
                   </div>
-
-                  {/* <div style={{ marginTop: '1rem' }}>
-                    <button className={styles.buyBtn}>Buy Now</button>
-                  </div> */}
                 </div>
               ))}
             </div>
@@ -173,28 +170,24 @@ export default function PackageDetailsPage({
         </section>
       ))}
 
-      {/* Description + Related */}
-      <section className="py-5 bg-light">
+      {/* Related Courses Section */}
+      <section className="py-5 bg-white">
         <div className="container">
+          <h5 className="mb-4 text-uppercase fs-3 fw-bold text-center">Related Packages</h5>
+
           <div className="row g-4">
-            <div className="col-lg-8">
-              <h3 className="mb-3">Description</h3>
-              {renderTextWithLineBreaks(
-                cleanQuestionText(courseData.course_description)
-              )}
-            </div>
-
-            <div className="col-lg-4">
-              <h5 className="mb-3 text-uppercase fw-bold">Related Packages</h5>
-
-              {courseData.related_courses?.length > 0 ? (
-                courseData.related_courses.map((rel: any) => (
+            {courseData.related_courses?.length > 0 ? (
+              courseData.related_courses.map((rel: any) => (
+                <div
+                  key={rel.course_id}
+                  className="col-12 col-sm-6 col-md-4 col-lg-3"
+                >
                   <div
-                    key={rel.course_id}
-                    className="card mb-4 shadow-sm border-0"
+                    className="card h-100 shadow-sm border-0 cursor-pointer"
                     style={{ borderRadius: "10px" }}
+                    onClick={() => router.push(`/tutor-package-details/${rel.course_id}`)}
                   >
-                    <div className="card-body p-3">
+                    <div className="card-body p-3 d-flex flex-column">
                       <Image
                         src={rel.image}
                         alt={rel.name}
@@ -203,30 +196,20 @@ export default function PackageDetailsPage({
                         className="rounded mb-3 w-100"
                         style={{ objectFit: "cover", height: "200px" }}
                       />
-                      <h6 className="fw-semibold mb-2">
-                        <a
-                          href={`/tutor-package-details/${rel.course_id}`}
-                          className="text-decoration-none"
-                          style={{ color: "#e58a34" }}
-                        >
-                          {rel.name}
-                        </a>
+                      <h6 className="fw-semibold mb-2" style={{ color: "#e58a34" }}>
+                        {rel.name}
                       </h6>
-                      <p className="fw-bold text-success mb-0">{rel.price_range}</p>
+                      <p className="fw-bold text-success mb-0 mt-auto">{rel.price_range}</p>
                     </div>
                   </div>
-                ))
-              ) : (
-                <p className="text-muted">No related packages available.</p>
-              )}
-            </div>
-
-
+                </div>
+              ))
+            ) : (
+              <p className="text-muted text-center">No related packages available.</p>
+            )}
           </div>
         </div>
       </section>
-
-      
     </main>
   );
 }
