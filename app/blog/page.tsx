@@ -79,17 +79,17 @@ export default function BlogListPage() {
     <section className="bg-light">
       {/* Banner */}
       <div className="banner bg-black bg-opacity-50 py-3 px-4 rounded flex flex-col items-center text-center mb-5">
-              {/* Page Title */}
-              <h1 className="text-white mb-2 text-3xl font-bold">
-                Blog
-              </h1>
-      
-              {/* Breadcrumb below title */}
-              <Breadcrumb
-                segments={["blog"]}
-                className="text-white text-base mt-1"
-              />
-            </div>
+        {/* Page Title */}
+        <h1 className="text-white mb-2 text-3xl font-bold">
+          Blog
+        </h1>
+
+        {/* Breadcrumb below title */}
+        <Breadcrumb
+          segments={["blog"]}
+          className="text-white text-base mt-1"
+        />
+      </div>
 
       {/* Blog Grid */}
       <div className="container">
@@ -109,7 +109,7 @@ export default function BlogListPage() {
                         <img
                           src={
                             blog.writer_img &&
-                            !blog.writer_img.includes("image.php?src")
+                              !blog.writer_img.includes("image.php?src")
                               ? blog.writer_img
                               : "/images/author_blog.png"
                           }
@@ -176,9 +176,12 @@ export default function BlogListPage() {
                 typeof p === "number" ? (
                   <li
                     key={index}
-                    className={`page-item ${p === page ? "active" : ""}`}
+                    className={`page-item`}
                   >
-                    <button className="page-link" onClick={() => handlePageChange(p)}>
+                    <button
+                      className={`page-link ${p === page ? "bg-custom-primary text-white" : ""}`}
+                      onClick={() => handlePageChange(p)}
+                    >
                       {p}
                     </button>
                   </li>
@@ -202,6 +205,7 @@ export default function BlogListPage() {
             </ul>
           </nav>
         )}
+
       </div>
     </section>
   );

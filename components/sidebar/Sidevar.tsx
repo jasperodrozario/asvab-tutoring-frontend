@@ -79,7 +79,7 @@ export default function Sidebar() {
   if (!mounted) return null; // Prevent hydration mismatch
 
   return (
-    <aside className="bg-dark text-white vh-100" style={{ width: '250px', overflowY: 'auto' }}>
+    <aside className="bg-dark text-white vh-100 mt-4" style={{ width: '250px', overflowY: 'auto' }}>
       <div className="p-3 border-bottom">
         <strong>Admin Panel</strong>
       </div>

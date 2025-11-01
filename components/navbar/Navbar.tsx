@@ -52,7 +52,7 @@ export default function Navbar() {
     <>
       {/* 🔹 Top Contact Bar */}
       <div className="bg-custom-secondary primary-color-custom d-none d-md-block py-2 fixed-top">
-        <div className="container d-flex justify-content-between align-items-center small">
+        <div className="container-sm d-flex justify-content-between align-items-center small" style={{ maxWidth: '1166px', margin: '0 auto' }}>
           <div className="d-flex align-items-center gap-3">
             <FaPhone />
             <a
@@ -106,7 +106,7 @@ export default function Navbar() {
           {/* ✅ Desktop Menu (centered logo) */}
           <div className="d-none d-md-flex justify-content-center align-items-center w-100">
             {/* Left Menu */}
-            <ul className="navbar-nav flex-row align-items-center gap-5 me-4">
+            <ul className="navbar-nav flex-row align-items-center me-4 gap-5">
               <li className="nav-item">
                 <Link href="/" className="nav-link text-white px-2">
                   HOME
@@ -162,7 +162,7 @@ export default function Navbar() {
             </div>
 
             {/* Right Menu */}
-            <ul className="navbar-nav flex-row align-items-center gap-3 ms-4">
+            <ul className="navbar-nav flex-row align-items-center gap-5 ms-4">
               <li className="nav-item">
                 <Link
                   href="/pricing-page"

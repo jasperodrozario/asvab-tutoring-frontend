@@ -31,7 +31,7 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div>
+    <div className='mt-2'>
       <h5 className="mb-4">Dashboard</h5>
       <div className="row">
         {cards.map((card, idx) => (

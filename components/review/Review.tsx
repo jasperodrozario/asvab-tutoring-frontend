@@ -28,19 +28,19 @@ const Review = () => {
       id: 2,
       name: 'Eunice Alberson',
       profile: '/images/default_profile.jpeg',
-      text: 'I highly recommend this company.  They were flexible and able to get our four sessions in under a week.  The results were amazing.  Worth every penny.  Thank you.'
+      text: 'I highly recommend this company. They were flexible and able to get our four sessions in under a week. The results were amazing. Worth every penny. Thank you.'
     },
     {
       id: 3,
       name: 'Jake Lin',
       profile: '/images/default_profile.jpeg',
-      text: 'ASVAB tutoring really helped me 3x my score on the ASVAB. All thanks to ASVAB tutoring and my tutor Sudeshna Das, she really helped me understand a lot about the ASVAB I’m really glad that I had her as my tutor because thanks to her now I posses knowledge like never before.'
+      text: 'ASVAB tutoring really helped me 3x my score on the ASVAB. All thanks to ASVAB tutoring and my tutor Sudeshna Das, she really helped me understand a lot about the ASVAB.'
     },
     {
       id: 4,
       name: 'Roberto Lira',
       profile: '/images/default_profile.jpeg',
-      text: 'Personally, it was a great help from the tutors who help each of us and motivate us to take the ASVAB and have a good score. I recommend each of the people to take help from them.'
+      text: 'Personally, it was a great help from the tutors who help each of us and motivate us to take the ASVAB and have a good score. Highly recommend them!'
     },
     {
       id: 5,
@@ -76,25 +76,24 @@ const Review = () => {
         <Carousel
           activeIndex={index}
           onSelect={handleSelect}
-          fade
           interval={4000}
           pause={false}
-          className="mt-5"
-          indicators={false} // hide default dots
+          slide
+          controls={false}
+          indicators={false}
+          className="mt-5 smooth-carousel"
         >
           {reviews.map((review) => (
             <Carousel.Item key={review.id}>
               <div className="p-4 px-md-5">
-                <div className="quote-icon quote-close">
-                  <i className="bi bi-quote"></i>
-                </div>
-                <p className="testimonial-text">{review.text}</p>
-                <div className="d-flex justify-content-center align-items-center testimonial-author gap-3 mt-4">
+                <i className="bi bi-quote fs-1 primary-color-custom"></i>
+                <p className="testimonial-text mt-3">{review.text}</p>
+                <div className="d-flex justify-content-center align-items-center gap-3 mt-4">
                   <Image
                     src={review.profile}
                     alt={review.name}
-                    width={40}
-                    height={40}
+                    width={50}
+                    height={50}
                     className="rounded-circle"
                   />
                   <span className="fw-semibold">{review.name}</span>
@@ -104,30 +103,51 @@ const Review = () => {
           ))}
         </Carousel>
 
-        {/* Custom Indicators */}
         <div className="d-flex justify-content-center gap-2 mt-3">
           {reviews.map((_, idx) => (
             <button
               key={idx}
               type="button"
-              className={`rounded-circle border-0 ${
-                idx === index ? 'bg-primary' : 'bg-secondary'
-              }`}
+              className={`rounded-circle border-0 ${idx === index ? 'bg-custom-primary' : 'bg-secondary opacity-50'
+                }`}
               style={{ width: '12px', height: '12px', cursor: 'pointer' }}
               onClick={() => handleSelect(idx)}
             />
           ))}
         </div>
 
+
         <div className="mt-4">
-          <a
-            href="/all-reviews"
-            className="btn btn-primary-custom"
-          >
+          <a href="/all-reviews" className="btn btn-primary-custom">
             View All Reviews
           </a>
         </div>
       </div>
+
+      <style jsx global>{`
+        .smooth-carousel .carousel-item {
+          transition: transform 1s ease-in-out;
+        }
+
+        @media (max-width: 768px) {
+          .testimonial-text {
+            font-size: 0.95rem;
+          }
+        }
+
+        .testimonial-text {
+          font-style: italic;
+          line-height: 1.6;
+        }
+
+        .smooth-carousel .carousel-inner {
+          direction: rtl;
+        }
+
+        .smooth-carousel .carousel-item > div {
+          direction: ltr;
+        }
+      `}</style>
     </section>
   );
 };

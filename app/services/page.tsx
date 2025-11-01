@@ -10,7 +10,7 @@ export const metadata = {
 
 export default function ServicesPage() {
   return (
-    <section className="bg-light">
+    <section className="bg-light pb-5 min-h-screen">
       {/* ✅ Banner with title + breadcrumb */}
       <div className="banner bg-black bg-opacity-50 py-3 px-4 rounded flex flex-col items-center text-center mb-5">
         <h1 className="text-white mb-2 text-3xl font-bold">Our Services</h1>

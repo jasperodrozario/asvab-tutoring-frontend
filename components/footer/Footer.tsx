@@ -124,7 +124,7 @@ export default function Footer() {
             </div>
 
             {/* App Store Badges */}
-            <div className="d-flex gap-2 mt-2">
+            <div className="d-flex flex-xxl-row flex-column gap-2 mt-2">
               <a
                 href="https://play.google.com/store/apps/details?id=com.asvab.tutoring"
                 target="_blank"
@@ -133,7 +133,7 @@ export default function Footer() {
                 <Image
                   src="/images/Google_Play_Store_badge_EN.svg"
                   alt="Google Play"
-                  width={150}
+                  width={120}
                   height={40}
                 />
               </a>
@@ -146,7 +146,7 @@ export default function Footer() {
                 <Image
                   src="/images/download-on-the-app-store.svg"
                   alt="App Store"
-                  width={150}
+                  width={120}
                   height={40}
                 />
               </a>
