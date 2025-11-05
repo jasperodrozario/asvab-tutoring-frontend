@@ -106,7 +106,7 @@ export default function Navbar() {
           {/* ✅ Desktop Menu (centered logo) */}
           <div className="d-none d-md-flex justify-content-center align-items-center w-100">
             {/* Left Menu */}
-            <ul className="navbar-nav flex-row align-items-center me-4 gap-5">
+            <ul className="navbar-nav flex-row align-items-center me-4 gap-2 gap-lg-5 flex-nowrap">
               <li className="nav-item">
                 <Link href="/" className="nav-link text-white px-2">
                   HOME
@@ -140,7 +140,7 @@ export default function Navbar() {
                 </ul>
               </li>
               <li className="nav-item">
-                <Link href="/how-it-works" className="nav-link text-white px-2">
+                <Link href="/how-it-works" className="nav-link text-nowrap text-white px-2">
                   HOW IT WORKS
                 </Link>
               </li>
@@ -162,7 +162,7 @@ export default function Navbar() {
             </div>
 
             {/* Right Menu */}
-            <ul className="navbar-nav flex-row align-items-center gap-5 ms-4">
+            <ul className="navbar-nav flex-row align-items-center gap-2 gap-lg-5 flex-nowrap ms-4">
               <li className="nav-item">
                 <Link
                   href="/pricing-page"
@@ -172,7 +172,7 @@ export default function Navbar() {
                 </Link>
               </li>
               <li className="nav-item">
-                <Link href="/about-us" className="nav-link text-white px-2">
+                <Link href="/about-us" className="nav-link text-nowrap text-white px-2">
                   ABOUT US
                 </Link>
               </li>
@@ -184,7 +184,7 @@ export default function Navbar() {
               <li className="nav-item">
                 <Link
                   href="https://test-prep.asvab-tutoring.com/register-free"
-                  className="btn border text-white px-3 py-1"
+                  className="btn border text-white text-nowrap px-3 py-1"
                 >
                   ONLINE TEST
                 </Link>
