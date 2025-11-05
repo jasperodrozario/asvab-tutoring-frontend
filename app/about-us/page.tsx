@@ -70,7 +70,10 @@ function processHtmlForRendering(htmlString: string): string {
   return decoded.trim();
 }
 
-// Server-side fetch with caching only per request
+/**
+ * Fetch About Us data from API
+ * Always fetch fresh data (no caching)
+ */
 async function fetchAboutUsData(): Promise<AboutItem[]> {
   try {
     const response = await fetch(
@@ -79,7 +82,7 @@ async function fetchAboutUsData(): Promise<AboutItem[]> {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({ action: "get-about-us" }),
-        cache: "force-cache",
+        cache: "no-store", // ✅ force fresh data (no caching)
       }
     );
 
@@ -91,7 +94,7 @@ async function fetchAboutUsData(): Promise<AboutItem[]> {
   }
 }
 
-// Force server rendering (no static HTML)
+// ✅ Force server rendering (no static HTML caching)
 export const dynamic = "force-dynamic";
 
 export default async function AboutUsPage() {
@@ -101,37 +104,24 @@ export default async function AboutUsPage() {
     <section>
       {/* Banner */}
       <div className="banner bg-black bg-opacity-50 py-3 px-4 rounded flex flex-col items-center text-center">
-        {/* Page Title */}
-        <h1 className="text-white mb-2 text-3xl font-bold">
-          About Us
-        </h1>
-
-        {/* Breadcrumb below title */}
+        <h1 className="text-white mb-2 text-3xl font-bold">About Us</h1>
         <Breadcrumb
           segments={["about-us"]}
           className="text-white text-base mt-1"
         />
       </div>
 
-
-
-
       {/* Content */}
       <div className="container pb-5 py-5">
         {aboutItems.length > 0 ? (
           aboutItems.map((item: AboutItem) => {
-            // Decode and prepare HTML
             const html = processHtmlForRendering(item.description || "");
-
             return (
               <div key={item.id} className="mb-5">
                 <h2 className="text-dark mb-3">{item.title}</h2>
                 <hr className="mb-4 mt-2" />
-
-                {/* Render decoded HTML */}
                 <div
                   className="text-secondary"
-                  // eslint-disable-next-line react/no-danger
                   dangerouslySetInnerHTML={{ __html: html }}
                 />
               </div>

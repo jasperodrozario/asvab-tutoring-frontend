@@ -66,38 +66,35 @@ function decodeHtmlEntitiesServer(input: string): string {
  */
 function processHtmlForRendering(htmlString: string): string {
   if (!htmlString) return "";
-  // First decode HTML entities like &lt; &gt; &amp; and numeric entities
   const decoded = decodeHtmlEntitiesServer(htmlString);
-
-  // Trim and return
   return decoded.trim();
 }
 
-// Server-side fetch
+/**
+ * Fetch How It Works data from API
+ * Always fetch fresh data (no caching)
+ */
 async function fetchHowItWorkPageData(): Promise<HowItWorkItem[]> {
   try {
     const response = await fetch(
       "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({ action: "get-how-it-works" }),
-        // adjust caching as needed
-        cache: "force-cache",
+        cache: "no-store", // ✅ Force fresh fetch (no cache)
       }
     );
 
     const data = await response.json();
     return data?.isSuccess ? (data.data as HowItWorkItem[]) : [];
   } catch (error) {
-    console.error("Failed to fetch How it works page content:", error);
+    console.error("Failed to fetch How It Works page content:", error);
     return [];
   }
 }
 
-// Force server-rendering (no static HTML)
+// ✅ Force server rendering (no static HTML caching)
 export const dynamic = "force-dynamic";
 
 export default async function HowItWorkPage() {
@@ -106,37 +103,26 @@ export default async function HowItWorkPage() {
   return (
     <section>
       {/* Banner */}
-      {/* <div className="banner"> <h1 className="text-white text-center bg-black bg-opacity-50 py-3 px-4 rounded"> How it works </h1> </div> */}
       <div className="banner bg-black bg-opacity-50 py-3 px-4 rounded flex flex-col items-center text-center">
-        {/* Page Title */}
-        <h1 className="text-white mb-2 text-3xl font-bold">
-          How it works
-        </h1>
-
-        {/* Breadcrumb below title */}
+        <h1 className="text-white mb-2 text-3xl font-bold">How it works</h1>
         <Breadcrumb
           segments={["How-it-works"]}
           className="text-white text-base mt-1"
         />
       </div>
 
-
       {/* Content */}
       <div className="container pb-5 py-5">
         {aboutItems.length > 0 ? (
           aboutItems.map((item: HowItWorkItem) => {
-            // decode & prepare HTML for rendering on server
             const html = processHtmlForRendering(item.description || "");
 
             return (
               <div key={item.id} className="mb-5">
                 <h2 className="text-dark mb-3">{item.title}</h2>
                 <hr className="mb-4 mt-2" />
-
-                {/* Render decoded HTML. Ensure this API is trusted. */}
                 <div
                   className="text-secondary"
-                  // eslint-disable-next-line react/no-danger
                   dangerouslySetInnerHTML={{ __html: html }}
                 />
               </div>
