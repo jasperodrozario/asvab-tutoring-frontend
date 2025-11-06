@@ -73,7 +73,7 @@ export default function Teachers() {
                 <div className="card h-100 shadow-sm text-center">
                   <div className="pt-4">
                     <Image
-                      src={teacher.photo} // full URL from API
+                      src={teacher.photo}
                       alt={teacher.name || 'Tutor'}
                       width={220}
                       height={277}
@@ -88,9 +88,13 @@ export default function Teachers() {
                     <p className="text-center text-primary small mb-3 fw-medium">
                       {teacher.designation || 'Tutor'}
                     </p>
-                    <p className="card-text small text-muted">
-                      {teacher.about || 'No bio available.'}
-                    </p>
+                    {/* ✅ Render HTML safely */}
+                    <p
+                      className="card-text small text-muted"
+                      dangerouslySetInnerHTML={{
+                        __html: teacher.about || 'No bio available.',
+                      }}
+                    />
                   </div>
                 </div>
               </div>
@@ -100,7 +104,7 @@ export default function Teachers() {
 
         <div className="text-center mt-5">
           <Link
-            href="/tutor-list" // full list page
+            href="/tutor-list"
             className="btn btn-primary-custom text-white fw-semibold px-4 py-2"
           >
             See All Tutors

@@ -250,8 +250,17 @@ export default function Welcome() {
             </h2>
           </div>
           <p className="mt-4 text-muted fs-5">
-            Need help with the ASVAB? We are here for you. No longer do you need to prove yourself as a good student by memorizing whole subjects. Now you only need to learn the techniques to excel in your field. ASVAB tutoring provides you with the one-stop solution to help establish your career in the Armed Forces. ASVAB Tutoring was established in 2012 by a group of adroit engineers to simplify and streamline the learning process
+            <strong>Welcome to ASVAB Tutoring—Your Pathway to Military Success</strong>
+            <br /> <br />
+            Dreaming of joining the U.S. Armed Forces? We’ll help you get there.
+            At <strong>ASVAB Tutoring</strong>, we focus on strategies, not memorization—guiding you step-by-step to master every section of the
+            <strong> ASVAB, AFOQT, SIFT, ASTB, and OAR.</strong>
+            <br /><br />
+            Founded in <strong>2012</strong> by expert engineers and educators, we’ve helped thousands of students turn ambition into achievement.
+            
+            Start your journey today—<strong>your future in uniform begins here.</strong>
           </p>
+
 
           <div className="text-center">
             <Link href="/about-us">

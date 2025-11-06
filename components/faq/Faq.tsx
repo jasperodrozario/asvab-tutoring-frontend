@@ -13,17 +13,20 @@ export default function Faq() {
   const [faqs, setFaqs] = useState<FAQ[]>([]);
 
   useEffect(() => {
-    import("bootstrap/dist/js/bootstrap.bundle.min.js"); // Bootstrap for accordion toggle
+    import("bootstrap/dist/js/bootstrap.bundle.min.js"); // Enable accordion
 
     const fetchFaqs = async () => {
       const formData = new FormData();
       formData.append("action", "get-faq");
 
       try {
-      const res = await fetch("https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php", {
-        method: "POST",
-        body: formData,
-      });
+        const res = await fetch(
+          "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
 
         const data = await res.json();
         if (data?.status === 200 && Array.isArray(data.data)) {
@@ -42,6 +45,7 @@ export default function Faq() {
   return (
     <section id="faqs" className="bg-[#f8f9fa] py-5 px-3">
       <div className="container">
+        {/* Title */}
         <div className="text-center mb-4 position-relative">
           <h2
             className="fw-bold display-6 d-inline-block pb-3 position-relative text-dark"
@@ -59,6 +63,7 @@ export default function Faq() {
           </h2>
         </div>
 
+        {/* FAQ Accordion */}
         <div className="accordion" id="faqAccordion">
           {faqs.length === 0 ? (
             <p className="text-center text-muted">No FAQs available.</p>
@@ -89,9 +94,13 @@ export default function Faq() {
                   aria-labelledby={`heading${faq.id}`}
                   data-bs-parent="#faqAccordion"
                 >
-                  <div className="accordion-body small text-muted">
-                    {faq.answers}
-                  </div>
+                  {/* ✅ Render HTML content from API */}
+                  <div
+                    className="accordion-body small text-muted"
+                    dangerouslySetInnerHTML={{
+                      __html: faq.answers || "No answer available.",
+                    }}
+                  />
                 </div>
               </div>
             ))
