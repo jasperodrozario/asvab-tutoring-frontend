@@ -128,7 +128,7 @@ export default function Navbar() {
                   className="nav-link text-white d-flex align-items-center gap-1 px-2"
                   role="button"
                 >
-                  SERVICES <FaCaretDown className="fs-5" />
+                  COURSES <FaCaretDown className="fs-5" />
                 </span>
                 <ul
                   className={`dropdown-menu mt-0 ${
@@ -256,7 +256,7 @@ export default function Navbar() {
                     role="button"
                     onClick={() => setIsServicesOpen(!isServicesOpen)}
                   >
-                    SERVICES <FaCaretDown />
+                    COURSES <FaCaretDown />
                   </span>
 
                   {isServicesOpen && (
