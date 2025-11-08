@@ -1,8 +1,8 @@
-// app/pricing-page/page.tsx
 import React from "react";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
-import Packages from "@/components/packages/Packages";
+import PricingPackages from "@/components/specific-packages/specificPackages";
 
+// ✅ Type for pricing page content
 type PricingPageItem = {
   pricing_id: string;
   title: string;
@@ -34,9 +34,9 @@ function decodeHtmlEntitiesServer(input: string): string {
   };
 
   const entityRegex = /&(#x[0-9A-Fa-f]+|#\d+|[a-zA-Z]+);/g;
-
   let decoded = input;
   let prev = null;
+
   do {
     prev = decoded;
     decoded = decoded.replace(entityRegex, (_match, group) => {
@@ -60,27 +60,23 @@ function processHtmlForRendering(htmlString: string): string {
   return decodeHtmlEntitiesServer(htmlString).trim();
 }
 
-// ✅ Fetch pricing page data dynamically
+// ✅ Fetch pricing page data
 async function fetchPricingPageData(submenu: string): Promise<PricingPageItem[]> {
   try {
     const response = await fetch(
       "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({
           action: "specific-get-pricing-page-content",
-          submenu: submenu, // ✅ Correct key for API
+          submenu: submenu,
         }),
         cache: "no-store",
       }
     );
 
-    const text = await response.text();
-    // console.log("Pricing API raw response:", text); // Debug log
-    const data = JSON.parse(text);
+    const data = await response.json();
 
     if (data?.isSuccess && Array.isArray(data.data)) {
       return data.data as PricingPageItem[];
@@ -94,16 +90,15 @@ async function fetchPricingPageData(submenu: string): Promise<PricingPageItem[]>
   }
 }
 
-// ✅ Required for dynamic fetching
+// ✅ Required for dynamic fetching in Next.js
 export const dynamic = "force-dynamic";
 
-export default async function PricingPage({
-  searchParams,
-}: {
-  searchParams: { submenu?: string };
-}) {
-  const submenu = searchParams.submenu; // ✅ no default, just whatever user selects
-  if (!submenu) return <p className="text-center mt-5">Please select a tutoring type.</p>;
+// ✅ Remove the old problematic type and just use `any` for searchParams
+export default async function PricingPage({ searchParams }: { searchParams?: any }) {
+  const submenu = (searchParams?.submenu as string) || undefined;
+
+  if (!submenu)
+    return <p className="text-center mt-5">Please select a tutoring type.</p>;
 
   const pricingItems = await fetchPricingPageData(submenu);
 
@@ -128,14 +123,12 @@ export default async function PricingPage({
             <div key={item.pricing_id} className="mb-5">
               <h2 className="text-dark mb-3">{item.title}</h2>
               <hr className="mb-4 mt-2" />
-
               <div
                 className="text-secondary mb-3"
                 dangerouslySetInnerHTML={{
                   __html: processHtmlForRendering(item.description),
                 }}
               />
-
               {item.closing_content && (
                 <div
                   className="text-muted"
@@ -154,8 +147,7 @@ export default async function PricingPage({
       </div>
 
       {/* 🔹 Bottom Packages */}
-      <Packages showEnrollButton={false} headingSize="fs-2" />
-     
+      <PricingPackages />
     </section>
   );
 }
