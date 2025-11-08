@@ -1,4 +1,4 @@
-// app/pricing/page.tsx
+// app/pricing-page/page.tsx
 import React from "react";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
 import Packages from "@/components/packages/Packages";
@@ -9,11 +9,12 @@ type PricingPageItem = {
   description: string;
   is_online: string;
   closing_content: string;
+  tutoring_type: string;
 };
 
-// Decode HTML entities (same logic as How It Works)
+// ✅ Decode HTML entities
 function decodeHtmlEntitiesServer(input: string): string {
-  if (!input) return input;
+  if (!input) return "";
   const entityMap: Record<string, string> = {
     lt: "<",
     gt: ">",
@@ -34,26 +35,19 @@ function decodeHtmlEntitiesServer(input: string): string {
 
   const entityRegex = /&(#x[0-9A-Fa-f]+|#\d+|[a-zA-Z]+);/g;
 
-  let prev: string | null = null;
   let decoded = input;
-
+  let prev = null;
   do {
     prev = decoded;
     decoded = decoded.replace(entityRegex, (_match, group) => {
       if (!group) return _match;
-
-      // Numeric (hex)
       if (group[0] === "#") {
-        if (group[1] === "x" || group[1] === "X") {
-          const code = parseInt(group.slice(2), 16);
-          return isNaN(code) ? _match : String.fromCharCode(code);
-        } else {
-          const code = parseInt(group.slice(1), 10);
-          return isNaN(code) ? _match : String.fromCharCode(code);
-        }
+        const code =
+          group[1] === "x" || group[1] === "X"
+            ? parseInt(group.slice(2), 16)
+            : parseInt(group.slice(1), 10);
+        return isNaN(code) ? _match : String.fromCharCode(code);
       }
-
-      // Named entity
       return entityMap[group] ?? _match;
     });
   } while (decoded !== prev);
@@ -61,15 +55,13 @@ function decodeHtmlEntitiesServer(input: string): string {
   return decoded;
 }
 
-// Convert escaped HTML string into renderable HTML
+// ✅ Process HTML for rendering
 function processHtmlForRendering(htmlString: string): string {
-  if (!htmlString) return "";
-  const decoded = decodeHtmlEntitiesServer(htmlString);
-  return decoded.trim();
+  return decodeHtmlEntitiesServer(htmlString).trim();
 }
 
-// Fetch pricing page data
-async function fetchPricingPageData(): Promise<PricingPageItem[]> {
+// ✅ Fetch pricing page data dynamically
+async function fetchPricingPageData(submenu: string): Promise<PricingPageItem[]> {
   try {
     const response = await fetch(
       "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
@@ -78,68 +70,82 @@ async function fetchPricingPageData(): Promise<PricingPageItem[]> {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },
-        body: new URLSearchParams({ action: "get-pricing-page-content" }),
-        cache: "force-cache",
+        body: new URLSearchParams({
+          action: "specific-get-pricing-page-content",
+          submenu: submenu, // ✅ Correct key for API
+        }),
+        cache: "no-store",
       }
     );
 
-    const data = await response.json();
-    return data?.isSuccess ? (data.data as PricingPageItem[]) : [];
+    const text = await response.text();
+    // console.log("Pricing API raw response:", text); // Debug log
+    const data = JSON.parse(text);
+
+    if (data?.isSuccess && Array.isArray(data.data)) {
+      return data.data as PricingPageItem[];
+    }
+
+    console.warn("Unexpected data format:", data);
+    return [];
   } catch (error) {
     console.error("Failed to fetch Pricing page content:", error);
     return [];
   }
 }
 
-// Force server-rendering
+// ✅ Required for dynamic fetching
 export const dynamic = "force-dynamic";
 
-export default async function PricingPage() {
-  const pricingItems = await fetchPricingPageData();
+export default async function PricingPage({
+  searchParams,
+}: {
+  searchParams: { submenu?: string };
+}) {
+  const submenu = searchParams.submenu; // ✅ no default, just whatever user selects
+  if (!submenu) return <p className="text-center mt-5">Please select a tutoring type.</p>;
+
+  const pricingItems = await fetchPricingPageData(submenu);
 
   return (
     <section>
-      {/* Banner */}
-      <div className="banner bg-black bg-opacity-50 py-3 px-4 rounded flex flex-col items-center text-center">
-        {/* Page Title */}
-        <h1 className="text-white mb-2 text-3xl font-bold">Pricing</h1>
-
-        {/* Breadcrumb */}
+      {/* 🔹 Banner */}
+      <div className="banner bg-black bg-opacity-50 py-3 px-4 rounded text-center">
+        <h1 className="text-white mb-2 text-3xl fw-bold">
+          {submenu === "one" ? "1-on-1 Tutoring" : "Group Tutoring"}
+        </h1>
         <Breadcrumb
-          segments={["pricing"]}
+          segments={["pricing", submenu]}
+          dynamicTitle={submenu === "one" ? "1-on-1 Tutoring" : "Group Tutoring"}
           className="text-white text-base mt-1"
         />
       </div>
 
-      {/* Content */}
+      {/* 🔹 Content */}
       <div className="container pb-5 py-5">
         {pricingItems.length > 0 ? (
-          pricingItems.map((item: PricingPageItem) => {
-            const descHtml = processHtmlForRendering(item.description || "");
-            const closingHtml = processHtmlForRendering(
-              item.closing_content || ""
-            );
+          pricingItems.map((item) => (
+            <div key={item.pricing_id} className="mb-5">
+              <h2 className="text-dark mb-3">{item.title}</h2>
+              <hr className="mb-4 mt-2" />
 
-            return (
-              <div key={item.pricing_id} className="mb-5">
-                <h2 className="text-dark mb-3">{item.title}</h2>
-                <hr className="mb-4 mt-2" />
+              <div
+                className="text-secondary mb-3"
+                dangerouslySetInnerHTML={{
+                  __html: processHtmlForRendering(item.description),
+                }}
+              />
 
-                {/* Render formatted HTML */}
+              {item.closing_content && (
                 <div
-                  className="text-secondary mb-3"
-                  dangerouslySetInnerHTML={{ __html: descHtml }}
+                  className="text-muted"
+                  dangerouslySetInnerHTML={{
+                    __html: processHtmlForRendering(item.closing_content),
+                  }}
                 />
-
-                {closingHtml && (
-                  <div
-                    className="text-muted"
-                    dangerouslySetInnerHTML={{ __html: closingHtml }}
-                  />
-                )}
-              </div>
-            );
-          })
+              )}
+            </div>
+          ))
         ) : (
           <p className="text-muted text-center">
             No pricing information available at the moment.
@@ -147,9 +153,9 @@ export default async function PricingPage() {
         )}
       </div>
 
-      {/* Packages at bottom */}
-     <Packages showEnrollButton={false} headingSize="fs-2" />
-
+      {/* 🔹 Bottom Packages */}
+      <Packages showEnrollButton={false} headingSize="fs-2" />
+     
     </section>
   );
 }
