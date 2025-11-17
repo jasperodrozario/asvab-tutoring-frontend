@@ -208,6 +208,14 @@ export default function Navbar() {
                       Group Tutoring
                     </Link>
                   </li>
+                  <li>
+                    <Link
+                      href="/pricing-page?submenu=subscribe"
+                      className="dropdown-item"
+                    >
+                      Subscribe
+                    </Link>
+                  </li>
                 </ul>
               </li>
 

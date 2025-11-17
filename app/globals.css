@@ -553,3 +553,6 @@ a {
   opacity: 0.9;
 }
 
+table {
+  width: 100% !important;
+}

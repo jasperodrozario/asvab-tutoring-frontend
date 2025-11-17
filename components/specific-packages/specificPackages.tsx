@@ -1,11 +1,11 @@
+// components/specific-packages/specificPackages.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 
-
+type Submenu = "one" | "group" | "subscribe";
 
 interface CourseItem {
   course_id: string;
@@ -15,35 +15,38 @@ interface CourseItem {
   price_range: string;
 }
 
-const PricingPackages: React.FC = () => {
-  const searchParams = useSearchParams();
-  const submenu = searchParams.get("submenu") === "group" ? "group" : "one"; // default = one
+type Props = {
+  submenu: Submenu;
+};
 
+const PricingPackages: React.FC<Props> = ({ submenu }) => {
   const [packages, setPackages] = useState<CourseItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!submenu) return;
+    setLoading(true);
+
     const fetchPackages = async () => {
       try {
         const formData = new FormData();
         formData.append("action", "specific-course-list-tutoring-package");
-        formData.append("submenu", submenu);
+        formData.append("submenu", submenu); // same API, different submenu value
 
-        const response = await fetch(
+        const res = await fetch(
           "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
           { method: "POST", body: formData }
         );
-
-        const data = await response.json();
+        const data = await res.json();
 
         if (data?.isSuccess && Array.isArray(data.data)) {
           setPackages(data.data);
         } else {
-          console.warn("No packages found for submenu:", submenu);
           setPackages([]);
         }
-      } catch (error) {
-        console.error("Error fetching pricing packages:", error);
+      } catch (err) {
+        console.error("Error fetching packages:", err);
+        setPackages([]);
       } finally {
         setLoading(false);
       }
@@ -52,15 +55,23 @@ const PricingPackages: React.FC = () => {
     fetchPackages();
   }, [submenu]);
 
+  const headingText =
+    submenu === "one" ? "1-on-1 Tutoring Packages" : submenu === "group" ? "Group Tutoring Packages" : "Subscribe Packages";
+
+  const subText =
+    submenu === "one"
+      ? "Choose from our personalized 1-on-1 tutoring packages."
+      : submenu === "group"
+      ? "Select from our group tutoring options."
+      : "Choose a subscription plan for full access to materials and resources.";
+
   return (
     <section className="bg-white py-5 text-center">
       <div className="container">
-        {/* 🔹 Heading */}
+        {/* Heading */}
         <div className="text-center mb-5 position-relative">
-          <h2 className="fs-2 fw-bold text-gray-800 d-inline-block pb-3 position-relative">
-            {submenu === "one"
-              ? "1-on-1 Tutoring Packages"
-              : "Group Tutoring Packages"}
+          <h2 className="fs-2 fw-bold d-inline-block pb-3 position-relative">
+            {headingText}
             <Image
               src="/images/border_v1.png"
               alt="underline"
@@ -72,17 +83,12 @@ const PricingPackages: React.FC = () => {
           </h2>
         </div>
 
-        {/* 🔹 Description */}
-        <p
-          className="text-secondary text-start mx-auto mb-4"
-          style={{ maxWidth: "960px" }}
-        >
-          {submenu === "one"
-            ? "Choose from our personalized 1-on-1 tutoring packages tailored to your learning goals. Each session is 2 hours long and includes full lesson plans with study materials."
-            : "Select from our group tutoring options for collaborative learning at an affordable rate. Each session is 2 hours long with shared resources and expert guidance."}
+        {/* Description */}
+        <p className="text-secondary text-start mx-auto mb-4" style={{ maxWidth: "960px" }}>
+          {subText}
         </p>
 
-        {/* 🔹 Package Cards */}
+        {/* Cards */}
         <div className="row justify-content-center g-4 mb-5">
           {loading ? (
             <p>Loading packages...</p>
@@ -99,17 +105,11 @@ const PricingPackages: React.FC = () => {
                     style={{ height: "200px", objectFit: "cover" }}
                   />
                   <div className="card-body text-start">
-                    <h5 className="card-title fw-bold text-primary">
-                      {pkg.name}
-                    </h5>
-                    <p className="card-text text-secondary fw-semibold">
-                      {pkg.price_range}
-                    </p>
+                    <h5 className="card-title fw-bold text-primary">{pkg.name}</h5>
+                    <p className="card-text text-secondary fw-semibold">{pkg.price_range}</p>
                     <div className="text-center">
-                      <Link
-                        href={`/SpecificPackageDetailsPage/${submenu}/${pkg.course_id}`}
-                        className="btn btn-secondary-custom btn-sm w-50"
-                      >
+                      {/* route to detail page including submenu param */}
+                      <Link href={`/SpecificPackageDetailsPage/${submenu}/${pkg.course_id}`} className="btn btn-secondary-custom btn-sm w-50">
                         Details
                       </Link>
                     </div>
