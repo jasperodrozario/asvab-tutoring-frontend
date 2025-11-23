@@ -17,9 +17,18 @@ type Course = {
   name: string;
 };
 
+type ServiceCourse = {
+  service_id: string;
+  course_name: string;
+};
+
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   const [courses, setCourses] = useState<Course[]>([]);
+  const [services, setServices] = useState<ServiceCourse[]>([]);
+
+  const [isCoursesOpen, setIsCoursesOpen] = useState(false);
   const [isServicesOpen, setIsServicesOpen] = useState(false);
   const [isPricingOpen, setIsPricingOpen] = useState(false);
 
@@ -35,16 +44,39 @@ export default function Navbar() {
           }
         );
         const data = await response.json();
-        if (data?.isSuccess && Array.isArray(data.data)) setCourses(data.data);
+        if (data?.isSuccess && Array.isArray(data.data)) {
+          setCourses(data.data);
+        }
       } catch (error) {
         console.error("Failed to fetch courses:", error);
       }
     }
+
+    async function fetchServices() {
+      try {
+        const response = await fetch(
+          "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({ action: "get-service-course-list" }),
+          }
+        );
+        const data = await response.json();
+        if (data?.isSuccess && Array.isArray(data.data)) {
+          setServices(data.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch services:", error);
+      }
+    }
+
     fetchCourses();
+    fetchServices();
   }, []);
 
   const handleLinkClick = () => {
-    if (window.innerWidth < 992) {
+    if (typeof window !== "undefined" && window.innerWidth < 992) {
       setIsMenuOpen(false);
     }
   };
@@ -118,11 +150,11 @@ export default function Navbar() {
                 </Link>
               </li>
 
-              {/* SERVICES DROPDOWN */}
+              {/* COURSES DROPDOWN */}
               <li
                 className="nav-item dropdown"
-                onMouseEnter={() => setIsServicesOpen(true)}
-                onMouseLeave={() => setIsServicesOpen(false)}
+                onMouseEnter={() => setIsCoursesOpen(true)}
+                onMouseLeave={() => setIsCoursesOpen(false)}
               >
                 <span
                   className="nav-link text-white d-flex align-items-center gap-1 px-2"
@@ -132,7 +164,7 @@ export default function Navbar() {
                 </span>
                 <ul
                   className={`dropdown-menu mt-0 ${
-                    isServicesOpen ? "show" : ""
+                    isCoursesOpen ? "show" : ""
                   }`}
                 >
                   {courses.map((course) => (
@@ -142,6 +174,36 @@ export default function Navbar() {
                         href={`/course-detail/${course.course_id}`}
                       >
                         {course.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </li>
+
+              {/* NEW SERVICES DROPDOWN */}
+              <li
+                className="nav-item dropdown"
+                onMouseEnter={() => setIsServicesOpen(true)}
+                onMouseLeave={() => setIsServicesOpen(false)}
+              >
+                <span
+                  className="nav-link text-white d-flex align-items-center gap-1 px-2"
+                  role="button"
+                >
+                  SERVICES <FaCaretDown className="fs-5" />
+                </span>
+                <ul
+                  className={`dropdown-menu mt-0 ${
+                    isServicesOpen ? "show" : ""
+                  }`}
+                >
+                  {services.map((service) => (
+                    <li key={service.service_id}>
+                      <Link
+                        className="dropdown-item"
+                        href={`/service-detail/${service.service_id}`}
+                      >
+                        {service.course_name}
                       </Link>
                     </li>
                   ))}
@@ -257,17 +319,17 @@ export default function Navbar() {
                   </Link>
                 </li>
 
-                {/* Mobile Services Dropdown */}
+                {/* Mobile COURSES Dropdown */}
                 <li className="nav-item">
                   <span
                     className="nav-link text-white d-flex align-items-center gap-1"
                     role="button"
-                    onClick={() => setIsServicesOpen(!isServicesOpen)}
+                    onClick={() => setIsCoursesOpen(!isCoursesOpen)}
                   >
                     COURSES <FaCaretDown />
                   </span>
 
-                  {isServicesOpen && (
+                  {isCoursesOpen && (
                     <ul className="navbar-nav ps-3">
                       {courses.map((course) => (
                         <li key={course.course_id} className="nav-item">
@@ -277,6 +339,33 @@ export default function Navbar() {
                             onClick={handleLinkClick}
                           >
                             {course.name}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+
+                {/* Mobile SERVICES Dropdown */}
+                <li className="nav-item">
+                  <span
+                    className="nav-link text-white d-flex align-items-center gap-1"
+                    role="button"
+                    onClick={() => setIsServicesOpen(!isServicesOpen)}
+                  >
+                    SERVICES <FaCaretDown />
+                  </span>
+
+                  {isServicesOpen && (
+                    <ul className="navbar-nav ps-3">
+                      {services.map((service) => (
+                        <li key={service.service_id} className="nav-item">
+                          <Link
+                            href={`/service-detail/${service.service_id}`}
+                            className="nav-link text-white"
+                            onClick={handleLinkClick}
+                          >
+                            {service.course_name}
                           </Link>
                         </li>
                       ))}
@@ -312,6 +401,15 @@ export default function Navbar() {
                           onClick={handleLinkClick}
                         >
                           Group Tutoring
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          href="/pricing-page?submenu=subscribe"
+                          className="nav-link text-white"
+                          onClick={handleLinkClick}
+                        >
+                          Subscribe
                         </Link>
                       </li>
                     </ul>
@@ -354,7 +452,7 @@ export default function Navbar() {
                     className="btn border text-white w-75"
                     onClick={handleLinkClick}
                   >
-                    ONLINE TEST
+                    ONLINE STUDY
                   </Link>
                 </li>
               </ul>

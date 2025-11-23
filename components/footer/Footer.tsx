@@ -32,9 +32,7 @@ export default function Footer() {
           <div className="col-12 col-md-6 col-lg-3">
             <h5 className="fw-semibold mb-3">ABOUT US</h5>
             <p className="small">
-              The days are gone when you need to prove yourself as a good
-              student by memorizing whole subjects. Nowadays you can just learn
-              the tech.
+              At ASVAB Tutoring, we’re dedicated to helping future service members achieve their dreams of joining the United States Armed Forces.
             </p>
             <Link href="/about-us" className="read-more-link mt-4 d-inline-block">
               READ MORE &gt;&gt;
