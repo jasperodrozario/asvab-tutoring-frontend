@@ -94,7 +94,7 @@ export default async function BlogDetailPage({
               />
               <div>
                 <h6 className="mb-0 text-capitalize">{blog.written_by}</h6>
-                <small className="text-muted">
+                <small className=" ">
                   {new Date(blog.created_at).toLocaleDateString("en-US", {
                     year: "numeric",
                     month: "short",
@@ -107,7 +107,7 @@ export default async function BlogDetailPage({
 
           {/* Blog Content */}
           <div
-            className="text-secondary lh-lg"
+            className="lh-lg"
             dangerouslySetInnerHTML={{ __html: blog.blog_content }}
           ></div>
         </div>

@@ -352,7 +352,7 @@ const CourseDetailPage: React.FC = () => {
 
                                                     if (videoArray.length === 0) {
                                                         return (
-                                                            <div className="col-12 text-center text-muted">
+                                                            <div className="col-12 text-center  ">
                                                                 <p>No video available to view at the moment.</p>
                                                             </div>
                                                         );

@@ -193,7 +193,7 @@ export default function Footer() {
 
         {/* Copyright */}
         <div className="text-center small pt-4 mt-4 border-top border-light">
-          <p className="mb-1">© 2022 ASVAB TUTORING LLC All Rights Reserved</p>
+          <p className="mb-1">© 2026 ASVAB TUTORING LLC All Rights Reserved</p>
           <Link href="/privacy-policy" className="text-warning text-decoration-none">
             Privacy Policy
           </Link>{' '}

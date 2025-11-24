@@ -19,7 +19,7 @@ export default function PrivacyPolicyPage() {
             </div>
 
             {/* ✅ Content */}
-            <div className="container py-4 text-secondary">
+            <div className="container py-4">
                 <p><strong>Effective date:</strong> January 9, 2020</p>
 
                 <h4 className="mt-4 mb-2 fw-bold">1. General</h4>

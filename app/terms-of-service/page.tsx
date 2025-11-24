@@ -16,7 +16,7 @@ export default function TermsOfServicePage() {
       </div>
 
       {/* Content */}
-      <div className="container py-4 text-secondary">
+      <div className="container py-4">
         <p><strong>TERMS OF SERVICE</strong></p>
         <p><strong>ASVAB Tutoring, Inc. Terms of Service</strong></p>
         <p><strong>Last updated: January 9, 2020</strong></p>

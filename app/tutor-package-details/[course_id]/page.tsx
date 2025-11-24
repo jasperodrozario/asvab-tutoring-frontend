@@ -126,7 +126,7 @@ export default function PackageDetailsPage({
 
             <div
               className="mx-auto text-start"
-              style={{ maxWidth: '700px', marginTop: '1rem', marginBottom: '2rem' }}
+              style={{marginTop: '1rem', marginBottom: '2rem' }}
             >
               {renderTextWithLineBreaks(cleanQuestionText(pkg.description))}
             </div>
@@ -205,7 +205,7 @@ export default function PackageDetailsPage({
                 </div>
               ))
             ) : (
-              <p className="text-muted text-center">No related packages available.</p>
+              <p className="  text-center">No related packages available.</p>
             )}
           </div>
         </div>

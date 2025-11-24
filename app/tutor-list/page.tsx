@@ -96,7 +96,7 @@ export default function TutorsListPage() {
 
                     {/* ✅ Render HTML safely */}
                     <p
-                      className="card-text small text-muted"
+                      className="card-text small  "
                       dangerouslySetInnerHTML={{
                         __html: teacher.about || 'No bio available.',
                       }}

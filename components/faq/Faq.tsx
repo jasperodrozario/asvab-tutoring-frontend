@@ -66,7 +66,7 @@ export default function Faq() {
         {/* FAQ Accordion */}
         <div className="accordion" id="faqAccordion">
           {faqs.length === 0 ? (
-            <p className="text-center text-muted">No FAQs available.</p>
+            <p className="text-center  ">No FAQs available.</p>
           ) : (
             faqs.map((faq, index) => (
               <div className="accordion-item border shadow-sm" key={faq.id}>
@@ -96,7 +96,7 @@ export default function Faq() {
                 >
                   {/* ✅ Render HTML content from API */}
                   <div
-                    className="accordion-body small text-muted"
+                    className="accordion-body small  "
                     dangerouslySetInnerHTML={{
                       __html: faq.answers || "No answer available.",
                     }}

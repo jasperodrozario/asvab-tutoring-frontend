@@ -249,7 +249,7 @@ export default function Welcome() {
               />
             </h2>
           </div>
-          <p className="mt-4 text-muted fs-5">
+          <p className="mt-4   fs-5">
             <strong>Welcome to ASVAB Tutoring—Your Pathway to Military Success</strong>
             <br /> <br />
             Dreaming of joining the U.S. Armed Forces? We’ll help you get there.

@@ -84,7 +84,7 @@ const PricingPackages: React.FC<Props> = ({ submenu }) => {
         </div>
 
         {/* Description */}
-        <p className="text-secondary text-start mx-auto mb-4" style={{ maxWidth: "960px" }}>
+        <p className="text-start mx-auto mb-4" style={{ maxWidth: "960px" }}>
           {subText}
         </p>
 
@@ -106,7 +106,7 @@ const PricingPackages: React.FC<Props> = ({ submenu }) => {
                   />
                   <div className="card-body text-start">
                     <h5 className="card-title fw-bold text-primary">{pkg.name}</h5>
-                    <p className="card-text text-secondary fw-semibold">{pkg.price_range}</p>
+                    <p className="card-text fw-semibold">{pkg.price_range}</p>
                     <div className="text-center">
                       {/* route to detail page including submenu param */}
                       <Link href={`/SpecificPackageDetailsPage/${submenu}/${pkg.course_id}`} className="btn btn-secondary-custom btn-sm w-50">

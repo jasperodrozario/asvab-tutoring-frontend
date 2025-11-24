@@ -121,14 +121,13 @@ export default async function AboutUsPage() {
                 <h2 className="text-dark mb-3">{item.title}</h2>
                 <hr className="mb-4 mt-2" />
                 <div
-                  className="text-secondary"
                   dangerouslySetInnerHTML={{ __html: html }}
                 />
               </div>
             );
           })
         ) : (
-          <p className="text-muted text-center">
+          <p className="  text-center">
             No about us information available at the moment.
           </p>
         )}

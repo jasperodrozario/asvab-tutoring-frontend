@@ -74,7 +74,7 @@ export default async function ServiceDetailPage({
 
   if (!serviceDetail) {
     return (
-      <div className="container py-5 text-center text-muted">
+      <div className="container py-5 text-center  ">
         <h3>Service details not found.</h3>
       </div>
     );

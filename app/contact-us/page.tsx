@@ -108,7 +108,7 @@ export default function ContactPage() {
                 <i className="bi bi-telephone-fill text-primary me-2"></i>
                 (718)-200-6396
               </p>
-                            <p className="text-muted mt-3">
+                            <p className="  mt-3">
                                 Fill out the form and our team will get back to you shortly.
                             </p>
                         </div>

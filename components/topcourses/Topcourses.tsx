@@ -220,7 +220,7 @@ export default function TopCourses() {
                   />
                   <div className="card-body d-flex flex-column">
                     <h5 className="card-title fw-semibold">{course.name || course.course_code}</h5>
-                    <p className="card-text small text-muted">
+                    <p className="card-text small  ">
                       {getPlainTextPreview(course.details, 100)}
                     </p>
                     <div className="text-center mt-auto">

@@ -69,7 +69,7 @@ const Packages = ({
 
         {/* Description */}
         <p
-          className="text-secondary text-start mx-auto mb-4"
+          className="text-start mx-auto mb-4"
           style={{ maxWidth: '960px' }}
         >
           ASVAB Tutoring will provide One-on-One online tutoring service. All the
@@ -108,7 +108,7 @@ const Packages = ({
                     <h5 className="card-title fw-bold text-primary">
                       {pkg.name}
                     </h5>
-                    <p className="card-text text-secondary fw-semibold">
+                    <p className="card-text fw-semibold">
                       {pkg.price_range}
                     </p>
                     <div className="text-center">
@@ -128,7 +128,7 @@ const Packages = ({
 
         {/* Notes */}
         <p
-          className="text-muted fs-6 text-start mx-auto mb-3"
+          className="  fs-6 text-start mx-auto mb-3"
           style={{ maxWidth: '960px' }}
         >
           <span className="fw-semibold text-danger">NOTE:</span> No session will
@@ -136,7 +136,7 @@ const Packages = ({
           to submit homework before each session.
         </p>
         <p
-          className="text-muted fs-6 text-start mx-auto mb-5"
+          className="  fs-6 text-start mx-auto mb-5"
           style={{ maxWidth: '960px' }}
         >
           <span className="fw-semibold text-primary">Cancellation Policy:</span>{' '}

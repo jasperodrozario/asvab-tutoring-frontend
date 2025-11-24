@@ -53,7 +53,7 @@ export default function SitemapPage() {
               className="d-block text-decoration-none p-3 h-100 shadow-sm rounded bg-light text-dark hover-link"
             >
               {item.name}
-              {/* <div className="text-muted small">{item.course_name}</div> */}
+              {/* <div className="  small">{item.course_name}</div> */}
             </Link>
           </div>
         ))}

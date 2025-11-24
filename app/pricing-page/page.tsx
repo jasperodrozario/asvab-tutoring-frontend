@@ -106,6 +106,9 @@ export default async function PricingPage({ searchParams }: { searchParams?: any
       </div>
 
       {/* Content */}
+
+      {/* Bottom Packages: pass submenu as prop so component fetches the right list */}
+      <PricingPackages submenu={submenu} />
       <div className="container pb-5 py-5">
         {pricingItems.length > 0 ? (
           pricingItems.map((item) => (
@@ -113,24 +116,22 @@ export default async function PricingPage({ searchParams }: { searchParams?: any
               <h2 className="text-dark mb-3">{item.title}</h2>
               <hr className="mb-4 mt-2" />
               <div
-                className="text-secondary mb-3"
+                className="mb-3"
                 dangerouslySetInnerHTML={{ __html: processHtmlForRendering(item.description) }}
               />
               {item.closing_content && (
                 <div
-                  className="text-muted"
+                  className=" "
                   dangerouslySetInnerHTML={{ __html: processHtmlForRendering(item.closing_content) }}
                 />
               )}
             </div>
           ))
         ) : (
-          <p className="text-muted text-center">No pricing information available at the moment.</p>
+          <p className="  text-center">No pricing information available at the moment.</p>
         )}
       </div>
 
-      {/* Bottom Packages: pass submenu as prop so component fetches the right list */}
-      <PricingPackages submenu={submenu} />
     </section>
   );
 }

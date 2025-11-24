@@ -210,7 +210,7 @@ export default function SpecificPackageDetailsPage({
                 </div>
               ))
             ) : (
-              <p className="text-muted text-center">No related packages available.</p>
+              <p className="  text-center">No related packages available.</p>
             )}
           </div>
         </div>

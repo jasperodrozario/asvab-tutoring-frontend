@@ -118,11 +118,11 @@ export default function BlogListPage() {
                           width="30"
                           height="30"
                         />
-                        <small className="text-muted">
+                        <small className=" ">
                           {blog.written_by || "Unknown Author"}
                         </small>
                       </div>
-                      <small className="text-muted text-end">
+                      <small className="  text-end">
                         {new Date(blog.created_at).toLocaleDateString("en-US", {
                           year: "numeric",
                           month: "short",
@@ -132,7 +132,7 @@ export default function BlogListPage() {
                     </div>
 
                     {/* Blog Excerpt */}
-                    <p className="card-text text-secondary">
+                    <p className="card-text">
                       {blog.blog_content.length > 120
                         ? blog.blog_content.slice(0, 120) + "..."
                         : blog.blog_content}
