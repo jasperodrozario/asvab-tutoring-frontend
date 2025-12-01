@@ -120,11 +120,11 @@ export default function Navbar() {
       {/* 🔹 Main Navbar */}
       <nav className="navbar navbar-expand-md bg-custom-secondary text-white py-2 py-md-3 fixed-top navbar-desktop-mt">
         <div className="container d-flex justify-content-between align-items-center px-3">
-          {/* ✅ Mobile: Logo + Hamburger */}
+
+          {/* Mobile Header */}
           <div className="d-flex d-md-none justify-content-between align-items-center w-100">
             <Link href="/" className="navbar-brand">
               <Image
-                className="d-flex justify-content-center align-items-center"
                 src="/images/asvab-tutoring-logo.webp"
                 width={70}
                 height={70}
@@ -140,33 +140,28 @@ export default function Navbar() {
             </button>
           </div>
 
-          {/* ✅ Desktop Menu (centered logo) */}
+          {/* Desktop Menu */}
           <div className="d-none d-md-flex justify-content-center align-items-center w-100">
-            {/* Left Menu */}
-            <ul className="navbar-nav flex-row align-items-center me-4 gap-2 gap-lg-5 flex-nowrap">
+
+            {/* LEFT MENU */}
+            <ul className="navbar-nav flex-row flex-nowrap align-items-center me-2 gap-2 gap-md-3 gap-lg-4">
+
               <li className="nav-item">
                 <Link href="/" className="nav-link text-white px-2">
                   HOME
                 </Link>
               </li>
 
-              {/* COURSES DROPDOWN */}
+              {/* COURSES */}
               <li
                 className="nav-item dropdown"
                 onMouseEnter={() => setIsCoursesOpen(true)}
                 onMouseLeave={() => setIsCoursesOpen(false)}
               >
-                <span
-                  className="nav-link text-white d-flex align-items-center gap-1 px-2"
-                  role="button"
-                >
+                <span className="nav-link text-white d-flex align-items-center gap-1 px-2">
                   COURSES <FaCaretDown className="fs-5" />
                 </span>
-                <ul
-                  className={`dropdown-menu mt-0 ${
-                    isCoursesOpen ? "show" : ""
-                  }`}
-                >
+                <ul className={`dropdown-menu mt-0 ${isCoursesOpen ? "show" : ""}`}>
                   {courses.map((course) => (
                     <li key={course.course_id}>
                       <Link
@@ -180,23 +175,16 @@ export default function Navbar() {
                 </ul>
               </li>
 
-              {/* NEW SERVICES DROPDOWN */}
+              {/* SERVICES */}
               <li
                 className="nav-item dropdown"
                 onMouseEnter={() => setIsServicesOpen(true)}
                 onMouseLeave={() => setIsServicesOpen(false)}
               >
-                <span
-                  className="nav-link text-white d-flex align-items-center gap-1 px-2"
-                  role="button"
-                >
+                <span className="nav-link text-white d-flex align-items-center gap-1 px-2">
                   SERVICES <FaCaretDown className="fs-5" />
                 </span>
-                <ul
-                  className={`dropdown-menu mt-0 ${
-                    isServicesOpen ? "show" : ""
-                  }`}
-                >
+                <ul className={`dropdown-menu mt-0 ${isServicesOpen ? "show" : ""}`}>
                   {services.map((service) => (
                     <li key={service.service_id}>
                       <Link
@@ -211,21 +199,15 @@ export default function Navbar() {
               </li>
 
               <li className="nav-item">
-                <Link
-                  href="/how-it-works"
-                  className="nav-link text-nowrap text-white px-2"
-                >
+                <Link href="/how-it-works" className="nav-link text-white px-2">
                   HOW IT WORKS
                 </Link>
               </li>
             </ul>
 
             {/* Center Logo */}
-            <div className="mx-3">
-              <Link
-                href="/"
-                className="navbar-brand d-flex justify-content-center align-items-center"
-              >
+            <div className="mx-2 mx-md-3">
+              <Link href="/" className="navbar-brand">
                 <Image
                   src="/images/asvab-tutoring-logo.webp"
                   width={85}
@@ -235,109 +217,69 @@ export default function Navbar() {
               </Link>
             </div>
 
-            {/* Right Menu */}
-            <ul className="navbar-nav flex-row align-items-center gap-2 gap-lg-5 flex-nowrap ms-4">
-              {/* ✅ PRICING DROPDOWN */}
+            {/* RIGHT MENU */}
+            <ul className="navbar-nav flex-row flex-nowrap align-items-center ms-2 gap-2 gap-md-3 gap-lg-4">
+
+              {/* PRICING */}
               <li
                 className="nav-item dropdown"
                 onMouseEnter={() => setIsPricingOpen(true)}
                 onMouseLeave={() => setIsPricingOpen(false)}
               >
-                <span
-                  className="nav-link text-white d-flex align-items-center gap-1 px-2"
-                  role="button"
-                >
+                <span className="nav-link text-white d-flex align-items-center gap-1 px-2">
                   PRICING <FaCaretDown className="fs-5" />
                 </span>
-                <ul
-                  className={`dropdown-menu mt-0 ${
-                    isPricingOpen ? "show" : ""
-                  }`}
-                >
-                  <li>
-                    <Link
-                      href="/pricing-page?submenu=one"
-                      className="dropdown-item"
-                    >
-                      1-on-1 Tutoring
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="/pricing-page?submenu=group"
-                      className="dropdown-item"
-                    >
-                      Group Tutoring
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="/pricing-page?submenu=subscribe"
-                      className="dropdown-item"
-                    >
-                      Subscribe
-                    </Link>
-                  </li>
+                <ul className={`dropdown-menu mt-0 ${isPricingOpen ? "show" : ""}`}>
+                  <li><Link href="/pricing-page?submenu=one" className="dropdown-item">1-on-1 Tutoring</Link></li>
+                  <li><Link href="/pricing-page?submenu=group" className="dropdown-item">Group Tutoring</Link></li>
+                  <li><Link href="/pricing-page?submenu=subscribe" className="dropdown-item">Self Study</Link></li>
                 </ul>
               </li>
 
               <li className="nav-item">
-                <Link
-                  href="/about-us"
-                  className="nav-link text-nowrap text-white px-2"
-                >
-                  ABOUT US
-                </Link>
+                <Link href="/about-us" className="nav-link text-white px-2">ABOUT US</Link>
               </li>
+
               <li className="nav-item">
-                <Link href="/blog" className="nav-link text-white px-2">
-                  BLOG
-                </Link>
+                <Link href="/blog" className="nav-link text-white px-2">BLOG</Link>
               </li>
+
               <li className="nav-item">
                 <Link
                   href="https://test-prep.asvab-tutoring.com/register-free"
-                  className="btn border text-white text-nowrap px-3 py-1"
+                  className="btn border text-white px-3 py-1"
                 >
-                  ONLINE TEST
+                  ONLINE STUDY
                 </Link>
               </li>
+
             </ul>
           </div>
 
-          {/* ✅ Mobile Collapsible Menu */}
+          {/* MOBILE MENU */}
           {isMenuOpen && (
             <div className="d-md-none mt-3 w-100 text-left">
               <ul className="navbar-nav">
+
                 <li className="nav-item">
-                  <Link
-                    href="/"
-                    className="nav-link text-white"
-                    onClick={handleLinkClick}
-                  >
+                  <Link href="/" className="nav-link text-white" onClick={handleLinkClick}>
                     HOME
                   </Link>
                 </li>
 
-                {/* Mobile COURSES Dropdown */}
+                {/* COURSES MOBILE */}
                 <li className="nav-item">
                   <span
                     className="nav-link text-white d-flex align-items-center gap-1"
-                    role="button"
                     onClick={() => setIsCoursesOpen(!isCoursesOpen)}
                   >
                     COURSES <FaCaretDown />
                   </span>
-
                   {isCoursesOpen && (
                     <ul className="navbar-nav ps-3">
                       {courses.map((course) => (
                         <li key={course.course_id} className="nav-item">
-                          <Link
-                            href={`/course-detail/${course.course_id}`}
-                            className="nav-link text-white"
-                            onClick={handleLinkClick}
-                          >
+                          <Link href={`/course-detail/${course.course_id}`} className="nav-link text-white" onClick={handleLinkClick}>
                             {course.name}
                           </Link>
                         </li>
@@ -346,25 +288,19 @@ export default function Navbar() {
                   )}
                 </li>
 
-                {/* Mobile SERVICES Dropdown */}
+                {/* SERVICES MOBILE */}
                 <li className="nav-item">
                   <span
                     className="nav-link text-white d-flex align-items-center gap-1"
-                    role="button"
                     onClick={() => setIsServicesOpen(!isServicesOpen)}
                   >
                     SERVICES <FaCaretDown />
                   </span>
-
                   {isServicesOpen && (
                     <ul className="navbar-nav ps-3">
                       {services.map((service) => (
                         <li key={service.service_id} className="nav-item">
-                          <Link
-                            href={`/service-detail/${service.service_id}`}
-                            className="nav-link text-white"
-                            onClick={handleLinkClick}
-                          >
+                          <Link href={`/service-detail/${service.service_id}`} className="nav-link text-white" onClick={handleLinkClick}>
                             {service.course_name}
                           </Link>
                         </li>
@@ -373,91 +309,50 @@ export default function Navbar() {
                   )}
                 </li>
 
-                {/* ✅ Mobile Pricing Dropdown */}
+                {/* PRICING MOBILE */}
                 <li className="nav-item">
                   <span
                     className="nav-link text-white d-flex align-items-center gap-1"
-                    role="button"
                     onClick={() => setIsPricingOpen(!isPricingOpen)}
                   >
                     PRICING <FaCaretDown />
                   </span>
-
                   {isPricingOpen && (
                     <ul className="navbar-nav ps-3">
-                      <li>
-                        <Link
-                          href="/pricing-page?submenu=one"
-                          className="nav-link text-white"
-                          onClick={handleLinkClick}
-                        >
-                          1-on-1 Tutoring
-                        </Link>
-                      </li>
-                      <li>
-                        <Link
-                          href="/pricing-page?submenu=group"
-                          className="nav-link text-white"
-                          onClick={handleLinkClick}
-                        >
-                          Group Tutoring
-                        </Link>
-                      </li>
-                      <li>
-                        <Link
-                          href="/pricing-page?submenu=subscribe"
-                          className="nav-link text-white"
-                          onClick={handleLinkClick}
-                        >
-                          Subscribe
-                        </Link>
-                      </li>
+                      <li><Link href="/pricing-page?submenu=one" className="nav-link text-white" onClick={handleLinkClick}>1-on-1 Tutoring</Link></li>
+                      <li><Link href="/pricing-page?submenu=group" className="nav-link text-white" onClick={handleLinkClick}>Group Tutoring</Link></li>
+                      <li><Link href="/pricing-page?submenu=subscribe" className="nav-link text-white" onClick={handleLinkClick}>Self Study</Link></li>
                     </ul>
                   )}
                 </li>
 
                 <li className="nav-item">
-                  <Link
-                    href="/how-it-works"
-                    className="nav-link text-white"
-                    onClick={handleLinkClick}
-                  >
+                  <Link href="/how-it-works" className="nav-link text-white" onClick={handleLinkClick}>
                     HOW IT WORKS
                   </Link>
                 </li>
 
                 <li className="nav-item">
-                  <Link
-                    href="/about-us"
-                    className="nav-link text-white"
-                    onClick={handleLinkClick}
-                  >
+                  <Link href="/about-us" className="nav-link text-white" onClick={handleLinkClick}>
                     ABOUT US
                   </Link>
                 </li>
 
                 <li className="nav-item">
-                  <Link
-                    href="/blog"
-                    className="nav-link text-white"
-                    onClick={handleLinkClick}
-                  >
+                  <Link href="/blog" className="nav-link text-white" onClick={handleLinkClick}>
                     BLOG
                   </Link>
                 </li>
 
                 <li className="nav-item mt-2">
-                  <Link
-                    href="https://test-prep.asvab-tutoring.com/register-free"
-                    className="btn border text-white w-75"
-                    onClick={handleLinkClick}
-                  >
+                  <Link href="https://test-prep.asvab-tutoring.com/register-free" className="btn border text-white w-75" onClick={handleLinkClick}>
                     ONLINE STUDY
                   </Link>
                 </li>
               </ul>
             </div>
           )}
+
         </div>
       </nav>
     </>

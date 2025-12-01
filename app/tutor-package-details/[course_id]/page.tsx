@@ -4,6 +4,7 @@ import React, { use, useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import styles from '../packageDetails.module.css';
+import PaymentMethodSection from '@/components/payment-list/paymentList';
 
 function decodeHtmlEntities(input: string): string {
   if (!input) return '';
@@ -104,14 +105,15 @@ export default function PackageDetailsPage({
               )}
 
               <div className="mt-4">
-                <Image
+                {/* <Image
                   src="/images/how-to-send-payment-new.webp"
                   alt="Payment info"
                   width={600}
                   height={400}
                   className="img-fluid rounded shadow-sm"
                   style={{ objectFit: 'cover' }}
-                />
+                /> */}
+                < PaymentMethodSection />
               </div>
             </div>
           </div>

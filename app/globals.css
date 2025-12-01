@@ -559,3 +559,53 @@ a {
 table {
   width: 100% !important;
 }
+
+
+.payment-row {
+  padding: 10px 5px;
+  border-radius: 8px;
+  transition: 0.25s ease;
+}
+
+.payment-row:hover {
+  background-color: #f4f4f4;
+  transform: translateX(5px);
+}
+
+.payment-icon-box {
+  width: 50px;
+  height: 50px;
+  background: #ffffff;
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+
+
+/* Prevent nav items from wrapping + reduce spacing on medium screens */
+@media (max-width: 1400px) {
+  .navbar-nav .nav-link {
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+    font-size: 0.93rem !important;
+  }
+}
+
+@media (max-width: 1300px) {
+  .navbar-nav {
+    gap: 10px !important;
+  }
+}
+
+@media (max-width: 1150px) {
+  .navbar-nav {
+    gap: 6px !important;
+  }
+  .navbar-nav .nav-link {
+    font-size: 0.85rem !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+  }
+}

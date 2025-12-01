@@ -118,7 +118,7 @@ const Review = () => {
 
 
         <div className="mt-4">
-          <a href="/all-reviews" className="btn btn-primary-custom">
+          <a href="https://www.facebook.com/asvabtutoring/reviews" className="btn btn-primary-custom">
             View All Reviews
           </a>
         </div>

@@ -93,7 +93,7 @@ const Packages = ({
             packages.map((pkg) => (
               <div
                 key={pkg.course_id}
-                className="col-sm-6 col-lg-3 hover-lift"
+                className="col-sm-6 col-lg-4 hover-lift"
               >
                 <div className="card h-100 shadow-sm">
                   <Image

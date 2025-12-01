@@ -208,7 +208,7 @@ export default function TopCourses() {
           {!loading &&
             !error &&
             courses.map((course) => (
-              <div className="col-sm-6 col-lg-3" key={course.course_id}>
+              <div className="col-sm-6 col-lg-4" key={course.course_id}>
                 <div className="card h-100 shadow-sm hover-lift">
                   <Image
                     src={resolveImageUrl(course.image_src)}
