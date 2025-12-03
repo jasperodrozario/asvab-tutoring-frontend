@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
+// import Link from "next/link";
+import IntroText from "../intro-text/IntroText";
 
 interface State {
   id: string;
@@ -234,43 +235,7 @@ export default function Welcome() {
       </div>
 
       {/* Welcome Section */}
-      <section className="py-5 bg-white px-3">
-        <div className="container">
-          <div className="text-center position-relative">
-            <h2 className="fw-bold display-5 text-dark position-relative d-inline-block pb-3">
-              Welcome
-              <Image
-                src="/images/border_v1.png"
-                alt="underline"
-                width={160}
-                height={8}
-                className="position-absolute start-50 translate-middle-x bottom-0"
-                style={{ objectFit: "cover" }}
-              />
-            </h2>
-          </div>
-          <p className="mt-4   fs-5">
-            <strong>Welcome to ASVAB Tutoring—Your Pathway to Military Success</strong>
-            <br /> <br />
-            Dreaming of joining the U.S. Armed Forces? We’ll help you get there.
-            At <strong>ASVAB Tutoring</strong>, we focus on strategies, not memorization—guiding you step-by-step to master every section of the
-            <strong> ASVAB, AFOQT, SIFT, ASTB, and OAR.</strong>
-            <br /><br />
-            Founded in <strong>2012</strong> by expert engineers and educators, we’ve helped thousands of students turn ambition into achievement.
-            
-            Start your journey today—<strong>your future in uniform begins here.</strong>
-          </p>
-
-
-          <div className="text-center">
-            <Link href="/about-us">
-              <button className="btn btn-primary-custom mt-4 px-5 py-2">
-                READ MORE
-              </button>
-            </Link>
-          </div>
-        </div>
-      </section>
+      <IntroText />
     </>
   );
 }
