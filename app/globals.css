@@ -595,7 +595,12 @@ table {
 
 @media (max-width: 1300px) {
   .navbar-nav {
-    gap: 10px !important;
+    gap: 6px !important;
+  }
+  .navbar-nav .nav-link {
+    font-size: 0.85rem !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
   }
 }
 
@@ -609,3 +614,9 @@ table {
     padding-right: 4px !important;
   }
 }
+
+/* @media (max-width: 992px) {
+  .navbar-nav {
+    gap: 8px !important;
+  }
+} */
