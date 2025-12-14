@@ -10,6 +10,13 @@ type WelcomeItem = {
   description: string;
 };
 
+// HTML decode function
+function decodeHtml(html: string): string {
+  const txt = document.createElement("textarea");
+  txt.innerHTML = html;
+  return txt.value;
+}
+
 export default function WelcomeSection() {
   const [welcome, setWelcome] = useState<WelcomeItem | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -49,12 +56,10 @@ export default function WelcomeSection() {
   return (
     <section className="py-5 bg-white px-3">
       <div className="container">
-        {/* Title + underline image */}
         <div className="text-center position-relative">
           <h2 className="fw-bold display-5 text-dark position-relative d-inline-block pb-3">
-            {loading
-              ? "Loading..."
-              : welcome?.title || "Welcome"}
+            {loading ? "Loading..." : welcome?.title || "Welcome"}
+
             <Image
               src="/images/border_v1.png"
               alt="underline"
@@ -66,14 +71,13 @@ export default function WelcomeSection() {
           </h2>
         </div>
 
-        {/* Description from API */}
         <div className="mt-4 fs-5">
           {loading ? (
             <p className="text-center text-muted">Loading welcome content...</p>
           ) : welcome ? (
             <div
               dangerouslySetInnerHTML={{
-                __html: welcome.description,
+                __html: decodeHtml(welcome.description),
               }}
             />
           ) : (
@@ -83,7 +87,6 @@ export default function WelcomeSection() {
           )}
         </div>
 
-        {/* Read More button (static link) */}
         <div className="text-center">
           <Link href="/about-us">
             <button className="btn btn-primary-custom mt-4 px-5 py-2">

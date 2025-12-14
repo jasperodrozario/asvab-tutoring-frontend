@@ -13,12 +13,12 @@ type CoursePackage = {
 };
 
 type PackagesProps = {
-  showEnrollButton?: boolean; // default true
+  // showEnrollButton?: boolean; // default true
   headingSize?: string; // optional text size class for heading
 };
 
 const Packages = ({
-  showEnrollButton = true,
+  // showEnrollButton = true,
   headingSize = 'fs-5', // default smaller heading
 }: PackagesProps) => {
   const [packages, setPackages] = useState<CoursePackage[]>([]);
@@ -126,33 +126,6 @@ const Packages = ({
           )}
         </div>
 
-        {/* Notes */}
-        <p
-          className="  fs-6 text-start mx-auto mb-3"
-          style={{ maxWidth: '960px' }}
-        >
-          <span className="fw-semibold text-danger">NOTE:</span> No session will
-          be scheduled without payment information on file. Students are required
-          to submit homework before each session.
-        </p>
-        <p
-          className="  fs-6 text-start mx-auto mb-5"
-          style={{ maxWidth: '960px' }}
-        >
-          <span className="fw-semibold text-primary">Cancellation Policy:</span>{' '}
-          If you want to cancel a session or reschedule, 24 hrs. advance notice is
-          required. You can cancel the entire service within 7 days.
-        </p>
-
-        {/* Enroll Button (conditionally visible) */}
-        {showEnrollButton && (
-          <Link
-            href="/pricing-page"
-            className="btn btn-primary-custom fw-semibold text-white px-4 py-2 mb-4"
-          >
-            ENROLL NOW
-          </Link>
-        )}
       </div>
     </section>
   );

@@ -44,28 +44,29 @@ export default function Footer() {
             <h5 className="fw-semibold mb-3">FEATURED LINKS</h5>
             <div className="row">
               <ul className="list-unstyled col-6">
-                <li className="mb-3">
+                {/* <li className="mb-3">
                   <Link href="/pricing-page" className="footer-link">
                     <span>&gt;&gt;</span> Pricing
                   </Link>
-                </li>
-                <li className="mb-3">
+                </li> */}
+                {/* <li className="mb-3">
                   <Link href="/services" className="footer-link">
                     <span>&gt;&gt;</span> Services
                   </Link>
-                </li>
+                </li> */}
                 <li className="mb-3">
                   <Link href="/about-us" className="footer-link">
                     <span>&gt;&gt;</span> About Us
                   </Link>
-                </li>
-              </ul>
-              <ul className="list-unstyled col-6">
-                <li className="mb-3">
+                  <li className="mt-3">
                   <Link href="/blog" className="footer-link">
                     <span>&gt;&gt;</span> Blog
                   </Link>
                 </li>
+                </li>
+              </ul>
+              <ul className="list-unstyled col-6">
+                
                 <li className="mb-3">
                   <Link href="/faq" className="footer-link">
                     <span>&gt;&gt;</span> FAQs

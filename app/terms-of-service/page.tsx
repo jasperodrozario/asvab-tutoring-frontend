@@ -1,11 +1,7 @@
-import React from "react";
-import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
+"use client";
 
-export const metadata = {
-  title: "Terms of Service | ASVAB Tutoring",
-  description:
-    "Read our Terms of Service outlining the rules, responsibilities, and legal agreements for using ASVAB Tutoring services.",
-};
+import { useEffect, useState } from "react";
+import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
 
 type TermsItem = {
   id: string;
@@ -13,37 +9,59 @@ type TermsItem = {
   description: string;
 };
 
-async function fetchTerms(): Promise<TermsItem | null> {
-  try {
-    const response = await fetch(
-      "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          action: "get-terms-conditions",
-        }),
-        cache: "no-store",
-      }
-    );
-
-    const data = await response.json();
-
-    if (data?.isSuccess && Array.isArray(data.data) && data.data.length > 0) {
-      return data.data[0] as TermsItem;
-    }
-
-    return null;
-  } catch (error) {
-    console.error("Failed to fetch terms and conditions:", error);
-    return null;
-  }
+// Decode HTML entities
+function decodeHtml(html: string): string {
+  const txt = document.createElement("textarea");
+  txt.innerHTML = html;
+  return txt.value;
 }
 
-export const dynamic = "force-dynamic";
+export default function TermsOfServicePage() {
+  const [terms, setTerms] = useState<TermsItem | null>(null);
+  const [loading, setLoading] = useState(true);
 
-export default async function TermsOfServicePage() {
-  const terms = await fetchTerms();
+  useEffect(() => {
+    async function fetchTerms() {
+      try {
+        const response = await fetch(
+          "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+              action: "get-terms-conditions",
+            }),
+          }
+        );
+
+        const text = await response.text();
+        console.log("Raw Terms response:", text);
+
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          console.error("API returned HTML instead of JSON.");
+          setTerms(null);
+          setLoading(false);
+          return;
+        }
+
+        if (data?.isSuccess && Array.isArray(data.data)) {
+          setTerms(data.data[0]);
+        } else {
+          setTerms(null);
+        }
+      } catch (error) {
+        console.error("Failed to fetch terms:", error);
+        setTerms(null);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchTerms();
+  }, []);
 
   const pageTitle = terms?.title || "Terms of Service";
 
@@ -61,10 +79,12 @@ export default async function TermsOfServicePage() {
 
       {/* Content */}
       <div className="container py-4">
-        {terms ? (
+        {loading ? (
+          <p>Loading...</p>
+        ) : terms ? (
           <div
             dangerouslySetInnerHTML={{
-              __html: terms.description,
+              __html: decodeHtml(terms.description),
             }}
           />
         ) : (

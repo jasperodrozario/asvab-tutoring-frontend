@@ -1,11 +1,7 @@
-import React from "react";
-import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
+"use client";
 
-export const metadata = {
-  title: "Privacy Policy | ASVAB Tutoring",
-  description:
-    "Read our privacy policy to understand how we collect, use, and protect your personal data.",
-};
+import { useEffect, useState } from "react";
+import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
 
 type PrivacyPolicyItem = {
   id: string;
@@ -13,43 +9,64 @@ type PrivacyPolicyItem = {
   description: string;
 };
 
-async function fetchPrivacyPolicy(): Promise<PrivacyPolicyItem | null> {
-  try {
-    const response = await fetch(
-      "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          action: "get-privacy-policy",
-        }),
-        cache: "no-store",
-      }
-    );
-
-    const data = await response.json();
-
-    if (data?.isSuccess && Array.isArray(data.data) && data.data.length > 0) {
-      return data.data[0] as PrivacyPolicyItem;
-    }
-
-    return null;
-  } catch (error) {
-    console.error("Failed to fetch privacy policy:", error);
-    return null;
-  }
+// HTML Decode function
+function decodeHtml(html: string): string {
+  const txt = document.createElement("textarea");
+  txt.innerHTML = html;
+  return txt.value;
 }
 
-export const dynamic = "force-dynamic";
+export default function PrivacyPolicyPage() {
+  const [policy, setPolicy] = useState<PrivacyPolicyItem | null>(null);
+  const [loading, setLoading] = useState(true);
 
-export default async function PrivacyPolicyPage() {
-  const policy = await fetchPrivacyPolicy();
+  useEffect(() => {
+    async function fetchPrivacyPolicy() {
+      try {
+        const response = await fetch(
+          "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+              action: "get-privacy-policy",
+            }),
+          }
+        );
+
+        const text = await response.text();
+        console.log("Raw response:", text);
+
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          console.error("API returned HTML instead of JSON:", e);
+          setPolicy(null);
+          setLoading(false);
+          return;
+        }
+
+        if (data?.isSuccess && Array.isArray(data.data)) {
+          setPolicy(data.data[0]);
+        } else {
+          setPolicy(null);
+        }
+      } catch (err) {
+        console.error("Fetch failed:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchPrivacyPolicy();
+  }, []);
 
   const pageTitle = policy?.title || "Privacy Policy";
 
   return (
     <section className="bg-light">
-      {/* ✅ Banner */}
+      {/* Banner */}
       <div className="banner bg-black bg-opacity-50 py-3 px-4 rounded flex flex-col items-center text-center mb-5">
         <h1 className="text-white mb-2 text-3xl font-bold">{pageTitle}</h1>
         <Breadcrumb
@@ -59,18 +76,18 @@ export default async function PrivacyPolicyPage() {
         />
       </div>
 
-      {/* ✅ Content */}
+      {/* Content */}
       <div className="container py-4">
-        {policy ? (
+        {loading ? (
+          <p>Loading...</p>
+        ) : policy ? (
           <div
             dangerouslySetInnerHTML={{
-              __html: policy.description,
+              __html: decodeHtml(policy.description),
             }}
           />
         ) : (
-          <p className="text-muted">
-            Privacy policy content is not available at the moment.
-          </p>
+          <p className="text-muted">Privacy policy content not found.</p>
         )}
       </div>
     </section>

@@ -505,11 +505,12 @@ a {
   --bs-dropdown-link-active-bg: #f2a155 !important;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 992px) {
   .navbar-desktop-mt {
-    margin-top: 30px !important;
+    margin-top: 30px;
   }
 }
+
 
 /* === Mobile menu alignment === */
 @media (max-width: 767px) {

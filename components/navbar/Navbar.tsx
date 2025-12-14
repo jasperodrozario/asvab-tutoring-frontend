@@ -166,6 +166,12 @@ export default function Navbar() {
               <li className="nav-item">
                 <Link href="/" className="nav-link text-white px-2">HOME</Link>
               </li>
+              <li className="nav-item">
+                <Link href="/about-us" className="nav-link text-white px-2">ABOUT US</Link>
+              </li>
+              <li className="nav-item">
+                <Link href="/how-it-works" className="nav-link text-white px-2">HOW IT WORKS</Link>
+              </li>
 
               {/* COURSES */}
               <li className="nav-item dropdown"
@@ -187,6 +193,40 @@ export default function Navbar() {
               </li>
 
               {/* SERVICES */}
+              {/* <li className="nav-item dropdown"
+                onMouseEnter={() => setIsServicesOpen(true)}
+                onMouseLeave={() => setIsServicesOpen(false)}
+              >
+                <span className="nav-link text-white d-flex align-items-center gap-1 px-2" role="button">
+                  SERVICES <FaCaretDown className="fs-6" />
+                </span>
+                <ul className={`dropdown-menu mt-0 ${isServicesOpen ? "show" : ""}`}>
+                  {services.map((service) => (
+                    <li key={service.service_id}>
+                      <Link className="dropdown-item" href={`/service-detail/${service.service_id}`}>
+                        {service.course_name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </li> */}
+
+              {/* <li className="nav-item">
+                <Link href="/how-it-works" className="nav-link text-white px-2">HOW IT WORKS</Link>
+              </li> */}
+            </ul>
+
+            {/* CENTER LOGO */}
+            <div className="mx-2 mx-md-3">
+              <Link href="/" className="navbar-brand">
+                <Image src="/images/asvab-tutoring-logo.webp" width={85} height={85} alt="Logo" />
+              </Link>
+            </div>
+
+            {/* RIGHT MENU */}
+            <ul className="navbar-nav flex-row flex-nowrap align-items-center ms-2 gap-3 gap-lg-4">
+
+              {/* SERVICES */}
               <li className="nav-item dropdown"
                 onMouseEnter={() => setIsServicesOpen(true)}
                 onMouseLeave={() => setIsServicesOpen(false)}
@@ -204,22 +244,6 @@ export default function Navbar() {
                   ))}
                 </ul>
               </li>
-
-              <li className="nav-item">
-                <Link href="/how-it-works" className="nav-link text-white px-2">HOW IT WORKS</Link>
-              </li>
-            </ul>
-
-            {/* CENTER LOGO */}
-            <div className="mx-2 mx-md-3">
-              <Link href="/" className="navbar-brand">
-                <Image src="/images/asvab-tutoring-logo.webp" width={85} height={85} alt="Logo" />
-              </Link>
-            </div>
-
-            {/* RIGHT MENU */}
-            <ul className="navbar-nav flex-row flex-nowrap align-items-center ms-2 gap-3 gap-lg-4">
-
               {/* PRICING */}
               <li className="nav-item dropdown"
                 onMouseEnter={() => setIsPricingOpen(true)}
@@ -235,9 +259,9 @@ export default function Navbar() {
                 </ul>
               </li>
 
-              <li className="nav-item">
+              {/* <li className="nav-item">
                 <Link href="/about-us" className="nav-link text-white px-2">ABOUT US</Link>
-              </li>
+              </li> */}
 
               <li className="nav-item">
                 <Link href="/blog" className="nav-link text-white px-2">BLOG</Link>
@@ -252,7 +276,7 @@ export default function Navbar() {
             </ul>
           </div>
 
-          {/* 🌙 MOBILE COLLAPSIBLE MENU */}
+          {/* MOBILE COLLAPSIBLE MENU */}
           {isMenuOpen && (
             <div className="d-lg-none mt-3 w-100 text-left">
               <ul className="navbar-nav">
@@ -260,6 +284,16 @@ export default function Navbar() {
                 <li className="nav-item">
                   <Link href="/" className="nav-link text-white" onClick={handleLinkClick}>
                     HOME
+                  </Link>
+                </li>
+                <li className="nav-item">
+                  <Link href="/about-us" className="nav-link text-white" onClick={handleLinkClick}>
+                    ABOUT US
+                  </Link>
+                </li>
+                <li className="nav-item">
+                  <Link href="/how-it-works" className="nav-link text-white" onClick={handleLinkClick}>
+                    HOW IT WORKS
                   </Link>
                 </li>
 
@@ -325,29 +359,18 @@ export default function Navbar() {
                   )}
                 </li>
 
-                <li className="nav-item">
-                  <Link href="/how-it-works" className="nav-link text-white" onClick={handleLinkClick}>
-                    HOW IT WORKS
-                  </Link>
-                </li>
 
                 <li className="nav-item">
-                  <Link href="/about-us" className="nav-link text-white" onClick={handleLinkClick}>
-                    ABOUT US
-                  </Link>
-                </li>
-
-                <li className="nav-item">
-                  <Link href="/blog" className="nav-link text-white" onClick={handleLinkClick}>
-                    BLOG
-                  </Link>
-                </li>
-
-                <li className="nav-item mt-2">
-                  <Link href="https://test-prep.asvab-tutoring.com/register-free" className="btn border text-white w-75" onClick={handleLinkClick}>
+                  <Link
+                    href="https://test-prep.asvab-tutoring.com/register-free"
+                    className="nav-link text-white d-flex align-items-center"
+                   
+                    onClick={handleLinkClick}
+                  >
                     ONLINE STUDY
                   </Link>
                 </li>
+
 
               </ul>
             </div>

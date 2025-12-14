@@ -4,6 +4,7 @@ import React, { use, useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import styles from '../../packageDetails.module.css';
+import PaymentMethodSection from '@/components/payment-list/paymentList';
 
 function decodeHtmlEntities(input: string): string {
   if (!input) return '';
@@ -109,14 +110,16 @@ export default function SpecificPackageDetailsPage({
               )}
 
               <div className="mt-4">
-                <Image
+                {/* <Image
                   src="/images/how-to-send-payment-new.webp"
                   alt="Payment info"
                   width={600}
                   height={400}
                   className="img-fluid rounded shadow-sm"
                   style={{ objectFit: 'cover' }}
-                />
+                /> */}
+                < PaymentMethodSection />
+
               </div>
             </div>
           </div>
@@ -131,7 +134,7 @@ export default function SpecificPackageDetailsPage({
 
             <div
               className="mx-auto text-start"
-              style={{ maxWidth: '700px', marginTop: '1rem', marginBottom: '2rem' }}
+              style={{ marginTop: '1rem', marginBottom: '2rem' }}
             >
               {renderTextWithLineBreaks(cleanQuestionText(pkg.description))}
             </div>
@@ -174,6 +177,36 @@ export default function SpecificPackageDetailsPage({
           </div>
         </section>
       ))}
+
+      <div>
+        {/* Notes */}
+        <p
+          className="  fs-6 text-start mx-auto mb-3"
+          style={{ maxWidth: '960px' }}
+        >
+          <span className="fw-semibold text-danger">NOTE:</span> No session will
+          be scheduled without payment information on file. Students are required
+          to submit homework before each session.
+        </p>
+        <p
+          className="  fs-6 text-start mx-auto mb-5"
+          style={{ maxWidth: '960px' }}
+        >
+          <span className="fw-semibold text-primary">Cancellation Policy:</span>{' '}
+          If you want to cancel a session or reschedule, 24 hrs. advance notice is
+          required. You can cancel the entire service within 7 days.
+        </p>
+
+        {/* Enroll Button (conditionally visible) */}
+        {/* {showEnrollButton && (
+          <Link
+            href="/pricing-page"
+            className="btn btn-primary-custom fw-semibold text-white px-4 py-2 mb-4"
+          >
+            ENROLL NOW
+          </Link>
+        )} */}
+      </div>
 
       {/* Related Courses */}
       <section className="py-5 bg-white">

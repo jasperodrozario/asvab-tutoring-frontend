@@ -109,6 +109,7 @@ export default async function PricingPage({ searchParams }: { searchParams?: any
 
       {/* Bottom Packages: pass submenu as prop so component fetches the right list */}
       <PricingPackages submenu={submenu} />
+      
       <div className="container pb-5 py-5">
         {pricingItems.length > 0 ? (
           pricingItems.map((item) => (
@@ -128,7 +129,7 @@ export default async function PricingPage({ searchParams }: { searchParams?: any
             </div>
           ))
         ) : (
-          <p className="  text-center">No pricing information available at the moment.</p>
+          <p className="text-center">No pricing information available at the moment.</p>
         )}
       </div>
 

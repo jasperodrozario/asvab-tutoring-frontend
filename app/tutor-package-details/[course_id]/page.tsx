@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import styles from '../packageDetails.module.css';
 import PaymentMethodSection from '@/components/payment-list/paymentList';
-
+import Link from 'next/link';
 function decodeHtmlEntities(input: string): string {
   if (!input) return '';
   const txt = document.createElement('textarea');
@@ -128,7 +128,7 @@ export default function PackageDetailsPage({
 
             <div
               className="mx-auto text-start"
-              style={{marginTop: '1rem', marginBottom: '2rem' }}
+              style={{ marginTop: '1rem', marginBottom: '2rem' }}
             >
               {renderTextWithLineBreaks(cleanQuestionText(pkg.description))}
             </div>
@@ -158,20 +158,69 @@ export default function PackageDetailsPage({
                   {session.is_most_popular === '1' && (
                     <div className={styles.mostPopularBadge}>Most Popular</div>
                   )}
-                  <div className={styles.cardInner}>
+                  {/* <div className={styles.cardInner}>
                     <h4 className={styles.cardTitle}>{session.title}</h4>
                     <div className={styles.price}>${session.price}</div>
                     <div className="text-start" style={{ marginTop: '0.5rem' }}>
                       {renderTextWithLineBreaks(cleanQuestionText(session.feature))}
                     </div>
+                  </div> */}
+                  <div className={styles.cardInner}>
+                    <h4 className={styles.cardTitle}>{session.title}</h4>
+
+                    <div className={styles.price}>${session.price}</div>
+
+                    <div className="text-start" style={{ marginTop: "0.5rem" }}>
+                      {renderTextWithLineBreaks(cleanQuestionText(session.feature))}
+                    </div>
+
+                    {/* Dynamic Enroll Button */}
+                    <div className="mt-3 text-center">
+                      <Link href={`/checkout?amount=${session.price * 100}`}>
+                        <button className='btn btn-primary-custom mt-4 px-5 py-2'>Enroll Now</button>
+                      </Link>
+                    </div>
                   </div>
+
                 </div>
               ))}
             </div>
+
           </div>
+
         </section>
       ))}
 
+      <div>
+        {/* Notes */}
+        <p
+          className="  fs-6 text-start mx-auto mb-3"
+          style={{ maxWidth: '960px' }}
+        >
+          <span className="fw-semibold text-danger">NOTE:</span> No session will
+          be scheduled without payment information on file. Students are required
+          to submit homework before each session.
+        </p>
+        <p
+          className="  fs-6 text-start mx-auto mb-5"
+          style={{ maxWidth: '960px' }}
+        >
+          <span className="fw-semibold text-primary">Cancellation Policy:</span>{' '}
+          If you want to cancel a session or reschedule, 24 hrs. advance notice is
+          required. You can cancel the entire service within 7 days.
+        </p>
+
+        {/* Enroll Button (conditionally visible) */}
+        {/* {showEnrollButton && (
+          <Link
+            href="/pricing-page"
+            className="btn btn-primary-custom fw-semibold text-white px-4 py-2 mb-4"
+          >
+            ENROLL NOW
+          </Link>
+        )} */}
+      </div>
+      
       {/* Related Courses Section */}
       <section className="py-5 bg-white">
         <div className="container">
