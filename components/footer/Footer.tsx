@@ -58,15 +58,15 @@ export default function Footer() {
                   <Link href="/about-us" className="footer-link">
                     <span>&gt;&gt;</span> About Us
                   </Link>
-                  <li className="mt-3">
+                </li>
+                <li className="mt-3">
                   <Link href="/blog" className="footer-link">
                     <span>&gt;&gt;</span> Blog
                   </Link>
                 </li>
-                </li>
               </ul>
               <ul className="list-unstyled col-6">
-                
+
                 <li className="mb-3">
                   <Link href="/faq" className="footer-link">
                     <span>&gt;&gt;</span> FAQs
