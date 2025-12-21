@@ -1,104 +1,64 @@
-// app/about-us/page.tsx
-import React from "react";
+"use client";
+
+import { useEffect, useState } from "react";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
+
+/* ================= TYPES ================= */
 
 type AboutItem = {
   id: number | string;
   title: string;
-  description: string; // may contain escaped HTML
+  description: string;
 };
 
-/**
- * Decode HTML entities on server (supports named & numeric entities).
- * Repeats decode until stable to handle double-encoded content.
- */
-function decodeHtmlEntitiesServer(input: string): string {
-  if (!input) return input;
-  const entityMap: Record<string, string> = {
-    lt: "<",
-    gt: ">",
-    amp: "&",
-    quot: '"',
-    apos: "'",
-    nbsp: "\u00A0",
-    ndash: "–",
-    mdash: "—",
-    rsquo: "’",
-    lsquo: "‘",
-    ldquo: "“",
-    rdquo: "”",
-    hellip: "…",
-    copy: "©",
-    reg: "®",
-  };
+/* ================= HTML DECODE ================= */
 
-  const entityRegex = /&(#x[0-9A-Fa-f]+|#\d+|[a-zA-Z]+);/g;
+function decodeHtml(html: string): string {
+  if (typeof window === "undefined") return html;
+  const textarea = document.createElement("textarea");
+  textarea.innerHTML = html;
+  return textarea.value;
+}
 
-  let prev: string | null = null;
-  let decoded = input;
+/* ================= PAGE ================= */
 
-  do {
-    prev = decoded;
-    decoded = decoded.replace(entityRegex, (_match, group) => {
-      if (!group) return _match;
+export default function AboutUsPage() {
+  const [items, setItems] = useState<AboutItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
-      // Numeric (hex)
-      if (group[0] === "#") {
-        if (group[1] === "x" || group[1] === "X") {
-          const code = parseInt(group.slice(2), 16);
-          return isNaN(code) ? _match : String.fromCharCode(code);
+  useEffect(() => {
+    async function fetchAboutUs() {
+      try {
+        const res = await fetch(
+          "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams({
+              action: "get-about-us",
+            }),
+          }
+        );
+
+        const data = await res.json();
+
+        if (data?.isSuccess && Array.isArray(data.data)) {
+          setItems(data.data);
         } else {
-          const code = parseInt(group.slice(1), 10);
-          return isNaN(code) ? _match : String.fromCharCode(code);
+          setItems([]);
         }
+      } catch (error) {
+        console.error("Failed to fetch About Us content:", error);
+        setItems([]);
+      } finally {
+        setLoading(false);
       }
+    }
 
-      // Named entity
-      return entityMap[group] ?? _match;
-    });
-  } while (decoded !== prev);
-
-  return decoded;
-}
-
-/**
- * Convert escaped/encoded HTML string into real HTML to be rendered.
- */
-function processHtmlForRendering(htmlString: string): string {
-  if (!htmlString) return "";
-  const decoded = decodeHtmlEntitiesServer(htmlString);
-  return decoded.trim();
-}
-
-/**
- * Fetch About Us data from API
- * Always fetch fresh data (no caching)
- */
-async function fetchAboutUsData(): Promise<AboutItem[]> {
-  try {
-    const response = await fetch(
-      "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({ action: "get-about-us" }),
-        cache: "no-store", // ✅ force fresh data (no caching)
-      }
-    );
-
-    const data = await response.json();
-    return data?.isSuccess ? (data.data as AboutItem[]) : [];
-  } catch (error) {
-    console.error("Failed to fetch About Us content:", error);
-    return [];
-  }
-}
-
-// ✅ Force server rendering (no static HTML caching)
-export const dynamic = "force-dynamic";
-
-export default async function AboutUsPage() {
-  const aboutItems = await fetchAboutUsData();
+    fetchAboutUs();
+  }, []);
 
   return (
     <section>
@@ -113,21 +73,22 @@ export default async function AboutUsPage() {
 
       {/* Content */}
       <div className="container pb-5 py-5">
-        {aboutItems.length > 0 ? (
-          aboutItems.map((item: AboutItem) => {
-            const html = processHtmlForRendering(item.description || "");
-            return (
-              <div key={item.id} className="mb-5">
-                <h2 className="text-dark mb-3">{item.title}</h2>
-                <hr className="mb-4 mt-2" />
-                <div
-                  dangerouslySetInnerHTML={{ __html: html }}
-                />
-              </div>
-            );
-          })
+        {loading ? (
+          <p className="text-center">Loading about us information…</p>
+        ) : items.length > 0 ? (
+          items.map((item) => (
+            <div key={item.id} className="mb-5">
+              <h2 className="text-dark mb-3">{item.title}</h2>
+              <hr className="mb-4 mt-2" />
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: decodeHtml(item.description),
+                }}
+              />
+            </div>
+          ))
         ) : (
-          <p className="  text-center">
+          <p className="text-center">
             No about us information available at the moment.
           </p>
         )}

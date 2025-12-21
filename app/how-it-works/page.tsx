@@ -1,134 +1,96 @@
-// app/how-it-works/page.tsx
-import React from "react";
+"use client";
+
+import { useEffect, useState } from "react";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
+
+/* ================= TYPES ================= */
 
 type HowItWorkItem = {
   id: number | string;
   title: string;
-  description: string; // may contain escaped HTML like "&lt;p&gt;...&lt;/p&gt;"
+  description: string;
 };
 
-/**
- * Decode HTML entities on server (supports named & numeric entities).
- * Repeats decode until stable to handle double-encoded content.
- */
-function decodeHtmlEntitiesServer(input: string): string {
-  if (!input) return input;
-  const entityMap: Record<string, string> = {
-    lt: "<",
-    gt: ">",
-    amp: "&",
-    quot: '"',
-    apos: "'",
-    nbsp: "\u00A0",
-    ndash: "–",
-    mdash: "—",
-    rsquo: "’",
-    lsquo: "‘",
-    ldquo: "“",
-    rdquo: "”",
-    hellip: "…",
-    copy: "©",
-    reg: "®",
-  };
+/* ================= HTML DECODE ================= */
 
-  const entityRegex = /&(#x[0-9A-Fa-f]+|#\d+|[a-zA-Z]+);/g;
+function decodeHtml(html: string): string {
+  if (typeof window === "undefined") return html;
+  const textarea = document.createElement("textarea");
+  textarea.innerHTML = html;
+  return textarea.value;
+}
 
-  let prev: string | null = null;
-  let decoded = input;
+/* ================= PAGE ================= */
 
-  do {
-    prev = decoded;
-    decoded = decoded.replace(entityRegex, (_match, group) => {
-      if (!group) return _match;
+export default function HowItWorkPage() {
+  const [items, setItems] = useState<HowItWorkItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
-      // Numeric (hex)
-      if (group[0] === "#") {
-        if (group[1] === "x" || group[1] === "X") {
-          const code = parseInt(group.slice(2), 16);
-          return isNaN(code) ? _match : String.fromCharCode(code);
+  useEffect(() => {
+    async function fetchHowItWorks() {
+      try {
+        const res = await fetch(
+          "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams({
+              action: "get-how-it-works",
+            }),
+          }
+        );
+
+        const data = await res.json();
+
+        if (data?.isSuccess && Array.isArray(data.data)) {
+          setItems(data.data);
         } else {
-          const code = parseInt(group.slice(1), 10);
-          return isNaN(code) ? _match : String.fromCharCode(code);
+          setItems([]);
         }
+      } catch (error) {
+        console.error("Failed to fetch How It Works content:", error);
+        setItems([]);
+      } finally {
+        setLoading(false);
       }
+    }
 
-      // Named entity
-      return entityMap[group] ?? _match;
-    });
-  } while (decoded !== prev);
-
-  return decoded;
-}
-
-/**
- * Convert escaped/encoded HTML string into real HTML to be rendered.
- */
-function processHtmlForRendering(htmlString: string): string {
-  if (!htmlString) return "";
-  const decoded = decodeHtmlEntitiesServer(htmlString);
-  return decoded.trim();
-}
-
-/**
- * Fetch How It Works data from API
- * Always fetch fresh data (no caching)
- */
-async function fetchHowItWorkPageData(): Promise<HowItWorkItem[]> {
-  try {
-    const response = await fetch(
-      "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({ action: "get-how-it-works" }),
-        cache: "no-store", // ✅ Force fresh fetch (no cache)
-      }
-    );
-
-    const data = await response.json();
-    return data?.isSuccess ? (data.data as HowItWorkItem[]) : [];
-  } catch (error) {
-    console.error("Failed to fetch How It Works page content:", error);
-    return [];
-  }
-}
-
-// ✅ Force server rendering (no static HTML caching)
-export const dynamic = "force-dynamic";
-
-export default async function HowItWorkPage() {
-  const aboutItems = await fetchHowItWorkPageData();
+    fetchHowItWorks();
+  }, []);
 
   return (
     <section>
       {/* Banner */}
       <div className="banner bg-black bg-opacity-50 py-3 px-4 rounded flex flex-col items-center text-center">
-        <h1 className="text-white mb-2 text-3xl font-bold">How it works</h1>
+        <h1 className="text-white mb-2 text-3xl font-bold">
+          How it works
+        </h1>
         <Breadcrumb
-          segments={["How-it-works"]}
+          segments={["how-it-works"]}
           className="text-white text-base mt-1"
         />
       </div>
 
       {/* Content */}
       <div className="container pb-5 py-5">
-        {aboutItems.length > 0 ? (
-          aboutItems.map((item: HowItWorkItem) => {
-            const html = processHtmlForRendering(item.description || "");
-
-            return (
-              <div key={item.id} className="mb-5">
-                <h2 className="text-dark mb-3">{item.title}</h2>
-                <hr className="mb-4 mt-2" />
-                <div
-                  dangerouslySetInnerHTML={{ __html: html }}
-                />
-              </div>
-            );
-          })
+        {loading ? (
+          <p className="text-center">Loading content…</p>
+        ) : items.length > 0 ? (
+          items.map((item) => (
+            <div key={item.id} className="mb-5">
+              <h2 className="text-dark mb-3">{item.title}</h2>
+              <hr className="mb-4 mt-2" />
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: decodeHtml(item.description),
+                }}
+              />
+            </div>
+          ))
         ) : (
-          <p className="  text-center">
+          <p className="text-center">
             No content available at the moment.
           </p>
         )}
