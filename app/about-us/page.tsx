@@ -80,7 +80,7 @@ export default function AboutUsPage() {
             <div key={item.id} className="mb-5">
               <h2 className="text-dark mb-3">{item.title}</h2>
               <hr className="mb-4 mt-2" />
-              <div
+              <div className="fs-2"
                 dangerouslySetInnerHTML={{
                   __html: decodeHtml(item.description),
                 }}

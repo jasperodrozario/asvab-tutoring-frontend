@@ -75,7 +75,7 @@ export default function WelcomeSection() {
           {loading ? (
             <p className="text-center text-muted">Loading welcome content...</p>
           ) : welcome ? (
-            <div
+            <div className="fs-6"
               dangerouslySetInnerHTML={{
                 __html: decodeHtml(welcome.description),
               }}

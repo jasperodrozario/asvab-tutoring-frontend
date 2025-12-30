@@ -8,13 +8,26 @@ declare global {
   }
 }
 
-type Props = {
-  amount: number; // in cents
+type User = {
+  first_name: string;
+  last_name: string;
+  email: string;
+  mobile: string;
+  password: string;
 };
 
-export default function SquarePaymentForm({ amount }: Props) {
+type Props = {
+  amount: number;      // cents (e.g. 7500)
+  course_id: string;   // from URL/detail page
+  session_id: string;  // from API/detail page
+  user: User;          // registration form state
+};
+
+export default function SquarePaymentForm({ amount, course_id, session_id, user }: Props) {
   const cardContainerRef = useRef<HTMLDivElement | null>(null);
-  const [card, setCard] = useState<any>(null);
+  const cardInstanceRef = useRef<any>(null);
+  const initializedRef = useRef(false);
+
   const [initializing, setInitializing] = useState(true);
   const [paying, setPaying] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -26,10 +39,7 @@ export default function SquarePaymentForm({ amount }: Props) {
   const loadSquareScript = () =>
     new Promise<void>((resolve, reject) => {
       const existing = document.getElementById("square-js");
-      if (existing) {
-        resolve();
-        return;
-      }
+      if (existing) return resolve();
 
       const script = document.createElement("script");
       script.id = "square-js";
@@ -41,10 +51,11 @@ export default function SquarePaymentForm({ amount }: Props) {
       document.body.appendChild(script);
     });
 
-  // Initialize payment form
+  // Initialize payment form (ONLY ONCE) + cleanup
   useEffect(() => {
     const init = async () => {
       try {
+        if (initializedRef.current) return;
         if (!appId || !locationId) {
           setMessage("Payment is not configured correctly.");
           console.error("Missing Square env variables.");
@@ -65,12 +76,14 @@ export default function SquarePaymentForm({ amount }: Props) {
           return;
         }
 
+        // Prevent duplicate attach
+        initializedRef.current = true;
+
         const payments = window.Square.payments(appId, locationId);
+        const card = await payments.card();
+        await card.attach(cardContainerRef.current);
 
-        const cardInstance = await payments.card();
-        await cardInstance.attach(cardContainerRef.current);
-
-        setCard(cardInstance);
+        cardInstanceRef.current = card;
         setMessage(null);
       } catch (error) {
         console.error("Error initializing payment:", error);
@@ -81,12 +94,40 @@ export default function SquarePaymentForm({ amount }: Props) {
     };
 
     init();
+
+    return () => {
+      try {
+        if (cardInstanceRef.current) {
+          cardInstanceRef.current.destroy();
+          cardInstanceRef.current = null;
+        }
+        initializedRef.current = false;
+      } catch {}
+    };
   }, [appId, locationId]);
+
+  const validateUser = () => {
+    const required: (keyof User)[] = ["first_name", "last_name", "email", "mobile", "password"];
+    for (const k of required) {
+      if (!user?.[k] || String(user[k]).trim().length === 0) return false;
+    }
+    return true;
+  };
 
   // Handle payment request
   const handlePayment = async () => {
-    if (!card) {
+    if (!cardInstanceRef.current) {
       setMessage("Payment form not ready.");
+      return;
+    }
+
+    if (!validateUser()) {
+      setMessage("Please fill in all registration fields first.");
+      return;
+    }
+
+    if (!course_id || !session_id) {
+      setMessage("Missing course/session info. Please open checkout from the course page again.");
       return;
     }
 
@@ -94,7 +135,7 @@ export default function SquarePaymentForm({ amount }: Props) {
     setMessage(null);
 
     try {
-      const tokenizeResult = await card.tokenize();
+      const tokenizeResult = await cardInstanceRef.current.tokenize();
 
       if (tokenizeResult.status !== "OK") {
         console.error("Tokenize error:", tokenizeResult);
@@ -107,21 +148,29 @@ export default function SquarePaymentForm({ amount }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           sourceId: tokenizeResult.token,
-          amount,
+          amount,      // cents integer
+          course_id,
+          session_id,
+          user,
         }),
       });
 
       const data = await res.json();
 
-      if (data.success) {
-        setMessage("Payment successful!");
-        // Optional: disable button after success
-        setPaying(false);
+      // Payment failed at Square
+      if (!data.success) {
+        console.error("Payment API error:", data);
+        setMessage("Payment failed. Please try again.");
         return;
       }
 
-      console.error("Payment API error:", data.error);
-      setMessage("Payment failed. Please try again.");
+      // Payment OK but registration may fail
+      if (data.registrationSuccess) {
+        setMessage("✅ Payment + Enrollment successful!");
+      } else {
+        setMessage("✅ Payment successful, but enrollment save failed. Please contact support.");
+        console.log("Registration response:", data.registrationResponse);
+      }
     } catch (error) {
       console.error("Payment processing failed:", error);
       setMessage("Error while processing payment.");
@@ -134,34 +183,17 @@ export default function SquarePaymentForm({ amount }: Props) {
 
   return (
     <div>
-      {/* Card container */}
-      <div
-        id="card-container"
-        ref={cardContainerRef}
-        className="border p-3 rounded"
-      />
+      <div ref={cardContainerRef} className="border p-3 rounded" />
 
-      {/* Payment button */}
       {initializing ? (
         <p className="mt-3">Loading payment form…</p>
       ) : (
-        <button
-          className="btn btn-primary mt-3"
-          onClick={handlePayment}
-          disabled={paying}
-        >
+        <button className="btn btn-primary mt-3" onClick={handlePayment} disabled={paying}>
           {paying ? "Processing…" : `Pay $${displayAmount}`}
         </button>
       )}
 
       {message && <p className="mt-3 fw-bold">{message}</p>}
-
-      {/* Sandbox card for testing */}
-      <div className="mt-4 p-3 bg-light border rounded">
-        <strong>Sandbox Test Card:</strong>
-        <p>Number: 4111 1111 1111 1111</p>
-        <p>Expiry: 12/30 • CVV: 111 • ZIP: 12345</p>
-      </div>
     </div>
   );
 }

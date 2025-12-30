@@ -84,7 +84,7 @@ const PricingPackages: React.FC<Props> = ({ submenu }) => {
         </div>
 
         {/* Description */}
-        <p className="text-start mx-auto mb-4" style={{ maxWidth: "960px" }}>
+        <p className="text-start mx-auto mb-4 fs-5">
           {subText}
         </p>
 

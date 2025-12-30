@@ -105,15 +105,15 @@ export default function PackageDetailsPage({
               )}
 
               <div className="mt-4">
-                {/* <Image
-                  src="/images/how-to-send-payment-new.webp"
+                <Image
+                  src="/images/send-payment_20251230.png"
                   alt="Payment info"
                   width={600}
                   height={400}
                   className="img-fluid rounded shadow-sm"
                   style={{ objectFit: 'cover' }}
-                /> */}
-                < PaymentMethodSection />
+                />
+                {/* < PaymentMethodSection /> */}
               </div>
             </div>
           </div>
@@ -176,9 +176,21 @@ export default function PackageDetailsPage({
 
                     {/* Dynamic Enroll Button */}
                     <div className="mt-3 text-center">
-                      <Link href={`/checkout?amount=${session.price * 100}`}>
-                        <button className='btn btn-primary-custom mt-4 px-5 py-2'>Enroll Now</button>
+                      <Link
+                        href={{
+                          pathname: "/checkout",
+                          query: {
+                            course_id: String(course_id),
+                            session_id: String(session.session_id),
+                            amount: String(Math.round(Number(session.price) * 100)), // cents (integer)
+                          },
+                        }}
+                      >
+                        <button className="btn btn-primary-custom mt-4 px-5 py-2">
+                          Enroll Now
+                        </button>
                       </Link>
+
                     </div>
                   </div>
 
@@ -191,7 +203,7 @@ export default function PackageDetailsPage({
         </section>
       ))}
 
-      <div>
+      <div className='container'>
         {/* Notes */}
         <p
           className="  fs-6 text-start mx-auto mb-3"
@@ -220,7 +232,7 @@ export default function PackageDetailsPage({
           </Link>
         )} */}
       </div>
-      
+
       {/* Related Courses Section */}
       <section className="py-5 bg-white">
         <div className="container">

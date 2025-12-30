@@ -268,7 +268,7 @@ export default function Navbar() {
               </li>
 
               <li className="nav-item">
-                <Link href="https://test-prep.asvab-tutoring.com/register-free" className="btn border text-white px-3 py-1">
+                <Link href="https://test-prep.asvab-tutoring.com/register-free" className="btn border text-white px-3 py-1 fs-6">
                   ONLINE STUDY
                 </Link>
               </li>
@@ -361,9 +361,9 @@ export default function Navbar() {
 
 
                 <li className="nav-item">
-                  <Link
+                  <Link 
                     href="https://test-prep.asvab-tutoring.com/register-free"
-                    className="nav-link text-white d-flex align-items-center"
+                    className="nav-link text-white d-flex align-items-center btn border px-3 py-1 fs-6"  style={{ maxWidth: "112px", textAlign: "center" }}
                    
                     onClick={handleLinkClick}
                   >

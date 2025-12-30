@@ -110,15 +110,15 @@ export default function SpecificPackageDetailsPage({
               )}
 
               <div className="mt-4">
-                {/* <Image
-                  src="/images/how-to-send-payment-new.webp"
+                <Image
+                  src="/images/send-payment_20251230.png"
                   alt="Payment info"
                   width={600}
                   height={400}
                   className="img-fluid rounded shadow-sm"
                   style={{ objectFit: 'cover' }}
-                /> */}
-                < PaymentMethodSection />
+                />
+                {/* < PaymentMethodSection /> */}
 
               </div>
             </div>

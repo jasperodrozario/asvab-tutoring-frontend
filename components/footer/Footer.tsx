@@ -125,7 +125,7 @@ export default function Footer() {
             {/* App Store Badges */}
             <div className="d-flex flex-xxl-row flex-column gap-2 mt-2">
               <a
-                href="https://play.google.com/store/apps/details?id=com.asvab.tutoring"
+                href="/mobile-app-list"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -138,7 +138,7 @@ export default function Footer() {
               </a>
 
               <a
-                href="https://apps.apple.com/us/app/asvab-tutoring/id1518771904"
+                href="/mobile-app-list"
                 target="_blank"
                 rel="noopener noreferrer"
               >
