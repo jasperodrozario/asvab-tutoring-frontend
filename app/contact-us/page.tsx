@@ -4,202 +4,255 @@ import React, { useEffect, useState } from "react";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
 
 interface State {
-    id: string;
-    name: string;
+  id: string;
+  name: string;
 }
 
 export default function ContactPage() {
-    const [states, setStates] = useState<State[]>([]);
-    const [form, setForm] = useState({
-        name: "",
-        email: "",
-        phone: "",
-        state_id: "",
-        message: "",
-    });
-    const [submitting, setSubmitting] = useState(false);
+  const [states, setStates] = useState<State[]>([]);
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    state_id: "",
+    message: "",
+  });
+  const [submitting, setSubmitting] = useState(false);
 
-    useEffect(() => {
-        const fetchStates = async () => {
-            const formData = new FormData();
-            formData.append("action", "get-state-list");
+  const API_URL =
+    "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php";
 
-            const res = await fetch(
-                "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
-                {
-                    method: "POST",
-                    body: formData,
-                }
-            );
-            const data = await res.json();
-            if (Array.isArray(data)) setStates(data);
-        };
+  useEffect(() => {
+    const fetchStates = async () => {
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            action: "get-state-list",
+          }),
+        });
 
-        fetchStates();
-    }, []);
+        const raw = await res.text();
 
-    const handleChange = (
-        e: React.ChangeEvent<
-            HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-        >
-    ) => {
-        const { name, value } = e.target;
-        setForm((prev) => ({ ...prev, [name]: value }));
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setSubmitting(true);
-
-        const formData = new FormData();
-        formData.append("action", "tutor-request");
-        formData.append("name", form.name);
-        formData.append("email", form.email);
-        formData.append("phone", form.phone);
-        formData.append("state_id", form.state_id);
-        formData.append("message", form.message);
-
+        let data: any;
         try {
-            const res = await fetch("/api/proxy", {
-                method: "POST",
-                body: formData,
-            });
-            const data = await res.json();
-            if (data?.isSuccess) {
-                alert("Your message has been sent successfully!");
-                setForm({ name: "", email: "", phone: "", state_id: "", message: "" });
-            } else {
-                alert(data.message || "Submission failed");
-            }
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setSubmitting(false);
+          data = JSON.parse(raw);
+        } catch {
+          console.error("get-state-list returned non-JSON:", raw);
+          setStates([]);
+          return;
         }
+
+        // ✅ Adjust this depending on your API shape
+        // If API returns: { isSuccess: true, data: [...] }
+        if (data?.isSuccess && Array.isArray(data.data)) {
+          setStates(data.data);
+        }
+        // If API returns direct array: [...]
+        else if (Array.isArray(data)) {
+          setStates(data);
+        } else {
+          setStates([]);
+        }
+      } catch (error) {
+        console.error("Failed to fetch states:", error);
+        setStates([]);
+      }
     };
 
-    return (
-        <section className="bg-white min-vh-100">
-            {/* ✅ Banner */}
-            <div className="banner bg-black bg-opacity-50 py-3 px-4 rounded flex flex-col items-center text-center mb-5">
-                <h1 className="text-white mb-2 text-3xl font-bold">Contact Us</h1>
-                <Breadcrumb
-                    segments={["contact-us"]}
-                    className="text-white text-base mt-1"
-                />
-            </div>
+    fetchStates();
+  }, []);
 
-            {/* ✅ Contact Section */}
-            <div className="container py-5">
-                <div className="row g-5 justify-content-center">
-                    {/* Left Side - Contact Info */}
-                    <div className="col-lg-4">
-                        <div className="p-4 bg-light rounded shadow-sm h-100">
-                            <h3 className="fw-bold mb-3 text-primary">Get in Touch</h3>
-                             <p className="mb-2">
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          action: "tutor-request",
+          name: form.name,
+          email: form.email,
+          phone: form.phone,
+          state_id: form.state_id,
+          message: form.message,
+        }),
+      });
+
+      const raw = await res.text();
+
+      let data: any;
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        console.error("tutor-request returned non-JSON:", raw);
+        alert("Server returned invalid response. Please try again.");
+        return;
+      }
+
+      if (data?.isSuccess) {
+        alert("Your message has been sent successfully!");
+        setForm({ name: "", email: "", phone: "", state_id: "", message: "" });
+      } else {
+        alert(data?.message || "Submission failed");
+        console.error("Submit failed response:", data);
+      }
+    } catch (error) {
+      console.error("Submit error:", error);
+      alert("Network error. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <section className="bg-white min-vh-100">
+      {/* ✅ Banner */}
+      <div className="banner bg-black bg-opacity-50 py-3 px-4 rounded flex flex-col items-center text-center mb-5">
+        <h1 className="text-white mb-2 text-3xl font-bold">Contact Us</h1>
+        <Breadcrumb segments={["contact-us"]} className="text-white text-base mt-1" />
+      </div>
+
+      {/* ✅ Contact Section */}
+      <div className="container py-5">
+        <div className="row g-5 justify-content-center">
+          {/* Left Side */}
+          <div className="col-lg-4">
+            <div className="p-4 bg-light rounded shadow-sm h-100">
+              <h3 className="fw-bold mb-3 text-primary">Get in Touch</h3>
+
+              <p className="mb-2">
                 <i className="bi bi-geo-alt-fill text-primary me-2"></i>
                 United States
               </p>
+
               <p className="mb-2">
                 <i className="bi bi-envelope-fill text-primary me-2"></i>
-                info@asvab-tutoring.com
+                <a
+                  href="mailto:info@asvab-tutoring.com"
+                  className="text-dark text-decoration-none"
+                >
+                  info@asvab-tutoring.com
+                </a>
               </p>
+
               <p className="mb-0">
                 <i className="bi bi-telephone-fill text-primary me-2"></i>
-                (718)-200-6396
+                <a href="tel:+17182006396" className="text-dark text-decoration-none">
+                  (718)-200-6396
+                </a>
               </p>
-                            <p className="  mt-3">
-                                Fill out the form and our team will get back to you shortly.
-                            </p>
-                        </div>
-                    </div>
 
-                    {/* Right Side - Form */}
-                    <div className="col-lg-6">
-                        <div className="bg-light p-4 rounded shadow-sm w-100">
-                            <h2 className="fw-bold mb-4 text-center">Contact With Us</h2>
-                            <form onSubmit={handleSubmit} className="d-block w-100">
-                                <div className="mb-3 w-100">
-                                    <label className="form-label d-block">Name</label>
-                                    <input
-                                        type="text"
-                                        className="form-control w-100"
-                                        placeholder="Name"
-                                        name="name"
-                                        value={form.name}
-                                        onChange={handleChange}
-                                        required
-                                    />
-                                </div>
-
-                                <div className="mb-3 w-100">
-                                    <label className="form-label d-block">Email (Use your valid email address)</label>
-                                    <input
-                                        type="email"
-                                        className="form-control w-100"
-                                        placeholder="Email"
-                                        name="email"
-                                        value={form.email}
-                                        onChange={handleChange}
-                                        required
-                                    />
-                                </div>
-
-                                <div className="mb-3 w-100">
-                                    <label className="form-label d-block">Phone (US Only)</label>
-                                    <input
-                                        type="tel"
-                                        className="form-control w-100"
-                                        placeholder="Phone"
-                                        name="phone"
-                                        value={form.phone}
-                                        onChange={handleChange}
-                                        required
-                                    />
-                                </div>
-
-                                <div className="mb-3 w-100">
-                                    <label className="form-label d-block">State</label>
-                                    <select
-                                        className="form-select w-100"
-                                        name="state_id"
-                                        value={form.state_id}
-                                        onChange={handleChange}
-                                        required
-                                    >
-                                        <option value="">—Please choose an option—</option>
-                                        {states.map((state) => (
-                                            <option key={state.id} value={state.id}>
-                                                {state.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div className="mb-3 w-100">
-                                    <label className="form-label d-block">Message</label>
-                                    <textarea
-                                        className="form-control w-100"
-                                        rows={4}
-                                        name="message"
-                                        value={form.message}
-                                        onChange={handleChange}
-                                    />
-                                </div>
-
-                                <button
-                                    type="submit"
-                                    className="btn btn-primary-custom mt-4 px-5 py-2"
-                                    disabled={submitting}
-                                >
-                                    {submitting ? "Submitting..." : "Submit"}
-                                </button>
-                            </form>
-
-                        </div>
-                    </div>
-                </div>
+              <p className="mt-3">
+                Fill out the form and our team will get back to you shortly.
+              </p>
             </div>
-        </section>
-    );
+          </div>
+
+          {/* Right Side - Form */}
+          <div className="col-lg-6">
+            <div className="bg-light p-4 rounded shadow-sm w-100">
+              <h2 className="fw-bold mb-4 text-center">Contact With Us</h2>
+
+              <form onSubmit={handleSubmit} className="d-block w-100">
+                <div className="mb-3 w-100">
+                  <label className="form-label d-block">Name</label>
+                  <input
+                    type="text"
+                    className="form-control w-100"
+                    placeholder="Name"
+                    name="name"
+                    value={form.name}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="mb-3 w-100">
+                  <label className="form-label d-block">
+                    Email (Use your valid email address)
+                  </label>
+                  <input
+                    type="email"
+                    className="form-control w-100"
+                    placeholder="Email"
+                    name="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="mb-3 w-100">
+                  <label className="form-label d-block">Phone (US Only)</label>
+                  <input
+                    type="tel"
+                    className="form-control w-100"
+                    placeholder="Phone"
+                    name="phone"
+                    value={form.phone}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="mb-3 w-100">
+                  <label className="form-label d-block">State</label>
+                  <select
+                    className="form-select w-100"
+                    name="state_id"
+                    value={form.state_id}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">—Please choose an option—</option>
+                    {states.map((state) => (
+                      <option key={state.id} value={state.id}>
+                        {state.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="mb-3 w-100">
+                  <label className="form-label d-block">Message</label>
+                  <textarea
+                    className="form-control w-100"
+                    rows={4}
+                    name="message"
+                    value={form.message}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="btn btn-primary-custom mt-4 px-5 py-2"
+                  disabled={submitting}
+                >
+                  {submitting ? "Submitting..." : "Submit"}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 }

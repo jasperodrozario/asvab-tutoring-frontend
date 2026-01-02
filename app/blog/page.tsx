@@ -100,55 +100,59 @@ export default function BlogListPage() {
             blogs.map((blog) => (
               <div key={blog.blog_id} className="col-md-6 col-lg-4">
                 <div className="card hover-lift shadow cursor-pointer h-100 border-0">
-                  <div className="card-body">
-                    <h5 className="card-title mb-2 py-4 px-4">{blog.blog_title}</h5>
+  <div className="card-body d-flex flex-column">
 
-                    {/* Author + Date */}
-                    <div className="d-flex justify-content-between align-items-center mb-3">
-                      <div className="d-flex align-items-center">
-                        <img
-                          src={
-                            blog.writer_img &&
-                              !blog.writer_img.includes("image.php?src")
-                              ? blog.writer_img
-                              : "/images/author_blog.png"
-                          }
-                          className="rounded-circle me-2"
-                          alt="Author"
-                          width="30"
-                          height="30"
-                        />
-                        <small className=" ">
-                          {blog.written_by || "Unknown Author"}
-                        </small>
-                      </div>
-                      <small className="  text-end">
-                        {new Date(blog.created_at).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </small>
-                    </div>
+    <h5 className="card-title mb-2 py-4 px-4">
+      {blog.blog_title}
+    </h5>
 
-                    {/* Blog Excerpt */}
-                    <p className="card-text">
-                      {blog.blog_content.length > 120
-                        ? blog.blog_content.slice(0, 120) + "..."
-                        : blog.blog_content}
-                    </p>
+    {/* Author + Date */}
+    <div className="d-flex justify-content-between align-items-center mb-3 px-4">
+      <div className="d-flex align-items-center">
+        <img
+          src={
+            blog.writer_img &&
+            !blog.writer_img.includes("image.php?src")
+              ? blog.writer_img
+              : "/images/author_blog.png"
+          }
+          className="rounded-circle me-2"
+          alt="Author"
+          width="30"
+          height="30"
+        />
+        <small>{blog.written_by || "Unknown Author"}</small>
+      </div>
 
-                    {/* Read More */}
-                    <div className="text-center">
-                      <a
-                        href={`/blog-detail/${blog.blog_id}`}
-                        className="btn btn-primary-custom mt-4 px-3 py-1 text-nowrap"
-                      >
-                        CONTINUE READING
-                      </a>
-                    </div>
-                  </div>
-                </div>
+      <small className="text-end">
+        {new Date(blog.created_at).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        })}
+      </small>
+    </div>
+
+    {/* Blog Excerpt */}
+    <p className="card-text px-4">
+      {blog.blog_content.length > 120
+        ? blog.blog_content.slice(0, 120) + "..."
+        : blog.blog_content}
+    </p>
+
+    {/* Read More – FIXED POSITION */}
+    <div className="text-center mt-auto">
+      <a
+        href={`/blog-detail/${blog.blog_id}`}
+        className="btn btn-primary-custom mt-4 px-3 py-1 text-nowrap"
+      >
+        CONTINUE READING
+      </a>
+    </div>
+
+  </div>
+</div>
+
               </div>
             ))
           ) : (

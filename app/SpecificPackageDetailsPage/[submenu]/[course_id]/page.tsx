@@ -178,7 +178,7 @@ export default function SpecificPackageDetailsPage({
         </section>
       ))}
 
-      <div>
+      <div className='container'>
         {/* Notes */}
         <p
           className="  fs-6 text-start mx-auto mb-3"

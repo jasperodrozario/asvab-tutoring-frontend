@@ -477,15 +477,15 @@ a {
 
 /* Default color for all nav links */
 .nav-tabs .nav-link {
-    color: #e58a34;
+    color: #000;
 }
 
 /* Active tab color (Bootstrap already applies .active) */
-/* .nav-tabs .nav-link.active {
-    color: #fff; 
-    background-color: #f7ac67; 
-    border-color: #e58a34 #e58a34 #fff;
-} */
+.nav-tabs .nav-link.active {
+    color: #e58a34; 
+    /* background-color: #f7ac67;  */
+    /* border-color: #e58a34 #e58a34 #fff; */
+}
 
 /* @media (prefers-color-scheme: dark) {
   body, body * {

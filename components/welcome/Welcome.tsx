@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-// import Link from "next/link";
 import IntroText from "../intro-text/IntroText";
 
 interface State {
@@ -11,6 +10,9 @@ interface State {
 }
 
 export default function Welcome() {
+  const API_URL =
+    "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php";
+
   const [states, setStates] = useState<State[]>([]);
   const [form, setForm] = useState({
     name: "",
@@ -21,32 +23,51 @@ export default function Welcome() {
   });
   const [submitting, setSubmitting] = useState(false);
 
+  // ✅ Safe JSON parser: avoids "unexpected character" crash
+  const safeJson = async (res: Response) => {
+    const raw = await res.text();
+    try {
+      return { ok: true, data: JSON.parse(raw), raw };
+    } catch {
+      return { ok: false, data: null, raw };
+    }
+  };
+
   useEffect(() => {
     const fetchStates = async () => {
       try {
-        const formData = new FormData();
-        formData.append("action", "get-state-list");
-
-        const res = await fetch("https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php", {
+        const res = await fetch(API_URL, {
           method: "POST",
-          body: formData,
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            action: "get-state-list",
+          }),
         });
 
+        const parsed = await safeJson(res);
 
-        if (!res.ok) {
-          throw new Error("Network response was not ok");
+        if (!parsed.ok) {
+          console.error("get-state-list returned non-JSON:", parsed.raw);
+          setStates([]);
+          return;
         }
 
-        const data = await res.json();
+        const data = parsed.data;
 
-        if (Array.isArray(data)) {
+        // ✅ Support both: {isSuccess, data:[...]} OR direct array
+        if (data?.isSuccess && Array.isArray(data.data)) {
+          setStates(data.data);
+        } else if (Array.isArray(data)) {
           setStates(data);
-          console.log('Fetched states:', data);
         } else {
-          console.error("API returned invalid data", data);
+          console.error("API returned invalid state data:", data);
+          setStates([]);
         }
-      } catch {
-
+      } catch (error) {
+        console.error("Failed to fetch states:", error);
+        setStates([]);
       }
     };
 
@@ -54,7 +75,9 @@ export default function Welcome() {
   }, []);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -64,29 +87,42 @@ export default function Welcome() {
     e.preventDefault();
     setSubmitting(true);
 
-    const formData = new FormData();
-    formData.append("action", "tutor-request");
-    formData.append("name", form.name);
-    formData.append("email", form.email);
-    formData.append("phone", form.phone);
-    formData.append("state_id", form.state_id);
-    formData.append("message", form.message);
-
     try {
-      const res = await fetch("/api/proxy", {
+      const res = await fetch(API_URL, {
         method: "POST",
-        body: formData,
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          action: "tutor-request",
+          name: form.name,
+          email: form.email,
+          phone: form.phone,
+          state_id: form.state_id,
+          message: form.message,
+        }),
       });
 
-      const data = await res.json();
+      const parsed = await safeJson(res);
+
+      if (!parsed.ok) {
+        console.error("tutor-request returned non-JSON:", parsed.raw);
+        alert("Server returned invalid response. Please try again.");
+        return;
+      }
+
+      const data = parsed.data;
+
       if (data?.isSuccess) {
         alert("Tutor request submitted successfully!");
         setForm({ name: "", email: "", phone: "", state_id: "", message: "" });
       } else {
-        alert(data.message || "Submission failed");
+        alert(data?.message || "Submission failed");
+        console.error("tutor-request failed payload:", data);
       }
     } catch (error) {
-      console.error(error);
+      console.error("Submit error:", error);
+      alert("Network error. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -104,12 +140,11 @@ export default function Welcome() {
                 Welcome To <br />
                 <span className="primary-color-custom">ASVAB Tutoring</span>
               </h1>
+
               <p className="lead mt-3">
-                10,000+ successful candidates. Online Test Prep for the ASVAB, ASTB, OAR, AFOQT, and SIFT
+                10,000+ successful candidates. Online Test Prep for the ASVAB,
+                ASTB, OAR, AFOQT, and SIFT
               </p>
-              {/* <Link href="https://test-prep.asvab-tutoring.com/">
-                <button className="btn btn-primary-custom mt-3">ENROLL NOW</button>
-              </Link> */}
 
               <div className="mt-4 bg-white p-3 rounded shadow">
                 <video
@@ -128,6 +163,7 @@ export default function Welcome() {
             <div className="col-lg-6">
               <div className="bg-custom-dark p-4 rounded shadow text-white">
                 <h2 className="text-center mb-4">REQUEST A TUTOR NOW!</h2>
+
                 <form onSubmit={handleSubmit}>
                   <div className="mb-3">
                     <label className="form-label">Name</label>
@@ -141,8 +177,11 @@ export default function Welcome() {
                       required
                     />
                   </div>
+
                   <div className="mb-3">
-                    <label className="form-label">Email (Use your valid email address)</label>
+                    <label className="form-label">
+                      Email (Use your valid email address)
+                    </label>
                     <input
                       type="email"
                       className="form-control"
@@ -153,6 +192,7 @@ export default function Welcome() {
                       required
                     />
                   </div>
+
                   <div className="mb-3">
                     <label className="form-label">Phone (US Only)</label>
                     <input
@@ -165,6 +205,7 @@ export default function Welcome() {
                       required
                     />
                   </div>
+
                   <div className="mb-3">
                     <label className="form-label">State</label>
                     <select
@@ -182,6 +223,7 @@ export default function Welcome() {
                       ))}
                     </select>
                   </div>
+
                   <div className="mb-3">
                     <label className="form-label">Message</label>
                     <textarea
@@ -192,6 +234,7 @@ export default function Welcome() {
                       onChange={handleChange}
                     />
                   </div>
+
                   <button
                     type="submit"
                     className="btn btn-primary-custom w-50 d-block mx-auto mt-4"
