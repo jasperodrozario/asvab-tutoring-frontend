@@ -1,7 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
-
 
 interface Blog {
   blog_id: string;
@@ -10,6 +9,45 @@ interface Blog {
   written_by: string;
   writer_img: string;
   created_at: string;
+}
+
+/* ================= HELPERS ================= */
+
+// Decode HTML entities (also handles double-encoding)
+function decodeHtmlEntities(html: string): string {
+  if (typeof window === "undefined") return html;
+
+  const textarea = document.createElement("textarea");
+  let prev = "";
+  let cur = html ?? "";
+
+  for (let i = 0; i < 6 && cur !== prev; i++) {
+    prev = cur;
+    textarea.innerHTML = cur;
+    cur = textarea.value;
+  }
+
+  return cur;
+}
+
+// Convert HTML -> plain text (no tags)
+function htmlToText(html: string): string {
+  if (typeof window === "undefined") return html;
+
+  const decoded = decodeHtmlEntities(html || "");
+  const doc = new DOMParser().parseFromString(decoded, "text/html");
+
+  let text = doc.body.textContent || "";
+  text = text.replace(/\u00A0/g, " ");     // &nbsp; -> space
+  text = text.replace(/\s+/g, " ").trim(); // collapse whitespace
+
+  return text;
+}
+
+function makeExcerpt(html: string, max = 120): string {
+  const text = htmlToText(html);
+  if (text.length <= max) return text;
+  return text.slice(0, max).trim() + "...";
 }
 
 export default function BlogListPage() {
@@ -34,19 +72,32 @@ export default function BlogListPage() {
           }
         );
 
-        const data = await res.json();
+        // Safer parsing (prevents JSON parse crashes if server returns HTML/text)
+        const raw = await res.text();
+        let data: any;
+        try {
+          data = JSON.parse(raw);
+        } catch {
+          console.error("get-blogs returned non-JSON:", raw);
+          setBlogs([]);
+          setTotalPages(1);
+          return;
+        }
+
         if (data?.isSuccess) {
-          setBlogs(data.data || []);
-          setTotalPages(data.total_pages || 1);
+          setBlogs(Array.isArray(data.data) ? data.data : []);
+          setTotalPages(Number(data.total_pages) || 1);
         } else {
           setBlogs([]);
+          setTotalPages(1);
         }
       } catch (error) {
         console.error("Error fetching blogs:", error);
         setBlogs([]);
+        setTotalPages(1);
       } finally {
         setLoading(false);
-        window.scrollTo({ top: 0, behavior: "smooth" }); // scroll to top on page change
+        window.scrollTo({ top: 0, behavior: "smooth" });
       }
     }
 
@@ -54,14 +105,11 @@ export default function BlogListPage() {
   }, [page]);
 
   const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= totalPages) {
-      setPage(newPage);
-    }
+    if (newPage >= 1 && newPage <= totalPages) setPage(newPage);
   };
 
-  // Generate windowed pagination
   const getPaginationRange = () => {
-    const delta = 2; // pages before and after current
+    const delta = 2;
     const range: (number | string)[] = [];
     const left = Math.max(2, page - delta);
     const right = Math.min(totalPages - 1, page + delta);
@@ -79,16 +127,8 @@ export default function BlogListPage() {
     <section className="bg-light">
       {/* Banner */}
       <div className="banner bg-black bg-opacity-50 py-3 px-4 rounded flex flex-col items-center text-center mb-5">
-        {/* Page Title */}
-        <h1 className="text-white mb-2 text-3xl font-bold">
-          Blog
-        </h1>
-
-        {/* Breadcrumb below title */}
-        <Breadcrumb
-          segments={["blog"]}
-          className="text-white text-base mt-1"
-        />
+        <h1 className="text-white mb-2 text-3xl font-bold">Blog</h1>
+        <Breadcrumb segments={["blog"]} className="text-white text-base mt-1" />
       </div>
 
       {/* Blog Grid */}
@@ -100,59 +140,54 @@ export default function BlogListPage() {
             blogs.map((blog) => (
               <div key={blog.blog_id} className="col-md-6 col-lg-4">
                 <div className="card hover-lift shadow cursor-pointer h-100 border-0">
-  <div className="card-body d-flex flex-column">
+                  <div className="card-body d-flex flex-column">
+                    <h5 className="card-title mb-2 py-4 px-4">
+                      {blog.blog_title}
+                    </h5>
 
-    <h5 className="card-title mb-2 py-4 px-4">
-      {blog.blog_title}
-    </h5>
+                    {/* Author + Date */}
+                    <div className="d-flex justify-content-between align-items-center mb-3 px-4">
+                      <div className="d-flex align-items-center">
+                        <img
+                          src={
+                            blog.writer_img &&
+                            !blog.writer_img.includes("image.php?src")
+                              ? blog.writer_img
+                              : "/images/author_blog.png"
+                          }
+                          className="rounded-circle me-2"
+                          alt="Author"
+                          width="30"
+                          height="30"
+                        />
+                        <small>{blog.written_by || "Unknown Author"}</small>
+                      </div>
 
-    {/* Author + Date */}
-    <div className="d-flex justify-content-between align-items-center mb-3 px-4">
-      <div className="d-flex align-items-center">
-        <img
-          src={
-            blog.writer_img &&
-            !blog.writer_img.includes("image.php?src")
-              ? blog.writer_img
-              : "/images/author_blog.png"
-          }
-          className="rounded-circle me-2"
-          alt="Author"
-          width="30"
-          height="30"
-        />
-        <small>{blog.written_by || "Unknown Author"}</small>
-      </div>
+                      <small className="text-end">
+                        {new Date(blog.created_at).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </small>
+                    </div>
 
-      <small className="text-end">
-        {new Date(blog.created_at).toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-        })}
-      </small>
-    </div>
+                    {/* ✅ Blog Excerpt (NO HTML TAGS) */}
+                    <p className="card-text px-4">
+                      {makeExcerpt(blog.blog_content, 120)}
+                    </p>
 
-    {/* Blog Excerpt */}
-    <p className="card-text px-4">
-      {blog.blog_content.length > 120
-        ? blog.blog_content.slice(0, 120) + "..."
-        : blog.blog_content}
-    </p>
-
-    {/* Read More – FIXED POSITION */}
-    <div className="text-center mt-auto">
-      <a
-        href={`/blog-detail/${blog.blog_id}`}
-        className="btn btn-primary-custom mt-4 px-3 py-1 text-nowrap"
-      >
-        CONTINUE READING
-      </a>
-    </div>
-
-  </div>
-</div>
-
+                    {/* Read More – FIXED POSITION */}
+                    <div className="text-center mt-auto">
+                      <a
+                        href={`/blog-detail/${blog.blog_id}`}
+                        className="btn btn-primary-custom mt-4 px-3 py-1 text-nowrap"
+                      >
+                        CONTINUE READING
+                      </a>
+                    </div>
+                  </div>
+                </div>
               </div>
             ))
           ) : (
@@ -164,7 +199,6 @@ export default function BlogListPage() {
         {!loading && totalPages > 1 && (
           <nav className="mt-5">
             <ul className="pagination justify-content-center">
-              {/* Prev Button */}
               <li className={`page-item ${page === 1 ? "disabled" : ""}`}>
                 <button
                   className="page-link"
@@ -175,15 +209,13 @@ export default function BlogListPage() {
                 </button>
               </li>
 
-              {/* Dynamic Page Range */}
               {getPaginationRange().map((p, index) =>
                 typeof p === "number" ? (
-                  <li
-                    key={index}
-                    className={`page-item`}
-                  >
+                  <li key={index} className="page-item">
                     <button
-                      className={`page-link ${p === page ? "bg-custom-primary text-white" : ""}`}
+                      className={`page-link ${
+                        p === page ? "bg-custom-primary text-white" : ""
+                      }`}
                       onClick={() => handlePageChange(p)}
                     >
                       {p}
@@ -196,8 +228,9 @@ export default function BlogListPage() {
                 )
               )}
 
-              {/* Next Button */}
-              <li className={`page-item ${page === totalPages ? "disabled" : ""}`}>
+              <li
+                className={`page-item ${page === totalPages ? "disabled" : ""}`}
+              >
                 <button
                   className="page-link"
                   onClick={() => handlePageChange(page + 1)}
@@ -209,7 +242,6 @@ export default function BlogListPage() {
             </ul>
           </nav>
         )}
-
       </div>
     </section>
   );
