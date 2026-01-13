@@ -358,7 +358,9 @@ export default function Navbar() {
                     </ul>
                   )}
                 </li>
-
+                <li className="nav-item">
+                <Link href="/blog" className="nav-link text-white px-2">BLOG</Link>
+              </li>
 
                 <li className="nav-item">
                   <Link 
