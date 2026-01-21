@@ -166,7 +166,7 @@ export default function TopCourses() {
       <section className="bg-dark-blue text-white py-5 px-3">
         <div className="text-center mb-5 position-relative">
           <h2 className="fw-bold display-5 d-inline-block pb-3 position-relative">
-            Top Courses
+            Our Courses
             <Image
               src="/images/border_v1.png"
               alt="underline"
@@ -188,7 +188,7 @@ export default function TopCourses() {
     <section id="top-courses" className="bg-dark-blue text-white py-5 px-3">
       <div className="text-center mb-5 position-relative">
         <h2 className="fw-bold display-5 d-inline-block pb-3 position-relative">
-          Top Courses
+          Our Courses
           <Image
             src="/images/border_v1.png"
             alt="underline"

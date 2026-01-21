@@ -11,10 +11,10 @@ export default function Home() {
     <div>
      <Welcome />
      <TopCourses />
+     <Packages />
      <Teachers />
      <Faq />
      <Review />
-     <Packages />
     </div>
   );
 }
