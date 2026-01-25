@@ -142,7 +142,7 @@ export default function Welcome() {
               </h1>
 
               <p className="lead mt-3">
-                10,000+ successful candidates. Online Test Prep for the ASVAB,
+                11,000+ successful candidates. Online Test Prep for the ASVAB,
                 ASTB, OAR, AFOQT, and SIFT
               </p>
 

@@ -25,6 +25,7 @@ const PricingPackages: React.FC<Props> = ({ submenu }) => {
 
   useEffect(() => {
     if (!submenu) return;
+
     setLoading(true);
 
     const fetchPackages = async () => {
@@ -37,6 +38,7 @@ const PricingPackages: React.FC<Props> = ({ submenu }) => {
           "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
           { method: "POST", body: formData }
         );
+
         const data = await res.json();
 
         if (data?.isSuccess && Array.isArray(data.data)) {
@@ -55,15 +57,22 @@ const PricingPackages: React.FC<Props> = ({ submenu }) => {
     fetchPackages();
   }, [submenu]);
 
-  const headingText =
-    submenu === "one" ? "1-on-1 Tutoring Packages" : submenu === "group" ? "Group Tutoring Packages" : "Subscribe Packages";
+  // ✅ FIXED Heading + Description Text
+  const headingMap: Record<Submenu, string> = {
+    one: "1-on-1 Tutoring Packages",
+    group: "Group Tutoring Packages",
+    subscribe: "Self Study Packages",
+  };
 
-  const subText =
-    submenu === "one"
-      ? "Choose from our personalized 1-on-1 tutoring packages."
-      : submenu === "group"
-      ? "Select from our group tutoring options."
-      : "Choose a subscription plan for full access to materials and resources.";
+  const subTextMap: Record<Submenu, string> = {
+    one: "Choose from our personalized 1-on-1 tutoring packages.",
+    group: "Select from our group tutoring options.",
+    subscribe:
+      "Choose a self-study plan for full access to study materials and practice tests.",
+  };
+
+  const headingText = headingMap[submenu];
+  const subText = subTextMap[submenu];
 
   return (
     <section className="bg-white py-5 text-center">
@@ -84,9 +93,7 @@ const PricingPackages: React.FC<Props> = ({ submenu }) => {
         </div>
 
         {/* Description */}
-        <p className="text-start mx-auto mb-4 fs-5">
-          {subText}
-        </p>
+        <p className="text-start mx-auto mb-4 fs-5">{subText}</p>
 
         {/* Cards */}
         <div className="row justify-content-center g-4 mb-5">
@@ -94,7 +101,10 @@ const PricingPackages: React.FC<Props> = ({ submenu }) => {
             <p>Loading packages...</p>
           ) : packages.length > 0 ? (
             packages.map((pkg) => (
-              <div key={pkg.course_id} className="col-sm-6 col-lg-3 hover-lift">
+              <div
+                key={pkg.course_id}
+                className="col-sm-6 col-lg-3 hover-lift"
+              >
                 <div className="card h-100 shadow-sm border-0">
                   <Image
                     src={encodeURI(pkg.image_src.trim())}
@@ -104,12 +114,20 @@ const PricingPackages: React.FC<Props> = ({ submenu }) => {
                     className="card-img-top"
                     style={{ height: "200px", objectFit: "cover" }}
                   />
+
                   <div className="card-body text-start">
-                    <h5 className="card-title fw-bold text-primary">{pkg.name}</h5>
+                    <h5 className="card-title fw-bold text-primary">
+                      {pkg.name}
+                    </h5>
+
                     <p className="card-text fw-semibold">{pkg.price_range}</p>
+
                     <div className="text-center">
                       {/* route to detail page including submenu param */}
-                      <Link href={`/SpecificPackageDetailsPage/${submenu}/${pkg.course_id}`} className="btn btn-secondary-custom btn-sm w-50">
+                      <Link
+                        href={`/SpecificPackageDetailsPage/${submenu}/${pkg.course_id}`}
+                        className="btn btn-secondary-custom btn-sm w-50"
+                      >
                         Details
                       </Link>
                     </div>
