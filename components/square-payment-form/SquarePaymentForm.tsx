@@ -16,17 +16,42 @@ type User = {
   password: string;
 };
 
+type PaymentMode = "one_time" | "subscription";
+type Product = "ASVAB" | "AFOQT" | "ASTB" | "SIFT" | "OAR";
+type Cadence = "1M" | "3M" | "6M" | "12M";
+
 type Props = {
-  amount: number;      // cents (e.g. 7500)
-  course_id: string;   // from URL/detail page
-  session_id: string;  // from API/detail page
-  user: User;          // registration form state
+  amount: number; // cents (e.g., 1500)
+  course_id: string;
+  session_id: string;
+  user: User;
+
+  mode?: PaymentMode; // must be passed from CheckoutContent
+  product?: Product; // required when mode="subscription"
+  cadence?: Cadence; // required when mode="subscription"
+
+  disabled?: boolean;
 };
 
-export default function SquarePaymentForm({ amount, course_id, session_id, user }: Props) {
+function isProduct(x: any): x is Product {
+  return x === "ASVAB" || x === "AFOQT" || x === "ASTB" || x === "SIFT" || x === "OAR";
+}
+function isCadence(x: any): x is Cadence {
+  return x === "1M" || x === "3M" || x === "6M" || x === "12M";
+}
+
+export default function SquarePaymentForm({
+  amount,
+  course_id,
+  session_id,
+  user,
+  mode = "one_time",
+  product,
+  cadence,
+  disabled = false,
+}: Props) {
   const cardContainerRef = useRef<HTMLDivElement | null>(null);
   const cardInstanceRef = useRef<any>(null);
-  const initializedRef = useRef(false);
 
   const [initializing, setInitializing] = useState(true);
   const [paying, setPaying] = useState(false);
@@ -35,7 +60,13 @@ export default function SquarePaymentForm({ amount, course_id, session_id, user 
   const appId = process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID;
   const locationId = process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID;
 
-  // Load Square script ONCE
+  const squareScriptSrc = (() => {
+    const isSandbox = (appId || "").startsWith("sandbox-");
+    return isSandbox
+      ? "https://sandbox.web.squarecdn.com/v1/square.js"
+      : "https://web.squarecdn.com/v1/square.js";
+  })();
+
   const loadSquareScript = () =>
     new Promise<void>((resolve, reject) => {
       const existing = document.getElementById("square-js");
@@ -43,7 +74,7 @@ export default function SquarePaymentForm({ amount, course_id, session_id, user 
 
       const script = document.createElement("script");
       script.id = "square-js";
-      script.src = "https://sandbox.web.squarecdn.com/v1/square.js";
+      script.src = squareScriptSrc;
       script.async = true;
       script.crossOrigin = "anonymous";
       script.onload = () => resolve();
@@ -51,14 +82,16 @@ export default function SquarePaymentForm({ amount, course_id, session_id, user 
       document.body.appendChild(script);
     });
 
-  // Initialize payment form (ONLY ONCE) + cleanup
   useEffect(() => {
+    let cancelled = false;
+
     const init = async () => {
       try {
-        if (initializedRef.current) return;
+        setInitializing(true);
+
         if (!appId || !locationId) {
           setMessage("Payment is not configured correctly.");
-          console.error("Missing Square env variables.");
+          console.error("Missing NEXT_PUBLIC_SQUARE_APPLICATION_ID or NEXT_PUBLIC_SQUARE_LOCATION_ID");
           return;
         }
 
@@ -76,35 +109,41 @@ export default function SquarePaymentForm({ amount, course_id, session_id, user 
           return;
         }
 
-        // Prevent duplicate attach
-        initializedRef.current = true;
+        // Prevent duplicate attach (React StrictMode)
+        cardContainerRef.current.innerHTML = "";
 
         const payments = window.Square.payments(appId, locationId);
         const card = await payments.card();
-        await card.attach(cardContainerRef.current);
 
+        if (cancelled) return;
+
+        await card.attach(cardContainerRef.current);
         cardInstanceRef.current = card;
+
         setMessage(null);
-      } catch (error) {
-        console.error("Error initializing payment:", error);
+      } catch (err) {
+        console.error("Error initializing payment:", err);
         setMessage("Failed to initialize payment.");
       } finally {
-        setInitializing(false);
+        if (!cancelled) setInitializing(false);
       }
     };
 
     init();
 
     return () => {
+      cancelled = true;
       try {
         if (cardInstanceRef.current) {
           cardInstanceRef.current.destroy();
           cardInstanceRef.current = null;
         }
-        initializedRef.current = false;
+        if (cardContainerRef.current) {
+          cardContainerRef.current.innerHTML = "";
+        }
       } catch {}
     };
-  }, [appId, locationId]);
+  }, [appId, locationId, squareScriptSrc]);
 
   const validateUser = () => {
     const required: (keyof User)[] = ["first_name", "last_name", "email", "mobile", "password"];
@@ -114,7 +153,11 @@ export default function SquarePaymentForm({ amount, course_id, session_id, user 
     return true;
   };
 
-  // Handle payment request
+  const validateSubscriptionSelection = () => {
+    if (mode !== "subscription") return true;
+    return isProduct(product) && isCadence(cadence);
+  };
+
   const handlePayment = async () => {
     if (!cardInstanceRef.current) {
       setMessage("Payment form not ready.");
@@ -131,6 +174,16 @@ export default function SquarePaymentForm({ amount, course_id, session_id, user 
       return;
     }
 
+    if (!Number.isFinite(amount) || amount <= 0) {
+      setMessage("Invalid amount. Please open checkout from the course page again.");
+      return;
+    }
+
+    if (mode === "subscription" && !validateSubscriptionSelection()) {
+      setMessage("Please select product + duration for subscription.");
+      return;
+    }
+
     setPaying(true);
     setMessage(null);
 
@@ -143,12 +196,49 @@ export default function SquarePaymentForm({ amount, course_id, session_id, user 
         return;
       }
 
+      const sourceId = tokenizeResult.token;
+
+      // ✅ SUBSCRIPTION
+      if (mode === "subscription") {
+        const res = await fetch("/api/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sourceId,
+            product,
+            cadence,
+            userEmail: user.email,
+            userName: `${user.first_name} ${user.last_name}`.trim(),
+
+            // ✅ FIX: REQUIRED by your route.ts for RELATIVE pricing
+            amount, // cents (e.g., 1500)
+
+            course_id,
+            session_id,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (!data.success) {
+          console.error("Subscribe API error:", data);
+          setMessage(data.error || "Subscription failed. Please try again.");
+          return;
+        }
+
+        setMessage(
+          `✅ Subscription created successfully! ID: ${data.subscriptionId ?? "(no id returned)"}`
+        );
+        return;
+      }
+
+      // ✅ ONE-TIME PAYMENT
       const res = await fetch("/api/square-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          sourceId: tokenizeResult.token,
-          amount,      // cents integer
+          sourceId,
+          amount,
           course_id,
           session_id,
           user,
@@ -157,22 +247,19 @@ export default function SquarePaymentForm({ amount, course_id, session_id, user 
 
       const data = await res.json();
 
-      // Payment failed at Square
       if (!data.success) {
         console.error("Payment API error:", data);
         setMessage("Payment failed. Please try again.");
         return;
       }
 
-      // Payment OK but registration may fail
       if (data.registrationSuccess) {
         setMessage("✅ Payment + Enrollment successful!");
       } else {
         setMessage("✅ Payment successful, but enrollment save failed. Please contact support.");
-        console.log("Registration response:", data.registrationResponse);
       }
-    } catch (error) {
-      console.error("Payment processing failed:", error);
+    } catch (err) {
+      console.error("Payment processing failed:", err);
       setMessage("Error while processing payment.");
     } finally {
       setPaying(false);
@@ -180,16 +267,24 @@ export default function SquarePaymentForm({ amount, course_id, session_id, user 
   };
 
   const displayAmount = (amount / 100).toFixed(2);
+  const buttonLabel = mode === "subscription" ? "Subscribe" : `Pay $${displayAmount}`;
+  const uiDisabled = paying || disabled || (mode === "subscription" && !validateSubscriptionSelection());
 
   return (
     <div>
       <div ref={cardContainerRef} className="border p-3 rounded" />
 
+      {/* Debug line (keep during testing, remove later) */}
+      <p className="mt-2 small">
+        mode: <b>{mode}</b> | product: <b>{product ?? "-"}</b> | cadence: <b>{cadence ?? "-"}</b> | amount(cents):{" "}
+        <b>{Number.isFinite(amount) ? amount : "-"}</b>
+      </p>
+
       {initializing ? (
         <p className="mt-3">Loading payment form…</p>
       ) : (
-        <button className="btn btn-primary mt-3" onClick={handlePayment} disabled={paying}>
-          {paying ? "Processing…" : `Pay $${displayAmount}`}
+        <button className="btn btn-primary mt-3" onClick={handlePayment} disabled={uiDisabled}>
+          {paying ? "Processing…" : buttonLabel}
         </button>
       )}
 

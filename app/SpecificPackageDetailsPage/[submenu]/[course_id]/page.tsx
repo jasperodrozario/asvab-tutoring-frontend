@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import styles from '../../packageDetails.module.css';
 import PaymentMethodSection from '@/components/payment-list/paymentList';
-
+import Link from 'next/link';
 function decodeHtmlEntities(input: string): string {
   if (!input) return '';
   const txt = document.createElement('textarea');
@@ -170,6 +170,29 @@ export default function SpecificPackageDetailsPage({
                     <div className="text-start" style={{ marginTop: '0.5rem' }}>
                       {renderTextWithLineBreaks(cleanQuestionText(session.feature))}
                     </div>
+                
+                    {/* Dynamic Enroll Button */}
+                    <div className="mt-3 text-center">
+                      <Link
+                        href={{
+                          pathname: "/checkout",
+                          query: {
+                            course_id: String(course_id),
+                            session_id: String(session.session_id),
+                            amount: String(Math.round(Number(session.price) * 100)), // cents (integer)
+                            mode: String(session.mode),
+                            product: String(session.product),
+                            cadence: String(session.cadence)
+                          },
+                        }}
+                      >
+                        <button className="btn btn-primary-custom mt-4 px-5 py-2">
+                          Subscribe
+                        </button>
+                      </Link>
+
+                    </div>
+                    
                   </div>
                 </div>
               ))}
