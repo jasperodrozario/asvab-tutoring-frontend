@@ -275,15 +275,15 @@ export default function SquarePaymentForm({
       <div ref={cardContainerRef} className="border p-3 rounded" />
 
       {/* Debug line (keep during testing, remove later) */}
-      <p className="mt-2 small">
+      {/* <p className="mt-2 small">
         mode: <b>{mode}</b> | product: <b>{product ?? "-"}</b> | cadence: <b>{cadence ?? "-"}</b> | amount(cents):{" "}
         <b>{Number.isFinite(amount) ? amount : "-"}</b>
-      </p>
+      </p> */}
 
       {initializing ? (
         <p className="mt-3">Loading payment form…</p>
       ) : (
-        <button className="btn btn-primary mt-3" onClick={handlePayment} disabled={uiDisabled}>
+        <button className="btn btn-primary-custom mt-4 px-5 py-2" onClick={handlePayment} disabled={uiDisabled}>
           {paying ? "Processing…" : buttonLabel}
         </button>
       )}

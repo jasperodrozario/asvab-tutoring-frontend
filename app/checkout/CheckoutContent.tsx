@@ -8,21 +8,6 @@ type PaymentMode = "one_time" | "subscription";
 type Product = "ASVAB" | "AFOQT" | "ASTB" | "SIFT" | "OAR";
 type Cadence = "1M" | "3M" | "6M" | "12M";
 
-const PRODUCT_OPTIONS: Array<{ value: Product; label: string }> = [
-  { value: "ASVAB", label: "ASVAB" },
-  { value: "AFOQT", label: "AFOQT" },
-  { value: "ASTB", label: "ASTB" },
-  { value: "SIFT", label: "SIFT" },
-  { value: "OAR", label: "OAR" },
-];
-
-const CADENCE_OPTIONS: Array<{ value: Cadence; label: string }> = [
-  { value: "1M", label: "1-month" },
-  { value: "3M", label: "3-month" },
-  { value: "6M", label: "6-month" },
-  { value: "12M", label: "12-month" },
-];
-
 function isProduct(x: any): x is Product {
   return x === "ASVAB" || x === "AFOQT" || x === "ASTB" || x === "SIFT" || x === "OAR";
 }
@@ -33,10 +18,6 @@ function isMode(x: any): x is PaymentMode {
   return x === "one_time" || x === "subscription";
 }
 
-/**
- * Optional: infer product from course_id if your checkout URLs include it.
- * Adjust the rules if your real course_id values are different.
- */
 function inferProductFromCourseId(courseId: string): Product | "" {
   const s = (courseId || "").toLowerCase();
   if (s.includes("asvab")) return "ASVAB";
@@ -47,13 +28,27 @@ function inferProductFromCourseId(courseId: string): Product | "" {
   return "";
 }
 
+function cadenceLabel(c: Cadence) {
+  switch (c) {
+    case "1M":
+      return "Monthly";
+    case "3M":
+      return "Quarterly";
+    case "6M":
+      return "Every 6 months";
+    case "12M":
+      return "Yearly";
+    default:
+      return c;
+  }
+}
+
 export default function CheckoutContent() {
   const searchParams = useSearchParams();
 
   const course_id = searchParams.get("course_id") || "";
   const session_id = searchParams.get("session_id") || "";
 
-  // amount is expected to be cents in your flow (e.g., 1500 => $15.00)
   const amountCents = useMemo(() => {
     const raw = searchParams.get("amount") ?? "0";
     const n = Number.parseInt(raw, 10);
@@ -65,28 +60,28 @@ export default function CheckoutContent() {
     return amountCents / 100;
   }, [amountCents]);
 
-  // Mode: allow query param override
-  const [mode, setMode] = useState<PaymentMode>(() => {
+  // ✅ Mode from query only (no toggle)
+  const mode: PaymentMode = useMemo(() => {
     const q = searchParams.get("mode");
     if (isMode(q)) return q;
     return "one_time";
-  });
+  }, [searchParams]);
 
-  // Product: allow query param override, else infer, else default
-  const [product, setProduct] = useState<Product>(() => {
+  // ✅ Product (query -> infer -> default), read-only
+  const product: Product = useMemo(() => {
     const q = searchParams.get("product");
     if (isProduct(q)) return q;
 
     const inferred = inferProductFromCourseId(course_id);
     return inferred || "ASVAB";
-  });
+  }, [searchParams, course_id]);
 
-  // Cadence: allow query param override, else default to 1M
-  const [cadence, setCadence] = useState<Cadence>(() => {
+  // ✅ Cadence from query, read-only
+  const cadence: Cadence = useMemo(() => {
     const q = searchParams.get("cadence");
     if (isCadence(q)) return q;
     return "1M";
-  });
+  }, [searchParams]);
 
   const [user, setUser] = useState({
     first_name: "",
@@ -103,135 +98,150 @@ export default function CheckoutContent() {
   const invalidBase =
     !course_id || !session_id || !Number.isFinite(amountCents) || amountCents <= 0;
 
-  const subscriptionInvalid = mode === "subscription" && (!isProduct(product) || !isCadence(cadence));
+  const subscriptionInvalid =
+    mode === "subscription" && (!isProduct(product) || !isCadence(cadence));
 
   if (invalidBase) {
     return <p className="text-danger">Invalid checkout link.</p>;
   }
 
+  const pageTitle = mode === "subscription" ? "Subscription Checkout" : "Checkout";
+  const pageSub =
+    mode === "subscription"
+      ? "Your subscription will renew automatically based on your plan."
+      : "One-time payment for your selected package.";
+
   return (
-    <div className="container py-5">
-      <h1 className="mb-3">Checkout</h1>
+    <div className="container py-5" style={{ maxWidth: 1100 }}>
+      {/* Header */}
+      <div className="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+        <div>
+          <h1 className="fw-bold mb-1">{pageTitle}</h1>
+          <p className="text-muted mb-0">{pageSub}</p>
 
-      <div className="mb-3">
-        <label className="me-3">
-          <input
-            type="radio"
-            name="mode"
-            checked={mode === "one_time"}
-            onChange={() => setMode("one_time")}
-          />{" "}
-          One-time payment
-        </label>
-
-        <label>
-          <input
-            type="radio"
-            name="mode"
-            checked={mode === "subscription"}
-            onChange={() => setMode("subscription")}
-          />{" "}
-          Subscription
-        </label>
-      </div>
-
-      <p className="fs-5">
-        <strong>Total:</strong> ${amountDollarsForUI.toFixed(2)}
-      </p>
-
-      {/* User fields */}
-      <input
-        className="form-control mb-2"
-        name="first_name"
-        placeholder="First Name"
-        value={user.first_name}
-        onChange={handleChange}
-      />
-      <input
-        className="form-control mb-2"
-        name="last_name"
-        placeholder="Last Name"
-        value={user.last_name}
-        onChange={handleChange}
-      />
-      <input
-        className="form-control mb-2"
-        type="email"
-        name="email"
-        placeholder="Email"
-        value={user.email}
-        onChange={handleChange}
-      />
-      <input
-        className="form-control mb-2"
-        name="mobile"
-        placeholder="Mobile"
-        value={user.mobile}
-        onChange={handleChange}
-      />
-      <input
-        className="form-control mb-3"
-        type="password"
-        name="password"
-        placeholder="Password"
-        value={user.password}
-        onChange={handleChange}
-      />
-
-      {/* Subscription selectors */}
-      {mode === "subscription" && (
-        <div className="mb-3">
-          <label className="form-label fw-semibold">Subscription option</label>
-
-          <div className="row g-2">
-            <div className="col-md-6">
-              <select
-                className="form-select"
-                value={product}
-                onChange={(e) => setProduct(e.target.value as Product)}
-              >
-                {PRODUCT_OPTIONS.map((p) => (
-                  <option key={p.value} value={p.value}>
-                    {p.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="col-md-6">
-              <select
-                className="form-select"
-                value={cadence}
-                onChange={(e) => setCadence(e.target.value as Cadence)}
-              >
-                {CADENCE_OPTIONS.map((c) => (
-                  <option key={c.value} value={c.value}>
-                    {c.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {subscriptionInvalid && (
-            <div className="text-danger mt-2">
-              Please select a valid subscription option to continue.
-            </div>
+          {/* Optional subscription detail (not debug text) */}
+          {mode === "subscription" && (
+            <p className="text-muted small mb-0 mt-2">
+              Plan: <span className="fw-semibold">{product}</span> •{" "}
+              <span className="fw-semibold">{cadenceLabel(cadence)}</span>
+            </p>
           )}
         </div>
-      )}
 
-      {/* ✅ CRITICAL: pass mode/product/cadence so SquarePaymentForm can call /api/subscribe */}
-      <SquarePaymentForm
-        amount={amountCents}
-        course_id={course_id}
-        session_id={session_id}
-        user={user}
-        mode={mode}
-        product={mode === "subscription" ? product : undefined}
-        cadence={mode === "subscription" ? cadence : undefined}
-        disabled={subscriptionInvalid}
-      />
+        <div className="text-end">
+          <div className="text-muted small">Total</div>
+          <div className="fw-bold" style={{ fontSize: 28 }}>
+            ${amountDollarsForUI.toFixed(2)}
+          </div>
+        </div>
+      </div>
+
+      {/* ✅ Left & Right same level + responsive */}
+      <div className="row g-4 align-items-stretch">
+        {/* Left */}
+        <div className="col-12 col-lg-6 d-flex">
+          <div className="card shadow-sm border-0 w-100">
+            <div className="card-body p-4 d-flex flex-column">
+              <h5 className="fw-bold mb-3">Your Information</h5>
+
+              {/* ✅ First name + last name separate lines */}
+              <input
+                className="form-control mb-2"
+                name="first_name"
+                placeholder="First Name"
+                value={user.first_name}
+                onChange={handleChange}
+              />
+              <input
+                className="form-control mb-2"
+                name="last_name"
+                placeholder="Last Name"
+                value={user.last_name}
+                onChange={handleChange}
+              />
+
+              <input
+                className="form-control mb-2"
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={user.email}
+                onChange={handleChange}
+              />
+              <input
+                className="form-control mb-2"
+                name="mobile"
+                placeholder="Mobile"
+                value={user.mobile}
+                onChange={handleChange}
+              />
+              <input
+                className="form-control mb-0"
+                type="password"
+                name="password"
+                placeholder="Password"
+                value={user.password}
+                onChange={handleChange}
+              />
+
+              {mode === "subscription" && subscriptionInvalid && (
+                <div className="alert alert-danger mt-3 mb-0 py-2">
+                  Invalid subscription parameters in checkout link.
+                </div>
+              )}
+
+              <div className="mt-3 small text-muted">
+                We’ll use your email for purchase confirmation and account access.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right */}
+        <div className="col-12 col-lg-6 d-flex">
+          <div className="card shadow-sm border-0 w-100">
+            <div className="card-body p-0 d-flex flex-column">
+              <div className="px-4 pt-4 pb-3 border-bottom">
+                <div className="d-flex justify-content-between align-items-center">
+                  <div className="fw-semibold text-muted">Payment Details</div>
+                  <div className="d-flex gap-2 flex-wrap">
+                    <span className="badge text-bg-light border">VISA</span>
+                    <span className="badge text-bg-light border">MC</span>
+                    <span className="badge text-bg-light border">AMEX</span>
+                    <span className="badge text-bg-light border">DISC</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4">
+                {/* ✅ Keep your working Square component (logic unchanged) */}
+                <SquarePaymentForm
+                  amount={amountCents}
+                  course_id={course_id}
+                  session_id={session_id}
+                  user={user}
+                  mode={mode}
+                  product={mode === "subscription" ? product : undefined}
+                  cadence={mode === "subscription" ? cadence : undefined}
+                  disabled={subscriptionInvalid}
+                />
+
+                <div className="small text-muted mt-3">
+                  Secure payment • PCI compliant
+                </div>
+              </div>
+
+              {/* {mode === "subscription" && (
+                <div className="px-4 pb-4">
+                  <div className="small text-muted">
+                    You can cancel your subscription anytime from your account settings.
+                  </div>
+                </div>
+              )} */}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

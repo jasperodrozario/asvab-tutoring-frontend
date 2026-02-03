@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import IntroText from "../intro-text/IntroText";
+import Link from "next/link";
 
 interface State {
   id: string;
@@ -245,10 +246,7 @@ export default function Welcome() {
                 </form>
 
                 <div className="d-flex justify-content-center gap-3 mt-4">
-                  <a
-                    href="https://play.google.com/store/apps/details?id=com.asvab.tutoring"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <Link href="/mobile-app-list"
                   >
                     <Image
                       src="/images/Google_Play_Store_badge_EN.svg"
@@ -256,12 +254,10 @@ export default function Welcome() {
                       width={180}
                       height={40}
                     />
-                  </a>
+                  </Link>
 
-                  <a
-                    href="https://apps.apple.com/us/app/asvab-tutoring/id1518771904"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <Link
+                    href="/mobile-app-list"
                   >
                     <Image
                       src="/images/download-on-the-app-store.svg"
@@ -269,7 +265,7 @@ export default function Welcome() {
                       width={180}
                       height={40}
                     />
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>

@@ -4,8 +4,8 @@ import React, { use, useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import styles from '../../packageDetails.module.css';
-import PaymentMethodSection from '@/components/payment-list/paymentList';
 import Link from 'next/link';
+
 function decodeHtmlEntities(input: string): string {
   if (!input) return '';
   const txt = document.createElement('textarea');
@@ -43,6 +43,15 @@ function renderTextWithLineBreaks(text: string) {
   ));
 }
 
+/**
+ * ✅ Your API rule:
+ * - subscription: session.mode === "subscription"
+ * - one-time: mode missing (or not "subscription")
+ */
+function isSubscriptionSession(session: any): boolean {
+  return String(session?.mode ?? '').toLowerCase() === 'subscription';
+}
+
 export default function SpecificPackageDetailsPage({
   params,
 }: {
@@ -63,7 +72,7 @@ export default function SpecificPackageDetailsPage({
             body: new URLSearchParams({
               action: 'specific-tutoring-package-details-page',
               course_id: String(course_id),
-              submenu: submenu,
+              submenu: String(submenu),
             }),
           }
         );
@@ -105,9 +114,7 @@ export default function SpecificPackageDetailsPage({
                 {courseData.price_range}
               </h4>
 
-              {renderTextWithLineBreaks(
-                cleanQuestionText(courseData.course_intro)
-              )}
+              {renderTextWithLineBreaks(cleanQuestionText(courseData.course_intro))}
 
               <div className="mt-4">
                 <Image
@@ -118,8 +125,7 @@ export default function SpecificPackageDetailsPage({
                   className="img-fluid rounded shadow-sm"
                   style={{ objectFit: 'cover' }}
                 />
-                {/* < PaymentMethodSection /> */}
-
+                {/* <PaymentMethodSection /> */}
               </div>
             </div>
           </div>
@@ -148,93 +154,87 @@ export default function SpecificPackageDetailsPage({
                 gap: '2rem',
               }}
             >
-              {pkg.sessions.map((session: any) => (
-                <div
-                  key={session.session_id}
-                  className={`${styles.pricingCard} ${session.is_most_popular === '1' ? styles.mostPopularWrap : ''
-                    }`}
-                  style={{
-                    flex: '0 0 300px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    minHeight: '300px',
-                  }}
-                >
-                  {session.is_most_popular === '1' && (
-                    <div className={styles.mostPopularBadge}>Most Popular</div>
-                  )}
-                  <div className={styles.cardInner}>
-                    <h4 className={styles.cardTitle}>{session.title}</h4>
-                    <div className={styles.price}>${session.price}</div>
-                    <div className="text-start" style={{ marginTop: '0.5rem' }}>
-                      {renderTextWithLineBreaks(cleanQuestionText(session.feature))}
-                    </div>
-                
-                    {/* Dynamic Enroll Button */}
-                    <div className="mt-3 text-center">
-                      <Link
-                        href={{
-                          pathname: "/checkout",
-                          query: {
-                            course_id: String(course_id),
-                            session_id: String(session.session_id),
-                            amount: String(Math.round(Number(session.price) * 100)), // cents (integer)
-                            mode: String(session.mode),
-                            product: String(session.product),
-                            cadence: String(session.cadence)
-                          },
-                        }}
-                      >
-                        <button className="btn btn-primary-custom mt-4 px-5 py-2">
-                          Subscribe
-                        </button>
-                      </Link>
+              {pkg.sessions.map((session: any) => {
+                const isSub = isSubscriptionSession(session);
+                const buttonLabel = isSub ? 'Subscribe' : 'Enroll Now';
 
+                return (
+                  <div
+                    key={session.session_id}
+                    className={`${styles.pricingCard} ${session.is_most_popular === '1' ? styles.mostPopularWrap : ''
+                      }`}
+                    style={{
+                      flex: '0 0 300px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      minHeight: '360px', // ✅ ensure consistent height
+                    }}
+                  >
+                    {session.is_most_popular === '1' && (
+                      <div className={styles.mostPopularBadge}>Most Popular</div>
+                    )}
+
+                    {/* Card Content */}
+                    <div className={`${styles.cardInner} d-flex flex-column h-100`}>
+                      <h4 className={styles.cardTitle}>{session.title}</h4>
+
+                      <div className={styles.price}>${session.price}</div>
+
+                      <div className="text-start" style={{ marginTop: '0.5rem' }}>
+                        {renderTextWithLineBreaks(cleanQuestionText(session.feature))}
+                      </div>
+
+                      {/* ✅ Button always sticks to bottom */}
+                      <div className="mt-auto text-center">
+                        <Link
+                          href={{
+                            pathname: '/checkout',
+                            query: {
+                              course_id: String(course_id),
+                              session_id: String(session.session_id),
+                              amount: String(Math.round(Number(session.price) * 100)),
+                              mode: isSub ? 'subscription' : 'one-time',
+                              product: String(session.product ?? ''),
+                              cadence: String(session.cadence ?? ''),
+                            },
+                          }}
+                        >
+                          <button className="btn btn-primary-custom mt-4 px-5 py-2">
+                            {buttonLabel}
+                          </button>
+                        </Link>
+                      </div>
                     </div>
-                    
                   </div>
-                </div>
-              ))}
+
+                );
+              })}
             </div>
           </div>
         </section>
       ))}
 
-      <div className='container'>
+      <div className="container">
         {/* Notes */}
-        <p
-          className="  fs-6 text-start mx-auto mb-3"
-          style={{ maxWidth: '960px' }}
-        >
+        <p className="fs-6 text-start mx-auto mb-3" style={{ maxWidth: '960px' }}>
           <span className="fw-semibold text-danger">NOTE:</span> No session will
           be scheduled without payment information on file. Students are required
           to submit homework before each session.
         </p>
-        <p
-          className="  fs-6 text-start mx-auto mb-5"
-          style={{ maxWidth: '960px' }}
-        >
+
+        <p className="fs-6 text-start mx-auto mb-5" style={{ maxWidth: '960px' }}>
           <span className="fw-semibold text-primary">Cancellation Policy:</span>{' '}
           If you want to cancel a session or reschedule, 24 hrs. advance notice is
           required. You can cancel the entire service within 7 days.
         </p>
-
-        {/* Enroll Button (conditionally visible) */}
-        {/* {showEnrollButton && (
-          <Link
-            href="/pricing-page"
-            className="btn btn-primary-custom fw-semibold text-white px-4 py-2 mb-4"
-          >
-            ENROLL NOW
-          </Link>
-        )} */}
       </div>
 
       {/* Related Courses */}
       <section className="py-5 bg-white">
         <div className="container">
-          <h5 className="mb-4 text-uppercase fs-3 fw-bold text-center">Related Packages</h5>
+          <h5 className="mb-4 text-uppercase fs-3 fw-bold text-center">
+            Related Packages
+          </h5>
 
           <div className="row g-4">
             {courseData.related_courses?.length > 0 ? (
@@ -245,8 +245,10 @@ export default function SpecificPackageDetailsPage({
                 >
                   <div
                     className="card h-100 shadow-sm border-0 cursor-pointer"
-                    style={{ borderRadius: "10px" }}
-                    onClick={() => router.push(`/SpecificPackageDetailsPage/${submenu}/${rel.course_id}`)}
+                    style={{ borderRadius: '10px' }}
+                    onClick={() =>
+                      router.push(`/SpecificPackageDetailsPage/${submenu}/${rel.course_id}`)
+                    }
                   >
                     <div className="card-body p-3 d-flex flex-column">
                       <Image
@@ -255,18 +257,20 @@ export default function SpecificPackageDetailsPage({
                         width={300}
                         height={200}
                         className="rounded mb-3 w-100"
-                        style={{ objectFit: "cover", height: "200px" }}
+                        style={{ objectFit: 'cover', height: '200px' }}
                       />
-                      <h6 className="fw-semibold mb-2" style={{ color: "#e58a34" }}>
+                      <h6 className="fw-semibold mb-2" style={{ color: '#e58a34' }}>
                         {rel.name}
                       </h6>
-                      <p className="fw-bold text-success mb-0 mt-auto">{rel.price_range}</p>
+                      <p className="fw-bold text-success mb-0 mt-auto">
+                        {rel.price_range}
+                      </p>
                     </div>
                   </div>
                 </div>
               ))
             ) : (
-              <p className="  text-center">No related packages available.</p>
+              <p className="text-center">No related packages available.</p>
             )}
           </div>
         </div>

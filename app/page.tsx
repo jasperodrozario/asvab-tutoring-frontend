@@ -5,16 +5,30 @@ import Teachers from "@/components/teachers/Teachers";
 import Faq from "@/components/faq/Faq";
 import Review from "@/components/review/Review";
 import Packages from "@/components/packages/Packages";
+import PricingPackages from "@/components/specific-packages/specificPackages";
 
 export default function Home() {
   return (
     <div>
-     <Welcome />
-     <TopCourses />
-     <Packages />
-     <Teachers />
-     <Faq />
-     <Review />
+      <Welcome />
+      <TopCourses />
+      {/* <Packages /> */}
+      <PricingPackages
+  fixedSubmenu="one"
+  sectionTitle="Our Tutoring Pricing"
+  homepageDescription="ASVAB Tutoring’s Self-Study Course offers expertly crafted study materials developed by highly experienced instructors. This program helps you strengthen core skills, improve your scores, understand key concepts clearly, and prepare with confidence for test day."
+/>
+
+<PricingPackages
+  fixedSubmenu="subscribe"
+  sectionTitle="Self Study Pricing"
+  homepageDescription="ASVAB Tutoring’s Self-Study Course offers expertly crafted study materials developed by highly experienced instructors. This program helps you strengthen core skills, improve your scores, understand key concepts clearly, and prepare with confidence for test day."
+/>
+
+
+      <Teachers />
+      <Faq />
+      <Review />
     </div>
   );
 }
