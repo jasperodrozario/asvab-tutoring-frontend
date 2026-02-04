@@ -142,7 +142,7 @@ export default function CheckoutContent() {
         <div className="col-12 col-lg-6 d-flex">
           <div className="card shadow-sm border-0 w-100">
             <div className="card-body p-4 d-flex flex-column">
-              <h5 className="fw-bold mb-3">Your Information</h5>
+              <h5 className="fw-bold mb-3">Your Registration Information</h5>
 
               {/* ✅ First name + last name separate lines */}
               <input
@@ -203,11 +203,11 @@ export default function CheckoutContent() {
             <div className="card-body p-0 d-flex flex-column">
               <div className="px-4 pt-4 pb-3 border-bottom">
                 <div className="d-flex justify-content-between align-items-center">
-                  <div className="fw-semibold text-muted">Payment Details</div>
+                  <div className="fw-semibold text-muted">Card Payment Details</div>
                   <div className="d-flex gap-2 flex-wrap">
                     <span className="badge text-bg-light border">VISA</span>
-                    <span className="badge text-bg-light border">MC</span>
                     <span className="badge text-bg-light border">AMEX</span>
+                    <span className="badge text-bg-light border">MC</span>
                     <span className="badge text-bg-light border">DISC</span>
                   </div>
                 </div>

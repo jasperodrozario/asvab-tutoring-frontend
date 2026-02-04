@@ -10,9 +10,10 @@ interface State {
   name: string;
 }
 
+type StatusType = "success" | "error" | "info";
+
 export default function Welcome() {
-  const API_URL =
-    "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php";
+  const API_URL = "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php";
 
   const [states, setStates] = useState<State[]>([]);
   const [form, setForm] = useState({
@@ -23,6 +24,12 @@ export default function Welcome() {
     message: "",
   });
   const [submitting, setSubmitting] = useState(false);
+
+  // ✅ Inline status message (no alerts)
+  const [status, setStatus] = useState<{
+    type: StatusType;
+    text: string;
+  } | null>(null);
 
   // ✅ Safe JSON parser: avoids "unexpected character" crash
   const safeJson = async (res: Response) => {
@@ -52,6 +59,10 @@ export default function Welcome() {
         if (!parsed.ok) {
           console.error("get-state-list returned non-JSON:", parsed.raw);
           setStates([]);
+          setStatus({
+            type: "error",
+            text: "Unable to load state list right now. Please refresh and try again.",
+          });
           return;
         }
 
@@ -60,15 +71,25 @@ export default function Welcome() {
         // ✅ Support both: {isSuccess, data:[...]} OR direct array
         if (data?.isSuccess && Array.isArray(data.data)) {
           setStates(data.data);
+          setStatus(null);
         } else if (Array.isArray(data)) {
           setStates(data);
+          setStatus(null);
         } else {
           console.error("API returned invalid state data:", data);
           setStates([]);
+          setStatus({
+            type: "error",
+            text: "State list data is invalid. Please try again later.",
+          });
         }
       } catch (error) {
         console.error("Failed to fetch states:", error);
         setStates([]);
+        setStatus({
+          type: "error",
+          text: "Network error while loading states. Please try again.",
+        });
       }
     };
 
@@ -76,16 +97,20 @@ export default function Welcome() {
   }, []);
 
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+
+    // ✅ remove old error as user edits
+    if (status?.type === "error") setStatus(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // ✅ clear previous message
+    setStatus(null);
     setSubmitting(true);
 
     try {
@@ -108,26 +133,46 @@ export default function Welcome() {
 
       if (!parsed.ok) {
         console.error("tutor-request returned non-JSON:", parsed.raw);
-        alert("Server returned invalid response. Please try again.");
+        setStatus({
+          type: "error",
+          text: "Server returned an invalid response. Please try again.",
+        });
         return;
       }
 
       const data = parsed.data;
 
       if (data?.isSuccess) {
-        alert("Tutor request submitted successfully!");
+        setStatus({
+          type: "success",
+          text: "Tutor request submitted successfully! We’ll contact you soon.",
+        });
+
         setForm({ name: "", email: "", phone: "", state_id: "", message: "" });
       } else {
-        alert(data?.message || "Submission failed");
+        setStatus({
+          type: "error",
+          text: data?.message || "Submission failed. Please try again.",
+        });
         console.error("tutor-request failed payload:", data);
       }
     } catch (error) {
       console.error("Submit error:", error);
-      alert("Network error. Please try again.");
+      setStatus({
+        type: "error",
+        text: "Network error. Please try again.",
+      });
     } finally {
       setSubmitting(false);
     }
   };
+
+  const statusClass =
+    status?.type === "success"
+      ? "alert alert-success"
+      : status?.type === "error"
+      ? "alert alert-danger"
+      : "alert alert-info";
 
   return (
     <>
@@ -143,8 +188,8 @@ export default function Welcome() {
               </h1>
 
               <p className="lead mt-3">
-                11,000+ successful candidates. Online Test Prep for the ASVAB,
-                ASTB, OAR, AFOQT, and SIFT
+                11,000+ successful candidates. Online Test Prep for the ASVAB, ASTB,
+                OAR, AFOQT, and SIFT
               </p>
 
               <div className="mt-4 bg-white p-3 rounded shadow">
@@ -180,9 +225,7 @@ export default function Welcome() {
                   </div>
 
                   <div className="mb-3">
-                    <label className="form-label">
-                      Email (Use your valid email address)
-                    </label>
+                    <label className="form-label">Email (Use your valid email address)</label>
                     <input
                       type="email"
                       className="form-control"
@@ -215,6 +258,7 @@ export default function Welcome() {
                       value={form.state_id}
                       onChange={handleChange}
                       required
+                      disabled={submitting}
                     >
                       <option value="">—Please choose an option—</option>
                       {states.map((state) => (
@@ -233,6 +277,7 @@ export default function Welcome() {
                       name="message"
                       value={form.message}
                       onChange={handleChange}
+                      disabled={submitting}
                     />
                   </div>
 
@@ -243,11 +288,17 @@ export default function Welcome() {
                   >
                     {submitting ? "Submitting..." : "Submit"}
                   </button>
+
+                  {/* ✅ Polished inline status message below button */}
+                  {status && (
+                    <div className={`${statusClass} mt-3 mb-0`} role="alert">
+                      {status.text}
+                    </div>
+                  )}
                 </form>
 
                 <div className="d-flex justify-content-center gap-3 mt-4">
-                  <Link href="/mobile-app-list"
-                  >
+                  <Link href="/mobile-app-list">
                     <Image
                       src="/images/Google_Play_Store_badge_EN.svg"
                       alt="Google Play"
@@ -256,9 +307,7 @@ export default function Welcome() {
                     />
                   </Link>
 
-                  <Link
-                    href="/mobile-app-list"
-                  >
+                  <Link href="/mobile-app-list">
                     <Image
                       src="/images/download-on-the-app-store.svg"
                       alt="App Store"

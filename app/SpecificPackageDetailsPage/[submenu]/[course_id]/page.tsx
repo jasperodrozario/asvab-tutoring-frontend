@@ -6,16 +6,27 @@ import { useRouter } from 'next/navigation';
 import styles from '../../packageDetails.module.css';
 import Link from 'next/link';
 
-function decodeHtmlEntities(input: string): string {
+function decodeHtmlEntitiesOnce(input: string): string {
   if (!input) return '';
   const txt = document.createElement('textarea');
   txt.innerHTML = input;
   return txt.value;
 }
 
+function decodeHtmlEntitiesDeep(input: string, maxPasses = 4): string {
+  if (!input) return '';
+  let prev = input;
+  for (let i = 0; i < maxPasses; i++) {
+    const next = decodeHtmlEntitiesOnce(prev);
+    if (next === prev) break;
+    prev = next;
+  }
+  return prev;
+}
+
 function cleanQuestionText(input: string): string {
   if (!input) return '';
-  let decoded = decodeHtmlEntities(input);
+  let decoded = decodeHtmlEntitiesDeep(input);
 
   decoded = decoded
     .replace(/<br\s*\/?>/gi, '\n')
@@ -32,22 +43,18 @@ function cleanQuestionText(input: string): string {
     .replace(/\\\(|\\\)/g, '')
     .replace(/\^(\d+)\/_({?)(\d+)(}?)/g, '$1/$3');
 
+  decoded = decodeHtmlEntitiesDeep(decoded);
   return decoded.trim();
 }
 
 function renderTextWithLineBreaks(text: string) {
-  return text.split(/\r?\n/).map((line, idx) => (
-    <p key={idx} style={{ marginBottom: '0.8em', whiteSpace: 'pre-wrap' }}>
+  return text.split(/\r?\n/).filter(Boolean).map((line, idx) => (
+    <p key={idx} style={{ marginBottom: '0.6em', whiteSpace: 'pre-wrap' }}>
       {line}
     </p>
   ));
 }
 
-/**
- * ✅ Your API rule:
- * - subscription: session.mode === "subscription"
- * - one-time: mode missing (or not "subscription")
- */
 function isSubscriptionSession(session: any): boolean {
   return String(session?.mode ?? '').toLowerCase() === 'subscription';
 }
@@ -100,7 +107,7 @@ export default function SpecificPackageDetailsPage({
             <div className="col-lg-6 text-center">
               <Image
                 src={courseData.image_src}
-                alt={courseData.course_name}
+                alt={decodeHtmlEntitiesDeep(courseData.course_name ?? '')}
                 width={600}
                 height={400}
                 className="img-fluid rounded shadow-sm"
@@ -109,12 +116,14 @@ export default function SpecificPackageDetailsPage({
             </div>
 
             <div className="col-lg-6 text-start">
-              <h2 className="fw-bold text-uppercase">{courseData.course_name}</h2>
+              <h2 className="fw-bold text-uppercase">
+                {decodeHtmlEntitiesDeep(courseData.course_name ?? '')}
+              </h2>
               <h4 className="fw-bold text-success mb-3">
-                {courseData.price_range}
+                {decodeHtmlEntitiesDeep(courseData.price_range ?? '')}
               </h4>
 
-              {renderTextWithLineBreaks(cleanQuestionText(courseData.course_intro))}
+              {renderTextWithLineBreaks(cleanQuestionText(courseData.course_intro ?? ''))}
 
               <div className="mt-4">
                 <Image
@@ -125,7 +134,6 @@ export default function SpecificPackageDetailsPage({
                   className="img-fluid rounded shadow-sm"
                   style={{ objectFit: 'cover' }}
                 />
-                {/* <PaymentMethodSection /> */}
               </div>
             </div>
           </div>
@@ -136,24 +144,13 @@ export default function SpecificPackageDetailsPage({
       {courseData.data?.map((pkg: any) => (
         <section key={pkg.package_id} className="py-5">
           <div className="container text-center">
-            <h1 className={styles.heroTitle}>{pkg.title}</h1>
+            <h1 className={styles.heroTitle}>{decodeHtmlEntitiesDeep(pkg.title ?? '')}</h1>
 
-            <div
-              className="mx-auto text-start"
-              style={{ marginTop: '1rem', marginBottom: '2rem' }}
-            >
-              {renderTextWithLineBreaks(cleanQuestionText(pkg.description))}
+            <div className="mx-auto text-start" style={{ marginTop: '1rem', marginBottom: '2rem' }}>
+              {renderTextWithLineBreaks(cleanQuestionText(pkg.description ?? ''))}
             </div>
 
-            <div
-              className={styles.pricingGrid}
-              style={{
-                display: 'flex',
-                justifyContent: 'center',
-                flexWrap: 'wrap',
-                gap: '2rem',
-              }}
-            >
+            <div className={styles.pricingGrid}>
               {pkg.sessions.map((session: any) => {
                 const isSub = isSubscriptionSession(session);
                 const buttonLabel = isSub ? 'Subscribe' : 'Enroll Now';
@@ -161,31 +158,37 @@ export default function SpecificPackageDetailsPage({
                 return (
                   <div
                     key={session.session_id}
-                    className={`${styles.pricingCard} ${session.is_most_popular === '1' ? styles.mostPopularWrap : ''
-                      }`}
-                    style={{
-                      flex: '0 0 300px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      minHeight: '360px', // ✅ ensure consistent height
-                    }}
+                    className={`${styles.pricingCard} ${
+                      session.is_most_popular === '1' ? styles.mostPopularWrap : ''
+                    }`}
                   >
                     {session.is_most_popular === '1' && (
                       <div className={styles.mostPopularBadge}>Most Popular</div>
                     )}
 
-                    {/* Card Content */}
-                    <div className={`${styles.cardInner} d-flex flex-column h-100`}>
-                      <h4 className={styles.cardTitle}>{session.title}</h4>
-
-                      <div className={styles.price}>${session.price}</div>
-
-                      <div className="text-start" style={{ marginTop: '0.5rem' }}>
-                        {renderTextWithLineBreaks(cleanQuestionText(session.feature))}
+                    {/* ✅ Equal layout zones */}
+                    <div className={styles.cardInner}>
+                      {/* Title zone (fixed height) */}
+                      <div className={styles.cardTitleWrap}>
+                        <h4 className={styles.cardTitle}>
+                          {decodeHtmlEntitiesDeep(session.title ?? '')}
+                        </h4>
                       </div>
 
-                      {/* ✅ Button always sticks to bottom */}
-                      <div className="mt-auto text-center">
+                      {/* Price zone (fixed height) */}
+                      <div className={styles.priceWrap}>
+                        <div className={styles.price}>${decodeHtmlEntitiesDeep(String(session.price ?? ''))}</div>
+                      </div>
+
+                      {/* Feature zone (fixed height, centered, highlighted) */}
+                      <div className={styles.featureWrap}>
+                        <div className={styles.featureBox}>
+                          {renderTextWithLineBreaks(cleanQuestionText(session.feature ?? ''))}
+                        </div>
+                      </div>
+
+                      {/* Button zone (always bottom) */}
+                      <div className={styles.cardFooter}>
                         <Link
                           href={{
                             pathname: '/checkout',
@@ -193,20 +196,20 @@ export default function SpecificPackageDetailsPage({
                               course_id: String(course_id),
                               session_id: String(session.session_id),
                               amount: String(Math.round(Number(session.price) * 100)),
-                              mode: isSub ? 'subscription' : 'one-time',
+                              mode: isSub ? 'subscription' : 'one_time',
                               product: String(session.product ?? ''),
                               cadence: String(session.cadence ?? ''),
                             },
                           }}
+                          className="text-decoration-none"
                         >
-                          <button className="btn btn-primary-custom mt-4 px-5 py-2">
+                          <button className={`btn btn-primary-custom ${styles.cardBtn}`}>
                             {buttonLabel}
                           </button>
                         </Link>
                       </div>
                     </div>
                   </div>
-
                 );
               })}
             </div>
@@ -215,55 +218,46 @@ export default function SpecificPackageDetailsPage({
       ))}
 
       <div className="container">
-        {/* Notes */}
         <p className="fs-6 text-start mx-auto mb-3" style={{ maxWidth: '960px' }}>
-          <span className="fw-semibold text-danger">NOTE:</span> No session will
-          be scheduled without payment information on file. Students are required
-          to submit homework before each session.
+          <span className="fw-semibold text-danger">NOTE:</span> No session will be scheduled without
+          payment information on file. Students are required to submit homework before each session.
         </p>
 
         <p className="fs-6 text-start mx-auto mb-5" style={{ maxWidth: '960px' }}>
-          <span className="fw-semibold text-primary">Cancellation Policy:</span>{' '}
-          If you want to cancel a session or reschedule, 24 hrs. advance notice is
-          required. You can cancel the entire service within 7 days.
+          <span className="fw-semibold text-primary">Cancellation Policy:</span> If you want to cancel a
+          session or reschedule, 24 hrs. advance notice is required. You can cancel the entire service
+          within 7 days.
         </p>
       </div>
 
       {/* Related Courses */}
       <section className="py-5 bg-white">
         <div className="container">
-          <h5 className="mb-4 text-uppercase fs-3 fw-bold text-center">
-            Related Packages
-          </h5>
+          <h5 className="mb-4 text-uppercase fs-3 fw-bold text-center">Related Packages</h5>
 
           <div className="row g-4">
             {courseData.related_courses?.length > 0 ? (
               courseData.related_courses.map((rel: any) => (
-                <div
-                  key={rel.course_id}
-                  className="col-12 col-sm-6 col-md-4 col-lg-3"
-                >
+                <div key={rel.course_id} className="col-12 col-sm-6 col-md-4 col-lg-3">
                   <div
                     className="card h-100 shadow-sm border-0 cursor-pointer"
                     style={{ borderRadius: '10px' }}
-                    onClick={() =>
-                      router.push(`/SpecificPackageDetailsPage/${submenu}/${rel.course_id}`)
-                    }
+                    onClick={() => router.push(`/SpecificPackageDetailsPage/${submenu}/${rel.course_id}`)}
                   >
                     <div className="card-body p-3 d-flex flex-column">
                       <Image
                         src={rel.image}
-                        alt={rel.name}
+                        alt={decodeHtmlEntitiesDeep(rel.name ?? '')}
                         width={300}
                         height={200}
                         className="rounded mb-3 w-100"
                         style={{ objectFit: 'cover', height: '200px' }}
                       />
                       <h6 className="fw-semibold mb-2" style={{ color: '#e58a34' }}>
-                        {rel.name}
+                        {decodeHtmlEntitiesDeep(rel.name ?? '')}
                       </h6>
                       <p className="fw-bold text-success mb-0 mt-auto">
-                        {rel.price_range}
+                        {decodeHtmlEntitiesDeep(rel.price_range ?? '')}
                       </p>
                     </div>
                   </div>

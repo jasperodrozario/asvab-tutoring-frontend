@@ -26,11 +26,14 @@ type Props = {
   session_id: string;
   user: User;
 
-  mode?: PaymentMode; // must be passed from CheckoutContent
-  product?: Product; // required when mode="subscription"
-  cadence?: Cadence; // required when mode="subscription"
+  mode?: PaymentMode;
+  product?: Product;
+  cadence?: Cadence;
 
   disabled?: boolean;
+
+  // ✅ notify parent so it can disable whole checkout + show id
+  onPaymentSuccess?: (paymentId?: string) => void;
 };
 
 function isProduct(x: any): x is Product {
@@ -49,13 +52,16 @@ export default function SquarePaymentForm({
   product,
   cadence,
   disabled = false,
+  onPaymentSuccess,
 }: Props) {
   const cardContainerRef = useRef<HTMLDivElement | null>(null);
   const cardInstanceRef = useRef<any>(null);
 
   const [initializing, setInitializing] = useState(true);
   const [paying, setPaying] = useState(false);
+  const [completed, setCompleted] = useState(false); // ✅ disables button after success
   const [message, setMessage] = useState<string | null>(null);
+  const [paymentId, setPaymentId] = useState<string>("");
 
   const appId = process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID;
   const locationId = process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID;
@@ -91,7 +97,9 @@ export default function SquarePaymentForm({
 
         if (!appId || !locationId) {
           setMessage("Payment is not configured correctly.");
-          console.error("Missing NEXT_PUBLIC_SQUARE_APPLICATION_ID or NEXT_PUBLIC_SQUARE_LOCATION_ID");
+          console.error(
+            "Missing NEXT_PUBLIC_SQUARE_APPLICATION_ID or NEXT_PUBLIC_SQUARE_LOCATION_ID"
+          );
           return;
         }
 
@@ -113,6 +121,8 @@ export default function SquarePaymentForm({
         cardContainerRef.current.innerHTML = "";
 
         const payments = window.Square.payments(appId, locationId);
+
+        // ✅ IMPORTANT: keep simple for compatibility (no style object)
         const card = await payments.card();
 
         if (cancelled) return;
@@ -158,7 +168,21 @@ export default function SquarePaymentForm({
     return isProduct(product) && isCadence(cadence);
   };
 
+  // Try common id fields returned by your APIs
+  const pickId = (data: any): string => {
+    return (
+      data?.paymentId ||
+      data?.payment_id ||
+      data?.id ||
+      data?.subscriptionId ||
+      data?.subscription_id ||
+      ""
+    );
+  };
+
   const handlePayment = async () => {
+    if (completed) return; // ✅ prevent second submit
+
     if (!cardInstanceRef.current) {
       setMessage("Payment form not ready.");
       return;
@@ -209,10 +233,7 @@ export default function SquarePaymentForm({
             cadence,
             userEmail: user.email,
             userName: `${user.first_name} ${user.last_name}`.trim(),
-
-            // ✅ FIX: REQUIRED by your route.ts for RELATIVE pricing
-            amount, // cents (e.g., 1500)
-
+            amount, // cents (required by your RELATIVE pricing route)
             course_id,
             session_id,
           }),
@@ -226,9 +247,14 @@ export default function SquarePaymentForm({
           return;
         }
 
-        setMessage(
-          `✅ Subscription created successfully! ID: ${data.subscriptionId ?? "(no id returned)"}`
-        );
+        const id = pickId(data);
+
+        // ✅ THIS makes the Pay button disabled
+        setCompleted(true);
+        if (id) setPaymentId(id);
+        onPaymentSuccess?.(id);
+
+        setMessage("✅ Subscription created successfully!");
         return;
       }
 
@@ -253,6 +279,13 @@ export default function SquarePaymentForm({
         return;
       }
 
+      const id = pickId(data);
+
+      // ✅ THIS makes the Pay button disabled after success message
+      setCompleted(true);
+      if (id) setPaymentId(id);
+      onPaymentSuccess?.(id);
+
       if (data.registrationSuccess) {
         setMessage("✅ Payment + Enrollment successful!");
       } else {
@@ -268,24 +301,40 @@ export default function SquarePaymentForm({
 
   const displayAmount = (amount / 100).toFixed(2);
   const buttonLabel = mode === "subscription" ? "Subscribe" : `Pay $${displayAmount}`;
-  const uiDisabled = paying || disabled || (mode === "subscription" && !validateSubscriptionSelection());
+
+  const uiDisabled =
+    paying ||
+    disabled ||
+    completed ||
+    (mode === "subscription" && !validateSubscriptionSelection());
 
   return (
     <div>
-      <div ref={cardContainerRef} className="border p-3 rounded" />
-
-      {/* Debug line (keep during testing, remove later) */}
-      {/* <p className="mt-2 small">
-        mode: <b>{mode}</b> | product: <b>{product ?? "-"}</b> | cadence: <b>{cadence ?? "-"}</b> | amount(cents):{" "}
-        <b>{Number.isFinite(amount) ? amount : "-"}</b>
-      </p> */}
+      <div
+        ref={cardContainerRef}
+        className="border p-3 rounded bg-white"
+        style={{ minHeight: 56 }}
+      />
 
       {initializing ? (
         <p className="mt-3">Loading payment form…</p>
       ) : (
-        <button className="btn btn-primary-custom mt-4 px-5 py-2" onClick={handlePayment} disabled={uiDisabled}>
-          {paying ? "Processing…" : buttonLabel}
+        <button
+          className="btn btn-primary-custom mt-4 px-5 py-2"
+          onClick={handlePayment}
+          disabled={uiDisabled}
+        >
+          {completed ? "Paid" : paying ? "Processing…" : buttonLabel}
         </button>
+      )}
+
+      {/* ✅ Payment ID on separate line */}
+      {completed && paymentId && (
+        <div className="mt-3">
+          <div className="small text-muted">
+            <span className="fw-semibold">Payment ID:</span> {paymentId}
+          </div>
+        </div>
       )}
 
       {message && <p className="mt-3 fw-bold">{message}</p>}
