@@ -1,6 +1,7 @@
 // app/pricing-page/page.tsx
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
 import PricingPackages from "@/components/specific-packages/specificPackages";
+import PricingContent from "@/components/pricing-content/PricingContent";
 
 type Submenu = "one" | "group" | "subscribe";
 
@@ -11,6 +12,7 @@ export default async function PricingPage({
 }: {
   searchParams: Promise<{ submenu?: string }>;
 }) {
+  // ✅ MUST await searchParams in new Next.js
   const params = await searchParams;
 
   const submenu: Submenu | null =
@@ -28,38 +30,31 @@ export default async function PricingPage({
     );
   }
 
-  // UI titles (what users should see)
   const titleMap: Record<Submenu, string> = {
     one: "1-on-1 Tutoring",
     group: "Group Tutoring",
-    subscribe: "Self Study", // ✅ show Self Study, not Subscribe
+    subscribe: "Subscribe",
   };
-
-  // UI breadcrumb slug (what breadcrumb uses in URL/label)
-  const breadcrumbSlugMap: Record<Submenu, string> = {
-    one: "one",
-    group: "group",
-    subscribe: "self-study", // ✅ show self-study in breadcrumb
-  };
-
-  const breadcrumbSegments = ["pricing", breadcrumbSlugMap[submenu]];
 
   return (
     <section>
+      {/* Banner */}
       <div className="banner bg-black bg-opacity-50 py-3 px-4 rounded text-center">
         <h1 className="text-white mb-2 text-3xl fw-bold">
           {titleMap[submenu]}
         </h1>
-
         <Breadcrumb
-          segments={breadcrumbSegments}
-          dynamicTitle={titleMap[submenu]} // last crumb label
+          segments={["pricing", submenu]}
+          dynamicTitle={titleMap[submenu]}
           className="text-white text-base mt-1"
         />
       </div>
 
-      {/* API still receives submenu=subscribe */}
+      {/* Already working client fetch */}
       <PricingPackages submenu={submenu} />
+
+      {/* ✅ FIXED pricing content (client-side fetch) */}
+      <PricingContent submenu={submenu} />
     </section>
   );
 }

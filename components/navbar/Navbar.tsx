@@ -8,6 +8,8 @@ import {
   FaApple,
   FaBars,
   FaCaretDown,
+  FaSignInAlt,
+  FaUserPlus,
 } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -267,11 +269,28 @@ export default function Navbar() {
                 <Link href="/blog" className="nav-link text-white px-2">BLOG</Link>
               </li>
 
-              <li className="nav-item">
+              {/* <li className="nav-item">
                 <Link href="https://test-prep.asvab-tutoring.com/register-free" className="btn border text-white px-3 py-1 fs-6">
                   ONLINE STUDY
                 </Link>
+              </li> */}
+               {/* ✅ LOGIN */}
+              <li className="nav-item">
+                <Link href="/user-login" className="btn btn-outline-light d-flex align-items-center gap-2 px-3">
+                  <FaSignInAlt /> Login
+                </Link>
               </li>
+
+              {/* ✅ REGISTER */}
+              <li className="nav-item">
+                <Link
+                  href="/user-registration"
+                  className="btn d-flex align-items-center gap-2 px-3"
+                  style={{ background: "#f2a155", color: "#002341" }}
+                >
+                  <FaUserPlus /> Register
+                </Link>
+                </li>
 
             </ul>
           </div>
@@ -359,10 +378,10 @@ export default function Navbar() {
                   )}
                 </li>
                 <li className="nav-item">
-                <Link href="/blog" className="nav-link text-white px-2">BLOG</Link>
-              </li>
+                  <Link href="/blog" className="nav-link text-white px-2">BLOG</Link>
+                </li>
 
-                <li className="nav-item">
+                {/* <li className="nav-item">
                   <Link 
                     href="https://test-prep.asvab-tutoring.com/register-free"
                     className="nav-link text-white d-flex align-items-center btn border px-3 py-1 fs-6"  style={{ maxWidth: "112px", textAlign: "center" }}
@@ -371,8 +390,18 @@ export default function Navbar() {
                   >
                     ONLINE STUDY
                   </Link>
+                </li> */}
+                <li className="nav-item">
+                  <Link href="/user-login" className="nav-link text-white" onClick={handleLinkClick}>
+                    <FaSignInAlt /> Login
+                  </Link>
                 </li>
 
+                <li className="nav-item">
+                  <Link href="/user-registration" className="nav-link text-white" onClick={handleLinkClick}>
+                    <FaUserPlus /> Register
+                  </Link>
+                </li>
 
               </ul>
             </div>
