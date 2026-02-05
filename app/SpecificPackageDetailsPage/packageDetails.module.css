@@ -45,9 +45,15 @@
 /* Pricing grid */
 .pricingGrid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
   gap: 1.25rem;
+
+  /* ✅ each card column is 300px (your card width) */
+  grid-template-columns: repeat(auto-fit, 300px);
+
+  /* ✅ centers the whole grid */
+  justify-content: center;
 }
+
 
 @media (max-width: 992px) {
   .pricingGrid {
