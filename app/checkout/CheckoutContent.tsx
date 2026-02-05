@@ -3,10 +3,13 @@
 import React, { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import SquarePaymentForm from "@/components/square-payment-form/SquarePaymentForm";
+import Image from "next/image";
 
 type PaymentMode = "one_time" | "subscription";
 type Product = "ASVAB" | "AFOQT" | "ASTB" | "SIFT" | "OAR";
 type Cadence = "1M" | "3M" | "6M" | "12M";
+
+type PaymentMethod = "mobile" | "card";
 
 function isProduct(x: any): x is Product {
   return x === "ASVAB" || x === "AFOQT" || x === "ASTB" || x === "SIFT" || x === "OAR";
@@ -101,6 +104,9 @@ export default function CheckoutContent() {
   const subscriptionInvalid =
     mode === "subscription" && (!isProduct(product) || !isCadence(cadence));
 
+  // ✅ NEW: payment method toggle (mobile open by default)
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("mobile");
+
   if (invalidBase) {
     return <p className="text-danger">Invalid checkout link.</p>;
   }
@@ -119,7 +125,6 @@ export default function CheckoutContent() {
           <h1 className="fw-bold mb-1">{pageTitle}</h1>
           <p className="text-muted mb-0">{pageSub}</p>
 
-          {/* Optional subscription detail (not debug text) */}
           {mode === "subscription" && (
             <p className="text-muted small mb-0 mt-2">
               Plan: <span className="fw-semibold">{product}</span> •{" "}
@@ -144,7 +149,6 @@ export default function CheckoutContent() {
             <div className="card-body p-4 d-flex flex-column">
               <h5 className="fw-bold mb-3">Your Registration Information</h5>
 
-              {/* ✅ First name + last name separate lines */}
               <input
                 className="form-control mb-2"
                 name="first_name"
@@ -201,43 +205,98 @@ export default function CheckoutContent() {
         <div className="col-12 col-lg-6 d-flex">
           <div className="card shadow-sm border-0 w-100">
             <div className="card-body p-0 d-flex flex-column">
+              {/* Header + toggle */}
               <div className="px-4 pt-4 pb-3 border-bottom">
-                <div className="d-flex justify-content-between align-items-center">
-                  <div className="fw-semibold text-muted">Card Payment Details</div>
-                  <div className="d-flex gap-2 flex-wrap">
-                    <span className="badge text-bg-light border">VISA</span>
-                    <span className="badge text-bg-light border">AMEX</span>
-                    <span className="badge text-bg-light border">MC</span>
-                    <span className="badge text-bg-light border">DISC</span>
+                <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                  <div className="fw-semibold text-muted">Payment Method</div>
+
+                  <div className="d-flex align-items-center gap-3">
+                    <label className="d-flex align-items-center gap-2 small mb-0">
+                      <input
+                        type="radio"
+                        name="pay_method"
+                        checked={paymentMethod === "mobile"}
+                        onChange={() => setPaymentMethod("mobile")}
+                      />
+                      Mobile Payment
+                    </label>
+
+                    <label className="d-flex align-items-center gap-2 small mb-0">
+                      <input
+                        type="radio"
+                        name="pay_method"
+                        checked={paymentMethod === "card"}
+                        onChange={() => setPaymentMethod("card")}
+                      />
+                      Card Payment
+                    </label>
                   </div>
                 </div>
               </div>
 
               <div className="p-4">
-                {/* ✅ Keep your working Square component (logic unchanged) */}
-                <SquarePaymentForm
-                  amount={amountCents}
-                  course_id={course_id}
-                  session_id={session_id}
-                  user={user}
-                  mode={mode}
-                  product={mode === "subscription" ? product : undefined}
-                  cadence={mode === "subscription" ? cadence : undefined}
-                  disabled={subscriptionInvalid}
-                />
+                {/* ✅ Mobile Payment (default open) */}
+                {paymentMethod === "mobile" && (
+                  <div className="text-center">
+                    {/* Put your image into /public/images/mobile_payment_app.png */}
+                    <div className="d-flex justify-content-center">
+                      <Image
+                        src="/images/mobile_payment_app_20260204.png"
+                        alt="Mobile payment apps"
+                        width={350}
+                        height={220}
+                        className="img-fluid"
+                        style={{ maxWidth: 520, height: "auto" }}
+                      />
+                    </div>
 
-                <div className="small text-muted mt-3">
-                  Secure payment • PCI compliant
-                </div>
+                    <div className="mt-3">
+                      <div className="fw-bold" style={{ fontSize: 18 }}>
+                        Send payment to:
+                      </div>
+                      <div className="fw-bold text-success" style={{ fontSize: 20 }}>
+                        (718) 200-6396
+                      </div>
+                      <div className="small text-muted mt-2">
+                        After sending payment, please keep the receipt/screenshot for confirmation.
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ✅ Card Payment (hidden until selected) */}
+                {paymentMethod === "card" && (
+                  <>
+                    <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                      <div className="fw-semibold text-muted">Card Payment Details</div>
+                      <div className="d-flex gap-2 flex-wrap">
+                        <span className="badge text-bg-light border">VISA</span>
+                        <span className="badge text-bg-light border">AMEX</span>
+                        <span className="badge text-bg-light border">MC</span>
+                        <span className="badge text-bg-light border">DISC</span>
+                      </div>
+                    </div>
+
+                    <SquarePaymentForm
+                      amount={amountCents}
+                      course_id={course_id}
+                      session_id={session_id}
+                      user={user}
+                      mode={mode}
+                      product={mode === "subscription" ? product : undefined}
+                      cadence={mode === "subscription" ? cadence : undefined}
+                      disabled={subscriptionInvalid}
+                    />
+
+                    <div className="small text-muted mt-3">
+                      Secure payment • PCI compliant
+                    </div>
+                  </>
+                )}
               </div>
 
-              {/* {mode === "subscription" && (
-                <div className="px-4 pb-4">
-                  <div className="small text-muted">
-                    You can cancel your subscription anytime from your account settings.
-                  </div>
-                </div>
-              )} */}
+              {/* Optional footer space */}
+              <div className="px-4 pb-4" />
             </div>
           </div>
         </div>

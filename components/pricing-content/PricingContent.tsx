@@ -68,25 +68,7 @@ export default function PricingContent({ submenu }: { submenu: string }) {
 
   return (
     <div className="container pb-5 py-5">
-      {items.map((item) => (
-        <div key={item.pricing_id} className="mb-5">
-          <h2 className="text-dark mb-3">{item.title}</h2>
-          <hr className="mb-4 mt-2" />
-          <div
-            className="mb-3"
-            dangerouslySetInnerHTML={{
-              __html: decodeHtml(item.description),
-            }}
-          />
-          {item.closing_content && (
-            <div
-              dangerouslySetInnerHTML={{
-                __html: decodeHtml(item.closing_content),
-              }}
-            />
-          )}
-        </div>
-      ))}
+      <p>hello</p>
     </div>
   );
 }

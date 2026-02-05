@@ -158,9 +158,8 @@ export default function SpecificPackageDetailsPage({
                 return (
                   <div
                     key={session.session_id}
-                    className={`${styles.pricingCard} ${
-                      session.is_most_popular === '1' ? styles.mostPopularWrap : ''
-                    }`}
+                    className={`${styles.pricingCard} ${session.is_most_popular === '1' ? styles.mostPopularWrap : ''
+                      }`}
                   >
                     {session.is_most_popular === '1' && (
                       <div className={styles.mostPopularBadge}>Most Popular</div>
