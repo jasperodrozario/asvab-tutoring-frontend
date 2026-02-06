@@ -285,8 +285,8 @@ export default function Navbar() {
               <li className="nav-item">
                 <Link
                   href="/user-registration"
-                  className="btn d-flex align-items-center gap-2 px-3"
-                  style={{ background: "#f2a155", color: "#002341" }}
+                  className="btn btn-outline-light d-flex align-items-center gap-2 px-3"
+                  
                 >
                   <FaUserPlus /> Register
                 </Link>

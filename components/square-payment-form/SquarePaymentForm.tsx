@@ -21,7 +21,7 @@ type Product = "ASVAB" | "AFOQT" | "ASTB" | "SIFT" | "OAR";
 type Cadence = "1M" | "3M" | "6M" | "12M";
 
 type Props = {
-  amount: number; // cents (e.g., 1500)
+  amount: number;
   course_id: string;
   session_id: string;
   user: User;
@@ -32,14 +32,14 @@ type Props = {
 
   disabled?: boolean;
 
-  // ✅ notify parent so it can disable whole checkout + show id
+  // ✅ typed (fixes implicit any)
   onPaymentSuccess?: (paymentId?: string) => void;
 };
 
-function isProduct(x: any): x is Product {
+function isProduct(x: unknown): x is Product {
   return x === "ASVAB" || x === "AFOQT" || x === "ASTB" || x === "SIFT" || x === "OAR";
 }
-function isCadence(x: any): x is Cadence {
+function isCadence(x: unknown): x is Cadence {
   return x === "1M" || x === "3M" || x === "6M" || x === "12M";
 }
 
@@ -59,7 +59,7 @@ export default function SquarePaymentForm({
 
   const [initializing, setInitializing] = useState(true);
   const [paying, setPaying] = useState(false);
-  const [completed, setCompleted] = useState(false); // ✅ disables button after success
+  const [completed, setCompleted] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [paymentId, setPaymentId] = useState<string>("");
 
@@ -97,9 +97,6 @@ export default function SquarePaymentForm({
 
         if (!appId || !locationId) {
           setMessage("Payment is not configured correctly.");
-          console.error(
-            "Missing NEXT_PUBLIC_SQUARE_APPLICATION_ID or NEXT_PUBLIC_SQUARE_LOCATION_ID"
-          );
           return;
         }
 
@@ -107,22 +104,17 @@ export default function SquarePaymentForm({
 
         if (!window.Square) {
           setMessage("Unable to load payment form.");
-          console.error("Square object not available.");
           return;
         }
 
         if (!cardContainerRef.current) {
           setMessage("Card container not found.");
-          console.error("Card container ref missing.");
           return;
         }
 
-        // Prevent duplicate attach (React StrictMode)
         cardContainerRef.current.innerHTML = "";
 
         const payments = window.Square.payments(appId, locationId);
-
-        // ✅ IMPORTANT: keep simple for compatibility (no style object)
         const card = await payments.card();
 
         if (cancelled) return;
@@ -168,7 +160,6 @@ export default function SquarePaymentForm({
     return isProduct(product) && isCadence(cadence);
   };
 
-  // Try common id fields returned by your APIs
   const pickId = (data: any): string => {
     return (
       data?.paymentId ||
@@ -181,7 +172,7 @@ export default function SquarePaymentForm({
   };
 
   const handlePayment = async () => {
-    if (completed) return; // ✅ prevent second submit
+    if (completed) return;
 
     if (!cardInstanceRef.current) {
       setMessage("Payment form not ready.");
@@ -204,7 +195,7 @@ export default function SquarePaymentForm({
     }
 
     if (mode === "subscription" && !validateSubscriptionSelection()) {
-      setMessage("Please select product + duration for subscription.");
+      setMessage("Invalid subscription details in the checkout link.");
       return;
     }
 
@@ -215,14 +206,12 @@ export default function SquarePaymentForm({
       const tokenizeResult = await cardInstanceRef.current.tokenize();
 
       if (tokenizeResult.status !== "OK") {
-        console.error("Tokenize error:", tokenizeResult);
         setMessage("Card was declined. Please try again.");
         return;
       }
 
       const sourceId = tokenizeResult.token;
 
-      // ✅ SUBSCRIPTION
       if (mode === "subscription") {
         const res = await fetch("/api/subscribe", {
           method: "POST",
@@ -233,7 +222,7 @@ export default function SquarePaymentForm({
             cadence,
             userEmail: user.email,
             userName: `${user.first_name} ${user.last_name}`.trim(),
-            amount, // cents (required by your RELATIVE pricing route)
+            amount,
             course_id,
             session_id,
           }),
@@ -242,14 +231,12 @@ export default function SquarePaymentForm({
         const data = await res.json();
 
         if (!data.success) {
-          console.error("Subscribe API error:", data);
           setMessage(data.error || "Subscription failed. Please try again.");
           return;
         }
 
         const id = pickId(data);
 
-        // ✅ THIS makes the Pay button disabled
         setCompleted(true);
         if (id) setPaymentId(id);
         onPaymentSuccess?.(id);
@@ -258,7 +245,6 @@ export default function SquarePaymentForm({
         return;
       }
 
-      // ✅ ONE-TIME PAYMENT
       const res = await fetch("/api/square-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -274,25 +260,19 @@ export default function SquarePaymentForm({
       const data = await res.json();
 
       if (!data.success) {
-        console.error("Payment API error:", data);
         setMessage("Payment failed. Please try again.");
         return;
       }
 
       const id = pickId(data);
 
-      // ✅ THIS makes the Pay button disabled after success message
       setCompleted(true);
       if (id) setPaymentId(id);
       onPaymentSuccess?.(id);
 
-      if (data.registrationSuccess) {
-        setMessage("✅ Payment + Enrollment successful!");
-      } else {
-        setMessage("✅ Payment successful, but enrollment save failed. Please contact support.");
-      }
+      setMessage(data.registrationSuccess ? "✅ Payment + Enrollment successful!" : "✅ Payment successful!");
     } catch (err) {
-      console.error("Payment processing failed:", err);
+      console.error(err);
       setMessage("Error while processing payment.");
     } finally {
       setPaying(false);
@@ -310,25 +290,16 @@ export default function SquarePaymentForm({
 
   return (
     <div>
-      <div
-        ref={cardContainerRef}
-        className="border p-3 rounded bg-white"
-        style={{ minHeight: 56 }}
-      />
+      <div ref={cardContainerRef} className="border p-3 rounded bg-white" style={{ minHeight: 56 }} />
 
       {initializing ? (
         <p className="mt-3">Loading payment form…</p>
       ) : (
-        <button
-          className="btn btn-primary-custom mt-4 px-5 py-2"
-          onClick={handlePayment}
-          disabled={uiDisabled}
-        >
+        <button className="btn btn-primary-custom mt-4 px-5 py-2" onClick={handlePayment} disabled={uiDisabled}>
           {completed ? "Paid" : paying ? "Processing…" : buttonLabel}
         </button>
       )}
 
-      {/* ✅ Payment ID on separate line */}
       {completed && paymentId && (
         <div className="mt-3">
           <div className="small text-muted">

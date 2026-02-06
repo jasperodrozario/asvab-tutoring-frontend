@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import SquarePaymentForm from "@/components/square-payment-form/SquarePaymentForm";
 import Image from "next/image";
 
@@ -46,8 +46,19 @@ function cadenceLabel(c: Cadence) {
   }
 }
 
+function todayYYYYMMDD() {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 export default function CheckoutContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
+
+  const API_URL = "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php";
 
   const course_id = searchParams.get("course_id") || "";
   const session_id = searchParams.get("session_id") || "";
@@ -63,23 +74,19 @@ export default function CheckoutContent() {
     return amountCents / 100;
   }, [amountCents]);
 
-  // ✅ Mode from query only (no toggle)
   const mode: PaymentMode = useMemo(() => {
     const q = searchParams.get("mode");
     if (isMode(q)) return q;
     return "one_time";
   }, [searchParams]);
 
-  // ✅ Product (query -> infer -> default), read-only
   const product: Product = useMemo(() => {
     const q = searchParams.get("product");
     if (isProduct(q)) return q;
-
     const inferred = inferProductFromCourseId(course_id);
     return inferred || "ASVAB";
   }, [searchParams, course_id]);
 
-  // ✅ Cadence from query, read-only
   const cadence: Cadence = useMemo(() => {
     const q = searchParams.get("cadence");
     if (isCadence(q)) return q;
@@ -104,8 +111,118 @@ export default function CheckoutContent() {
   const subscriptionInvalid =
     mode === "subscription" && (!isProduct(product) || !isCadence(cadence));
 
-  // ✅ NEW: payment method toggle (mobile open by default)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("mobile");
+
+  const [mobilePay, setMobilePay] = useState({
+    mobile: "",
+    ref_code: "",
+  });
+
+  const [mobileSubmitting, setMobileSubmitting] = useState(false);
+  const [mobileResult, setMobileResult] = useState<{
+    type: "success" | "danger" | "info";
+    text: string;
+  } | null>(null);
+
+  const handleMobilePayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setMobilePay((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // ✅ NEW: radio-like agreement state
+  const [agreeTerms, setAgreeTerms] = useState(false);
+
+  const canSubmitMobile =
+    agreeTerms &&
+    !!mobilePay.mobile.trim() &&
+    !!mobilePay.ref_code.trim() &&
+    !!user.first_name.trim() &&
+    !!user.last_name.trim() &&
+    !!user.email.trim() &&
+    !!user.password.trim() &&
+    !!user.mobile.trim() &&
+    !invalidBase;
+
+  const submitMobilePayment = async () => {
+    setMobileResult(null);
+
+    if (!agreeTerms) {
+      setMobileResult({
+        type: "danger",
+        text: "Please agree to the Terms & Conditions to continue.",
+      });
+      return;
+    }
+
+    if (!canSubmitMobile) {
+      setMobileResult({
+        type: "danger",
+        text: "Please complete your registration info + mobile payment details first.",
+      });
+      return;
+    }
+
+    setMobileSubmitting(true);
+
+    try {
+      const body = new URLSearchParams();
+      body.append("action", "user-registration-mobile-payment");
+      body.append("course_id", String(course_id));
+      body.append("session_id", String(session_id));
+      body.append("first_name", user.first_name);
+      body.append("last_name", user.last_name);
+      body.append("email", user.email);
+      body.append("password", user.password);
+      body.append("mobile", user.mobile);
+
+      body.append("ref_code", mobilePay.ref_code);
+      body.append("amount", String(amountCents));
+      body.append("currency", "USD");
+      body.append("created_at", todayYYYYMMDD());
+
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body,
+      });
+
+      const raw = await res.text();
+      let data: any = null;
+
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        setMobileResult({
+          type: "danger",
+          text: "Server returned invalid response. Please try again.",
+        });
+        return;
+      }
+
+      if (data?.isSuccess) {
+        setMobileResult({
+          type: "success",
+          text: data?.message || "Mobile payment request submitted successfully.",
+        });
+
+        router.push("/thank-you?method=mobile");
+        return;
+      }
+
+      setMobileResult({
+        type: "danger",
+        text: data?.message || "Submission failed. Please check your info and try again.",
+      });
+    } catch (err) {
+      console.error(err);
+      setMobileResult({
+        type: "danger",
+        text: "Network error. Please try again.",
+      });
+    } finally {
+      setMobileSubmitting(false);
+    }
+  };
 
   if (invalidBase) {
     return <p className="text-danger">Invalid checkout link.</p>;
@@ -116,6 +233,38 @@ export default function CheckoutContent() {
     mode === "subscription"
       ? "Your subscription will renew automatically based on your plan."
       : "One-time payment for your selected package.";
+
+  // ✅ helper UI: the radio line (reused)
+  const TermsRadio = () => (
+    <div className="mt-3">
+      <label className="d-flex align-items-center gap-2 small mb-0">
+        <input
+          type="radio"
+          name="agree_terms"
+          checked={agreeTerms}
+          onChange={() => setAgreeTerms(true)}
+        />
+        <span>
+          Agree{" "}
+          <a
+            href="/terms-of-service"
+            className="text-decoration-underline"
+            style={{ color: "#0573e6" }}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Terms &amp; Conditions
+          </a>
+        </span>
+      </label>
+
+      {!agreeTerms && (
+        <div className="small text-muted mt-2">
+          Please agree to enable the button.
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="container py-5" style={{ maxWidth: 1100 }}>
@@ -141,7 +290,6 @@ export default function CheckoutContent() {
         </div>
       </div>
 
-      {/* ✅ Left & Right same level + responsive */}
       <div className="row g-4 align-items-stretch">
         {/* Left */}
         <div className="col-12 col-lg-6 d-flex">
@@ -205,7 +353,6 @@ export default function CheckoutContent() {
         <div className="col-12 col-lg-6 d-flex">
           <div className="card shadow-sm border-0 w-100">
             <div className="card-body p-0 d-flex flex-column">
-              {/* Header + toggle */}
               <div className="px-4 pt-4 pb-3 border-bottom">
                 <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
                   <div className="fw-semibold text-muted">Payment Method</div>
@@ -235,36 +382,79 @@ export default function CheckoutContent() {
               </div>
 
               <div className="p-4">
-                {/* ✅ Mobile Payment (default open) */}
                 {paymentMethod === "mobile" && (
-                  <div className="text-center">
-                    {/* Put your image into /public/images/mobile_payment_app.png */}
-                    <div className="d-flex justify-content-center">
-                      <Image
-                        src="/images/mobile_payment_app_20260204.png"
-                        alt="Mobile payment apps"
-                        width={350}
-                        height={220}
-                        className="img-fluid"
-                        style={{ maxWidth: 520, height: "auto" }}
-                      />
+                  <div>
+                    <div className="text-center">
+                      <div className="d-flex justify-content-center">
+                        <Image
+                          src="/images/mobile_payment_app_20260204.png"
+                          alt="Mobile payment apps"
+                          width={350}
+                          height={220}
+                          className="img-fluid"
+                          style={{ maxWidth: 560, height: "auto" }}
+                        />
+                      </div>
+
+                      <div className="mt-3">
+                        <div className="fw-bold" style={{ fontSize: 18 }}>
+                          Send payment to:
+                        </div>
+                        <div className="fw-bold text-success" style={{ fontSize: 20 }}>
+                          (718) 200-6396
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="mt-3">
-                      <div className="fw-bold" style={{ fontSize: 18 }}>
-                        Send payment to:
+                    <div className="mt-4">
+                      <div className="row g-2">
+                        <div className="col-12">
+                          <input
+                            className="form-control"
+                            name="mobile"
+                            placeholder="payment account number"
+                            value={mobilePay.mobile}
+                            onChange={handleMobilePayChange}
+                          />
+                        </div>
+
+                        <div className="col-12">
+                          <input
+                            className="form-control"
+                            name="ref_code"
+                            placeholder="Reference Code"
+                            value={mobilePay.ref_code}
+                            onChange={handleMobilePayChange}
+                          />
+                        </div>
                       </div>
-                      <div className="fw-bold text-success" style={{ fontSize: 20 }}>
-                        (718) 200-6396
-                      </div>
-                      <div className="small text-muted mt-2">
-                        After sending payment, please keep the receipt/screenshot for confirmation.
+
+                      {/* ✅ radio agree (right before Submit) */}
+                      <TermsRadio />
+
+                      <button
+                        type="button"
+                        className="btn btn-primary-custom mt-4 px-5 py-2 d-block mx-auto"
+                        onClick={submitMobilePayment}
+                        disabled={mobileSubmitting || !canSubmitMobile}
+                      >
+                        {mobileSubmitting ? "Submitting..." : "Submit"}
+                      </button>
+
+                      {mobileResult && (
+                        <div className={`alert alert-${mobileResult.type} mt-3 mb-0`}>
+                          {mobileResult.text}
+                        </div>
+                      )}
+
+                      <div className="small text-muted mt-3">
+                        After sending payment, please enter your payment mobile number and
+                        reference code so we can verify and activate your access.
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* ✅ Card Payment (hidden until selected) */}
                 {paymentMethod === "card" && (
                   <>
                     <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
@@ -277,6 +467,9 @@ export default function CheckoutContent() {
                       </div>
                     </div>
 
+                    {/* ✅ radio agree (right before Pay button inside SquarePaymentForm area) */}
+                    <TermsRadio />
+
                     <SquarePaymentForm
                       amount={amountCents}
                       course_id={course_id}
@@ -285,7 +478,13 @@ export default function CheckoutContent() {
                       mode={mode}
                       product={mode === "subscription" ? product : undefined}
                       cadence={mode === "subscription" ? cadence : undefined}
-                      disabled={subscriptionInvalid}
+                      disabled={subscriptionInvalid || !agreeTerms}
+                      onPaymentSuccess={(id?: string) => {
+                        const q = id
+                          ? `?method=card&id=${encodeURIComponent(id)}`
+                          : `?method=card`;
+                        router.push(`/thank-you${q}`);
+                      }}
                     />
 
                     <div className="small text-muted mt-3">
@@ -295,7 +494,6 @@ export default function CheckoutContent() {
                 )}
               </div>
 
-              {/* Optional footer space */}
               <div className="px-4 pb-4" />
             </div>
           </div>
