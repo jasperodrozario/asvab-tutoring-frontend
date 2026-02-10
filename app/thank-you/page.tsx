@@ -1,13 +1,13 @@
-"use client";
-
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 
 type Method = "mobile" | "card";
 
-export default function ThankYouPage() {
-  const searchParams = useSearchParams();
-  const methodParam = (searchParams.get("method") || "").toLowerCase();
+export default function ThankYouPage({
+  searchParams,
+}: {
+  searchParams?: { method?: string };
+}) {
+  const methodParam = (searchParams?.method || "").toLowerCase();
   const method: Method = methodParam === "mobile" ? "mobile" : "card";
 
   const title = method === "mobile" ? "Registration Completed" : "Payment Successful";
@@ -71,13 +71,7 @@ export default function ThankYouPage() {
                     border: "1px solid rgba(34,197,94,0.25)",
                   }}
                 >
-                  <svg
-                    width="30"
-                    height="30"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    aria-hidden="true"
-                  >
+                  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path
                       d="M20 6L9 17l-5-5"
                       stroke="#16a34a"
