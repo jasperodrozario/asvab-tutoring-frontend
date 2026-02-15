@@ -32,7 +32,13 @@ type Props = {
 
   disabled?: boolean;
 
-  // ✅ typed (fixes implicit any)
+  /**
+   * If provided, the Pay/Subscribe button will stay disabled until the user agrees.
+   * Parent keeps the source of truth.
+   */
+  agreeTerms?: boolean;
+  onAgreeTermsChange?: (next: boolean) => void;
+
   onPaymentSuccess?: (paymentId?: string) => void;
 };
 
@@ -52,6 +58,8 @@ export default function SquarePaymentForm({
   product,
   cadence,
   disabled = false,
+  agreeTerms,
+  onAgreeTermsChange,
   onPaymentSuccess,
 }: Props) {
   const cardContainerRef = useRef<HTMLDivElement | null>(null);
@@ -282,20 +290,56 @@ export default function SquarePaymentForm({
   const displayAmount = (amount / 100).toFixed(2);
   const buttonLabel = mode === "subscription" ? "Subscribe" : `Pay $${displayAmount}`;
 
+  const termsRequired = typeof agreeTerms === "boolean";
+  const termsAgreed = termsRequired ? agreeTerms : true;
+
   const uiDisabled =
     paying ||
     disabled ||
     completed ||
+    !termsAgreed ||
     (mode === "subscription" && !validateSubscriptionSelection());
 
   return (
     <div>
       <div ref={cardContainerRef} className="border p-3 rounded bg-white" style={{ minHeight: 56 }} />
 
+      {/* ✅ moved here: below card inputs, above button */}
+      {termsRequired && (
+        <div className="mt-3">
+          <label className="d-flex align-items-center gap-2 small mb-0">
+            <input
+              type="radio"
+              name="agree_terms"
+              checked={!!agreeTerms}
+              onChange={() => onAgreeTermsChange?.(true)}
+            />
+            <span>
+              Agree{" "}
+              <a
+                href="/terms-of-service"
+                className="text-decoration-underline"
+                style={{ color: "#0573e6" }}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Terms &amp; Conditions
+              </a>
+            </span>
+          </label>
+
+          {!termsAgreed && <div className="small text-muted mt-2">Please agree to enable the button.</div>}
+        </div>
+      )}
+
       {initializing ? (
         <p className="mt-3">Loading payment form…</p>
       ) : (
-        <button className="btn btn-primary-custom mt-4 px-5 py-2" onClick={handlePayment} disabled={uiDisabled}>
+        <button
+          className="btn btn-primary-custom mt-4 px-5 py-2"
+          onClick={handlePayment}
+          disabled={uiDisabled}
+        >
           {completed ? "Paid" : paying ? "Processing…" : buttonLabel}
         </button>
       )}

@@ -129,7 +129,7 @@ export default function CheckoutContent() {
     setMobilePay((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ✅ NEW: radio-like agreement state
+  // Agreement state (shared between mobile & card if needed)
   const [agreeTerms, setAgreeTerms] = useState(false);
 
   const canSubmitMobile =
@@ -234,7 +234,7 @@ export default function CheckoutContent() {
       ? "Your subscription will renew automatically based on your plan."
       : "One-time payment for your selected package.";
 
-  // ✅ helper UI: the radio line (reused)
+  // Mobile-only terms radio (kept as-is)
   const TermsRadio = () => (
     <div className="mt-3">
       <label className="d-flex align-items-center gap-2 small mb-0">
@@ -258,17 +258,12 @@ export default function CheckoutContent() {
         </span>
       </label>
 
-      {!agreeTerms && (
-        <div className="small text-muted mt-2">
-          Please agree to enable the button.
-        </div>
-      )}
+      {!agreeTerms && <div className="small text-muted mt-2">Please agree to enable the button.</div>}
     </div>
   );
 
   return (
     <div className="container py-5" style={{ maxWidth: 1100 }}>
-      {/* Header */}
       <div className="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
         <div>
           <h1 className="fw-bold mb-1">{pageTitle}</h1>
@@ -291,7 +286,6 @@ export default function CheckoutContent() {
       </div>
 
       <div className="row g-4 align-items-stretch">
-        {/* Left */}
         <div className="col-12 col-lg-6 d-flex">
           <div className="card shadow-sm border-0 w-100">
             <div className="card-body p-4 d-flex flex-column">
@@ -349,7 +343,6 @@ export default function CheckoutContent() {
           </div>
         </div>
 
-        {/* Right */}
         <div className="col-12 col-lg-6 d-flex">
           <div className="card shadow-sm border-0 w-100">
             <div className="card-body p-0 d-flex flex-column">
@@ -429,7 +422,6 @@ export default function CheckoutContent() {
                         </div>
                       </div>
 
-                      {/* ✅ radio agree (right before Submit) */}
                       <TermsRadio />
 
                       <button
@@ -448,8 +440,8 @@ export default function CheckoutContent() {
                       )}
 
                       <div className="small text-muted mt-3">
-                        After sending payment, please enter your payment mobile number and
-                        reference code so we can verify and activate your access.
+                        After sending payment, please enter your payment mobile number and reference code
+                        so we can verify and activate your access.
                       </div>
                     </div>
                   </div>
@@ -467,9 +459,6 @@ export default function CheckoutContent() {
                       </div>
                     </div>
 
-                    {/* ✅ radio agree (right before Pay button inside SquarePaymentForm area) */}
-                    <TermsRadio />
-
                     <SquarePaymentForm
                       amount={amountCents}
                       course_id={course_id}
@@ -478,18 +467,16 @@ export default function CheckoutContent() {
                       mode={mode}
                       product={mode === "subscription" ? product : undefined}
                       cadence={mode === "subscription" ? cadence : undefined}
-                      disabled={subscriptionInvalid || !agreeTerms}
+                      disabled={subscriptionInvalid}
+                      agreeTerms={agreeTerms}
+                      onAgreeTermsChange={setAgreeTerms}
                       onPaymentSuccess={(id?: string) => {
-                        const q = id
-                          ? `?method=card&id=${encodeURIComponent(id)}`
-                          : `?method=card`;
+                        const q = id ? `?method=card&id=${encodeURIComponent(id)}` : `?method=card`;
                         router.push(`/thank-you${q}`);
                       }}
                     />
 
-                    <div className="small text-muted mt-3">
-                      Secure payment • PCI compliant
-                    </div>
+                    <div className="small text-muted mt-3">Secure payment • PCI compliant</div>
                   </>
                 )}
               </div>
