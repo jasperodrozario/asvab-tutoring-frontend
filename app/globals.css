@@ -616,8 +616,27 @@ table {
   }
 }
 
+/* ✅ Desktop navbar: keep menu items in ONE line (no text wrap) */
+@media (min-width: 992px) {
+  .navbar-nav .nav-link,
+  .navbar-nav .btn {
+    white-space: nowrap !important;   /* stops breaking into 2 lines */
+  }
+
+  /* If your dropdown triggers are <span class="nav-link ..."> */
+  .navbar-nav .nav-item > .nav-link,
+  .navbar-nav .nav-item > span.nav-link {
+    white-space: nowrap !important;
+  }
+}
+
 /* @media (max-width: 992px) {
   .navbar-nav {
     gap: 8px !important;
   }
 } */
+
+.service-description a {
+  color: rgba(var(--bs-link-color-rgb), var(--bs-link-opacity, 1));
+  text-decoration: underline !important;
+}

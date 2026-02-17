@@ -104,6 +104,11 @@ export default function SpecificPackageDetailsPage({
     return allSessions.some((s: any) => !isSubscriptionSession(s));
   })();
 
+  // ✅ submenu logic (no hooks)
+  const submenuKey = String(submenu || "").toLowerCase();
+  const isSubscribePage = submenuKey === "subscribe";
+  const isGroupOrOnePage = submenuKey === "group" || submenuKey === "one";
+
   if (!courseData) {
     return <p className="text-center py-5">Loading...</p>;
   }
@@ -246,18 +251,41 @@ export default function SpecificPackageDetailsPage({
         </section>
       ))}
 
+      {/* ✅ Conditional NOTE area by submenu */}
       <div className="container">
-        <p className="fs-6 text-start mx-auto mb-3" style={{ maxWidth: "960px" }}>
-          <span className="fw-semibold text-danger">NOTE:</span> No session will
-          be scheduled without payment information on file. Students are required
-          to submit homework before each session.
-        </p>
+        {isSubscribePage ? (
+          <p
+            className="fs-6 text-start mx-auto mb-5"
+            style={{ maxWidth: "960px" }}
+          >
+            <span className="fw-semibold text-danger">NOTE:</span> All
+            subscriptions are auto-renewable and nonrefundable. You can cancel
+            the subscription at any time to stop renewal.
+          </p>
+        ) : isGroupOrOnePage ? (
+          <>
+            <p
+              className="fs-6 text-start mx-auto mb-3"
+              style={{ maxWidth: "960px" }}
+            >
+              <span className="fw-semibold text-danger">NOTE:</span> No session
+              will be scheduled without payment information on file. Students
+              are required to submit homework before each session.
+            </p>
 
-        <p className="fs-6 text-start mx-auto mb-5" style={{ maxWidth: "960px" }}>
-          <span className="fw-semibold text-primary">Cancellation Policy:</span>{" "}
-          If you want to cancel a session or reschedule, 24 hrs. advance notice
-          is required. You can cancel the entire service within 7 days.
-        </p>
+            <p
+              className="fs-6 text-start mx-auto mb-5"
+              style={{ maxWidth: "960px" }}
+            >
+              <span className="fw-semibold text-primary">
+                Cancellation Policy:
+              </span>{" "}
+              If you want to cancel a session or reschedule, 24 hrs. advance
+              notice is required. You can cancel the entire service within 7
+              days.
+            </p>
+          </>
+        ) : null}
       </div>
 
       {/* Related Courses */}
@@ -292,7 +320,10 @@ export default function SpecificPackageDetailsPage({
                         className="rounded mb-3 w-100"
                         style={{ objectFit: "cover", height: "200px" }}
                       />
-                      <h6 className="fw-semibold mb-2" style={{ color: "#e58a34" }}>
+                      <h6
+                        className="fw-semibold mb-2"
+                        style={{ color: "#e58a34" }}
+                      >
                         {decodeHtmlEntitiesDeep(rel.name ?? "")}
                       </h6>
                       <p className="fw-bold text-success mb-0 mt-auto">
