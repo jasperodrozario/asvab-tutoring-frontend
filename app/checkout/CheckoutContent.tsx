@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import SquarePaymentForm from "@/components/square-payment-form/SquarePaymentForm";
 import Image from "next/image";
@@ -111,7 +111,15 @@ export default function CheckoutContent() {
   const subscriptionInvalid =
     mode === "subscription" && (!isProduct(product) || !isCadence(cadence));
 
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("mobile");
+  // ✅ Default to mobile for one-time, but card-only for subscription
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
+    mode === "subscription" ? "card" : "mobile"
+  );
+
+  // ✅ If mode changes to subscription, force card
+  useEffect(() => {
+    if (mode === "subscription") setPaymentMethod("card");
+  }, [mode]);
 
   const [mobilePay, setMobilePay] = useState({
     mobile: "",
@@ -129,7 +137,6 @@ export default function CheckoutContent() {
     setMobilePay((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Agreement state (shared between mobile & card if needed)
   const [agreeTerms, setAgreeTerms] = useState(false);
 
   const canSubmitMobile =
@@ -234,7 +241,6 @@ export default function CheckoutContent() {
       ? "Your subscription will renew automatically based on your plan."
       : "One-time payment for your selected package.";
 
-  // Mobile-only terms radio (kept as-is)
   const TermsRadio = () => (
     <div className="mt-3">
       <label className="d-flex align-items-center gap-2 small mb-0">
@@ -262,6 +268,8 @@ export default function CheckoutContent() {
     </div>
   );
 
+  const isSubscription = mode === "subscription";
+
   return (
     <div className="container py-5" style={{ maxWidth: 1100 }}>
       <div className="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
@@ -269,7 +277,7 @@ export default function CheckoutContent() {
           <h1 className="fw-bold mb-1">{pageTitle}</h1>
           <p className="text-muted mb-0">{pageSub}</p>
 
-          {mode === "subscription" && (
+          {isSubscription && (
             <p className="text-muted small mb-0 mt-2">
               Plan: <span className="fw-semibold">{product}</span> •{" "}
               <span className="fw-semibold">{cadenceLabel(cadence)}</span>
@@ -330,7 +338,7 @@ export default function CheckoutContent() {
                 onChange={handleChange}
               />
 
-              {mode === "subscription" && subscriptionInvalid && (
+              {isSubscription && subscriptionInvalid && (
                 <div className="alert alert-danger mt-3 mb-0 py-2">
                   Invalid subscription parameters in checkout link.
                 </div>
@@ -350,32 +358,38 @@ export default function CheckoutContent() {
                 <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
                   <div className="fw-semibold text-muted">Payment Method</div>
 
-                  <div className="d-flex align-items-center gap-3">
-                    <label className="d-flex align-items-center gap-2 small mb-0">
-                      <input
-                        type="radio"
-                        name="pay_method"
-                        checked={paymentMethod === "mobile"}
-                        onChange={() => setPaymentMethod("mobile")}
-                      />
-                      Mobile Payment
-                    </label>
+                  {/* ✅ Hide radio choices for subscription; force card */}
+                  {!isSubscription ? (
+                    <div className="d-flex align-items-center gap-3">
+                      <label className="d-flex align-items-center gap-2 small mb-0">
+                        <input
+                          type="radio"
+                          name="pay_method"
+                          checked={paymentMethod === "mobile"}
+                          onChange={() => setPaymentMethod("mobile")}
+                        />
+                        Mobile Payment
+                      </label>
 
-                    <label className="d-flex align-items-center gap-2 small mb-0">
-                      <input
-                        type="radio"
-                        name="pay_method"
-                        checked={paymentMethod === "card"}
-                        onChange={() => setPaymentMethod("card")}
-                      />
-                      Card Payment
-                    </label>
-                  </div>
+                      <label className="d-flex align-items-center gap-2 small mb-0">
+                        <input
+                          type="radio"
+                          name="pay_method"
+                          checked={paymentMethod === "card"}
+                          onChange={() => setPaymentMethod("card")}
+                        />
+                        Card Payment
+                      </label>
+                    </div>
+                  ) : (
+                    <div className="small text-muted">Card Payment</div>
+                  )}
                 </div>
               </div>
 
               <div className="p-4">
-                {paymentMethod === "mobile" && (
+                {/* ✅ Show mobile payment only for one_time */}
+                {!isSubscription && paymentMethod === "mobile" && (
                   <div>
                     <div className="text-center">
                       <div className="d-flex justify-content-center">
@@ -447,7 +461,8 @@ export default function CheckoutContent() {
                   </div>
                 )}
 
-                {paymentMethod === "card" && (
+                {/* ✅ Card payment always shown for subscription; optional for one_time */}
+                {(isSubscription || paymentMethod === "card") && (
                   <>
                     <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                       <div className="fw-semibold text-muted">Card Payment Details</div>
@@ -465,8 +480,8 @@ export default function CheckoutContent() {
                       session_id={session_id}
                       user={user}
                       mode={mode}
-                      product={mode === "subscription" ? product : undefined}
-                      cadence={mode === "subscription" ? cadence : undefined}
+                      product={isSubscription ? product : undefined}
+                      cadence={isSubscription ? cadence : undefined}
                       disabled={subscriptionInvalid}
                       agreeTerms={agreeTerms}
                       onAgreeTermsChange={setAgreeTerms}
