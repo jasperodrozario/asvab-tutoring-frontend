@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
     const amountDollars = (amountCentsInt / 100).toString();
 
     const phpParams = new URLSearchParams({
-      action: "user-registration",
+      action: "user-registration-one-time-square-payment",
       payment_status: "COMPLETED", // only AFTER Square success
       order_id: payment?.order_id || payment?.id || "",
       payment_id: payment?.id || "",

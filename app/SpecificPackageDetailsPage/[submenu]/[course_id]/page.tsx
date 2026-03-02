@@ -2,7 +2,7 @@
 
 import React, { use, useEffect, useState } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import styles from "../../packageDetails.module.css";
 import Link from "next/link";
 
@@ -69,6 +69,9 @@ export default function SpecificPackageDetailsPage({
 }) {
   const { submenu, course_id } = use(params);
   const router = useRouter();
+  const pathname = usePathname(); // ✅ added
+  const isSubscribePage = pathname?.includes("subscribe"); // ✅ added
+
   const [courseData, setCourseData] = useState<any>(null);
 
   useEffect(() => {
@@ -97,7 +100,7 @@ export default function SpecificPackageDetailsPage({
     fetchCourseData();
   }, [submenu, course_id]);
 
-  // ✅ NO HOOK: safe boolean compute (works even when courseData is null)
+  // ✅ safe boolean compute (works even when courseData is null)
   const showPaymentImage = (() => {
     const allSessions =
       courseData?.data?.flatMap((pkg: any) => pkg?.sessions ?? []) ?? [];
@@ -141,7 +144,7 @@ export default function SpecificPackageDetailsPage({
               {showPaymentImage && (
                 <div className="mt-4">
                   <Image
-                    src="/images/send-payment_20251230.png"
+                    src="/images/how_to_send_payment_20260204.png"
                     alt="Payment info"
                     width={600}
                     height={400}
@@ -167,9 +170,7 @@ export default function SpecificPackageDetailsPage({
               className="mx-auto text-start"
               style={{ marginTop: "1rem", marginBottom: "2rem" }}
             >
-              {renderTextWithLineBreaks(
-                cleanQuestionText(pkg.description ?? "")
-              )}
+              {renderTextWithLineBreaks(cleanQuestionText(pkg.description ?? ""))}
             </div>
 
             <div className={styles.pricingGrid}>
@@ -187,9 +188,7 @@ export default function SpecificPackageDetailsPage({
                     }`}
                   >
                     {session.is_most_popular === "1" && (
-                      <div className={styles.mostPopularBadge}>
-                        Most Popular
-                      </div>
+                      <div className={styles.mostPopularBadge}>Most Popular</div>
                     )}
 
                     <div className={styles.cardInner}>
@@ -219,6 +218,7 @@ export default function SpecificPackageDetailsPage({
                             pathname: "/checkout",
                             query: {
                               course_id: String(course_id),
+                              package_id: String(pkg.package_id),
                               session_id: String(session.session_id),
                               amount: String(
                                 Math.round(Number(session.price) * 100)
@@ -246,19 +246,40 @@ export default function SpecificPackageDetailsPage({
         </section>
       ))}
 
-      <div className="container">
-        <p className="fs-6 text-start mx-auto mb-3" style={{ maxWidth: "960px" }}>
-          <span className="fw-semibold text-danger">NOTE:</span> No session will
-          be scheduled without payment information on file. Students are required
-          to submit homework before each session.
-        </p>
+      {/* ✅ Notes + Cancellation Policy (fixed) */}
+    <div className="container">
+  {isSubscribePage ? (
+    <p
+      className="fs-6 text-start mx-auto mb-5"
+      style={{ maxWidth: "960px" }}
+    >
+      <span className="fw-semibold text-danger">NOTE:</span>{" "}
+      Each subscription is auto-renewable until you cancel it.
+    </p>
+  ) : (
+    <>
+      <p
+        className="fs-6 text-start mx-auto mb-3"
+        style={{ maxWidth: "960px" }}
+      >
+        <span className="fw-semibold text-danger">NOTE:</span>{" "}
+        No session will be scheduled without payment information on file.
+        Students are required to submit homework before each session.
+      </p>
 
-        <p className="fs-6 text-start mx-auto mb-5" style={{ maxWidth: "960px" }}>
-          <span className="fw-semibold text-primary">Cancellation Policy:</span>{" "}
-          If you want to cancel a session or reschedule, 24 hrs. advance notice
-          is required. You can cancel the entire service within 7 days.
-        </p>
-      </div>
+      <p
+        className="fs-6 text-start mx-auto mb-5"
+        style={{ maxWidth: "960px" }}
+      >
+        <span className="fw-semibold text-primary">
+          Cancellation Policy:
+        </span>{" "}
+        If you want to cancel a session or reschedule, 24 hrs. advance notice
+        is required. You can cancel the entire service within 7 days.
+      </p>
+    </>
+  )}
+</div>
 
       {/* Related Courses */}
       <section className="py-5 bg-white">
@@ -292,7 +313,10 @@ export default function SpecificPackageDetailsPage({
                         className="rounded mb-3 w-100"
                         style={{ objectFit: "cover", height: "200px" }}
                       />
-                      <h6 className="fw-semibold mb-2" style={{ color: "#e58a34" }}>
+                      <h6
+                        className="fw-semibold mb-2"
+                        style={{ color: "#e58a34" }}
+                      >
                         {decodeHtmlEntitiesDeep(rel.name ?? "")}
                       </h6>
                       <p className="fw-bold text-success mb-0 mt-auto">
