@@ -1,3 +1,4 @@
+// app/api/payment-webhook/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 
@@ -25,89 +26,103 @@ function verifySquareSignature(params: {
   const a = Buffer.from(expected, "utf8");
   const b = Buffer.from(signatureHeader, "utf8");
   if (a.length !== b.length) return false;
+
   return crypto.timingSafeEqual(a, b);
 }
 
-// Best-effort idempotency (dev). Use DB-level dedupe in PHP for production.
+// Best-effort idempotency (in-memory). Production idempotency must be DB-level in PHP.
 const seenEventIds = new Set<string>();
 
-function safePreviewRaw(raw: string, maxLen = 1200) {
-  return raw.length > maxLen ? raw.slice(0, maxLen) + "…(truncated)" : raw;
+function json(status: number, body: any) {
+  return NextResponse.json(body, { status });
 }
 
-function logKVs(prefix: string, sp: URLSearchParams) {
-  console.log(prefix, Object.fromEntries(sp.entries()));
+function safeStr(v: unknown, max = 800) {
+  const s = String(v ?? "").trim();
+  return s.length > max ? s.slice(0, max) : s;
 }
 
-async function forwardToPhp(params: { phpUrl: string; action: string; body: URLSearchParams }) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 8000);
-
+function safeJsonParse(text: string) {
   try {
-    params.body.set("action", params.action);
-
-    console.log("[PaymentWebhook][PHP] preparing request", {
-      action: params.action,
-      url: params.phpUrl ? "(set)" : "(missing)",
-      body_len: params.body.toString().length,
-    });
-    logKVs("[PaymentWebhook][PHP] fields", params.body);
-
-    const res = await fetch(params.phpUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: params.body,
-      signal: controller.signal,
-    });
-
-    const text = await res.text().catch(() => "");
-    console.log("[PaymentWebhook][PHP] response", {
-      action: params.action,
-      status: res.status,
-      ok: res.ok,
-      body_preview: safePreviewRaw(text, 1200),
-    });
-
-    return { ok: res.ok, status: res.status, text };
-  } catch (err: any) {
-    console.error("[PaymentWebhook][PHP] request error", {
-      action: params.action,
-      message: err?.message ?? String(err),
-      name: err?.name,
-    });
-    throw err;
-  } finally {
-    clearTimeout(timeout);
+    return text ? JSON.parse(text) : null;
+  } catch {
+    return null;
   }
 }
 
+async function fetchWithTimeout(
+  input: RequestInfo | URL,
+  init: RequestInit,
+  timeoutMs: number
+) {
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+function envConfig() {
+  const signatureKey = safeStr(process.env.SQUARE_PAYMENT_WEBHOOK_SIGNATURE_KEY || "", 500);
+  const notificationUrl = safeStr(process.env.SQUARE_PAYMENT_WEBHOOK_URL || "", 800);
+  const phpUrl = safeStr(process.env.PHP_API_URL || "", 800);
+  return { signatureKey, notificationUrl, phpUrl };
+}
+
+async function forwardToPhp(params: {
+  phpUrl: string;
+  action: string;
+  body: URLSearchParams;
+}) {
+  // Ensure action exists (PHP expects it)
+  params.body.set("action", params.action);
+
+  const res = await fetchWithTimeout(
+    params.phpUrl,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8" },
+      body: params.body.toString(),
+      cache: "no-store",
+    },
+    15_000
+  );
+
+  const text = await res.text().catch(() => "");
+  const data = safeJsonParse(text);
+
+  return { ok: res.ok, status: res.status, data };
+}
+
 function extractPayment(event: any) {
-  const eventType = String(event?.type ?? "");
-  const eventId = String(event?.event_id ?? "").trim();
-  const eventCreatedAt = String(event?.created_at ?? "");
+  const eventType = safeStr(event?.type ?? "", 80);
+  const eventId = safeStr(event?.event_id ?? "", 120);
+  const eventCreatedAt = safeStr(event?.created_at ?? "", 80);
 
   const payment = event?.data?.object?.payment ?? null;
 
-  const paymentId = String(payment?.id ?? event?.data?.id ?? "");
-  const orderId = String(payment?.order_id ?? "");
-  const status = String(payment?.status ?? "");
+  const paymentId = safeStr(payment?.id ?? event?.data?.id ?? "", 120);
+  const orderId = safeStr(payment?.order_id ?? "", 120);
+  const status = safeStr(payment?.status ?? "", 60);
 
-  const amount = payment?.amount_money?.amount;
-  const currency = String(payment?.amount_money?.currency ?? "");
+  const amountMinor = payment?.amount_money?.amount;
+  const currency = safeStr(payment?.amount_money?.currency ?? "", 10);
 
-  const squareCustomerId = String(payment?.customer_id ?? "");
-  const paymentCreatedAt = String(payment?.created_at ?? "");
-  const paymentUpdatedAt = String(payment?.updated_at ?? "");
+  const squareCustomerId = safeStr(payment?.customer_id ?? "", 120);
+  const paymentCreatedAt = safeStr(payment?.created_at ?? "", 80);
+  const paymentUpdatedAt = safeStr(payment?.updated_at ?? "", 80);
 
-  const sourceType = String(payment?.source_type ?? "");
-  const receiptNumber = String(payment?.receipt_number ?? "");
-  const receiptUrl = String(payment?.receipt_url ?? "");
+  const sourceType = safeStr(payment?.source_type ?? "", 40);
+  const receiptNumber = safeStr(payment?.receipt_number ?? "", 60);
+  const receiptUrl = safeStr(payment?.receipt_url ?? "", 400);
 
-  const cardLast4 = String(payment?.card_details?.card?.last_4 ?? "");
-  const cardBrand = String(payment?.card_details?.card?.card_brand ?? "");
+  const cardLast4 = safeStr(payment?.card_details?.card?.last_4 ?? "", 8);
+  const cardBrand = safeStr(payment?.card_details?.card?.card_brand ?? "", 30);
 
-  // ✅ NEW: buyer email (present in many payment events)
-  const buyerEmailAddress = String(payment?.buyer_email_address ?? "").trim();
+  // Buyer email (present in many payment events)
+  const buyerEmailAddress = safeStr(payment?.buyer_email_address ?? "", 120);
 
   return {
     eventType,
@@ -117,7 +132,8 @@ function extractPayment(event: any) {
     paymentId,
     orderId,
     status,
-    amount: amount === undefined || amount === null ? "" : String(amount),
+    amountMinor:
+      amountMinor === undefined || amountMinor === null ? "" : safeStr(amountMinor, 32),
     currency,
 
     squareCustomerId,
@@ -130,49 +146,30 @@ function extractPayment(event: any) {
     cardLast4,
     cardBrand,
 
-    // ✅ NEW
     buyerEmailAddress,
   };
 }
 
 export async function GET() {
-  return NextResponse.json({ ok: true });
+  return json(200, { ok: true, message: "Payment webhook is running." });
 }
 
 export async function POST(req: NextRequest) {
+  const { signatureKey, notificationUrl, phpUrl } = envConfig();
+
+  // ---- Receive RAW body (required for signature)
   const rawBody = await req.text();
   const signature = req.headers.get("x-square-hmacsha256-signature");
 
-  console.log("[PaymentWebhook] received", {
-    method: req.method,
-    headers: {
-      "x-square-hmacsha256-signature": signature
-        ? signature.slice(0, 12) + "…" + signature.slice(-8)
-        : null,
-      "content-type": req.headers.get("content-type"),
-      "user-agent": req.headers.get("user-agent"),
-      "x-forwarded-for": req.headers.get("x-forwarded-for"),
-    },
-    rawBodyLen: rawBody.length,
-    rawBodyPreview: safePreviewRaw(rawBody, 1000),
-  });
-
-  const signatureKey = process.env.SQUARE_PAYMENT_WEBHOOK_SIGNATURE_KEY;
-  const notificationUrl = process.env.SQUARE_PAYMENT_WEBHOOK_URL;
-  const phpUrl = process.env.PHP_API_URL;
-
+  // ---- Env safety: do not crash if misconfigured
   if (!signatureKey || !notificationUrl) {
-    console.error("[PaymentWebhook] missing env", {
-      hasSignatureKey: !!signatureKey,
-      hasNotificationUrl: !!notificationUrl,
+    return json(500, {
+      ok: false,
+      message: "Webhook service is not configured properly.",
     });
-    return NextResponse.json({ ok: false, error: "Webhook env not configured" }, { status: 500 });
-  }
-  if (!phpUrl) {
-    console.error("[PaymentWebhook] missing env", { hasPhpUrl: false });
-    return NextResponse.json({ ok: false, error: "PHP_API_URL not configured" }, { status: 500 });
   }
 
+  // ---- Verify signature
   const isValid = verifySquareSignature({
     signatureKey,
     notificationUrl: notificationUrl.trim(),
@@ -180,115 +177,102 @@ export async function POST(req: NextRequest) {
     signatureHeader: signature,
   });
 
-  console.log("[PaymentWebhook] signature check", { isValid });
-
   if (!isValid) {
-    return NextResponse.json({ ok: false, error: "Invalid signature" }, { status: 401 });
+    return json(401, {
+      ok: false,
+      message: "Unauthorized webhook request.",
+    });
   }
 
+  // ---- Parse JSON
   let event: any;
   try {
     event = JSON.parse(rawBody);
-  } catch (e) {
-    console.error("[PaymentWebhook] JSON parse error:", e);
-    return NextResponse.json({ ok: false, error: "Invalid JSON" }, { status: 400 });
+  } catch {
+    return json(400, {
+      ok: false,
+      message: "Invalid webhook payload.",
+    });
   }
 
-  const type = String(event?.type ?? "");
-  const eventId = String(event?.event_id ?? "").trim();
-  const eventCreatedAt = String(event?.created_at ?? "");
-  const merchantId = String(event?.merchant_id ?? "");
-  const locationId = String(event?.location_id ?? "");
-  const dataType = String(event?.data?.type ?? "");
-  const dataId = String(event?.data?.id ?? "");
+  const type = safeStr(event?.type ?? "", 80);
+  const eventId = safeStr(event?.event_id ?? "", 120);
 
-  console.log("[PaymentWebhook] parsed event", {
-    type,
-    eventId,
-    eventCreatedAt,
-    merchant_id: merchantId,
-    location_id: locationId || null,
-    data_type: dataType || null,
-    data_id: dataId || null,
-  });
-
+  // Best-effort in-memory dedupe
   if (eventId) {
-    if (seenEventIds.has(eventId)) {
-      console.log("[PaymentWebhook] dedupe hit, ignoring", { eventId, type });
-      return NextResponse.json({ ok: true, deduped: true });
-    }
+    if (seenEventIds.has(eventId)) return json(200, { ok: true });
     seenEventIds.add(eventId);
   }
 
-  // Only handle payment events in this route.
+  // Only handle payment events in this route
   const shouldHandle = type === "payment.updated" || type === "payment.created";
   if (!shouldHandle) {
-    console.log("[PaymentWebhook] ignoring unsupported type", { type });
-    return NextResponse.json({ ok: true });
+    return json(200, { ok: true });
   }
 
-  try {
-    const p = extractPayment(event);
+  // Extract payment details
+  const p = extractPayment(event);
 
-    console.log("[PaymentWebhook] payment extracted", {
-      eventType: p.eventType,
-      eventId: p.eventId,
-      paymentId: p.paymentId,
-      status: p.status,
-      orderId: p.orderId,
-      squareCustomerId: p.squareCustomerId,
-      amount: p.amount,
-      currency: p.currency,
-      paymentCreatedAt: p.paymentCreatedAt,
-      paymentUpdatedAt: p.paymentUpdatedAt,
-      sourceType: p.sourceType,
-      cardLast4: p.cardLast4,
-      cardBrand: p.cardBrand,
-      // ✅ NEW
-      buyerEmailAddress: p.buyerEmailAddress,
+  // If Square changes structure, avoid forwarding invalid data
+  if (!p.paymentId) {
+    return json(200, { ok: true });
+  }
+
+  // If PHP URL missing, acknowledge to Square and stop (avoid retries)
+  if (!phpUrl) {
+    return json(200, { ok: true, message: "Webhook received." });
+  }
+
+  // Build PHP payload
+  const body = new URLSearchParams();
+
+  body.set("event_id", p.eventId);
+  body.set("event_type", p.eventType);
+  body.set("event_created_at", p.eventCreatedAt);
+
+  body.set("payment_id", p.paymentId);
+
+  if (p.orderId) body.set("order_id", p.orderId);
+  if (p.status) body.set("payment_status", p.status);
+
+  // amount is in smallest currency unit (e.g., cents)
+  if (p.amountMinor !== "") body.set("amount", p.amountMinor);
+  if (p.currency) body.set("currency", p.currency);
+
+  if (p.squareCustomerId) body.set("square_customer_id", p.squareCustomerId);
+  if (p.paymentCreatedAt) body.set("payment_created_at", p.paymentCreatedAt);
+  if (p.paymentUpdatedAt) body.set("payment_updated_at", p.paymentUpdatedAt);
+
+  // Forward email to PHP (optional)
+  if (p.buyerEmailAddress) {
+    body.set("email", p.buyerEmailAddress);
+    body.set("buyer_email_address", p.buyerEmailAddress);
+  }
+
+  // Optional fields (safe to ignore in PHP)
+  if (p.sourceType) body.set("source_type", p.sourceType);
+  if (p.receiptNumber) body.set("receipt_number", p.receiptNumber);
+  if (p.receiptUrl) body.set("receipt_url", p.receiptUrl);
+  if (p.cardLast4) body.set("card_last_4", p.cardLast4);
+  if (p.cardBrand) body.set("card_brand", p.cardBrand);
+
+  // Forward to PHP (never return raw PHP errors)
+  try {
+    const result = await forwardToPhp({
+      phpUrl,
+      action: "payment-updated-webhook",
+      body,
     });
 
-    if (!p.paymentId) {
-      console.log("[PaymentWebhook] missing payment_id, ignoring");
-      return NextResponse.json({ ok: true });
+    // Always return 200 to Square once verified, to prevent repeated retries.
+    // If PHP fails, handle monitoring on your server side.
+    if (!result.ok) {
+      return json(200, { ok: true, message: "Webhook received." });
     }
 
-    const body = new URLSearchParams();
-    body.set("event_id", p.eventId);
-    body.set("event_type", p.eventType);
-    body.set("event_created_at", p.eventCreatedAt);
-
-    body.set("payment_id", p.paymentId);
-
-    if (p.orderId) body.set("order_id", p.orderId);
-    if (p.status) body.set("payment_status", p.status);
-
-    // amount is in smallest currency unit (e.g., cents)
-    if (p.amount !== "") body.set("amount", p.amount);
-    if (p.currency) body.set("currency", p.currency);
-
-    if (p.squareCustomerId) body.set("square_customer_id", p.squareCustomerId);
-    if (p.paymentCreatedAt) body.set("payment_created_at", p.paymentCreatedAt);
-    if (p.paymentUpdatedAt) body.set("payment_updated_at", p.paymentUpdatedAt);
-
-    // ✅ NEW: forward email to PHP
-    if (p.buyerEmailAddress) {
-      body.set("email", p.buyerEmailAddress);              // your PHP can read $_POST['email']
-      body.set("buyer_email_address", p.buyerEmailAddress); // optional (safe)
-    }
-
-    // Optional debug fields (safe to ignore in PHP)
-    if (p.sourceType) body.set("source_type", p.sourceType);
-    if (p.receiptNumber) body.set("receipt_number", p.receiptNumber);
-    if (p.receiptUrl) body.set("receipt_url", p.receiptUrl);
-    if (p.cardLast4) body.set("card_last_4", p.cardLast4);
-    if (p.cardBrand) body.set("card_brand", p.cardBrand);
-
-    const result = await forwardToPhp({ phpUrl, action: "payment-updated-webhook", body });
-    if (!result.ok) console.error("[PaymentWebhook] PHP payment handler failed:", result.status);
-  } catch (err) {
-    console.error("[PaymentWebhook] route error:", err);
+    return json(200, { ok: true, message: "Webhook received." });
+  } catch {
+    // Return 200 so Square doesn't keep retrying; failures should be handled via server monitoring
+    return json(200, { ok: true, message: "Webhook received." });
   }
-
-  return NextResponse.json({ ok: true });
 }

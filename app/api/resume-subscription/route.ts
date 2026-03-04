@@ -1,5 +1,6 @@
 // app/api/resume-subscription/route.ts
 import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
 
 export const runtime = "nodejs";
 
@@ -8,203 +9,263 @@ type Payload = {
   user_id?: number | string;
 };
 
-function mask(v: string, a = 6, b = 6) {
-  v = String(v || "");
-  if (!v) return "";
-  if (v.length <= a + b) return "*".repeat(v.length);
-  return `${v.slice(0, a)}***${v.slice(-b)}`;
-}
-
 function json(status: number, body: any) {
   return NextResponse.json(body, { status });
 }
 
-function getBaseUrl() {
-  const env = (process.env.SQUARE_ENVIRONMENT || "sandbox").toLowerCase();
-  return env === "production" ? "https://connect.squareup.com" : "https://connect.squareupsandbox.com";
+function safeStr(v: unknown, max = 500) {
+  const s = String(v ?? "").trim();
+  return s.length > max ? s.slice(0, max) : s;
+}
+
+function safeJsonParse(text: string) {
+  try {
+    return text ? JSON.parse(text) : null;
+  } catch {
+    return null;
+  }
+}
+
+function getSquareBaseUrl() {
+  const env = safeStr(process.env.SQUARE_ENVIRONMENT || "sandbox", 20).toLowerCase();
+  return env === "production"
+    ? "https://connect.squareup.com"
+    : "https://connect.squareupsandbox.com";
+}
+
+function requireEnv(name: string) {
+  const v = safeStr(process.env[name] || "", 1000);
+  return v;
+}
+
+/**
+ * Shared-secret auth between PHP server and Next.js server
+ *
+ * PHP/cURL sends:  X-Internal-Key: <secret>
+ * Next.js expects: INTERNAL_API_SECRET=<secret>
+ */
+function verifyInternalSecret(req: NextRequest) {
+  const provided = safeStr(req.headers.get("x-internal-key") || "", 300);
+  const expected = safeStr(process.env.INTERNAL_API_SECRET || "", 300);
+
+  if (!expected || !provided) return false;
+
+  // timingSafeEqual requires equal length buffers
+  const a = Buffer.from(provided, "utf8");
+  const b = Buffer.from(expected, "utf8");
+  if (a.length !== b.length) return false;
+
+  return crypto.timingSafeEqual(a, b);
 }
 
 async function squareFetch(path: string, init: RequestInit) {
-  const baseUrl = getBaseUrl();
+  const baseUrl = getSquareBaseUrl();
   const url = `${baseUrl}${path}`;
 
-  const squareVersion = (process.env.SQUARE_VERSION || "2025-10-16").trim();
-  const token = (process.env.SQUARE_ACCESS_TOKEN || "").trim();
+  const squareVersion = safeStr(process.env.SQUARE_VERSION || "2026-01-22", 50);
+  const token = safeStr(process.env.SQUARE_ACCESS_TOKEN || "", 1000);
+
+  if (!token || !squareVersion) {
+    return { ok: false, status: 500, data: null, configError: true as const };
+  }
 
   const headers = new Headers(init.headers || {});
   headers.set("Content-Type", "application/json");
   headers.set("Square-Version", squareVersion);
   headers.set("Authorization", `Bearer ${token}`);
 
-  console.log("[resume-subscription] -> Square", {
-    method: init.method || "GET",
-    url,
-    squareVersion,
-    env: (process.env.SQUARE_ENVIRONMENT || "sandbox").toLowerCase(),
-    tokenPresent: Boolean(token),
-  });
-
-  const res = await fetch(url, { ...init, headers });
+  const res = await fetch(url, { ...init, headers, cache: "no-store" });
   const text = await res.text();
+  const data = safeJsonParse(text);
 
-  let data: any = null;
-  try {
-    data = text ? JSON.parse(text) : null;
-  } catch {
-    data = { raw: text };
+  return { ok: res.ok, status: res.status, data, configError: false as const };
+}
+
+function friendlySquareMessage(status: number, fallback: string) {
+  if (status === 401 || status === 403) {
+    return "We couldn't verify the subscription service credentials. Please contact support.";
   }
-
-  console.log("[resume-subscription] <- Square", {
-    url,
-    status: res.status,
-    ok: res.ok,
-    bodyPreview: typeof data === "object" ? JSON.stringify(data).slice(0, 900) : String(data).slice(0, 900),
-  });
-
-  return { res, data };
+  if (status === 404) {
+    return "We couldn't find that subscription. Please double-check the subscription ID.";
+  }
+  if (status === 409) {
+    return "This subscription is currently being updated. Please try again in a moment.";
+  }
+  if (status >= 500) {
+    return "The subscription service is temporarily unavailable. Please try again shortly.";
+  }
+  return fallback;
 }
 
 export async function POST(req: NextRequest) {
-  console.log("[resume-subscription] Incoming", {
-    method: req.method,
-    url: req.url,
-    contentType: req.headers.get("content-type") || "",
-    hasInternalKey: Boolean(req.headers.get("x-internal-key")),
-  });
-
-  // auth
-  const expectedKey = (process.env.INTERNAL_API_SECRET || "").trim();
-  const gotKey = (req.headers.get("x-internal-key") || "").trim();
-
-  if (!expectedKey) return json(500, { ok: false, message: "Missing INTERNAL_API_SECRET in env." });
-  if (!gotKey || gotKey !== expectedKey) return json(401, { ok: false, message: "Unauthorized." });
-
-  const token = (process.env.SQUARE_ACCESS_TOKEN || "").trim();
-  if (!token) return json(500, { ok: false, message: "Missing SQUARE_ACCESS_TOKEN in env." });
-
-  let payload: Payload;
   try {
-    payload = (await req.json()) as Payload;
-  } catch (e: any) {
-    console.log("[resume-subscription] Bad JSON", { error: String(e?.message || e) });
-    return json(400, { ok: false, message: "Invalid JSON body." });
-  }
-
-  const subscriptionId = String(payload.subscription_id || "").trim();
-  if (!subscriptionId) return json(400, { ok: false, message: "Missing subscription_id." });
-
-  console.log("[resume-subscription] Payload", {
-    subscription_id: mask(subscriptionId),
-    user_id: payload.user_id ?? "",
-  });
-
-  // 1) Fetch current subscription
-  const { res: getRes, data: getData } = await squareFetch(
-    `/v2/subscriptions/${encodeURIComponent(subscriptionId)}`,
-    { method: "GET" }
-  );
-
-  if (!getRes.ok) {
-    const msg = getData?.errors?.[0]?.detail || "Failed to fetch subscription.";
-    return json(getRes.status || 400, { ok: false, message: msg, square: getData });
-  }
-
-  const sub = getData?.subscription;
-  const status = String(sub?.status || "").toUpperCase();
-  const canceledDate = sub?.canceled_date; // may exist if scheduled cancel/end
-  const nextBillingDate = sub?.next_billing_date || "";
-
-  console.log("[resume-subscription] Current subscription state", {
-    status,
-    canceled_date: canceledDate || "",
-    next_billing_date: nextBillingDate || "",
-  });
-
-  // 2) If PAUSED/DEACTIVATED, use /resume (Square requirement)
-  if (status === "PAUSED" || status === "DEACTIVATED") {
-    const { res: resumeRes, data: resumeData } = await squareFetch(
-      `/v2/subscriptions/${encodeURIComponent(subscriptionId)}/resume`,
-      { method: "POST", body: JSON.stringify({}) }
-    );
-
-    if (!resumeRes.ok) {
-      const msg = resumeData?.errors?.[0]?.detail || "Square resume failed.";
-      return json(resumeRes.status || 400, { ok: false, message: msg, square: resumeData });
+    // ---- Env safety checks (no crash)
+    const internalSecret = requireEnv("INTERNAL_API_SECRET");
+    if (!internalSecret) {
+      return json(500, {
+        ok: false,
+        message:
+          "The resume service is not configured properly. Please contact support.",
+      });
     }
 
-    // re-fetch for updated dates
-    const { res: refRes, data: refData } = await squareFetch(
+    if (!verifyInternalSecret(req)) {
+      return json(401, { ok: false, message: "Unauthorized request." });
+    }
+
+    const token = safeStr(process.env.SQUARE_ACCESS_TOKEN || "", 1000);
+    if (!token) {
+      return json(500, {
+        ok: false,
+        message:
+          "The subscription service is not configured properly. Please contact support.",
+      });
+    }
+
+    let payload: Payload = {};
+    try {
+      payload = (await req.json()) as Payload;
+    } catch {
+      return json(400, {
+        ok: false,
+        message: "Invalid request body. Please try again.",
+      });
+    }
+
+    const subscriptionId = safeStr(payload.subscription_id || "", 120);
+    const userId = safeStr(payload.user_id ?? "", 50);
+
+    if (!subscriptionId) {
+      return json(400, {
+        ok: false,
+        message: "Subscription ID is missing. Please try again.",
+      });
+    }
+
+    // 1) Fetch current subscription
+    const getRes = await squareFetch(
       `/v2/subscriptions/${encodeURIComponent(subscriptionId)}`,
       { method: "GET" }
     );
 
-    const sub2 = refData?.subscription;
-    const out = {
-      ok: true,
-      message: "Subscription resumed successfully.",
-      status: String(sub2?.status || "ACTIVE").toUpperCase(),
-      next_billing_date: String(sub2?.next_billing_date || ""),
-      cancel_effective_date: String(sub2?.canceled_date || ""),
-      subscription_id: subscriptionId,
+    if ((getRes as any).configError) {
+      return json(500, {
+        ok: false,
+        message:
+          "The subscription service is not configured properly. Please contact support.",
+      });
+    }
+
+    if (!getRes.ok) {
+      return json(getRes.status || 400, {
+        ok: false,
+        message: friendlySquareMessage(
+          getRes.status || 400,
+          "We couldn't retrieve the subscription right now. Please try again."
+        ),
+        subscription_id: subscriptionId,
+        user_id: userId,
+      });
+    }
+
+    const sub = (getRes.data as any)?.subscription || {};
+    const status = safeStr(sub?.status || "", 40).toUpperCase();
+    const canceledDate = safeStr(sub?.canceled_date || "", 20); // scheduled cancel/end date if present
+
+    // 2) If PAUSED/DEACTIVATED, use /resume (Square requirement)
+    if (status === "PAUSED" || status === "DEACTIVATED") {
+      const resumeRes = await squareFetch(
+        `/v2/subscriptions/${encodeURIComponent(subscriptionId)}/resume`,
+        { method: "POST", body: JSON.stringify({}) }
+      );
+
+      if (!resumeRes.ok) {
+        return json(resumeRes.status || 400, {
+          ok: false,
+          message: friendlySquareMessage(
+            resumeRes.status || 400,
+            "We couldn't resume your subscription right now. Please try again."
+          ),
+          subscription_id: subscriptionId,
+          user_id: userId,
+        });
+      }
+
+      // Re-fetch for updated dates/status
+      const refRes = await squareFetch(
+        `/v2/subscriptions/${encodeURIComponent(subscriptionId)}`,
+        { method: "GET" }
+      );
+
+      const sub2 = (refRes.data as any)?.subscription || {};
+      return json(200, {
+        ok: true,
+        message: "Your subscription has been resumed successfully.",
+        subscription_id: subscriptionId,
+        user_id: userId,
+        status: safeStr(sub2?.status || "ACTIVE", 40).toUpperCase(),
+        next_billing_date: safeStr(sub2?.next_billing_date || "", 20),
+        cancel_effective_date: safeStr(sub2?.canceled_date || "", 20),
+      });
+    }
+
+    // 3) Otherwise: treat as “undo cancel” by clearing canceled_date (if present)
+    if (!canceledDate) {
+      return json(400, {
+        ok: false,
+        message:
+          "This subscription does not have a scheduled cancellation to remove.",
+        subscription_id: subscriptionId,
+        user_id: userId,
+      });
+    }
+
+    const version = sub?.version;
+
+    const updateBody: any = {
+      subscription: {
+        id: subscriptionId,
+        canceled_date: null,
+      },
     };
 
-    console.log("[resume-subscription] Response to PHP", { ...out, subscription_id: mask(subscriptionId) });
-    return json(200, out);
-  }
+    if (typeof version === "number") {
+      updateBody.subscription.version = version;
+    }
 
-  // 3) Otherwise: treat as “undo cancel” by clearing canceled_date (if present)
-  // If there's no canceled_date, it's not in a cancel-scheduled state.
-  if (!canceledDate) {
-    return json(400, {
+    const putRes = await squareFetch(
+      `/v2/subscriptions/${encodeURIComponent(subscriptionId)}`,
+      { method: "PUT", body: JSON.stringify(updateBody) }
+    );
+
+    if (!putRes.ok) {
+      return json(putRes.status || 400, {
+        ok: false,
+        message: friendlySquareMessage(
+          putRes.status || 400,
+          "We couldn't remove the scheduled cancellation right now. Please try again."
+        ),
+        subscription_id: subscriptionId,
+        user_id: userId,
+      });
+    }
+
+    const subUpdated = (putRes.data as any)?.subscription || {};
+
+    return json(200, {
+      ok: true,
+      message: "The scheduled cancellation has been removed successfully.",
+      subscription_id: subscriptionId,
+      user_id: userId,
+      status: safeStr(subUpdated?.status || "ACTIVE", 40).toUpperCase(),
+      next_billing_date: safeStr(subUpdated?.next_billing_date || "", 20),
+      cancel_effective_date: safeStr(subUpdated?.canceled_date || "", 20),
+    });
+  } catch {
+    return json(500, {
       ok: false,
       message:
-        "This subscription is not paused/deactivated and has no scheduled cancellation to undo.",
+        "We couldn't process your request right now. Please try again later.",
     });
   }
-
-  // Square uses optimistic concurrency on some objects via `version`.
-  // Subscription object includes `version` in many cases—use it if present.
-  const version = sub?.version;
-
-  const updateBody: any = {
-    subscription: {
-      id: subscriptionId,
-      // Clear scheduled cancellation
-      canceled_date: null,
-    },
-  };
-
-  // Include version if present (safer)
-  if (typeof version === "number") {
-    updateBody.subscription.version = version;
-  }
-
-  console.log("[resume-subscription] Sending PUT to clear canceled_date", {
-    subscription_id: mask(subscriptionId),
-    hasVersion: typeof version === "number",
-  });
-
-  const { res: putRes, data: putData } = await squareFetch(
-    `/v2/subscriptions/${encodeURIComponent(subscriptionId)}`,
-    { method: "PUT", body: JSON.stringify(updateBody) }
-  );
-
-  if (!putRes.ok) {
-    const msg = putData?.errors?.[0]?.detail || "Failed to undo cancellation.";
-    return json(putRes.status || 400, { ok: false, message: msg, square: putData });
-  }
-
-  const subUpdated = putData?.subscription;
-
-  const out = {
-    ok: true,
-    message: "Cancellation removed and subscription restored.",
-    status: String(subUpdated?.status || "ACTIVE").toUpperCase(),
-    next_billing_date: String(subUpdated?.next_billing_date || ""),
-    cancel_effective_date: String(subUpdated?.canceled_date || ""),
-    subscription_id: subscriptionId,
-  };
-
-  console.log("[resume-subscription] Response to PHP", { ...out, subscription_id: mask(subscriptionId) });
-  return json(200, out);
 }

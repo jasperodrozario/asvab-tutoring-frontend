@@ -1,44 +1,72 @@
+// app/api/square-payment/route.ts
 import { NextRequest, NextResponse } from "next/server";
 
-// If you hit edge/runtime issues, uncomment this:
+// Keep default unless you previously had runtime issues.
+// If your working version did NOT set nodejs, you can comment this out.
 // export const runtime = "nodejs";
 
-const ACCESS_TOKEN = process.env.SQUARE_ACCESS_TOKEN!;
-const LOCATION_ID =
-  process.env.SQUARE_LOCATION_ID || process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID!;
-const ENV = process.env.SQUARE_ENVIRONMENT || "sandbox";
-const SQUARE_VERSION = "2024-01-18";
+const ACCESS_TOKEN = (process.env.SQUARE_ACCESS_TOKEN || "").trim();
+const LOCATION_ID = (
+  process.env.SQUARE_LOCATION_ID ||
+  process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID ||
+  ""
+).trim();
+
+const ENV = (process.env.SQUARE_ENVIRONMENT || "sandbox").trim(); // keep as-is (matches your working logic)
+const SQUARE_VERSION = safeStr(process.env.SQUARE_VERSION || "2026-01-22", 50);
+
+function json(status: number, body: any) {
+  return NextResponse.json(body, { status });
+}
+
+function safeStr(v: any, max = 200) {
+  const s = String(v ?? "").trim();
+  return s.length > max ? s.slice(0, max) : s;
+}
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    // ---- Env safety checks (won't affect payment logic; prevents server misconfig)
+    if (!ACCESS_TOKEN || !LOCATION_ID) {
+      return json(500, {
+        success: false,
+        message:
+          "Payment service is not configured properly. Please contact support.",
+      });
+    }
 
-    const { sourceId, amount, course_id, session_id, user } = body;
+    let body: any;
+    try {
+      body = await req.json();
+    } catch {
+      return json(400, {
+        success: false,
+        message: "We couldn't read your payment details. Please try again.",
+      });
+    }
 
-    // ---- Basic validation
+    const { sourceId, amount, course_id, session_id, user } = body || {};
+
+    // ---- Basic validation (friendly)
     if (!sourceId) {
-      return NextResponse.json(
-        { success: false, where: "validation", error: "Missing sourceId" },
-        { status: 400 }
-      );
+      return json(400, {
+        success: false,
+        message: "Payment method is missing. Please refresh and try again.",
+      });
     }
 
     const amountCents = Number(amount);
     if (!Number.isFinite(amountCents) || amountCents <= 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          where: "validation",
-          error: "Invalid amount (must be cents integer like 8500)",
-        },
-        { status: 400 }
-      );
+      return json(400, {
+        success: false,
+        message:
+          "The payment amount looks incorrect. Please reload the page and try again.",
+      });
     }
 
-    // (recommended) ensure integer cents
     const amountCentsInt = Math.round(amountCents);
 
-    // ---- 1) Create Square payment via REST
+    // ---- 1) Create Square payment via REST (KEEP SAME STRUCTURE)
     const squareUrl =
       ENV === "sandbox"
         ? "https://connect.squareupsandbox.com/v2/payments"
@@ -55,7 +83,7 @@ export async function POST(req: NextRequest) {
         source_id: sourceId,
         idempotency_key: crypto.randomUUID(),
         amount_money: {
-          amount: amountCentsInt, // cents integer (REST API)
+          amount: amountCentsInt,
           currency: "USD",
         },
         location_id: LOCATION_ID,
@@ -63,45 +91,41 @@ export async function POST(req: NextRequest) {
     });
 
     const squareText = await squareRes.text();
-    let squareData: any;
+    let squareData: any = null;
     try {
-      squareData = JSON.parse(squareText);
+      squareData = squareText ? JSON.parse(squareText) : null;
     } catch {
-      squareData = { raw: squareText };
+      squareData = null;
     }
 
     if (!squareRes.ok) {
-      return NextResponse.json(
-        { success: false, where: "square", error: squareData },
-        { status: 400 }
-      );
+      // Do NOT leak Square raw errors to users in production
+      return json(400, {
+        success: false,
+        message:
+          "Payment failed. Please try again or use a different card. If the issue continues, contact support.",
+      });
     }
 
     const payment = squareData?.payment;
     const squareStatus = payment?.status;
 
-    // Sandbox can be APPROVED, production often COMPLETED
     if (!payment || !["APPROVED", "COMPLETED"].includes(squareStatus ?? "")) {
-      return NextResponse.json(
-        {
-          success: false,
-          where: "square_status",
-          squareStatus,
-          squareData,
-        },
-        { status: 400 }
-      );
+      return json(400, {
+        success: false,
+        message:
+          "Your payment was not approved. Please try again or use a different card.",
+      });
     }
 
-    // ---- 2) Call PHP enrollment API
-    // PHP expects dollars (e.g. "85"), not cents
+    // ---- 2) Call PHP enrollment API (best effort)
     const amountDollars = (amountCentsInt / 100).toString();
 
     const phpParams = new URLSearchParams({
       action: "user-registration-one-time-square-payment",
-      payment_status: "COMPLETED", // only AFTER Square success
-      order_id: payment?.order_id || payment?.id || "",
-      payment_id: payment?.id || "",
+      payment_status: "COMPLETED",
+      order_id: safeStr(payment?.order_id || payment?.id || "", 120),
+      payment_id: safeStr(payment?.id || "", 120),
       amount: amountDollars,
       currency: "USD",
       created_at: new Date().toISOString(),
@@ -109,16 +133,14 @@ export async function POST(req: NextRequest) {
       session_id: String(session_id ?? ""),
       payment_source_type: "CARD",
 
-      // explicit user fields (safer than ...user)
-      first_name: String(user?.first_name ?? ""),
-      last_name: String(user?.last_name ?? ""),
-      email: String(user?.email ?? ""),
-      mobile: String(user?.mobile ?? ""),
-      password: String(user?.password ?? ""),
+      first_name: safeStr(user?.first_name ?? "", 80),
+      last_name: safeStr(user?.last_name ?? "", 80),
+      email: safeStr(user?.email ?? "", 120),
+      mobile: safeStr(user?.mobile ?? "", 40),
+      password: safeStr(user?.password ?? "", 200),
     });
 
     let registrationSuccess = false;
-    let registrationResponse: any = null;
 
     try {
       const phpRes = await fetch(
@@ -126,51 +148,56 @@ export async function POST(req: NextRequest) {
         {
           method: "POST",
           headers: {
-            // ✅ 415 fix: make it explicit + include charset
             "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
             Accept: "application/json,text/plain,*/*",
           },
-          // ✅ VERY IMPORTANT: send as string
           body: phpParams.toString(),
         }
       );
 
       const phpText = await phpRes.text();
+
+      // Avoid exposing PHP raw/HTML errors to the client
+      let registrationResponse: any = null;
       try {
-        registrationResponse = JSON.parse(phpText);
+        registrationResponse = phpText ? JSON.parse(phpText) : null;
       } catch {
-        registrationResponse = { raw: phpText };
+        registrationResponse = null;
       }
 
       registrationSuccess =
         phpRes.ok &&
         (registrationResponse?.isSuccess === true ||
+          registrationResponse?.ok === true ||
           registrationResponse?.status === 200);
-    } catch (e: any) {
-      registrationResponse = { error: e?.message || "PHP API call failed" };
+    } catch {
       registrationSuccess = false;
     }
 
-    // ✅ Payment success regardless; enrollment save can fail separately
-    return NextResponse.json(
-      {
+    // ✅ Payment succeeded even if PHP enrollment saving fails
+    if (!registrationSuccess) {
+      return json(200, {
         success: true,
+        message:
+          "Payment received successfully. We’re finalizing your enrollment now. If access doesn’t appear soon, please contact support with your payment ID.",
         squareStatus,
         payment_id: payment?.id,
-        registrationSuccess,
-        registrationResponse,
-      },
-      { status: 200 }
-    );
-  } catch (error: any) {
-    console.error("square-payment route error:", error);
-    return NextResponse.json(
-      {
-        success: false,
-        where: "server",
-        error: error?.message || String(error),
-      },
-      { status: 500 }
-    );
+        registrationSuccess: false,
+      });
+    }
+
+    return json(200, {
+      success: true,
+      message: "Payment successful! Your enrollment is complete.",
+      squareStatus,
+      payment_id: payment?.id,
+      registrationSuccess: true,
+    });
+  } catch {
+    return json(500, {
+      success: false,
+      message:
+        "We couldn't process your payment right now. Please try again in a moment.",
+    });
   }
 }

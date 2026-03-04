@@ -1,42 +1,34 @@
+// app/api/cancel-subscription/route.ts
 import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
 
 export const runtime = "nodejs";
 
-function mustEnv(name: string) {
-  const v = process.env[name];
-  if (!v) throw new Error(`Missing env: ${name}`);
-  return v;
-}
+type CancelBody = {
+  subscription_id?: string;
+  cancel_reason?: string;
+  user_id?: string | number;
+};
 
 function json(status: number, body: any) {
   return NextResponse.json(body, { status });
 }
 
-function safeJsonParse(text: string) {
-  try {
-    return text ? JSON.parse(text) : null;
-  } catch {
-    return { raw: text };
-  }
+function safeStr(v: unknown, max = 500) {
+  const s = String(v ?? "").trim();
+  return s.length > max ? s.slice(0, max) : s;
 }
 
 function nowIso() {
   return new Date().toISOString();
 }
 
-function pickReqMeta(req: NextRequest) {
-  // Be careful not to log secrets.
-  const contentType = req.headers.get("content-type") || "";
-  const userAgent = req.headers.get("user-agent") || "";
-  const forwardedFor =
-    req.headers.get("x-forwarded-for") ||
-    req.headers.get("x-real-ip") ||
-    "";
-  const host = req.headers.get("host") || "";
-  const origin = req.headers.get("origin") || "";
-  const referer = req.headers.get("referer") || "";
-
-  return { contentType, userAgent, forwardedFor, host, origin, referer };
+function safeJsonParse(text: string) {
+  try {
+    return text ? JSON.parse(text) : null;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -46,36 +38,38 @@ function pickReqMeta(req: NextRequest) {
  * Next.js expects: INTERNAL_API_SECRET=<secret>
  */
 function verifyInternalSecret(req: NextRequest) {
-  const provided = (req.headers.get("x-internal-key") || "").trim();
-  const expected = (process.env.INTERNAL_API_SECRET || "").trim();
+  const provided = safeStr(req.headers.get("x-internal-key") || "", 200);
+  const expected = safeStr(process.env.INTERNAL_API_SECRET || "", 200);
+  return !!expected && !!provided && crypto.timingSafeEqual(Buffer.from(provided), Buffer.from(expected));
+}
 
-  // Log presence only (never log the secret itself)
-  console.log(`[cancel-subscription] ${nowIso()} auth header present:`, !!provided);
-  console.log(`[cancel-subscription] ${nowIso()} env INTERNAL_API_SECRET present:`, !!expected);
+function squareConfig() {
+  const accessToken = safeStr(process.env.SQUARE_ACCESS_TOKEN || "", 500);
+  const version = safeStr(process.env.SQUARE_VERSION || "", 50);
+  const env = safeStr(process.env.SQUARE_ENVIRONMENT || "sandbox", 20).toLowerCase();
 
-  return !!expected && !!provided && provided === expected;
+  const base =
+    env === "production"
+      ? "https://connect.squareup.com"
+      : "https://connect.squareupsandbox.com";
+
+  return { accessToken, version, base };
 }
 
 async function squareFetch(path: string, init?: RequestInit) {
-  const accessToken = mustEnv("SQUARE_ACCESS_TOKEN");
-  const version = mustEnv("SQUARE_VERSION"); // e.g. "2026-01-22"
-  const env = (process.env.SQUARE_ENVIRONMENT || "sandbox").toLowerCase();
-  const base = env === "production"
-    ? "https://connect.squareup.com"
-    : "https://connect.squareupsandbox.com";
+  const { accessToken, version, base } = squareConfig();
+
+  if (!accessToken || !version) {
+    return {
+      ok: false,
+      status: 500,
+      data: null,
+      configError: true,
+    };
+  }
 
   const url = base + path;
 
-  // Log outbound request metadata (safe)
-  console.log(`[cancel-subscription] ${nowIso()} -> Square request`, {
-    method: init?.method || "GET",
-    url,
-    squareVersion: version,
-    environment: env,
-    hasBody: !!init?.body,
-  });
-
-  const started = Date.now();
   const res = await fetch(url, {
     ...init,
     headers: {
@@ -87,69 +81,79 @@ async function squareFetch(path: string, init?: RequestInit) {
     cache: "no-store",
   });
 
-  const durationMs = Date.now() - started;
   const text = await res.text();
   const data = safeJsonParse(text);
-
-  // Log inbound response metadata (safe)
-  console.log(`[cancel-subscription] ${nowIso()} <- Square response`, {
-    url,
-    status: res.status,
-    ok: res.ok,
-    durationMs,
-    // log a small, safe slice of errors if present
-    squareErrors: Array.isArray((data as any)?.errors)
-      ? (data as any).errors.map((e: any) => ({
-          code: e?.code,
-          category: e?.category,
-          detail: e?.detail,
-        }))
-      : undefined,
-  });
 
   return { ok: res.ok, status: res.status, data };
 }
 
+function friendlySquareFailureMessage(status: number) {
+  // Keep this simple and user-friendly, without leaking gateway details.
+  if (status === 401 || status === 403) {
+    return "We couldn't verify the payment service credentials. Please contact support.";
+  }
+  if (status === 404) {
+    return "We couldn't find that subscription. Please contact support.";
+  }
+  if (status === 409) {
+    return "This subscription is already being updated. Please try again in a moment.";
+  }
+  if (status >= 500) {
+    return "The subscription service is temporarily unavailable. Please try again shortly.";
+  }
+  return "We couldn't process your cancellation request right now. Please try again.";
+}
+
 export async function POST(req: NextRequest) {
   const reqId =
-    (globalThis.crypto?.randomUUID?.() ?? `req_${Date.now()}_${Math.random().toString(16).slice(2)}`);
-
-  console.log(`\n[cancel-subscription] ${nowIso()} START`, { reqId, ...pickReqMeta(req) });
+    (globalThis.crypto?.randomUUID?.() ??
+      `req_${Date.now()}_${Math.random().toString(16).slice(2)}`);
 
   try {
-    if (!verifyInternalSecret(req)) {
-      console.log(`[cancel-subscription] ${nowIso()} END unauthorized`, { reqId });
-      return json(401, { ok: false, message: "Unauthorized" });
+    // Auth: internal only
+    const expected = safeStr(process.env.INTERNAL_API_SECRET || "", 200);
+    if (!expected) {
+      return json(500, {
+        ok: false,
+        message:
+          "The cancellation service is not configured properly. Please contact support.",
+        request_id: reqId,
+      });
     }
 
-    const body = await req.json().catch((err) => {
-      console.log(`[cancel-subscription] ${nowIso()} req.json() failed`, {
-        reqId,
-        error: String(err?.message || err),
+    if (!verifyInternalSecret(req)) {
+      return json(401, {
+        ok: false,
+        message: "Unauthorized request.",
+        request_id: reqId,
       });
-      return {};
-    });
+    }
 
-    // Log what we received (safe, do not log secrets)
-    console.log(`[cancel-subscription] ${nowIso()} received body`, {
-      reqId,
-      keys: body && typeof body === "object" ? Object.keys(body) : [],
-      subscription_id_present: !!body?.subscription_id,
-      user_id: body?.user_id ?? "",
-      cancel_reason_len: typeof body?.cancel_reason === "string" ? body.cancel_reason.length : 0,
-    });
+    let body: CancelBody = {};
+    try {
+      body = (await req.json()) as CancelBody;
+    } catch {
+      body = {};
+    }
 
-    const subscription_id = String(body?.subscription_id || "").trim();
-    const cancel_reason = String(body?.cancel_reason || "").trim();
-    const user_id = String(body?.user_id || "").trim();
+    const subscription_id = safeStr(body?.subscription_id, 120);
+    const cancel_reason = safeStr(body?.cancel_reason, 500);
+    const user_id = safeStr(body?.user_id ?? "", 50);
 
     if (!subscription_id) {
-      console.log(`[cancel-subscription] ${nowIso()} END missing subscription_id`, { reqId });
-      return json(400, { ok: false, message: "Missing subscription_id" });
+      return json(400, {
+        ok: false,
+        message: "Subscription ID is missing. Please try again.",
+        request_id: reqId,
+      });
     }
+
     if (!cancel_reason) {
-      console.log(`[cancel-subscription] ${nowIso()} END missing cancel_reason`, { reqId, subscription_id });
-      return json(400, { ok: false, message: "Missing cancel_reason" });
+      return json(400, {
+        ok: false,
+        message: "Please provide a reason for cancellation.",
+        request_id: reqId,
+      });
     }
 
     // 1) Cancel subscription
@@ -159,24 +163,23 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({}),
     });
 
-    if (!cancelRes.ok) {
-      const out = {
+    if ((cancelRes as any).configError) {
+      return json(500, {
         ok: false,
-        message: "Square cancel failed",
+        message:
+          "The subscription service is not configured properly. Please contact support.",
+        request_id: reqId,
+      });
+    }
+
+    if (!cancelRes.ok) {
+      return json(cancelRes.status, {
+        ok: false,
+        message: friendlySquareFailureMessage(cancelRes.status),
         subscription_id,
         user_id,
-        square: cancelRes.data,
-      };
-
-      console.log(`[cancel-subscription] ${nowIso()} sending response`, {
-        reqId,
-        status: cancelRes.status,
-        ok: out.ok,
-        message: out.message,
-        subscription_id,
+        request_id: reqId,
       });
-
-      return json(cancelRes.status, out);
     }
 
     // 2) Fetch subscription to determine effective date
@@ -184,75 +187,43 @@ export async function POST(req: NextRequest) {
     const getRes = await squareFetch(getPath, { method: "GET" });
 
     if (!getRes.ok) {
-      const out = {
+      return json(getRes.status, {
         ok: false,
-        message: "Square fetch subscription failed",
+        message: friendlySquareFailureMessage(getRes.status),
         subscription_id,
         user_id,
-        square: getRes.data,
-      };
-
-      console.log(`[cancel-subscription] ${nowIso()} sending response`, {
-        reqId,
-        status: getRes.status,
-        ok: out.ok,
-        message: out.message,
-        subscription_id,
+        request_id: reqId,
       });
-
-      return json(getRes.status, out);
     }
 
-    const sub = getRes.data?.subscription || {};
-    const chargedThrough = String(sub.charged_through_date || "").trim(); // YYYY-MM-DD
-    const nextBilling = String(sub.next_billing_date || "").trim(); // fallback
-    const squareStatus = String(sub.status || "").trim();
+    const sub = (getRes.data as any)?.subscription || {};
+    const chargedThrough = safeStr(sub.charged_through_date || "", 20); // YYYY-MM-DD
+    const nextBilling = safeStr(sub.next_billing_date || "", 20); // fallback
+    const squareStatus = safeStr(sub.status || "", 40);
 
     const cancel_effective_date = chargedThrough || nextBilling || "";
     const status = cancel_effective_date ? "CANCEL_PENDING" : (squareStatus || "CANCEL_PENDING");
 
-    const out = {
+    return json(200, {
       ok: true,
-      message: "Cancellation requested",
+      message:
+        "Your cancellation request has been received. Your subscription will remain active until the effective cancellation date.",
       subscription_id,
       user_id,
       status,
       square_status: squareStatus,
       cancel_effective_date,
-      cancel_reason, // safe to return; already user-provided
-    };
-
-    console.log(`[cancel-subscription] ${nowIso()} sending response`, {
-      reqId,
-      status: 200,
-      ok: out.ok,
-      message: out.message,
-      subscription_id,
-      user_id,
-      square_status: squareStatus,
-      cancel_effective_date,
-      mapped_status: status,
+      cancel_reason,
+      request_id: reqId,
+      timestamp: nowIso(),
     });
-
-    console.log(`[cancel-subscription] ${nowIso()} END`, { reqId, ok: true });
-
-    return json(200, out);
-  } catch (e: any) {
-    console.log(`[cancel-subscription] ${nowIso()} ERROR`, {
-      reqId,
-      message: String(e?.message || e),
-      stack: e?.stack ? String(e.stack).slice(0, 2000) : undefined,
+  } catch {
+    return json(500, {
+      ok: false,
+      message:
+        "We couldn't process your cancellation request right now. Please try again later.",
+      request_id: reqId,
+      timestamp: nowIso(),
     });
-
-    const out = { ok: false, message: e?.message || "Server error" };
-
-    console.log(`[cancel-subscription] ${nowIso()} sending response`, {
-      reqId,
-      status: 500,
-      ok: out.ok,
-      message: out.message,
-    });
-
-    return json(500, out);
   }
 }
