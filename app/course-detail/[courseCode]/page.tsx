@@ -526,7 +526,7 @@ const CourseDetailPage: React.FC = () => {
 
                         <div className="col-lg-4">
                             {courseData.related_courses && courseData.related_courses.length > 0 && (
-                                <div className="related-courses-sidebar sticky-top" style={{ top: '120px' }}>
+                                <div className="related-courses-sidebar sticky-top p-3 p-lg-0 mt-4 mt-lg-0" style={{ top: '120px' }}>
                                     <h4 className="fw-bold mb-4" style={{ color: '#e58a34' }}>
                                         Related Courses{location && ` ${location.replace(/-/g, ' ')}`}
                                     </h4>

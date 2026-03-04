@@ -640,3 +640,27 @@ table {
   color: rgba(var(--bs-link-color-rgb), var(--bs-link-opacity, 1));
   text-decoration: underline !important;
 }
+
+
+/* Blog detail HTML content responsiveness */
+.blog-content img {
+  max-width: 100% !important;
+  height: auto !important;
+  display: block;
+}
+
+/* If blog content has figures / tables / embeds */
+.blog-content figure {
+  max-width: 100%;
+}
+
+.blog-content iframe,
+.blog-content video {
+  max-width: 100%;
+}
+
+.blog-content table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+}

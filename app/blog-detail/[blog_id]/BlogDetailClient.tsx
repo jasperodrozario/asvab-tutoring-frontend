@@ -130,7 +130,7 @@ export default function BlogDetailClient({ blog_id }: { blog_id: string }) {
 
           {/* Blog Content */}
           <div
-            className="lh-lg"
+            className="lh-lg blog-content"
             dangerouslySetInnerHTML={{
               __html: decodeHtml(blog.blog_content || ""),
             }}
