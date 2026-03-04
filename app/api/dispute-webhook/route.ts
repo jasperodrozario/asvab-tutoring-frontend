@@ -23,11 +23,29 @@ function verifySquareSignature(params: {
     .update(params.notificationUrl + params.rawBody, "utf8")
     .digest("base64");
 
-  // Square sends base64 string; compare as utf8 buffers
+  // Compare as utf8 buffers (Square sends base64 string)
   const a = Buffer.from(expected, "utf8");
   const b = Buffer.from(signatureHeader, "utf8");
   if (a.length !== b.length) return false;
+
   return crypto.timingSafeEqual(a, b);
+}
+
+function json(status: number, body: any) {
+  return NextResponse.json(body, { status });
+}
+
+function safeJsonParse(text: string) {
+  try {
+    return text ? JSON.parse(text) : null;
+  } catch {
+    return null;
+  }
+}
+
+function safeStr(v: unknown, max = 300) {
+  const s = String(v ?? "").trim();
+  return s.length > max ? s.slice(0, max) : s;
 }
 
 function moneyToDecimal(amountMinor: any): string {
@@ -50,29 +68,29 @@ function toMySqlDateTime(iso: any): string {
 }
 
 function extractDispute(payload: any) {
-  const eventType = String(payload?.type || "");
-  const event_id = String(payload?.event_id || "");
-  const merchant_id = String(payload?.merchant_id || "");
-  const location_id = String(payload?.location_id || "");
+  const eventType = safeStr(payload?.type || "", 80);
+  const event_id = safeStr(payload?.event_id || "", 120);
+  const merchant_id = safeStr(payload?.merchant_id || "", 120);
+  const location_id = safeStr(payload?.location_id || "", 120);
 
   // Square dispute payloads: data.object.dispute
   const d = payload?.data?.object?.dispute || null;
 
-  const dispute_id = String(d?.id || "");
-  const payment_id = String(d?.disputed_payment?.payment_id || "");
+  const dispute_id = safeStr(d?.id || "", 120);
+  const payment_id = safeStr(d?.disputed_payment?.payment_id || "", 120);
 
   const amount_minor = d?.amount_money?.amount ?? null;
-  const currency = String(d?.amount_money?.currency || "");
+  const currency = safeStr(d?.amount_money?.currency || "", 10);
 
   const amount = moneyToDecimal(amount_minor);
 
-  const card_brand = String(d?.card_brand || "");
-  const reason = String(d?.reason || "");
-  const state = String(d?.state || "");
+  const card_brand = safeStr(d?.card_brand || "", 40);
+  const reason = safeStr(d?.reason || "", 120);
+  const state = safeStr(d?.state || "", 60);
 
-  const due_at = String(d?.due_at || "");
-  const square_created_at = String(d?.created_at || payload?.created_at || "");
-  const square_updated_at = String(d?.updated_at || "");
+  const due_at = safeStr(d?.due_at || "", 80);
+  const square_created_at = safeStr(d?.created_at || payload?.created_at || "", 80);
+  const square_updated_at = safeStr(d?.updated_at || "", 80);
 
   return {
     eventType,
@@ -102,6 +120,20 @@ function extractDispute(payload: any) {
   };
 }
 
+async function fetchWithTimeout(
+  input: RequestInfo | URL,
+  init: RequestInit,
+  timeoutMs: number
+) {
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(t);
+  }
+}
+
 async function postToPhp(params: {
   phpUrl: string;
   action: string;
@@ -115,49 +147,42 @@ async function postToPhp(params: {
     form.set(k, String(v));
   }
 
-  console.log("[dispute-webhook] -> PHP URL:", params.phpUrl);
-  console.log("[dispute-webhook] -> PHP action:", params.action);
-  console.log("[dispute-webhook] -> PHP payload:", Object.fromEntries(form.entries()));
-
-  const res = await fetch(params.phpUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: form.toString(),
-    cache: "no-store",
-  });
+  const res = await fetchWithTimeout(
+    params.phpUrl,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        Accept: "application/json,text/plain,*/*",
+      },
+      body: form.toString(),
+      cache: "no-store",
+    },
+    20_000
+  );
 
   const text = await res.text();
-  console.log("[dispute-webhook] <- PHP status:", res.status);
-  console.log("[dispute-webhook] <- PHP body:", text);
+  const data = safeJsonParse(text);
 
-  return { status: res.status, body: text };
+  return { ok: res.ok, status: res.status, data };
 }
 
 export async function POST(req: NextRequest) {
   // ✅ MUST match your .env
-  const signatureKey = process.env.SQUARE_DISPUTE_WEBHOOK_SIGNATURE_KEY || "";
-  const notificationUrl = process.env.SQUARE_DISPUTE_WEBHOOK_URL || "";
-  const phpUrl = process.env.PHP_API_URL || "";
+  const signatureKey = safeStr(process.env.SQUARE_DISPUTE_WEBHOOK_SIGNATURE_KEY || "", 500);
+  const notificationUrl = safeStr(process.env.SQUARE_DISPUTE_WEBHOOK_URL || "", 500);
+  const phpUrl = safeStr(process.env.PHP_API_URL || "", 800);
 
   // ---- Receive RAW body (required for signature)
   const rawBody = await req.text();
   const signatureHeader = req.headers.get("x-square-hmacsha256-signature");
 
-  console.log("====================================================");
-  console.log("[dispute-webhook] Incoming request");
-  console.log("[dispute-webhook] Request URL:", req.url);
-  console.log("[dispute-webhook] Signature header present:", !!signatureHeader);
-  console.log("[dispute-webhook] Raw body:", rawBody);
-
+  // Config safety
   if (!signatureKey || !notificationUrl) {
-    console.log(
-      "[dispute-webhook] Missing env:",
-      "SQUARE_DISPUTE_WEBHOOK_SIGNATURE_KEY or SQUARE_DISPUTE_WEBHOOK_URL"
-    );
-    return NextResponse.json(
-      { ok: false, message: "Server misconfigured (missing dispute webhook env)" },
-      { status: 500 }
-    );
+    return json(500, {
+      ok: false,
+      message: "Webhook service is not configured properly.",
+    });
   }
 
   const okSig = verifySquareSignature({
@@ -167,40 +192,39 @@ export async function POST(req: NextRequest) {
     signatureHeader,
   });
 
-  console.log("[dispute-webhook] Signature valid:", okSig);
-
   if (!okSig) {
-    return NextResponse.json({ ok: false, message: "Invalid signature" }, { status: 401 });
+    return json(401, {
+      ok: false,
+      message: "Unauthorized webhook request.",
+    });
   }
 
   // ---- Parse JSON
   let payload: any;
   try {
     payload = JSON.parse(rawBody);
-  } catch (e) {
-    console.log("[dispute-webhook] JSON parse error:", e);
-    return NextResponse.json({ ok: false, message: "Invalid JSON" }, { status: 400 });
+  } catch {
+    return json(400, {
+      ok: false,
+      message: "Invalid webhook payload.",
+    });
   }
 
-  console.log("[dispute-webhook] Parsed payload.type:", payload?.type);
-  console.log("[dispute-webhook] Parsed event_id:", payload?.event_id);
-
   // ---- Only handle dispute events here
-  const eventType = String(payload?.type || "");
+  const eventType = safeStr(payload?.type || "", 80);
   if (eventType !== "dispute.created" && eventType !== "dispute.state.updated") {
-    console.log("[dispute-webhook] Ignored event type:", eventType);
-    return NextResponse.json({ ok: true, ignored: true, type: eventType }, { status: 200 });
+    return json(200, { ok: true });
   }
 
   const d = extractDispute(payload);
 
-  console.log("[dispute-webhook] Extracted:", d);
-
-  // Safety checks: if Square changes structure, we want logs + avoid bad inserts
+  // Safety checks: if Square changes structure, avoid bad inserts
   if (!d.dispute_id || !d.payment_id) {
-    console.log("[dispute-webhook] Missing dispute_id or payment_id. Full payload:", payload);
-    // Return 200 so Square doesn't retry forever, but you have logs to fix quickly.
-    return NextResponse.json({ ok: true, warning: "missing_ids" }, { status: 200 });
+    // Return 200 so Square doesn't retry forever; admin can review server logs if needed.
+    return json(200, {
+      ok: true,
+      message: "Webhook received.",
+    });
   }
 
   // ✅ Match YOUR table columns (lean version)
@@ -217,7 +241,7 @@ export async function POST(req: NextRequest) {
     square_created_at: d.square_created_at_mysql,
     square_updated_at: d.square_updated_at_mysql,
 
-    // Optional: helps debugging & tracing (PHP can ignore)
+    // Optional: tracing (PHP can ignore)
     event_id: d.event_id,
     merchant_id: d.merchant_id,
     location_id: d.location_id,
@@ -225,8 +249,11 @@ export async function POST(req: NextRequest) {
   };
 
   if (!phpUrl) {
-    console.log("[dispute-webhook] PHP_API_URL missing; skipping forward.");
-    return NextResponse.json({ ok: true, skipped_php: true, dispute: phpPayload }, { status: 200 });
+    // Still return 200 so Square doesn't retry
+    return json(200, {
+      ok: true,
+      message: "Webhook received.",
+    });
   }
 
   // Simplify PHP: one action for both (UPSERT by dispute_id)
@@ -235,21 +262,23 @@ export async function POST(req: NextRequest) {
   try {
     const phpResult = await postToPhp({ phpUrl, action, payload: phpPayload });
 
-    return NextResponse.json(
-      {
+    // Never return raw PHP body/errors to the client
+    if (!phpResult.ok) {
+      return json(200, {
         ok: true,
-        type: eventType,
-        forwarded_to_php: true,
-        php_status: phpResult.status,
-      },
-      { status: 200 }
-    );
-  } catch (e) {
-    console.log("[dispute-webhook] Error calling PHP:", e);
-    // Return 200 so Square doesn't keep retrying, but logs show failure.
-    return NextResponse.json(
-      { ok: true, forwarded: false, message: "PHP call failed (logged)", type: eventType },
-      { status: 200 }
-    );
+        message: "Webhook received.",
+      });
+    }
+
+    return json(200, {
+      ok: true,
+      message: "Webhook received.",
+    });
+  } catch {
+    // Return 200 so Square doesn't keep retrying; failures should be handled via server monitoring
+    return json(200, {
+      ok: true,
+      message: "Webhook received.",
+    });
   }
 }

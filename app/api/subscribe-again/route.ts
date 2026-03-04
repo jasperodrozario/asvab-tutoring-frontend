@@ -1,6 +1,6 @@
 // app/api/subscribe-again/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { randomUUID } from "crypto";
+import crypto from "crypto";
 
 export const runtime = "nodejs";
 
@@ -11,68 +11,84 @@ function json(status: number, body: any) {
   return NextResponse.json(body, { status });
 }
 
-function mustEnv(name: string) {
-  const v = (process.env[name] || "").trim();
-  if (!v) throw new Error(`Missing env: ${name}`);
-  return v;
+function safeStr(v: unknown, max = 800) {
+  const s = String(v ?? "").trim();
+  return s.length > max ? s.slice(0, max) : s;
 }
 
-function mask(v: string, a = 6, b = 4) {
-  v = String(v || "");
-  if (!v) return "";
-  if (v.length <= a + b) return "*".repeat(v.length);
-  return `${v.slice(0, a)}***${v.slice(-b)}`;
+function safeJsonParse(text: string) {
+  try {
+    return text ? JSON.parse(text) : null;
+  } catch {
+    return null;
+  }
 }
 
 function squareBaseUrl() {
-  const env = (process.env.SQUARE_ENVIRONMENT || "sandbox").toLowerCase();
+  const env = safeStr(process.env.SQUARE_ENVIRONMENT || "sandbox", 20).toLowerCase();
   return env === "production"
     ? "https://connect.squareup.com"
     : "https://connect.squareupsandbox.com";
 }
 
-function safeJsonParse(raw: string): { ok: true; data: any } | { ok: false; reason: string } {
+/**
+ * Parse PHP response safely.
+ * - Never echo raw HTML/errors back to client.
+ * - If response is not JSON, return null and handle with a friendly message.
+ */
+function parsePhpJson(raw: string) {
   const trimmed = (raw || "").trim();
-  if (!trimmed) return { ok: true, data: {} };
+  if (!trimmed) return { ok: true as const, data: {} };
 
   if (trimmed.startsWith("<!doctype") || trimmed.startsWith("<html") || trimmed.startsWith("<")) {
-    return { ok: false, reason: "PHP returned HTML (likely an error page / redirect / WAF)." };
+    return { ok: false as const, reason: "non_json_html" };
   }
   if (/^(fatal error|parse error|warning|notice)\b/i.test(trimmed)) {
-    return { ok: false, reason: "PHP returned plain-text error output (fatal/warning/notice)." };
+    return { ok: false as const, reason: "non_json_php_error" };
   }
 
+  const direct = safeJsonParse(trimmed);
+  if (direct) return { ok: true as const, data: direct };
+
+  // try salvage JSON inside extra text
+  const first = trimmed.indexOf("{");
+  const last = trimmed.lastIndexOf("}");
+  if (first !== -1 && last !== -1 && last > first) {
+    const candidate = trimmed.slice(first, last + 1);
+    const salvaged = safeJsonParse(candidate);
+    if (salvaged) return { ok: true as const, data: salvaged };
+  }
+
+  return { ok: false as const, reason: "non_json_unknown" };
+}
+
+async function fetchWithTimeout(
+  input: RequestInfo | URL,
+  init: RequestInit,
+  timeoutMs: number
+) {
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    return { ok: true, data: JSON.parse(trimmed) };
-  } catch {
-    const first = trimmed.indexOf("{");
-    const last = trimmed.lastIndexOf("}");
-    if (first !== -1 && last !== -1 && last > first) {
-      const candidate = trimmed.slice(first, last + 1);
-      try {
-        return { ok: true, data: JSON.parse(candidate) };
-      } catch {
-        // fallthrough
-      }
-    }
-    return { ok: false, reason: "Response is not valid JSON (and cannot be salvaged)." };
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(t);
   }
 }
 
-const PHP_API_URL = (process.env.PHP_API_URL || "").trim();
+const PHP_API_URL = safeStr(process.env.PHP_API_URL || "", 800);
 
 type PhpResult = {
   http_ok: boolean;
   status: number;
   data: any;
-  raw: string;
-  contentType: string;
   parse_ok: boolean;
-  parse_reason?: string;
 };
 
 async function callPhp(payload: Record<string, any>): Promise<PhpResult> {
-  if (!PHP_API_URL) throw new Error("PHP_API_URL is not configured.");
+  if (!PHP_API_URL) {
+    return { http_ok: false, status: 500, data: null, parse_ok: false };
+  }
 
   const form = new URLSearchParams();
   for (const [k, v] of Object.entries(payload)) {
@@ -80,115 +96,87 @@ async function callPhp(payload: Record<string, any>): Promise<PhpResult> {
     form.append(k, String(v));
   }
 
-  console.log("➡️ PHP SEND", {
-    url: PHP_API_URL,
-    action: payload?.action,
-    payload: {
-      ...payload,
-      auth_token: payload.auth_token ? mask(payload.auth_token) : undefined,
-    },
-    encodedPreview: form.toString().slice(0, 350),
-  });
-
-  let resp: Response;
-  let raw = "";
-  let contentType = "";
-
   try {
-    resp = await fetch(PHP_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-        Accept: "application/json, text/plain, */*",
-        "Cache-Control": "no-cache",
-        Pragma: "no-cache",
+    const resp = await fetchWithTimeout(
+      PHP_API_URL,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+          Accept: "application/json, text/plain, */*",
+          "Cache-Control": "no-cache",
+          Pragma: "no-cache",
+        },
+        body: form.toString(),
+        cache: "no-store",
       },
-      body: form.toString(),
-      cache: "no-store",
-    });
-    contentType = resp.headers.get("content-type") || "";
-    raw = await resp.text();
-  } catch (e: any) {
-    console.error("❌ PHP FETCH FAILED", e?.message || e);
-    return {
-      http_ok: false,
-      status: 0,
-      data: { ok: false, message: "Failed to reach PHP endpoint.", error: e?.message || String(e) },
-      raw: "",
-      contentType: "",
-      parse_ok: true,
-    };
-  }
+      20_000
+    );
 
-  console.log("⬅️ PHP RECV", {
-    action: payload?.action,
-    status: resp.status,
-    ok: resp.ok,
-    contentType,
-    rawPreview: raw.slice(0, 700),
-  });
+    const raw = await resp.text().catch(() => "");
+    const parsed = parsePhpJson(raw);
 
-  const parsed = safeJsonParse(raw);
+    if (!parsed.ok) {
+      return {
+        http_ok: resp.ok,
+        status: resp.status,
+        data: null,
+        parse_ok: false,
+      };
+    }
 
-  if (!parsed.ok) {
     return {
       http_ok: resp.ok,
       status: resp.status,
-      data: {
-        ok: false,
-        message: "Non-JSON response from PHP.",
-        _non_json: true,
-        _reason: parsed.reason,
-        contentType,
-        raw_preview: raw.trim().slice(0, 2000),
-      },
-      raw,
-      contentType,
+      data: parsed.data,
+      parse_ok: true,
+    };
+  } catch {
+    return {
+      http_ok: false,
+      status: 0,
+      data: null,
       parse_ok: false,
-      parse_reason: parsed.reason,
     };
   }
-
-  return {
-    http_ok: resp.ok,
-    status: resp.status,
-    data: parsed.data,
-    raw,
-    contentType,
-    parse_ok: true,
-  };
 }
 
-type SquareResp = { ok: boolean; status: number; data: any };
+type SquareResp = { ok: boolean; status: number; data: any; configError?: boolean };
+
+function squareConfig() {
+  const accessToken = safeStr(process.env.SQUARE_ACCESS_TOKEN || "", 1200);
+  const squareVersion = safeStr(process.env.SQUARE_VERSION || "2026-01-22", 50);
+  const locationId = safeStr(process.env.SQUARE_LOCATION_ID || "", 120);
+
+  if (!accessToken || !squareVersion) {
+    return { ok: false as const, accessToken, squareVersion, locationId, configError: true as const };
+  }
+  return { ok: true as const, accessToken, squareVersion, locationId, configError: false as const };
+}
 
 async function squarePost(path: string, body: any): Promise<SquareResp> {
-  const accessToken = mustEnv("SQUARE_ACCESS_TOKEN");
-  const squareVersion = (process.env.SQUARE_VERSION || "2025-10-16").trim();
+  const cfg = squareConfig();
+  if (!cfg.ok) return { ok: false, status: 500, data: null, configError: true };
+
   const url = `${squareBaseUrl()}${path}`;
 
-  console.log("➡️ SQUARE SEND", {
-    endpoint: `POST ${url}`,
-    bodyPreview: JSON.stringify(body).slice(0, 450),
-  });
-
-  const resp = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-      "Square-Version": squareVersion,
+  const resp = await fetchWithTimeout(
+    url,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${cfg.accessToken}`,
+        "Square-Version": cfg.squareVersion,
+      },
+      body: JSON.stringify(body),
+      cache: "no-store",
     },
-    body: JSON.stringify(body),
-  });
+    20_000
+  );
 
-  const data = await resp.json().catch(() => ({}));
-
-  console.log("⬅️ SQUARE RECV", {
-    endpoint: `POST ${url}`,
-    status: resp.status,
-    ok: resp.ok,
-    errors: data?.errors,
-  });
+  const text = await resp.text().catch(() => "");
+  const data = safeJsonParse(text) ?? {};
 
   return { ok: resp.ok, status: resp.status, data };
 }
@@ -198,16 +186,10 @@ async function squarePost(path: string, body: any): Promise<SquareResp> {
  * ------------------------------------------------------ */
 async function squareCreateCardOnFile(args: { customer_id: string; sourceId: string }) {
   const body = {
-    idempotency_key: randomUUID(),
+    idempotency_key: crypto.randomUUID(),
     source_id: args.sourceId,
     card: { customer_id: args.customer_id },
   };
-
-  console.log("➡️ SQUARE CARD CREATE", {
-    customer_id: mask(args.customer_id),
-    sourceId: mask(args.sourceId),
-  });
-
   return await squarePost("/v2/cards", body);
 }
 
@@ -217,10 +199,10 @@ async function squareCreateOrderTemplate(args: {
   title: string;
   currency?: string;
 }) {
-  const currency = (args.currency || "USD").trim();
+  const currency = safeStr(args.currency || "USD", 10) || "USD";
 
   const body = {
-    idempotency_key: randomUUID(),
+    idempotency_key: crypto.randomUUID(),
     order: {
       location_id: args.location_id,
       state: "DRAFT",
@@ -233,13 +215,6 @@ async function squareCreateOrderTemplate(args: {
       ],
     },
   };
-
-  console.log("➡️ SQUARE ORDER CREATE", {
-    location_id: args.location_id,
-    amount_cents: args.amount_cents,
-    currency,
-    title: args.title,
-  });
 
   return await squarePost("/v2/orders", body);
 }
@@ -261,45 +236,34 @@ async function squareCreateSubscription(args: {
     phases: [{ ordinal: 0, order_template_id: args.order_template_id }],
   };
 
-  console.log("➡️ SQUARE SUB CREATE", {
-    env: process.env.SQUARE_ENVIRONMENT || "sandbox",
-    location_id: args.location_id,
-    customer_id: mask(args.customer_id),
-    plan_variation_id: mask(args.plan_variation_id),
-    card_id: mask(args.card_id),
-  });
-
   return await squarePost("/v2/subscriptions", body);
 }
 
 function pickSubscriptionFields(sub: any) {
-  const subscription_id = String(sub?.id || "").trim();
-  const status = String(sub?.status || "").trim();
-  const start_date = String(sub?.start_date || "").trim();
-  const next_billing_date = String(sub?.charged_through_date || sub?.next_billing_date || "").trim();
+  const subscription_id = safeStr(sub?.id || "", 120);
+  const status = safeStr(sub?.status || "", 60);
+  const start_date = safeStr(sub?.start_date || "", 20);
+  const next_billing_date = safeStr(sub?.charged_through_date || sub?.next_billing_date || "", 20);
   return { subscription_id, status, start_date, next_billing_date };
 }
 
 /** -------------------------------------------------------
  * GET /api/subscribe-again
- * - Calls PHP action=subscribe-again and returns it as-is.
+ * - Calls PHP action=subscribe-again and returns it.
  * ------------------------------------------------------ */
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
 
-    const auth_token = (searchParams.get("auth_token") || "").trim();
-    const user_id = (searchParams.get("user_id") || "").trim();
-    const return_url = (searchParams.get("return_url") || "").trim();
-
-    console.log("📥 GET /api/subscribe-again", {
-      user_id,
-      auth_token: mask(auth_token),
-      return_url,
-    });
+    const auth_token = safeStr(searchParams.get("auth_token") || "", 400);
+    const user_id = safeStr(searchParams.get("user_id") || "", 60);
+    const return_url = safeStr(searchParams.get("return_url") || "", 800);
 
     if (!auth_token || !user_id) {
-      return json(400, { ok: false, message: "auth_token and user_id are required." });
+      return json(400, {
+        ok: false,
+        message: "Please sign in again and try once more.",
+      });
     }
 
     const php = await callPhp({
@@ -312,34 +276,30 @@ export async function GET(req: NextRequest) {
     if (!php.parse_ok) {
       return json(502, {
         ok: false,
-        message: "PHP returned non-JSON output.",
-        php_status: php.status,
-        php_reason: php.parse_reason,
-        contentType: php.contentType,
-        php_preview: (php.raw || "").trim().slice(0, 1500),
+        message: "We couldn't load your subscription options right now. Please try again shortly.",
       });
     }
 
     if (!php.http_ok) {
       return json(502, {
         ok: false,
-        message: "PHP API request failed.",
-        php_status: php.status,
-        php_preview: (php.raw || "").trim().slice(0, 700),
+        message: "We couldn't load your subscription options right now. Please try again shortly.",
       });
     }
 
     if (!php.data?.ok) {
       return json(400, {
         ok: false,
-        message: php.data?.message || "Failed to load context.",
+        message: php.data?.message || "We couldn't load your subscription options. Please try again.",
       });
     }
 
     return json(200, php.data);
-  } catch (e: any) {
-    console.error("❌ GET /api/subscribe-again error:", e);
-    return json(500, { ok: false, message: e?.message || "Server error." });
+  } catch {
+    return json(500, {
+      ok: false,
+      message: "Something went wrong. Please try again.",
+    });
   }
 }
 
@@ -350,35 +310,41 @@ export async function GET(req: NextRequest) {
  * - Creates card-on-file from sourceId.
  * - Creates DRAFT order template for amount.
  * - Creates subscription with phases and card_id.
- * - DOES NOT call subscription-updated (webhooks will handle DB syncing).
+ * - DOES NOT call subscription-updated (webhooks handle DB syncing).
  * ------------------------------------------------------ */
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({} as any));
 
-    const auth_token = String(body?.auth_token || "").trim();
-    const user_id_from_client = String(body?.user_id || "").trim();
-    const plan_variation_id = String(body?.plan_variation_id || "").trim();
+    const auth_token = safeStr(body?.auth_token || "", 400);
+    const user_id_from_client = safeStr(body?.user_id || "", 60);
+    const plan_variation_id = safeStr(body?.plan_variation_id || "", 120);
 
-    const sourceId = String(body?.sourceId || "").trim();
-    const return_url = String(body?.return_url || "").trim();
-
-    console.log("📥 POST /api/subscribe-again body", {
-      user_id: user_id_from_client,
-      auth_token: auth_token ? mask(auth_token) : "",
-      plan_variation_id: plan_variation_id ? mask(plan_variation_id) : "",
-      sourceId: sourceId ? mask(sourceId) : "",
-      return_url,
-    });
+    const sourceId = safeStr(body?.sourceId || "", 600);
+    const return_url = safeStr(body?.return_url || "", 800);
 
     if (!auth_token || !user_id_from_client || !plan_variation_id) {
-      return json(400, { ok: false, message: "auth_token, user_id, plan_variation_id are required." });
+      return json(400, {
+        ok: false,
+        message: "Missing required information. Please refresh and try again.",
+      });
     }
     if (!sourceId) {
-      return json(400, { ok: false, message: "sourceId is required." });
+      return json(400, {
+        ok: false,
+        message: "Payment method is missing. Please refresh and try again.",
+      });
     }
 
-    // 1) Get authoritative packages + course_id from PHP (for server-side validation)
+    // PHP config safety
+    if (!PHP_API_URL) {
+      return json(500, {
+        ok: false,
+        message: "Subscription service is not configured properly. Please contact support.",
+      });
+    }
+
+    // 1) Server-side validation: load available packages from PHP
     const ctx = await callPhp({
       action: "subscribe-again",
       auth_token,
@@ -386,149 +352,168 @@ export async function POST(req: NextRequest) {
       return_url,
     });
 
-    if (!ctx.parse_ok) {
+    if (!ctx.parse_ok || !ctx.http_ok || !ctx.data?.ok) {
       return json(502, {
         ok: false,
-        message: "PHP returned non-JSON output (subscribe-again).",
-        php_status: ctx.status,
-        php_reason: ctx.parse_reason,
-        contentType: ctx.contentType,
-        php_preview: (ctx.raw || "").trim().slice(0, 2000),
+        message: "We couldn't verify your subscription options right now. Please try again shortly.",
       });
-    }
-    if (!ctx.http_ok) {
-      return json(502, {
-        ok: false,
-        message: "PHP API request failed (subscribe-again).",
-        php_status: ctx.status,
-        php_preview: (ctx.raw || "").trim().slice(0, 700),
-      });
-    }
-    if (!ctx.data?.ok) {
-      return json(400, { ok: false, message: ctx.data?.message || "Failed to load subscribe-again context." });
     }
 
-    const course_id = String(ctx.data?.course?.course_id || "").trim();
+    const course_id = safeStr(ctx.data?.course?.course_id || "", 60);
     if (!course_id) {
-      return json(500, { ok: false, message: "Missing course_id from PHP context." });
+      return json(500, {
+        ok: false,
+        message: "We couldn't prepare your subscription. Please try again.",
+      });
     }
 
     const pkgs: any[] = Array.isArray(ctx.data?.packages) ? ctx.data.packages : [];
-    const picked = pkgs.find((p) => String(p?.plan_variation_id || "").trim() === plan_variation_id);
+    const picked = pkgs.find((p) => safeStr(p?.plan_variation_id || "", 120) === plan_variation_id);
 
     if (!picked) {
-      return json(400, { ok: false, message: "Invalid plan_variation_id (not found in available packages)." });
+      return json(400, {
+        ok: false,
+        message: "That subscription option is not available. Please select another plan.",
+      });
     }
 
     const amount_cents = Number(picked?.amount_cents || 0);
     if (!Number.isFinite(amount_cents) || amount_cents <= 0) {
-      return json(400, { ok: false, message: "Invalid package amount from server context." });
+      return json(400, {
+        ok: false,
+        message: "We couldn't verify the plan price. Please try again.",
+      });
     }
 
-    const currency = String(picked?.currency || "USD").trim() || "USD";
+    const currency = safeStr(picked?.currency || "USD", 10) || "USD";
 
-    // 2) Validate auth token and get Square customer id (required to create card-on-file / subscription)
+    // 2) Validate auth token and get Square customer id
     const who = await callPhp({ action: "auth-token-lookup", auth_token });
 
-    if (!who.parse_ok) {
-      return json(502, {
+    if (!who.parse_ok || !who.http_ok || !who.data?.ok || !who.data?.user?.user_id) {
+      return json(401, {
         ok: false,
-        message: "PHP returned non-JSON output (auth-token-lookup).",
-        php_status: who.status,
-        php_reason: who.parse_reason,
-        contentType: who.contentType,
-        php_preview: (who.raw || "").trim().slice(0, 2000),
+        message: "Your session has expired. Please sign in again.",
       });
-    }
-    if (!who.http_ok) {
-      return json(502, {
-        ok: false,
-        message: "PHP API request failed (auth-token-lookup).",
-        php_status: who.status,
-        php_preview: (who.raw || "").trim().slice(0, 700),
-      });
-    }
-    if (!who.data?.ok || !who.data?.user?.user_id) {
-      return json(401, { ok: false, message: who.data?.message || "Invalid auth token." });
     }
 
-    const user_id = String(who.data.user.user_id || "").trim();
+    const user_id = safeStr(who.data.user.user_id || "", 60);
     if (user_id !== user_id_from_client) {
-      return json(401, { ok: false, message: "Token/user mismatch." });
+      return json(401, {
+        ok: false,
+        message: "Your session has expired. Please sign in again.",
+      });
     }
 
-    const square_customer_id = String(who.data.user.square_customer_id || "").trim();
+    const square_customer_id = safeStr(who.data.user.square_customer_id || "", 140);
     if (!square_customer_id) {
-      return json(400, { ok: false, message: "Missing square_customer_id for this user." });
+      return json(400, {
+        ok: false,
+        message: "We couldn't find a payment profile for this account. Please contact support.",
+      });
     }
 
     // 3) Create card-on-file
     const cardRes = await squareCreateCardOnFile({ customer_id: square_customer_id, sourceId });
+    if (cardRes.configError) {
+      return json(500, {
+        ok: false,
+        message: "Payment service is not configured properly. Please contact support.",
+      });
+    }
     if (!cardRes.ok) {
       return json(400, {
         ok: false,
-        message: "Square card-on-file creation failed.",
-        square_status: cardRes.status,
-        square_errors: cardRes.data?.errors || [],
-        square_raw: cardRes.data,
+        message:
+          "We couldn't save your payment method. Please try again or use a different card.",
       });
     }
 
-    const card_id = String(cardRes.data?.card?.id || "").trim();
-    if (!card_id) return json(500, { ok: false, message: "Square returned no card id." });
+    const card_id = safeStr(cardRes.data?.card?.id || "", 120);
+    if (!card_id) {
+      return json(500, {
+        ok: false,
+        message: "We couldn't set up your payment method. Please try again.",
+      });
+    }
 
     // 4) Create DRAFT order template (used by phases)
-    const location_id = mustEnv("SQUARE_LOCATION_ID");
-    const title = String(picked?.title || "Subscription").trim() || "Subscription";
+    const cfg = squareConfig();
+    if (!cfg.ok || !cfg.locationId) {
+      return json(500, {
+        ok: false,
+        message: "Payment service is not configured properly. Please contact support.",
+      });
+    }
+    const location_id = cfg.locationId;
 
+    const title = safeStr(picked?.title || "Subscription", 120) || "Subscription";
     const orderRes = await squareCreateOrderTemplate({ location_id, amount_cents, title, currency });
+
+    if (orderRes.configError) {
+      return json(500, {
+        ok: false,
+        message: "Payment service is not configured properly. Please contact support.",
+      });
+    }
     if (!orderRes.ok) {
       return json(400, {
         ok: false,
-        message: "Square order template creation failed.",
-        square_status: orderRes.status,
-        square_errors: orderRes.data?.errors || [],
-        square_raw: orderRes.data,
+        message:
+          "We couldn't prepare your subscription charge. Please try again shortly.",
       });
     }
 
-    const order_template_id = String(orderRes.data?.order?.id || "").trim();
-    if (!order_template_id) return json(500, { ok: false, message: "Square returned no order id." });
+    const order_template_id = safeStr(orderRes.data?.order?.id || "", 120);
+    if (!order_template_id) {
+      return json(500, {
+        ok: false,
+        message: "We couldn't prepare your subscription. Please try again.",
+      });
+    }
 
     // 5) Create subscription
-    const sq = await squareCreateSubscription({
+    const subRes = await squareCreateSubscription({
       customer_id: square_customer_id,
       location_id,
       plan_variation_id,
-      idempotency_key: randomUUID(),
+      idempotency_key: crypto.randomUUID(),
       card_id,
       order_template_id,
     });
 
-    if (!sq.ok) {
-      return json(400, {
+    if (subRes.configError) {
+      return json(500, {
         ok: false,
-        message: "Square subscription creation failed.",
-        square_status: sq.status,
-        square_errors: sq.data?.errors || [],
-        square_raw: sq.data,
-        env: process.env.SQUARE_ENVIRONMENT || "sandbox",
-        location_id,
-        plan_variation_id,
+        message: "Payment service is not configured properly. Please contact support.",
       });
     }
 
-    const sub = sq.data?.subscription || {};
-    const { subscription_id, status, start_date, next_billing_date } = pickSubscriptionFields(sub);
-    if (!subscription_id) return json(500, { ok: false, message: "Square returned no subscription id." });
+    if (!subRes.ok) {
+      return json(400, {
+        ok: false,
+        message:
+          "We couldn't create the subscription. Please try again, or use a different card.",
+      });
+    }
 
-    // ✅ Done. DB syncing will happen via your webhook routes:
+    const sub = subRes.data?.subscription || {};
+    const { subscription_id, status, start_date, next_billing_date } = pickSubscriptionFields(sub);
+
+    if (!subscription_id) {
+      return json(500, {
+        ok: false,
+        message: "We couldn't finalize your subscription. Please contact support.",
+      });
+    }
+
+    // ✅ Done. DB syncing happens via:
     // - app/api/subscription-webhook
     // - app/api/payment-webhook
 
     return json(200, {
       ok: true,
-      message: "Subscription created successfully.",
+      message: "Your subscription has been created successfully.",
       subscription_id,
       status,
       start_date,
@@ -548,8 +533,10 @@ export async function POST(req: NextRequest) {
         order_template_id,
       },
     });
-  } catch (e: any) {
-    console.error("❌ POST /api/subscribe-again error:", e);
-    return json(500, { ok: false, message: e?.message || "Server error." });
+  } catch {
+    return json(500, {
+      ok: false,
+      message: "We couldn't create your subscription right now. Please try again.",
+    });
   }
 }
