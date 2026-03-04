@@ -2,15 +2,19 @@ import Link from "next/link";
 
 type Method = "mobile" | "card";
 
-export default function ThankYouPage({
+export default async function ThankYouPage({
   searchParams,
 }: {
-  searchParams?: { method?: string };
+  // Next.js 16: searchParams can be a Promise in Server Components
+  searchParams?: Promise<{ method?: string; id?: string }>;
 }) {
-  const methodParam = (searchParams?.method || "").toLowerCase();
+  const params = (await searchParams) ?? {};
+
+  const methodParam = (params.method ?? "").toLowerCase();
   const method: Method = methodParam === "mobile" ? "mobile" : "card";
 
-  const title = method === "mobile" ? "Registration Completed" : "Payment Successful";
+  const title =
+    method === "mobile" ? "Registration Completed" : "Payment Successful";
 
   const subtitle =
     method === "mobile"
@@ -21,8 +25,8 @@ export default function ThankYouPage({
     method === "mobile" ? (
       <>
         <p className="mb-3" style={{ fontSize: 16, lineHeight: 1.6 }}>
-          Congratulations, your registration has been done successfully. Your account will be
-          activated by your tutor.
+          Congratulations, your registration has been done successfully. Your
+          account will be activated by your tutor.
         </p>
 
         <p className="mb-0" style={{ fontSize: 16, lineHeight: 1.6 }}>
@@ -30,8 +34,8 @@ export default function ThankYouPage({
           <Link href="/user-login" className="fw-bold text-decoration-underline">
             log in
           </Link>{" "}
-          and start the online practice test. We will inform you when your account will be
-          activated by your tutor within 24 hours.
+          and start the online practice test. We will inform you when your
+          account will be activated by your tutor within 24 hours.
         </p>
       </>
     ) : (
@@ -42,6 +46,12 @@ export default function ThankYouPage({
             log in
           </Link>{" "}
           and start the online practice test.
+          {params.id ? (
+            <>
+              {" "}
+              
+            </>
+          ) : null}
         </p>
       </>
     );
@@ -57,7 +67,8 @@ export default function ThankYouPage({
                 className="card-body p-4 p-md-5 text-center"
                 style={{
                   borderBottom: "1px solid rgba(0,0,0,0.06)",
-                  background: "linear-gradient(135deg, rgba(242,161,85,0.14), rgba(0,35,65,0.08))",
+                  background:
+                    "linear-gradient(135deg, rgba(242,161,85,0.14), rgba(0,35,65,0.08))",
                 }}
               >
                 {/* Check Icon */}
@@ -71,7 +82,13 @@ export default function ThankYouPage({
                     border: "1px solid rgba(34,197,94,0.25)",
                   }}
                 >
-                  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <svg
+                    width="30"
+                    height="30"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    aria-hidden="true"
+                  >
                     <path
                       d="M20 6L9 17l-5-5"
                       stroke="#16a34a"
@@ -124,7 +141,10 @@ export default function ThankYouPage({
             {/* Small help note */}
             <div className="text-center mt-3 text-muted" style={{ fontSize: 13 }}>
               Need help? Email{" "}
-              <a href="mailto:info@asvab-tutoring.com" className="text-decoration-underline">
+              <a
+                href="mailto:info@asvab-tutoring.com"
+                className="text-decoration-underline"
+              >
                 info@asvab-tutoring.com
               </a>{" "}
               or call{" "}

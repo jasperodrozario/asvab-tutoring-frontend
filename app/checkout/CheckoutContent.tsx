@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import SquarePaymentForm from "@/components/square-payment-form/SquarePaymentForm";
 import Image from "next/image";
@@ -10,6 +10,12 @@ type Product = "ASVAB" | "AFOQT" | "ASTB" | "SIFT" | "OAR";
 type Cadence = "1M" | "3M" | "6M" | "12M";
 
 type PaymentMethod = "mobile" | "card";
+
+// Result type to capture both status and server message
+type EmailCheckResult = {
+  exists: boolean | null;
+  message: string;
+};
 
 function isProduct(x: any): x is Product {
   return x === "ASVAB" || x === "AFOQT" || x === "ASTB" || x === "SIFT" || x === "OAR";
@@ -59,9 +65,13 @@ export default function CheckoutContent() {
   const searchParams = useSearchParams();
 
   const API_URL = "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php";
+  const EMAIL_CHECK_ACTION = "check-email";
 
   const course_id = searchParams.get("course_id") || "";
   const session_id = searchParams.get("session_id") || "";
+
+  // ✅ ADDED: package_id from query (passed from SpecificPackageDetailsPage)
+  const package_id = searchParams.get("package_id") || "";
 
   const amountCents = useMemo(() => {
     const raw = searchParams.get("amount") ?? "0";
@@ -101,24 +111,160 @@ export default function CheckoutContent() {
     password: "",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUser((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  const [emailChecking, setEmailChecking] = useState(false);
+  const [emailExists, setEmailExists] = useState(false);
+  const [emailCheckMsg, setEmailCheckMsg] = useState<string>("");
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [lastCheckedEmail, setLastCheckedEmail] = useState<string>("");
+  const emailCheckNonceRef = useRef<number>(0);
+
+  const normalizeEmail = (email: string) => email.trim().toLowerCase();
+
+  const looksLikeEmail = (email: string) => {
+    const e = normalizeEmail(email);
+    return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
   };
 
+  /**
+   * REWRITTEN PARSER:
+   * Correctly maps your PHP API response structure.
+   */
+  const parseEmailExistsFromResponse = (raw: string): EmailCheckResult => {
+    try {
+      const data = JSON.parse(raw);
+      const serverMsg = data?.message || "";
+
+      // PHP returns code: EMAIL_EXISTS when email is taken
+      if (data?.code === "EMAIL_EXISTS") {
+        return { exists: true, message: serverMsg };
+      }
+
+      // PHP returns isSuccess: true when email is available
+      if (data?.isSuccess === true) {
+        return { exists: false, message: "" };
+      }
+
+      return { exists: null, message: serverMsg || "Verification failed" };
+    } catch {
+      const t = raw.trim().toLowerCase();
+      if (t.includes("exists")) return { exists: true, message: raw };
+      if (t.includes("success") || t === "0") return { exists: false, message: "" };
+      return { exists: null, message: "Invalid server response" };
+    }
+  };
+
+  const checkEmailExists = async (emailRaw: string): Promise<EmailCheckResult> => {
+    const email = normalizeEmail(emailRaw);
+    if (!looksLikeEmail(email)) return { exists: null, message: "" };
+
+    const body = new URLSearchParams();
+    body.append("action", EMAIL_CHECK_ACTION);
+    body.append("email", email);
+    if (course_id) body.append("course_id", String(course_id));
+    if (session_id) body.append("session_id", String(session_id));
+
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body,
+      });
+      const raw = await res.text();
+      return parseEmailExistsFromResponse(raw);
+    } catch (err) {
+      return { exists: null, message: "Network error occurred." };
+    }
+  };
+
+  const runEmailCheck = async (emailRaw: string) => {
+    const email = normalizeEmail(emailRaw);
+
+    // If it's not a valid email, block it immediately and show error
+    if (!looksLikeEmail(email)) {
+      setEmailChecking(false);
+      setEmailExists(false);
+      setEmailCheckMsg("Please enter a valid email address.");
+      setLastCheckedEmail("");
+      return;
+    }
+
+    const nonce = Date.now();
+    emailCheckNonceRef.current = nonce;
+
+    setEmailChecking(true);
+    setEmailCheckMsg("Checking email...");
+
+    try {
+      const result = await checkEmailExists(email);
+
+      if (emailCheckNonceRef.current !== nonce) return;
+
+      setLastCheckedEmail(email);
+
+      if (result.exists === true) {
+        setEmailExists(true);
+        setEmailCheckMsg(result.message || "This email already exists.");
+        return;
+      }
+
+      if (result.exists === false) {
+        setEmailExists(false);
+        setEmailCheckMsg(""); // Clears the "Checking..." message
+        return;
+      }
+
+      setEmailExists(false);
+      setEmailCheckMsg(result.message || "Could not verify email right now. Please try again.");
+    } catch (err) {
+      console.error("Email check failed:", err);
+      setEmailExists(false);
+      setEmailCheckMsg("Could not verify email right now. Please try again.");
+    } finally {
+      setEmailChecking(false);
+    }
+  };
+
+  useEffect(() => {
+    const email = normalizeEmail(user.email);
+    if (!emailTouched) return;
+    // Don't run check if empty, but clear states
+    if (!email) {
+      setEmailCheckMsg("");
+      setEmailExists(false);
+      return;
+    }
+
+    const t = window.setTimeout(() => {
+      runEmailCheck(email);
+    }, 650);
+
+    return () => window.clearTimeout(t);
+  }, [user.email, emailTouched]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setUser((prev) => ({ ...prev, [name]: value }));
+
+    if (name === "email") {
+      setEmailExists(false);
+      setEmailCheckMsg("");
+    }
+  };
+
+  // ✅ UPDATED: require package_id too
   const invalidBase =
-    !course_id || !session_id || !Number.isFinite(amountCents) || amountCents <= 0;
+    !course_id || !session_id || !package_id || !Number.isFinite(amountCents) || amountCents <= 0;
 
-  const subscriptionInvalid =
-    mode === "subscription" && (!isProduct(product) || !isCadence(cadence));
+  const subscriptionInvalid = mode === "subscription" && (!isProduct(product) || !isCadence(cadence));
 
-  // ✅ Default to mobile for one-time, but card-only for subscription
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(() =>
     mode === "subscription" ? "card" : "mobile"
   );
 
-  // ✅ If mode changes to subscription, force card
   useEffect(() => {
-    if (mode === "subscription") setPaymentMethod("card");
+    if (mode === "subscription") {
+      setPaymentMethod("card");
+    }
   }, [mode]);
 
   const [mobilePay, setMobilePay] = useState({
@@ -139,25 +285,30 @@ export default function CheckoutContent() {
 
   const [agreeTerms, setAgreeTerms] = useState(false);
 
+  // Added strict check for looksLikeEmail to canSubmitMobile
   const canSubmitMobile =
     agreeTerms &&
+    looksLikeEmail(user.email) &&
     !!mobilePay.mobile.trim() &&
     !!mobilePay.ref_code.trim() &&
     !!user.first_name.trim() &&
     !!user.last_name.trim() &&
-    !!user.email.trim() &&
     !!user.password.trim() &&
     !!user.mobile.trim() &&
+    !emailChecking &&
+    !emailExists &&
     !invalidBase;
 
   const submitMobilePayment = async () => {
     setMobileResult(null);
 
     if (!agreeTerms) {
-      setMobileResult({
-        type: "danger",
-        text: "Please agree to the Terms & Conditions to continue.",
-      });
+      setMobileResult({ type: "danger", text: "Please agree to the Terms & Conditions to continue." });
+      return;
+    }
+
+    if (!looksLikeEmail(user.email)) {
+      setMobileResult({ type: "danger", text: "Please enter a valid email address." });
       return;
     }
 
@@ -169,6 +320,20 @@ export default function CheckoutContent() {
       return;
     }
 
+    if (normalizeEmail(user.email) !== lastCheckedEmail) {
+      await runEmailCheck(user.email);
+    }
+
+    if (emailChecking) {
+      setMobileResult({ type: "info", text: "Checking email… Please wait a moment and try again." });
+      return;
+    }
+
+    if (emailExists) {
+      setMobileResult({ type: "danger", text: emailCheckMsg || "This email already exists." });
+      return;
+    }
+
     setMobileSubmitting(true);
 
     try {
@@ -176,12 +341,12 @@ export default function CheckoutContent() {
       body.append("action", "user-registration-mobile-payment");
       body.append("course_id", String(course_id));
       body.append("session_id", String(session_id));
+      body.append("package_id", String(package_id)); // ✅ ADDED: send package_id to PHP
       body.append("first_name", user.first_name);
       body.append("last_name", user.last_name);
       body.append("email", user.email);
       body.append("password", user.password);
       body.append("mobile", user.mobile);
-
       body.append("ref_code", mobilePay.ref_code);
       body.append("amount", String(amountCents));
       body.append("currency", "USD");
@@ -195,37 +360,23 @@ export default function CheckoutContent() {
 
       const raw = await res.text();
       let data: any = null;
-
       try {
         data = JSON.parse(raw);
       } catch {
-        setMobileResult({
-          type: "danger",
-          text: "Server returned invalid response. Please try again.",
-        });
+        setMobileResult({ type: "danger", text: data?.message || "" });
         return;
       }
 
       if (data?.isSuccess) {
-        setMobileResult({
-          type: "success",
-          text: data?.message || "Mobile payment request submitted successfully.",
-        });
-
+        setMobileResult({ type: "success", text: data?.message || "Submitted successfully." });
         router.push("/thank-you?method=mobile");
         return;
       }
 
-      setMobileResult({
-        type: "danger",
-        text: data?.message || "Submission failed. Please check your info and try again.",
-      });
+      setMobileResult({ type: "danger", text: data?.message || "Submission failed." });
     } catch (err) {
       console.error(err);
-      setMobileResult({
-        type: "danger",
-        text: "Network error. Please try again.",
-      });
+      setMobileResult({ type: "danger", text: "Network error. Please try again." });
     } finally {
       setMobileSubmitting(false);
     }
@@ -244,12 +395,7 @@ export default function CheckoutContent() {
   const TermsRadio = () => (
     <div className="mt-3">
       <label className="d-flex align-items-center gap-2 small mb-0">
-        <input
-          type="radio"
-          name="agree_terms"
-          checked={agreeTerms}
-          onChange={() => setAgreeTerms(true)}
-        />
+        <input type="radio" name="agree_terms" checked={agreeTerms} onChange={() => setAgreeTerms(true)} />
         <span>
           Agree{" "}
           <a
@@ -263,12 +409,15 @@ export default function CheckoutContent() {
           </a>
         </span>
       </label>
-
-      {!agreeTerms && <div className="small text-muted mt-2">Please agree to enable the button.</div>}
+      {!agreeTerms && <div className="small text-muted mt-2">Please complete all the fields to enable the button.</div>}
     </div>
   );
 
-  const isSubscription = mode === "subscription";
+  const showPaymentMethodChooser = mode !== "subscription";
+  const showMobileUI = showPaymentMethodChooser && paymentMethod === "mobile";
+  const showCardUI = mode === "subscription" || paymentMethod === "card";
+  // Block card if not a valid email format
+  const cardBlockedByEmail = emailChecking || emailExists || !looksLikeEmail(user.email);
 
   return (
     <div className="container py-5" style={{ maxWidth: 1100 }}>
@@ -276,15 +425,13 @@ export default function CheckoutContent() {
         <div>
           <h1 className="fw-bold mb-1">{pageTitle}</h1>
           <p className="text-muted mb-0">{pageSub}</p>
-
-          {isSubscription && (
+          {mode === "subscription" && (
             <p className="text-muted small mb-0 mt-2">
               Plan: <span className="fw-semibold">{product}</span> •{" "}
               <span className="fw-semibold">{cadenceLabel(cadence)}</span>
             </p>
           )}
         </div>
-
         <div className="text-end">
           <div className="text-muted small">Total</div>
           <div className="fw-bold" style={{ fontSize: 28 }}>
@@ -298,7 +445,6 @@ export default function CheckoutContent() {
           <div className="card shadow-sm border-0 w-100">
             <div className="card-body p-4 d-flex flex-column">
               <h5 className="fw-bold mb-3">Your Registration Information</h5>
-
               <input
                 className="form-control mb-2"
                 name="first_name"
@@ -313,7 +459,6 @@ export default function CheckoutContent() {
                 value={user.last_name}
                 onChange={handleChange}
               />
-
               <input
                 className="form-control mb-2"
                 type="email"
@@ -321,14 +466,23 @@ export default function CheckoutContent() {
                 placeholder="Email"
                 value={user.email}
                 onChange={handleChange}
+                onBlur={() => {
+                  setEmailTouched(true);
+                  runEmailCheck(user.email);
+                }}
+                onFocus={() => setEmailTouched(true)}
               />
-              <input
-                className="form-control mb-2"
-                name="mobile"
-                placeholder="Mobile"
-                value={user.mobile}
-                onChange={handleChange}
-              />
+              {(emailTouched || !!user.email.trim()) && emailCheckMsg && (
+                <div
+                  className={`small mb-2 ${
+                    emailExists || !looksLikeEmail(user.email) ? "text-danger" : "text-muted"
+                  }`}
+                  role={emailExists || !looksLikeEmail(user.email) ? "alert" : undefined}
+                >
+                  {emailCheckMsg}
+                </div>
+              )}
+              <input className="form-control mb-2" name="mobile" placeholder="Mobile" value={user.mobile} onChange={handleChange} />
               <input
                 className="form-control mb-0"
                 type="password"
@@ -337,16 +491,10 @@ export default function CheckoutContent() {
                 value={user.password}
                 onChange={handleChange}
               />
-
-              {isSubscription && subscriptionInvalid && (
-                <div className="alert alert-danger mt-3 mb-0 py-2">
-                  Invalid subscription parameters in checkout link.
-                </div>
+              {mode === "subscription" && subscriptionInvalid && (
+                <div className="alert alert-danger mt-3 mb-0 py-2">Invalid subscription parameters.</div>
               )}
-
-              <div className="mt-3 small text-muted">
-                We’ll use your email for purchase confirmation and account access.
-              </div>
+              <div className="mt-3 small text-muted">We’ll use your email for purchase confirmation and account access.</div>
             </div>
           </div>
         </div>
@@ -357,9 +505,7 @@ export default function CheckoutContent() {
               <div className="px-4 pt-4 pb-3 border-bottom">
                 <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
                   <div className="fw-semibold text-muted">Payment Method</div>
-
-                  {/* ✅ Hide radio choices for subscription; force card */}
-                  {!isSubscription ? (
+                  {showPaymentMethodChooser ? (
                     <div className="d-flex align-items-center gap-3">
                       <label className="d-flex align-items-center gap-2 small mb-0">
                         <input
@@ -370,7 +516,6 @@ export default function CheckoutContent() {
                         />
                         Mobile Payment
                       </label>
-
                       <label className="d-flex align-items-center gap-2 small mb-0">
                         <input
                           type="radio"
@@ -388,21 +533,19 @@ export default function CheckoutContent() {
               </div>
 
               <div className="p-4">
-                {/* ✅ Show mobile payment only for one_time */}
-                {!isSubscription && paymentMethod === "mobile" && (
+                {showMobileUI && (
                   <div>
                     <div className="text-center">
                       <div className="d-flex justify-content-center">
                         <Image
                           src="/images/mobile_payment_app_20260204.png"
-                          alt="Mobile payment apps"
+                          alt="Mobile apps"
                           width={350}
                           height={220}
                           className="img-fluid"
                           style={{ maxWidth: 560, height: "auto" }}
                         />
                       </div>
-
                       <div className="mt-3">
                         <div className="fw-bold" style={{ fontSize: 18 }}>
                           Send payment to:
@@ -412,19 +555,17 @@ export default function CheckoutContent() {
                         </div>
                       </div>
                     </div>
-
                     <div className="mt-4">
                       <div className="row g-2">
                         <div className="col-12">
                           <input
                             className="form-control"
                             name="mobile"
-                            placeholder="payment account number"
+                            placeholder="Payment account number"
                             value={mobilePay.mobile}
                             onChange={handleMobilePayChange}
                           />
                         </div>
-
                         <div className="col-12">
                           <input
                             className="form-control"
@@ -435,9 +576,7 @@ export default function CheckoutContent() {
                           />
                         </div>
                       </div>
-
                       <TermsRadio />
-
                       <button
                         type="button"
                         className="btn btn-primary-custom mt-4 px-5 py-2 d-block mx-auto"
@@ -446,23 +585,12 @@ export default function CheckoutContent() {
                       >
                         {mobileSubmitting ? "Submitting..." : "Submit"}
                       </button>
-
-                      {mobileResult && (
-                        <div className={`alert alert-${mobileResult.type} mt-3 mb-0`}>
-                          {mobileResult.text}
-                        </div>
-                      )}
-
-                      <div className="small text-muted mt-3">
-                        After sending payment, please enter your payment mobile number and reference code
-                        so we can verify and activate your access.
-                      </div>
+                      {mobileResult && <div className={`alert alert-${mobileResult.type} mt-3 mb-0`}>{mobileResult.text}</div>}
                     </div>
                   </div>
                 )}
 
-                {/* ✅ Card payment always shown for subscription; optional for one_time */}
-                {(isSubscription || paymentMethod === "card") && (
+                {showCardUI && (
                   <>
                     <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                       <div className="fw-semibold text-muted">Card Payment Details</div>
@@ -473,16 +601,16 @@ export default function CheckoutContent() {
                         <span className="badge text-bg-light border">DISC</span>
                       </div>
                     </div>
-
                     <SquarePaymentForm
                       amount={amountCents}
                       course_id={course_id}
                       session_id={session_id}
+                      package_id={package_id} // ✅ ADDED: pass package_id down so SquarePaymentForm can post to PHP
                       user={user}
                       mode={mode}
-                      product={isSubscription ? product : undefined}
-                      cadence={isSubscription ? cadence : undefined}
-                      disabled={subscriptionInvalid}
+                      product={mode === "subscription" ? product : undefined}
+                      cadence={mode === "subscription" ? cadence : undefined}
+                      disabled={subscriptionInvalid || cardBlockedByEmail}
                       agreeTerms={agreeTerms}
                       onAgreeTermsChange={setAgreeTerms}
                       onPaymentSuccess={(id?: string) => {
@@ -490,12 +618,24 @@ export default function CheckoutContent() {
                         router.push(`/thank-you${q}`);
                       }}
                     />
-
+                    {(emailTouched || !!user.email.trim()) &&
+                      (emailChecking || emailExists || !looksLikeEmail(user.email)) && (
+                        <div
+                          className={`alert ${
+                            emailExists || !looksLikeEmail(user.email) ? "alert-danger" : "alert-info"
+                          } mt-3 mb-0 py-2`}
+                        >
+                          {emailExists
+                            ? emailCheckMsg
+                            : !looksLikeEmail(user.email)
+                            ? "Please enter a valid email address."
+                            : "Checking email… Please wait."}
+                        </div>
+                      )}
                     <div className="small text-muted mt-3">Secure payment • PCI compliant</div>
                   </>
                 )}
               </div>
-
               <div className="px-4 pb-4" />
             </div>
           </div>

@@ -24,6 +24,10 @@ type Props = {
   amount: number;
   course_id: string;
   session_id: string;
+
+  // ✅ ADDED
+  package_id: string;
+
   user: User;
 
   mode?: PaymentMode;
@@ -49,10 +53,74 @@ function isCadence(x: unknown): x is Cadence {
   return x === "1M" || x === "3M" || x === "6M" || x === "12M";
 }
 
+/**
+ * Fix: avoid race condition when <script id="square-js"> exists but hasn't finished loading yet.
+ * We keep a single shared Promise and only resolve after the script "load" event has fired.
+ */
+let squareScriptPromise: Promise<void> | null = null;
+
+function loadSquareScriptOnce(src: string): Promise<void> {
+  if (squareScriptPromise) return squareScriptPromise;
+
+  squareScriptPromise = new Promise<void>((resolve, reject) => {
+    const existing = document.getElementById("square-js") as HTMLScriptElement | null;
+
+    // Already loaded before
+    if (existing?.dataset.loaded === "1") return resolve();
+
+    // Exists but may still be loading → wait for actual load/error
+    if (existing) {
+      const onLoad = () => {
+        existing.dataset.loaded = "1";
+        cleanup();
+        resolve();
+      };
+      const onError = () => {
+        cleanup();
+        reject(new Error("Failed to load Square JS"));
+      };
+      const cleanup = () => {
+        existing.removeEventListener("load", onLoad);
+        existing.removeEventListener("error", onError);
+      };
+
+      existing.addEventListener("load", onLoad);
+      existing.addEventListener("error", onError);
+      return;
+    }
+
+    // Create new script
+    const script = document.createElement("script");
+    script.id = "square-js";
+    script.src = src;
+    script.async = true;
+    script.crossOrigin = "anonymous";
+
+    script.onload = () => {
+      script.dataset.loaded = "1";
+      resolve();
+    };
+    script.onerror = () => reject(new Error("Failed to load Square JS"));
+
+    document.body.appendChild(script);
+  });
+
+  return squareScriptPromise;
+}
+
+async function waitForWindowSquare(maxMs = 10_000): Promise<boolean> {
+  const start = Date.now();
+  while (!window.Square && Date.now() - start < maxMs) {
+    await new Promise((r) => setTimeout(r, 100));
+  }
+  return !!window.Square;
+}
+
 export default function SquarePaymentForm({
   amount,
   course_id,
   session_id,
+  package_id, // ✅ ADDED
   user,
   mode = "one_time",
   product,
@@ -64,6 +132,9 @@ export default function SquarePaymentForm({
 }: Props) {
   const cardContainerRef = useRef<HTMLDivElement | null>(null);
   const cardInstanceRef = useRef<any>(null);
+
+  // Guard against double init (dev hot reload / remount timing)
+  const initTokenRef = useRef(0);
 
   const [initializing, setInitializing] = useState(true);
   const [paying, setPaying] = useState(false);
@@ -81,23 +152,9 @@ export default function SquarePaymentForm({
       : "https://web.squarecdn.com/v1/square.js";
   })();
 
-  const loadSquareScript = () =>
-    new Promise<void>((resolve, reject) => {
-      const existing = document.getElementById("square-js");
-      if (existing) return resolve();
-
-      const script = document.createElement("script");
-      script.id = "square-js";
-      script.src = squareScriptSrc;
-      script.async = true;
-      script.crossOrigin = "anonymous";
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error("Failed to load Square JS"));
-      document.body.appendChild(script);
-    });
-
   useEffect(() => {
     let cancelled = false;
+    const myToken = ++initTokenRef.current;
 
     const init = async () => {
       try {
@@ -108,10 +165,13 @@ export default function SquarePaymentForm({
           return;
         }
 
-        await loadSquareScript();
+        // Ensure script is truly loaded (not just present)
+        await loadSquareScriptOnce(squareScriptSrc);
 
-        if (!window.Square) {
-          setMessage("Unable to load payment form.");
+        // Wait longer for window.Square to appear (slow network / cold cache / hot reload)
+        const ok = await waitForWindowSquare(10_000);
+        if (!ok) {
+          setMessage("Unable to load payment form. Please refresh the page.");
           return;
         }
 
@@ -120,12 +180,29 @@ export default function SquarePaymentForm({
           return;
         }
 
+        // If another init started after us, abort
+        if (cancelled || initTokenRef.current !== myToken) return;
+
+        // Cleanup any existing card instance before creating a new one
+        try {
+          if (cardInstanceRef.current) {
+            await cardInstanceRef.current.destroy();
+            cardInstanceRef.current = null;
+          }
+        } catch (e) {
+          console.error("Previous card destroy error:", e);
+        }
+
+        // Clean existing content before attaching
         cardContainerRef.current.innerHTML = "";
 
-        const payments = window.Square.payments(appId, locationId);
+        const payments = window.Square!.payments(appId, locationId);
         const card = await payments.card();
 
-        if (cancelled) return;
+        if (cancelled || initTokenRef.current !== myToken) {
+          await card.destroy();
+          return;
+        }
 
         await card.attach(cardContainerRef.current);
         cardInstanceRef.current = card;
@@ -135,7 +212,7 @@ export default function SquarePaymentForm({
         console.error("Error initializing payment:", err);
         setMessage("Failed to initialize payment.");
       } finally {
-        if (!cancelled) setInitializing(false);
+        if (!cancelled && initTokenRef.current === myToken) setInitializing(false);
       }
     };
 
@@ -143,15 +220,20 @@ export default function SquarePaymentForm({
 
     return () => {
       cancelled = true;
-      try {
-        if (cardInstanceRef.current) {
-          cardInstanceRef.current.destroy();
-          cardInstanceRef.current = null;
+      const cleanup = async () => {
+        try {
+          if (cardInstanceRef.current) {
+            await cardInstanceRef.current.destroy();
+            cardInstanceRef.current = null;
+          }
+          if (cardContainerRef.current) {
+            cardContainerRef.current.innerHTML = "";
+          }
+        } catch (e) {
+          console.error("Cleanup error:", e);
         }
-        if (cardContainerRef.current) {
-          cardContainerRef.current.innerHTML = "";
-        }
-      } catch {}
+      };
+      cleanup();
     };
   }, [appId, locationId, squareScriptSrc]);
 
@@ -192,8 +274,8 @@ export default function SquarePaymentForm({
       return;
     }
 
-    if (!course_id || !session_id) {
-      setMessage("Missing course/session info. Please open checkout from the course page again.");
+    if (!course_id || !session_id || !package_id) {
+      setMessage("Missing course/session/package info. Please open checkout from the course page again.");
       return;
     }
 
@@ -230,9 +312,12 @@ export default function SquarePaymentForm({
             cadence,
             userEmail: user.email,
             userName: `${user.first_name} ${user.last_name}`.trim(),
+            password: user.password,
+            mobile: user.mobile,
             amount,
             course_id,
             session_id,
+            package_id, // ✅ ADDED
           }),
         });
 
@@ -261,6 +346,7 @@ export default function SquarePaymentForm({
           amount,
           course_id,
           session_id,
+          package_id, // ✅ ADDED
           user,
         }),
       });
@@ -304,7 +390,6 @@ export default function SquarePaymentForm({
     <div>
       <div ref={cardContainerRef} className="border p-3 rounded bg-white" style={{ minHeight: 56 }} />
 
-      {/* ✅ moved here: below card inputs, above button */}
       {termsRequired && (
         <div className="mt-3">
           <label className="d-flex align-items-center gap-2 small mb-0">
@@ -335,11 +420,7 @@ export default function SquarePaymentForm({
       {initializing ? (
         <p className="mt-3">Loading payment form…</p>
       ) : (
-        <button
-          className="btn btn-primary-custom mt-4 px-5 py-2"
-          onClick={handlePayment}
-          disabled={uiDisabled}
-        >
+        <button className="btn btn-primary-custom mt-4 px-5 py-2" onClick={handlePayment} disabled={uiDisabled}>
           {completed ? "Paid" : paying ? "Processing…" : buttonLabel}
         </button>
       )}
