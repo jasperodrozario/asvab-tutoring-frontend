@@ -1,8 +1,11 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# =================================================
 
-# dependencies
-/node_modules
-/.pnp
+# Dependencies
+
+# =================================================
+
+node_modules/
+.pnp
 .pnp.*
 .yarn/*
 !.yarn/patches
@@ -10,32 +13,128 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
-/coverage
+# =================================================
 
-# next.js
-/.next/
-/out/
+# Next.js build output
 
-# production
-/build
+# =================================================
 
-# misc
-.DS_Store
-*.pem
+.next/
+.next/cache/
+.next/standalone/
+out/
+build/
+dist/
+_next/
+next-static/
 
-# debug
+# =================================================
+
+# Testing
+
+# =================================================
+
+coverage/
+
+# =================================================
+
+# Logs
+
+# =================================================
+
+logs/
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
+pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# PM2 logs
 
-# vercel
+.pm2/
+pm2.log
+
+# =================================================
+
+# Environment variables (secrets)
+
+# =================================================
+
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# =================================================
+
+# Vercel
+
+# =================================================
+
 .vercel
 
-# typescript
+# =================================================
+
+# TypeScript
+
+# =================================================
+
 *.tsbuildinfo
 next-env.d.ts
+
+# =================================================
+
+# OS / Editor files
+
+# =================================================
+
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# =================================================
+
+# Server / deployment runtime files
+
+# =================================================
+
+server.js
+start.js
+envcheck.js
+
+# Apache configuration
+
+.htaccess
+.htaccess.*
+
+# =================================================
+
+# Uploaded media (if not version controlled)
+
+# =================================================
+
+images/
+videos/
+
+# =================================================
+
+# Temporary / cache
+
+# =================================================
+
+.cache/
+tmp/
+temp/
+
+# =================================================
+
+# Backup files
+
+# =================================================
+
+*.bak
+*.backup
+*copy.txt
+*.pem
