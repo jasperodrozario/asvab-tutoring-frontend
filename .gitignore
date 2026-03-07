@@ -30,6 +30,29 @@ next-static/
 
 # =================================================
 
+# Next.js build artifacts (prevent chunk mismatch)
+
+# =================================================
+
+.next/
+.next/cache/
+.next/standalone/
+.next/static/
+
+# Sometimes copied during standalone deployment
+
+_next/
+next-static/
+
+# Generated client bundles
+
+*.next.js
+*.chunk.js
+*.chunk.css
+
+
+# =================================================
+
 # Testing
 
 # =================================================
