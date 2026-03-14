@@ -55,7 +55,7 @@ export default function OurAppsPage() {
               <div className="card h-100 shadow-sm text-center p-3">
                 {/* App Logo */}
                 <div className="mb-3">
-                  <Image
+                  <img
                     src={app.logo_img}
                     alt={app.app_name}
                     width={100}
@@ -75,7 +75,7 @@ export default function OurAppsPage() {
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      <Image
+                      <img
                         src="/images/download-on-the-app-store.svg"
                         alt="App Store"
                         width={120}
@@ -90,7 +90,7 @@ export default function OurAppsPage() {
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      <Image
+                      <img
                         src="/images/Google_Play_Store_badge_EN.svg"
                         alt="Google Play"
                         width={120}

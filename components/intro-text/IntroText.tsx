@@ -60,7 +60,7 @@ export default function WelcomeSection() {
           <h2 className="fw-bold display-5 text-dark position-relative d-inline-block pb-3">
             {loading ? "Loading..." : welcome?.title || "Welcome"}
 
-            <Image
+            <img
               src="/images/border_v1.png"
               alt="underline"
               width={160}

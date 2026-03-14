@@ -98,7 +98,7 @@ const PricingPackages: React.FC<Props> = ({
         <div className="text-center mb-2 position-relative">
           <h2 className="fs-2 fw-bold d-inline-block pb-3 position-relative">
             {headingText}
-            <Image
+            <img
               src="/images/border_v1.png"
               alt="underline"
               width={160}

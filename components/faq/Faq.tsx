@@ -52,7 +52,7 @@ export default function Faq() {
             style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.3)" }}
           >
             Frequently Asked Questions
-            <Image
+            <img
               src="/images/border_v1.png"
               alt="underline"
               width={160}

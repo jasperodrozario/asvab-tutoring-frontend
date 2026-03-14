@@ -63,7 +63,7 @@ const Review = () => {
       <div className="container" style={{ maxWidth: '800px' }}>
         <h2 className="display-5 fw-bold text-gray-800 d-inline-block pb-3 position-relative">
           Students Reviews
-          <Image
+          <img
             src="/images/border_v1.png"
             alt="underline"
             width={160}
@@ -89,7 +89,7 @@ const Review = () => {
                 <i className="bi bi-quote fs-1 primary-color-custom"></i>
                 <p className="testimonial-text mt-3">{review.text}</p>
                 <div className="d-flex justify-content-center align-items-center gap-3 mt-4">
-                  <Image
+                  <img
                     src={review.profile}
                     alt={review.name}
                     width={50}

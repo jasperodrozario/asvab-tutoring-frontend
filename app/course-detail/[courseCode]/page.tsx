@@ -235,7 +235,7 @@ const CourseDetailPage: React.FC = () => {
                             {/* Course Image */}
                             {courseData.image_src && (
                                 <div className="mb-4 text-center">
-                                    <Image
+                                    <img
                                         src={courseData.image_src}
                                         alt={courseData.course_name || "Course Image"}
                                         width={800}       // Adjust width as needed

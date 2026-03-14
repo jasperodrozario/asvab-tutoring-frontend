@@ -1,3 +1,4 @@
+//app/checkout/CheckoutContent.tsx
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -11,7 +12,6 @@ type Cadence = "1M" | "3M" | "6M" | "12M";
 
 type PaymentMethod = "mobile" | "card";
 
-// Result type to capture both status and server message
 type EmailCheckResult = {
   exists: boolean | null;
   message: string;
@@ -20,9 +20,11 @@ type EmailCheckResult = {
 function isProduct(x: any): x is Product {
   return x === "ASVAB" || x === "AFOQT" || x === "ASTB" || x === "SIFT" || x === "OAR";
 }
+
 function isCadence(x: any): x is Cadence {
   return x === "1M" || x === "3M" || x === "6M" || x === "12M";
 }
+
 function isMode(x: any): x is PaymentMode {
   return x === "one_time" || x === "subscription";
 }
@@ -69,8 +71,6 @@ export default function CheckoutContent() {
 
   const course_id = searchParams.get("course_id") || "";
   const session_id = searchParams.get("session_id") || "";
-
-  // ✅ ADDED: package_id from query (passed from SpecificPackageDetailsPage)
   const package_id = searchParams.get("package_id") || "";
 
   const amountCents = useMemo(() => {
@@ -125,31 +125,29 @@ export default function CheckoutContent() {
     return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
   };
 
-  /**
-   * REWRITTEN PARSER:
-   * Correctly maps your PHP API response structure.
-   */
   const parseEmailExistsFromResponse = (raw: string): EmailCheckResult => {
     try {
       const data = JSON.parse(raw);
       const serverMsg = data?.message || "";
 
-      // PHP returns code: EMAIL_EXISTS when email is taken
       if (data?.code === "EMAIL_EXISTS") {
-        return { exists: true, message: serverMsg };
+        return { exists: true, message: serverMsg || "This email address is already registered." };
       }
 
-      // PHP returns isSuccess: true when email is available
       if (data?.isSuccess === true) {
         return { exists: false, message: "" };
       }
 
-      return { exists: null, message: serverMsg || "Verification failed" };
+      return { exists: null, message: serverMsg || "We could not verify this email right now." };
     } catch {
       const t = raw.trim().toLowerCase();
-      if (t.includes("exists")) return { exists: true, message: raw };
-      if (t.includes("success") || t === "0") return { exists: false, message: "" };
-      return { exists: null, message: "Invalid server response" };
+      if (t.includes("exists")) {
+        return { exists: true, message: "This email address is already registered." };
+      }
+      if (t.includes("success") || t === "0") {
+        return { exists: false, message: "" };
+      }
+      return { exists: null, message: "We could not verify this email right now." };
     }
   };
 
@@ -171,15 +169,14 @@ export default function CheckoutContent() {
       });
       const raw = await res.text();
       return parseEmailExistsFromResponse(raw);
-    } catch (err) {
-      return { exists: null, message: "Network error occurred." };
+    } catch {
+      return { exists: null, message: "Unable to check email right now. Please try again." };
     }
   };
 
   const runEmailCheck = async (emailRaw: string) => {
     const email = normalizeEmail(emailRaw);
 
-    // If it's not a valid email, block it immediately and show error
     if (!looksLikeEmail(email)) {
       setEmailChecking(false);
       setEmailExists(false);
@@ -203,22 +200,21 @@ export default function CheckoutContent() {
 
       if (result.exists === true) {
         setEmailExists(true);
-        setEmailCheckMsg(result.message || "This email already exists.");
+        setEmailCheckMsg(result.message || "This email address is already registered.");
         return;
       }
 
       if (result.exists === false) {
         setEmailExists(false);
-        setEmailCheckMsg(""); // Clears the "Checking..." message
+        setEmailCheckMsg("");
         return;
       }
 
       setEmailExists(false);
-      setEmailCheckMsg(result.message || "Could not verify email right now. Please try again.");
-    } catch (err) {
-      console.error("Email check failed:", err);
+      setEmailCheckMsg(result.message || "Unable to verify email right now. Please try again.");
+    } catch {
       setEmailExists(false);
-      setEmailCheckMsg("Could not verify email right now. Please try again.");
+      setEmailCheckMsg("Unable to verify email right now. Please try again.");
     } finally {
       setEmailChecking(false);
     }
@@ -227,7 +223,7 @@ export default function CheckoutContent() {
   useEffect(() => {
     const email = normalizeEmail(user.email);
     if (!emailTouched) return;
-    // Don't run check if empty, but clear states
+
     if (!email) {
       setEmailCheckMsg("");
       setEmailExists(false);
@@ -251,11 +247,11 @@ export default function CheckoutContent() {
     }
   };
 
-  // ✅ UPDATED: require package_id too
   const invalidBase =
     !course_id || !session_id || !package_id || !Number.isFinite(amountCents) || amountCents <= 0;
 
-  const subscriptionInvalid = mode === "subscription" && (!isProduct(product) || !isCadence(cadence));
+  const subscriptionInvalid =
+    mode === "subscription" && (!isProduct(product) || !isCadence(cadence));
 
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(() =>
     mode === "subscription" ? "card" : "mobile"
@@ -285,7 +281,6 @@ export default function CheckoutContent() {
 
   const [agreeTerms, setAgreeTerms] = useState(false);
 
-  // Added strict check for looksLikeEmail to canSubmitMobile
   const canSubmitMobile =
     agreeTerms &&
     looksLikeEmail(user.email) &&
@@ -315,7 +310,7 @@ export default function CheckoutContent() {
     if (!canSubmitMobile) {
       setMobileResult({
         type: "danger",
-        text: "Please complete your registration info + mobile payment details first.",
+        text: "Please complete all required registration and mobile payment fields.",
       });
       return;
     }
@@ -325,12 +320,12 @@ export default function CheckoutContent() {
     }
 
     if (emailChecking) {
-      setMobileResult({ type: "info", text: "Checking email… Please wait a moment and try again." });
+      setMobileResult({ type: "info", text: "We are checking your email. Please wait a moment and try again." });
       return;
     }
 
     if (emailExists) {
-      setMobileResult({ type: "danger", text: emailCheckMsg || "This email already exists." });
+      setMobileResult({ type: "danger", text: emailCheckMsg || "This email address is already registered." });
       return;
     }
 
@@ -341,7 +336,7 @@ export default function CheckoutContent() {
       body.append("action", "user-registration-mobile-payment");
       body.append("course_id", String(course_id));
       body.append("session_id", String(session_id));
-      body.append("package_id", String(package_id)); // ✅ ADDED: send package_id to PHP
+      body.append("package_id", String(package_id));
       body.append("first_name", user.first_name);
       body.append("last_name", user.last_name);
       body.append("email", user.email);
@@ -360,10 +355,14 @@ export default function CheckoutContent() {
 
       const raw = await res.text();
       let data: any = null;
+
       try {
         data = JSON.parse(raw);
       } catch {
-        setMobileResult({ type: "danger", text: data?.message || "" });
+        setMobileResult({
+          type: "danger",
+          text: "We received an unexpected response. Please try again.",
+        });
         return;
       }
 
@@ -373,9 +372,8 @@ export default function CheckoutContent() {
         return;
       }
 
-      setMobileResult({ type: "danger", text: data?.message || "Submission failed." });
-    } catch (err) {
-      console.error(err);
+      setMobileResult({ type: "danger", text: data?.message || "Submission failed. Please try again." });
+    } catch {
       setMobileResult({ type: "danger", text: "Network error. Please try again." });
     } finally {
       setMobileSubmitting(false);
@@ -409,14 +407,15 @@ export default function CheckoutContent() {
           </a>
         </span>
       </label>
-      {!agreeTerms && <div className="small text-muted mt-2">Please complete all the fields to enable the button.</div>}
+      {!agreeTerms && (
+        <div className="small text-muted mt-2">Please complete all required fields to enable the button.</div>
+      )}
     </div>
   );
 
   const showPaymentMethodChooser = mode !== "subscription";
   const showMobileUI = showPaymentMethodChooser && paymentMethod === "mobile";
   const showCardUI = mode === "subscription" || paymentMethod === "card";
-  // Block card if not a valid email format
   const cardBlockedByEmail = emailChecking || emailExists || !looksLikeEmail(user.email);
 
   return (
@@ -445,6 +444,7 @@ export default function CheckoutContent() {
           <div className="card shadow-sm border-0 w-100">
             <div className="card-body p-4 d-flex flex-column">
               <h5 className="fw-bold mb-3">Your Registration Information</h5>
+
               <input
                 className="form-control mb-2"
                 name="first_name"
@@ -452,6 +452,7 @@ export default function CheckoutContent() {
                 value={user.first_name}
                 onChange={handleChange}
               />
+
               <input
                 className="form-control mb-2"
                 name="last_name"
@@ -459,6 +460,7 @@ export default function CheckoutContent() {
                 value={user.last_name}
                 onChange={handleChange}
               />
+
               <input
                 className="form-control mb-2"
                 type="email"
@@ -472,6 +474,7 @@ export default function CheckoutContent() {
                 }}
                 onFocus={() => setEmailTouched(true)}
               />
+
               {(emailTouched || !!user.email.trim()) && emailCheckMsg && (
                 <div
                   className={`small mb-2 ${
@@ -482,7 +485,15 @@ export default function CheckoutContent() {
                   {emailCheckMsg}
                 </div>
               )}
-              <input className="form-control mb-2" name="mobile" placeholder="Mobile" value={user.mobile} onChange={handleChange} />
+
+              <input
+                className="form-control mb-2"
+                name="mobile"
+                placeholder="Mobile"
+                value={user.mobile}
+                onChange={handleChange}
+              />
+
               <input
                 className="form-control mb-0"
                 type="password"
@@ -491,10 +502,14 @@ export default function CheckoutContent() {
                 value={user.password}
                 onChange={handleChange}
               />
+
               {mode === "subscription" && subscriptionInvalid && (
                 <div className="alert alert-danger mt-3 mb-0 py-2">Invalid subscription parameters.</div>
               )}
-              <div className="mt-3 small text-muted">We’ll use your email for purchase confirmation and account access.</div>
+
+              <div className="mt-3 small text-muted">
+                We’ll use your email for purchase confirmation and account access.
+              </div>
             </div>
           </div>
         </div>
@@ -505,6 +520,7 @@ export default function CheckoutContent() {
               <div className="px-4 pt-4 pb-3 border-bottom">
                 <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
                   <div className="fw-semibold text-muted">Payment Method</div>
+
                   {showPaymentMethodChooser ? (
                     <div className="d-flex align-items-center gap-3">
                       <label className="d-flex align-items-center gap-2 small mb-0">
@@ -516,6 +532,7 @@ export default function CheckoutContent() {
                         />
                         Mobile Payment
                       </label>
+
                       <label className="d-flex align-items-center gap-2 small mb-0">
                         <input
                           type="radio"
@@ -537,7 +554,7 @@ export default function CheckoutContent() {
                   <div>
                     <div className="text-center">
                       <div className="d-flex justify-content-center">
-                        <Image
+                        <img
                           src="/images/mobile_payment_app_20260204.png"
                           alt="Mobile apps"
                           width={350}
@@ -546,6 +563,7 @@ export default function CheckoutContent() {
                           style={{ maxWidth: 560, height: "auto" }}
                         />
                       </div>
+
                       <div className="mt-3">
                         <div className="fw-bold" style={{ fontSize: 18 }}>
                           Send payment to:
@@ -555,6 +573,7 @@ export default function CheckoutContent() {
                         </div>
                       </div>
                     </div>
+
                     <div className="mt-4">
                       <div className="row g-2">
                         <div className="col-12">
@@ -566,6 +585,7 @@ export default function CheckoutContent() {
                             onChange={handleMobilePayChange}
                           />
                         </div>
+
                         <div className="col-12">
                           <input
                             className="form-control"
@@ -576,7 +596,9 @@ export default function CheckoutContent() {
                           />
                         </div>
                       </div>
+
                       <TermsRadio />
+
                       <button
                         type="button"
                         className="btn btn-primary-custom mt-4 px-5 py-2 d-block mx-auto"
@@ -585,7 +607,12 @@ export default function CheckoutContent() {
                       >
                         {mobileSubmitting ? "Submitting..." : "Submit"}
                       </button>
-                      {mobileResult && <div className={`alert alert-${mobileResult.type} mt-3 mb-0`}>{mobileResult.text}</div>}
+
+                      {mobileResult && (
+                        <div className={`alert alert-${mobileResult.type} mt-3 mb-0`}>
+                          {mobileResult.text}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -601,11 +628,12 @@ export default function CheckoutContent() {
                         <span className="badge text-bg-light border">DISC</span>
                       </div>
                     </div>
+
                     <SquarePaymentForm
                       amount={amountCents}
                       course_id={course_id}
                       session_id={session_id}
-                      package_id={package_id} // ✅ ADDED: pass package_id down so SquarePaymentForm can post to PHP
+                      package_id={package_id}
                       user={user}
                       mode={mode}
                       product={mode === "subscription" ? product : undefined}
@@ -618,6 +646,7 @@ export default function CheckoutContent() {
                         router.push(`/thank-you${q}`);
                       }}
                     />
+
                     {(emailTouched || !!user.email.trim()) &&
                       (emailChecking || emailExists || !looksLikeEmail(user.email)) && (
                         <div
@@ -629,13 +658,15 @@ export default function CheckoutContent() {
                             ? emailCheckMsg
                             : !looksLikeEmail(user.email)
                             ? "Please enter a valid email address."
-                            : "Checking email… Please wait."}
+                            : "Checking email... Please wait."}
                         </div>
                       )}
+
                     <div className="small text-muted mt-3">Secure payment • PCI compliant</div>
                   </>
                 )}
               </div>
+
               <div className="px-4 pb-4" />
             </div>
           </div>

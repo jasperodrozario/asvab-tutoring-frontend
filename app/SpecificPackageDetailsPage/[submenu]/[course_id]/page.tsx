@@ -118,7 +118,7 @@ export default function SpecificPackageDetailsPage({
         <div className="container">
           <div className="row align-items-center g-4">
             <div className="col-lg-6 text-center">
-              <Image
+              <img
                 src={courseData.image_src}
                 alt={decodeHtmlEntitiesDeep(courseData.course_name ?? "")}
                 width={600}
@@ -143,7 +143,7 @@ export default function SpecificPackageDetailsPage({
               {/* ✅ show ONLY for one-time payments */}
               {showPaymentImage && (
                 <div className="mt-4">
-                  <Image
+                  <img
                     src="/images/how_to_send_payment_20260204.png"
                     alt="Payment info"
                     width={600}
@@ -305,7 +305,7 @@ export default function SpecificPackageDetailsPage({
                     }
                   >
                     <div className="card-body p-3 d-flex flex-column">
-                      <Image
+                      <img
                         src={rel.image}
                         alt={decodeHtmlEntitiesDeep(rel.name ?? "")}
                         width={300}

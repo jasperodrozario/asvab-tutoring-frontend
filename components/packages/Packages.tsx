@@ -56,7 +56,7 @@ const Packages = ({
         <div className="text-center mb-5 position-relative">
           <h2 className="display-5 fw-bold text-gray-800 d-inline-block pb-3 position-relative">
             Our Pricing
-            <Image
+            <img
               src="/images/border_v1.png"
               alt="underline"
               width={160}

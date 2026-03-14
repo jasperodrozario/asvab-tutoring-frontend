@@ -106,7 +106,7 @@ export default function BlogDetailClient({ blog_id }: { blog_id: string }) {
           {/* Author */}
           <div className="d-flex align-items-center mb-4">
             
-            <Image
+            <img
               src={
                 blog.writer_img?.startsWith("http")
                   ? blog.writer_img

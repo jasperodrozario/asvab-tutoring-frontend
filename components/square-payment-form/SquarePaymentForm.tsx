@@ -47,6 +47,7 @@ type Props = {
 function isProduct(x: unknown): x is Product {
   return x === "ASVAB" || x === "AFOQT" || x === "ASTB" || x === "SIFT" || x === "OAR";
 }
+
 function isCadence(x: unknown): x is Cadence {
   return x === "1M" || x === "3M" || x === "6M" || x === "12M";
 }
@@ -54,7 +55,6 @@ function isCadence(x: unknown): x is Cadence {
 function safeMsg(v: unknown, fallback = "Something went wrong. Please try again.") {
   const s = typeof v === "string" ? v : "";
   const trimmed = s.trim();
-  // Avoid showing long/technical server output to end users
   if (!trimmed || trimmed.length > 160) return fallback;
   return trimmed;
 }
@@ -77,12 +77,10 @@ function loadSquareScriptOnce(src: string): Promise<void> {
       el.dataset.src = src;
     };
 
-    // If a script tag exists and is already loaded AND matches src, we're done.
     if (existing?.dataset.loaded === "1" && (existing.dataset.src || existing.src) === src) {
       return resolve();
     }
 
-    // If a script tag exists but is for a different src, replace it safely.
     if (existing && (existing.dataset.src || existing.src) !== src) {
       try {
         existing.remove();
@@ -91,7 +89,6 @@ function loadSquareScriptOnce(src: string): Promise<void> {
       }
     }
 
-    // Create new script
     const script = document.createElement("script");
     script.id = "square-js";
     script.src = src;
@@ -137,15 +134,16 @@ async function waitForWindowSquare(maxMs = 10_000): Promise<boolean> {
 async function readJsonSafe(res: Response): Promise<any> {
   const ct = (res.headers.get("content-type") || "").toLowerCase();
   const text = await res.text();
+
   if (ct.includes("application/json")) {
     try {
       return JSON.parse(text);
     } catch {
-      return { success: false, error: "Invalid JSON response from server." };
+      return { success: false, error: "We received an invalid response from the server." };
     }
   }
-  // If server returned HTML/text, avoid dumping it into UI
-  return { success: false, error: "Unexpected server response." };
+
+  return { success: false, error: "We received an unexpected response from the server." };
 }
 
 export default function SquarePaymentForm({
@@ -165,7 +163,6 @@ export default function SquarePaymentForm({
   const cardContainerRef = useRef<HTMLDivElement | null>(null);
   const cardInstanceRef = useRef<any>(null);
 
-  // Guards
   const initTokenRef = useRef(0);
   const mountedRef = useRef(false);
 
@@ -175,13 +172,12 @@ export default function SquarePaymentForm({
   const [message, setMessage] = useState<string | null>(null);
   const [paymentId, setPaymentId] = useState<string>("");
 
-  // Next.js: NEXT_PUBLIC_* are safe for client usage
   const appId = process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID || "";
   const locationId = process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID || "";
 
-const squareScriptSrc =
-  process.env.NEXT_PUBLIC_SQUARE_SCRIPT_URL ||
-  "https://sandbox.web.squarecdn.com/v1/square.js";
+  const squareScriptSrc =
+    process.env.NEXT_PUBLIC_SQUARE_SCRIPT_URL ||
+    "https://sandbox.web.squarecdn.com/v1/square.js";
 
   const termsRequired = typeof agreeTerms === "boolean";
   const termsAgreed = termsRequired ? !!agreeTerms : true;
@@ -226,10 +222,10 @@ const squareScriptSrc =
           await cardInstanceRef.current.destroy();
           cardInstanceRef.current = null;
         }
-      } catch (e) {
-        // keep console for debugging, but don't surface to user
-        console.error("Square card cleanup error:", e);
+      } catch {
+        // silent cleanup
       }
+
       if (cardContainerRef.current) {
         cardContainerRef.current.innerHTML = "";
       }
@@ -242,36 +238,31 @@ const squareScriptSrc =
       });
 
       if (!appId || !locationId) {
-        setSafe(() => setMessage("Payment is not configured correctly."));
+        setSafe(() => setMessage("Payment is currently unavailable. Please contact support."));
         setSafe(() => setInitializing(false));
         return;
       }
 
       try {
-        // Ensure script is loaded
         await loadSquareScriptOnce(squareScriptSrc);
 
-        // Wait for window.Square to appear
         const ok = await waitForWindowSquare(10_000);
         if (!ok) {
-          setSafe(() => setMessage("Unable to load payment form. Please refresh the page."));
+          setSafe(() => setMessage("Unable to load the payment form. Please refresh the page and try again."));
           setSafe(() => setInitializing(false));
           return;
         }
 
         if (!cardContainerRef.current) {
-          setSafe(() => setMessage("Card container not found."));
+          setSafe(() => setMessage("Unable to display the payment form. Please refresh the page."));
           setSafe(() => setInitializing(false));
           return;
         }
 
-        // Abort if a newer init started
         if (cancelled || initTokenRef.current !== myToken) return;
 
-        // Cleanup existing instance before re-attaching
         await cleanupCard();
 
-        // Create card
         const payments = window.Square!.payments(appId, locationId);
         const card = await payments.card();
 
@@ -284,9 +275,10 @@ const squareScriptSrc =
         cardInstanceRef.current = card;
 
         setSafe(() => setMessage(null));
-      } catch (e) {
-        console.error("Square init error:", e);
-        setSafe(() => setMessage("Failed to initialize payment. Please refresh and try again."));
+      } catch {
+        setSafe(() =>
+          setMessage("We could not initialize the payment form. Please refresh the page and try again.")
+        );
       } finally {
         setSafe(() => setInitializing(false));
       }
@@ -297,7 +289,7 @@ const squareScriptSrc =
     return () => {
       cancelled = true;
       mountedRef.current = false;
-      // fire-and-forget cleanup (no state updates here)
+
       (async () => {
         try {
           if (cardInstanceRef.current) {
@@ -305,8 +297,8 @@ const squareScriptSrc =
             cardInstanceRef.current = null;
           }
           if (cardContainerRef.current) cardContainerRef.current.innerHTML = "";
-        } catch (e) {
-          console.error("Square unmount cleanup error:", e);
+        } catch {
+          // silent cleanup
         }
       })();
     };
@@ -316,27 +308,27 @@ const squareScriptSrc =
     if (completed || paying) return;
 
     if (!cardInstanceRef.current) {
-      setMessage("Payment form not ready.");
+      setMessage("The payment form is not ready yet. Please wait a moment and try again.");
       return;
     }
 
     if (!validateUser()) {
-      setMessage("Please fill in all registration fields first.");
+      setMessage("Please complete all required registration fields before continuing.");
       return;
     }
 
     if (!course_id || !session_id || !package_id) {
-      setMessage("Missing course/session/package info. Please open checkout from the course page again.");
+      setMessage("Some checkout information is missing. Please return to the course page and try again.");
       return;
     }
 
     if (!Number.isFinite(amount) || amount <= 0) {
-      setMessage("Invalid amount. Please open checkout from the course page again.");
+      setMessage("The payment amount is invalid. Please return to the course page and try again.");
       return;
     }
 
     if (mode === "subscription" && !validateSubscriptionSelection()) {
-      setMessage("Invalid subscription details in the checkout link.");
+      setMessage("The subscription details are invalid. Please reopen the checkout page.");
       return;
     }
 
@@ -354,12 +346,12 @@ const squareScriptSrc =
       const tokenizeResult = await cardInstanceRef.current.tokenize();
 
       if (tokenizeResult?.status !== "OK") {
-        // Square provides helpful errors sometimes:
         const sqErr =
           tokenizeResult?.errors?.[0]?.message ||
           tokenizeResult?.errors?.[0]?.detail ||
           "Please check your card details and try again.";
-        setMessage(safeMsg(sqErr, "Unable to tokenize card. Please check details and try again."));
+
+        setMessage(safeMsg(sqErr, "We could not verify your card details. Please check them and try again."));
         return;
       }
 
@@ -388,7 +380,7 @@ const squareScriptSrc =
         const data = await readJsonSafe(res);
 
         if (!res.ok || !data?.success) {
-          setMessage(safeMsg(data?.error, "Subscription failed. Please try again."));
+          setMessage(safeMsg(data?.error, "We could not create your subscription. Please try again."));
           return;
         }
 
@@ -397,11 +389,11 @@ const squareScriptSrc =
         if (id) setPaymentId(id);
         onPaymentSuccess?.(id);
 
-        setMessage("✅ Subscription created successfully!");
+        setMessage("Subscription created successfully.");
         return;
       }
 
-      const res = await fetch("/api/square-payment", {
+      const res = await fetch("/api/payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -418,7 +410,7 @@ const squareScriptSrc =
       const data = await readJsonSafe(res);
 
       if (!res.ok || !data?.success) {
-        setMessage(safeMsg(data?.error, "Payment failed. Please try again."));
+        setMessage(safeMsg(data?.error, "Your payment could not be completed. Please try again."));
         return;
       }
 
@@ -428,11 +420,10 @@ const squareScriptSrc =
       if (id) setPaymentId(id);
       onPaymentSuccess?.(id);
 
-      setMessage(data?.registrationSuccess ? "✅ Payment + Enrollment successful!" : "✅ Payment successful!");
+      setMessage(data?.registrationSuccess ? "Payment and enrollment completed successfully." : "Payment completed successfully.");
     } catch (e: any) {
       if (e?.name === "AbortError") return;
-      console.error("Payment error:", e);
-      setMessage("Error while processing payment. Please try again.");
+      setMessage("There was a problem processing your payment. Please try again.");
     } finally {
       controller.abort();
       setPaying(false);

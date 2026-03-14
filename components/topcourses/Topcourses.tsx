@@ -167,7 +167,7 @@ export default function TopCourses() {
         <div className="text-center mb-5 position-relative">
           <h2 className="fw-bold display-5 d-inline-block pb-3 position-relative">
             Our Courses
-            <Image
+            <img
               src="/images/border_v1.png"
               alt="underline"
               width={160}
@@ -189,7 +189,7 @@ export default function TopCourses() {
       <div className="text-center mb-5 position-relative">
         <h2 className="fw-bold display-5 d-inline-block pb-3 position-relative">
           Our Courses
-          <Image
+          <img
             src="/images/border_v1.png"
             alt="underline"
             width={160}
@@ -210,7 +210,7 @@ export default function TopCourses() {
             courses.map((course) => (
               <div className="col-sm-6 col-lg-4" key={course.course_id}>
                 <div className="card h-100 shadow-sm hover-lift">
-                  <Image
+                  <img
                     src={resolveImageUrl(course.image_src)}
                     alt={course.name || 'Course'}
                     className="card-img-top"

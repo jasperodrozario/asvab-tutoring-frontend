@@ -148,7 +148,12 @@ export default function Navbar() {
           {/* MOBILE HEADER */}
           <div className="d-flex d-lg-none justify-content-between align-items-center w-100">
             <Link href="/" className="navbar-brand">
-              <Image src="/images/asvab-tutoring-logo.webp" width={65} height={65} alt="Logo" />
+              <img
+                src="/images/asvab-tutoring-logo.webp"
+                width="65"
+                height="65"
+                alt="Logo"
+              />
             </Link>
 
             <button className="navbar-toggler border-0"
@@ -221,7 +226,12 @@ export default function Navbar() {
             {/* CENTER LOGO */}
             <div className="mx-2 mx-md-3">
               <Link href="/" className="navbar-brand">
-                <Image src="/images/asvab-tutoring-logo.webp" width={85} height={85} alt="Logo" />
+                <img
+                  src="/images/asvab-tutoring-logo.webp"
+                  width="65"
+                  height="65"
+                  alt="Logo"
+                />
               </Link>
             </div>
 
