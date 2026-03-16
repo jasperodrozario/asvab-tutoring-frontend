@@ -85,6 +85,7 @@ pm2.log
 
 .env
 .env.local
+.env.local.bac
 .env.development.local
 .env.test.local
 .env.production.local

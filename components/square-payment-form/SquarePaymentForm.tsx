@@ -1,11 +1,12 @@
-// components/square-payment-form/SquarePaymentForm.tsx
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
 declare global {
   interface Window {
-    Square?: any;
+    Square?: {
+      payments: (appId: string, locationId: string) => Promise<any> | any;
+    };
   }
 }
 
@@ -28,19 +29,17 @@ type Props = {
   package_id: string;
   user: User;
 
+  // Optional billing details from your form
+  postal_code?: string;
+  country_code?: string;
+
   mode?: PaymentMode;
   product?: Product;
   cadence?: Cadence;
 
   disabled?: boolean;
-
-  /**
-   * If provided, the Pay/Subscribe button stays disabled until user agrees.
-   * Parent keeps the source of truth.
-   */
   agreeTerms?: boolean;
   onAgreeTermsChange?: (next: boolean) => void;
-
   onPaymentSuccess?: (paymentId?: string) => void;
 };
 
@@ -55,30 +54,30 @@ function isCadence(x: unknown): x is Cadence {
 function safeMsg(v: unknown, fallback = "Something went wrong. Please try again.") {
   const s = typeof v === "string" ? v : "";
   const trimmed = s.trim();
-  if (!trimmed || trimmed.length > 160) return fallback;
+  if (!trimmed || trimmed.length > 200) return fallback;
   return trimmed;
 }
 
-/**
- * Keep a per-script-src singleton loader (supports sandbox/prod correctly).
- * This avoids race conditions and prevents injecting the script multiple times.
- */
+function cleanString(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function cleanPhone(value: unknown): string {
+  return cleanString(value).replace(/[^\d+]/g, "");
+}
+
 const squareScriptPromises = new Map<string, Promise<void>>();
 
 function loadSquareScriptOnce(src: string): Promise<void> {
   const existingPromise = squareScriptPromises.get(src);
   if (existingPromise) return existingPromise;
 
-  const p = new Promise<void>((resolve, reject) => {
+  const promise = new Promise<void>((resolve, reject) => {
     const existing = document.getElementById("square-js") as HTMLScriptElement | null;
 
-    const markLoaded = (el: HTMLScriptElement) => {
-      el.dataset.loaded = "1";
-      el.dataset.src = src;
-    };
-
-    if (existing?.dataset.loaded === "1" && (existing.dataset.src || existing.src) === src) {
-      return resolve();
+    if (existing && (existing.dataset.src || existing.src) === src && existing.dataset.loaded === "1") {
+      resolve();
+      return;
     }
 
     if (existing && (existing.dataset.src || existing.src) !== src) {
@@ -94,11 +93,11 @@ function loadSquareScriptOnce(src: string): Promise<void> {
     script.src = src;
     script.async = true;
     script.crossOrigin = "anonymous";
-    script.dataset.loaded = "0";
     script.dataset.src = src;
+    script.dataset.loaded = "0";
 
     const onLoad = () => {
-      markLoaded(script);
+      script.dataset.loaded = "1";
       cleanup();
       resolve();
     };
@@ -119,31 +118,31 @@ function loadSquareScriptOnce(src: string): Promise<void> {
     document.body.appendChild(script);
   });
 
-  squareScriptPromises.set(src, p);
-  return p;
+  squareScriptPromises.set(src, promise);
+  return promise;
 }
 
-async function waitForWindowSquare(maxMs = 10_000): Promise<boolean> {
+async function waitForWindowSquare(maxMs = 10000): Promise<boolean> {
   const start = Date.now();
   while (!window.Square && Date.now() - start < maxMs) {
-    await new Promise((r) => setTimeout(r, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
   }
   return !!window.Square;
 }
 
 async function readJsonSafe(res: Response): Promise<any> {
-  const ct = (res.headers.get("content-type") || "").toLowerCase();
+  const contentType = (res.headers.get("content-type") || "").toLowerCase();
   const text = await res.text();
 
-  if (ct.includes("application/json")) {
+  if (contentType.includes("application/json")) {
     try {
       return JSON.parse(text);
     } catch {
-      return { success: false, error: "We received an invalid response from the server." };
+      return { success: false, message: "We received an invalid response from the server." };
     }
   }
 
-  return { success: false, error: "We received an unexpected response from the server." };
+  return { success: false, message: "We received an unexpected response from the server." };
 }
 
 export default function SquarePaymentForm({
@@ -152,6 +151,8 @@ export default function SquarePaymentForm({
   session_id,
   package_id,
   user,
+  postal_code = "",
+  country_code = "US",
   mode = "one_time",
   product,
   cadence,
@@ -162,7 +163,6 @@ export default function SquarePaymentForm({
 }: Props) {
   const cardContainerRef = useRef<HTMLDivElement | null>(null);
   const cardInstanceRef = useRef<any>(null);
-
   const initTokenRef = useRef(0);
   const mountedRef = useRef(false);
 
@@ -170,29 +170,46 @@ export default function SquarePaymentForm({
   const [paying, setPaying] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [paymentId, setPaymentId] = useState<string>("");
+  const [paymentId, setPaymentId] = useState("");
 
   const appId = process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID || "";
   const locationId = process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID || "";
-
   const squareScriptSrc =
-    process.env.NEXT_PUBLIC_SQUARE_SCRIPT_URL ||
-    "https://sandbox.web.squarecdn.com/v1/square.js";
+    process.env.NEXT_PUBLIC_SQUARE_SCRIPT_URL || "https://web.squarecdn.com/v1/square.js";
 
   const termsRequired = typeof agreeTerms === "boolean";
   const termsAgreed = termsRequired ? !!agreeTerms : true;
 
   const validateUser = () => {
     const required: (keyof User)[] = ["first_name", "last_name", "email", "mobile", "password"];
-    for (const k of required) {
-      if (!user?.[k] || String(user[k]).trim().length === 0) return false;
+    for (const key of required) {
+      if (!cleanString(user?.[key])) return false;
     }
     return true;
   };
 
-  const validateSubscriptionSelection = () => {
-    if (mode !== "subscription") return true;
-    return isProduct(product) && isCadence(cadence);
+  const validateCheckout = () => {
+    if (!cleanString(course_id) || !cleanString(session_id) || !cleanString(package_id)) {
+      return "Some checkout information is missing. Please return to the course page and try again.";
+    }
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return "The payment amount is invalid. Please return to the course page and try again.";
+    }
+
+    if (mode === "subscription" && (!isProduct(product) || !isCadence(cadence))) {
+      return "The subscription details are invalid. Please reopen the checkout page.";
+    }
+
+    if (!validateUser()) {
+      return "Please complete all required registration fields before continuing.";
+    }
+
+    if (!termsAgreed) {
+      return "Please agree to the Terms & Conditions to continue.";
+    }
+
+    return "";
   };
 
   const pickId = (data: any): string => {
@@ -208,12 +225,13 @@ export default function SquarePaymentForm({
 
   useEffect(() => {
     mountedRef.current = true;
-
     let cancelled = false;
     const myToken = ++initTokenRef.current;
 
     const setSafe = (fn: () => void) => {
-      if (!cancelled && mountedRef.current && initTokenRef.current === myToken) fn();
+      if (!cancelled && mountedRef.current && initTokenRef.current === myToken) {
+        fn();
+      }
     };
 
     const cleanupCard = async () => {
@@ -223,7 +241,7 @@ export default function SquarePaymentForm({
           cardInstanceRef.current = null;
         }
       } catch {
-        // silent cleanup
+        // ignore
       }
 
       if (cardContainerRef.current) {
@@ -238,36 +256,44 @@ export default function SquarePaymentForm({
       });
 
       if (!appId || !locationId) {
-        setSafe(() => setMessage("Payment is currently unavailable. Please contact support."));
-        setSafe(() => setInitializing(false));
+        setSafe(() => {
+          setMessage("Payment is currently unavailable. Please contact support.");
+          setInitializing(false);
+        });
         return;
       }
 
       try {
         await loadSquareScriptOnce(squareScriptSrc);
 
-        const ok = await waitForWindowSquare(10_000);
-        if (!ok) {
-          setSafe(() => setMessage("Unable to load the payment form. Please refresh the page and try again."));
-          setSafe(() => setInitializing(false));
+        const ready = await waitForWindowSquare();
+        if (!ready) {
+          setSafe(() => {
+            setMessage("Unable to load the payment form. Please refresh the page and try again.");
+            setInitializing(false);
+          });
           return;
         }
 
         if (!cardContainerRef.current) {
-          setSafe(() => setMessage("Unable to display the payment form. Please refresh the page."));
-          setSafe(() => setInitializing(false));
+          setSafe(() => {
+            setMessage("Unable to display the payment form. Please refresh the page.");
+            setInitializing(false);
+          });
           return;
         }
 
-        if (cancelled || initTokenRef.current !== myToken) return;
-
         await cleanupCard();
 
-        const payments = window.Square!.payments(appId, locationId);
+        const payments = await window.Square!.payments(appId, locationId);
         const card = await payments.card();
 
         if (cancelled || initTokenRef.current !== myToken) {
-          await card.destroy();
+          try {
+            await card.destroy();
+          } catch {
+            // ignore
+          }
           return;
         }
 
@@ -275,10 +301,11 @@ export default function SquarePaymentForm({
         cardInstanceRef.current = card;
 
         setSafe(() => setMessage(null));
-      } catch {
-        setSafe(() =>
-          setMessage("We could not initialize the payment form. Please refresh the page and try again.")
-        );
+      } catch (error) {
+        console.error("Square init error:", error);
+        setSafe(() => {
+          setMessage("We could not initialize the payment form. Please refresh the page and try again.");
+        });
       } finally {
         setSafe(() => setInitializing(false));
       }
@@ -296,9 +323,12 @@ export default function SquarePaymentForm({
             await cardInstanceRef.current.destroy();
             cardInstanceRef.current = null;
           }
-          if (cardContainerRef.current) cardContainerRef.current.innerHTML = "";
         } catch {
-          // silent cleanup
+          // ignore
+        }
+
+        if (cardContainerRef.current) {
+          cardContainerRef.current.innerHTML = "";
         }
       })();
     };
@@ -312,28 +342,9 @@ export default function SquarePaymentForm({
       return;
     }
 
-    if (!validateUser()) {
-      setMessage("Please complete all required registration fields before continuing.");
-      return;
-    }
-
-    if (!course_id || !session_id || !package_id) {
-      setMessage("Some checkout information is missing. Please return to the course page and try again.");
-      return;
-    }
-
-    if (!Number.isFinite(amount) || amount <= 0) {
-      setMessage("The payment amount is invalid. Please return to the course page and try again.");
-      return;
-    }
-
-    if (mode === "subscription" && !validateSubscriptionSelection()) {
-      setMessage("The subscription details are invalid. Please reopen the checkout page.");
-      return;
-    }
-
-    if (!termsAgreed) {
-      setMessage("Please agree to the Terms & Conditions to continue.");
+    const checkoutError = validateCheckout();
+    if (checkoutError) {
+      setMessage(checkoutError);
       return;
     }
 
@@ -343,7 +354,31 @@ export default function SquarePaymentForm({
     const controller = new AbortController();
 
     try {
-      const tokenizeResult = await cardInstanceRef.current.tokenize();
+      const billingContact: Record<string, string> = {};
+
+      const firstName = cleanString(user.first_name);
+      const lastName = cleanString(user.last_name);
+      const email = cleanString(user.email);
+      const phone = cleanPhone(user.mobile);
+      const postalCode = cleanString(postal_code);
+      const countryCode = cleanString(country_code).toUpperCase();
+
+      if (firstName) billingContact.givenName = firstName;
+      if (lastName) billingContact.familyName = lastName;
+      if (email) billingContact.email = email;
+      if (phone) billingContact.phone = phone;
+      if (postalCode) billingContact.postalCode = postalCode;
+      if (countryCode) billingContact.countryCode = countryCode;
+
+      // Store-card flow for backend Cards API CreateCard
+      const verificationDetails = {
+        billingContact,
+        intent: "STORE" as const,
+        customerInitiated: true,
+        sellerKeyedIn: false,
+      };
+
+      const tokenizeResult = await cardInstanceRef.current.tokenize(verificationDetails);
 
       if (tokenizeResult?.status !== "OK") {
         const sqErr =
@@ -351,11 +386,17 @@ export default function SquarePaymentForm({
           tokenizeResult?.errors?.[0]?.detail ||
           "Please check your card details and try again.";
 
-        setMessage(safeMsg(sqErr, "We could not verify your card details. Please check them and try again."));
+        setMessage(
+          safeMsg(sqErr, "We could not verify your card details. Please check them and try again.")
+        );
         return;
       }
 
-      const sourceId: string = tokenizeResult.token;
+      const sourceId: string = String(tokenizeResult.token || "");
+      if (!sourceId) {
+        setMessage("We couldn't verify your payment method. Please refresh the page and try again.");
+        return;
+      }
 
       if (mode === "subscription") {
         const res = await fetch("/api/subscribe", {
@@ -365,14 +406,16 @@ export default function SquarePaymentForm({
             sourceId,
             product,
             cadence,
-            userEmail: user.email,
-            userName: `${user.first_name} ${user.last_name}`.trim(),
-            password: user.password,
-            mobile: user.mobile,
+            userEmail: email,
+            userName: `${firstName} ${lastName}`.trim(),
+            password: cleanString(user.password),
+            mobile: phone,
             amount,
             course_id,
             session_id,
             package_id,
+            postal_code: postalCode,
+            country_code: countryCode || "US",
           }),
           signal: controller.signal,
         });
@@ -380,7 +423,12 @@ export default function SquarePaymentForm({
         const data = await readJsonSafe(res);
 
         if (!res.ok || !data?.success) {
-          setMessage(safeMsg(data?.error, "We could not create your subscription. Please try again."));
+          setMessage(
+            safeMsg(
+              data?.message || data?.error,
+              "We could not create your subscription. Please try again."
+            )
+          );
           return;
         }
 
@@ -388,7 +436,6 @@ export default function SquarePaymentForm({
         setCompleted(true);
         if (id) setPaymentId(id);
         onPaymentSuccess?.(id);
-
         setMessage("Subscription created successfully.");
         return;
       }
@@ -403,6 +450,8 @@ export default function SquarePaymentForm({
           session_id,
           package_id,
           user,
+          postal_code: postalCode,
+          country_code: countryCode || "US",
         }),
         signal: controller.signal,
       });
@@ -410,19 +459,25 @@ export default function SquarePaymentForm({
       const data = await readJsonSafe(res);
 
       if (!res.ok || !data?.success) {
-        setMessage(safeMsg(data?.error, "Your payment could not be completed. Please try again."));
+        setMessage(
+          safeMsg(data?.message || data?.error, "Your payment could not be completed. Please try again.")
+        );
         return;
       }
 
       const id = pickId(data);
-
       setCompleted(true);
       if (id) setPaymentId(id);
       onPaymentSuccess?.(id);
 
-      setMessage(data?.registrationSuccess ? "Payment and enrollment completed successfully." : "Payment completed successfully.");
-    } catch (e: any) {
-      if (e?.name === "AbortError") return;
+      setMessage(
+        data?.registrationSuccess
+          ? "Payment and enrollment completed successfully."
+          : "Payment completed successfully."
+      );
+    } catch (error: any) {
+      if (error?.name === "AbortError") return;
+      console.error("Square payment error:", error);
       setMessage("There was a problem processing your payment. Please try again.");
     } finally {
       controller.abort();
@@ -439,11 +494,15 @@ export default function SquarePaymentForm({
     disabled ||
     completed ||
     !termsAgreed ||
-    (mode === "subscription" && !validateSubscriptionSelection());
+    (mode === "subscription" && (!isProduct(product) || !isCadence(cadence)));
 
   return (
     <div>
-      <div ref={cardContainerRef} className="border p-3 rounded bg-white" style={{ minHeight: 56 }} />
+      <div
+        ref={cardContainerRef}
+        className="border p-3 rounded bg-white"
+        style={{ minHeight: 56 }}
+      />
 
       {termsRequired && (
         <div className="mt-3">
@@ -467,11 +526,18 @@ export default function SquarePaymentForm({
             </span>
           </label>
 
-          {!termsAgreed && <div className="small text-muted mt-2">Please agree to enable the button.</div>}
+          {!termsAgreed && (
+            <div className="small text-muted mt-2">Please agree to enable the button.</div>
+          )}
         </div>
       )}
 
-      <button className="btn btn-primary-custom mt-4 px-5 py-2" onClick={handlePayment} disabled={uiDisabled}>
+      <button
+        type="button"
+        className="btn btn-primary-custom mt-4 px-5 py-2"
+        onClick={handlePayment}
+        disabled={uiDisabled}
+      >
         {completed ? "Paid" : paying ? "Processing…" : buttonLabel}
       </button>
 
