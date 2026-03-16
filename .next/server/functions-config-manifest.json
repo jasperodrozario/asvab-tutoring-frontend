@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "functions": {
+    "/api/cancel-subscription": {},
+    "/api/dispute-webhook": {},
+    "/api/payment-webhook": {},
+    "/api/payment": {},
+    "/api/resume-subscription": {},
+    "/api/subscribe": {},
+    "/api/subscribe-again": {},
+    "/api/subscription-webhook": {}
+  }
+}

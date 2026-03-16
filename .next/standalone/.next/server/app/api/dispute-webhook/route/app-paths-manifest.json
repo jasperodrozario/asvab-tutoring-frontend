@@ -1,0 +1,3 @@
+{
+  "/api/dispute-webhook/route": "app/api/dispute-webhook/route.js"
+}

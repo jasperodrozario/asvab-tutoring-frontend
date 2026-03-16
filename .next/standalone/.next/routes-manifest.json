@@ -1,0 +1,266 @@
+{
+  "version": 3,
+  "pages404": true,
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "priority": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    }
+  ],
+  "headers": [],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [],
+    "fallback": []
+  },
+  "dynamicRoutes": [
+    {
+      "page": "/blog-detail/[blog_id]",
+      "regex": "^/blog\\-detail/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPblog_id": "nxtPblog_id"
+      },
+      "namedRegex": "^/blog\\-detail/(?<nxtPblog_id>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/course-detail/[courseCode]",
+      "regex": "^/course\\-detail/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPcourseCode": "nxtPcourseCode"
+      },
+      "namedRegex": "^/course\\-detail/(?<nxtPcourseCode>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/service-detail/[service_id]",
+      "regex": "^/service\\-detail/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPservice_id": "nxtPservice_id"
+      },
+      "namedRegex": "^/service\\-detail/(?<nxtPservice_id>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/SpecificPackageDetailsPage/[submenu]/[course_id]",
+      "regex": "^/SpecificPackageDetailsPage/([^/]+?)/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPsubmenu": "nxtPsubmenu",
+        "nxtPcourse_id": "nxtPcourse_id"
+      },
+      "namedRegex": "^/SpecificPackageDetailsPage/(?<nxtPsubmenu>[^/]+?)/(?<nxtPcourse_id>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/tutor-package-details/[course_id]",
+      "regex": "^/tutor\\-package\\-details/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPcourse_id": "nxtPcourse_id"
+      },
+      "namedRegex": "^/tutor\\-package\\-details/(?<nxtPcourse_id>[^/]+?)(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_global-error",
+      "regex": "^/_global\\-error(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_global\\-error(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/about-us",
+      "regex": "^/about\\-us(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/about\\-us(?:/)?$"
+    },
+    {
+      "page": "/api/cancel-subscription",
+      "regex": "^/api/cancel\\-subscription(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/cancel\\-subscription(?:/)?$"
+    },
+    {
+      "page": "/api/dispute-webhook",
+      "regex": "^/api/dispute\\-webhook(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/dispute\\-webhook(?:/)?$"
+    },
+    {
+      "page": "/api/payment",
+      "regex": "^/api/payment(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/payment(?:/)?$"
+    },
+    {
+      "page": "/api/payment-webhook",
+      "regex": "^/api/payment\\-webhook(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/payment\\-webhook(?:/)?$"
+    },
+    {
+      "page": "/api/resume-subscription",
+      "regex": "^/api/resume\\-subscription(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/resume\\-subscription(?:/)?$"
+    },
+    {
+      "page": "/api/subscribe",
+      "regex": "^/api/subscribe(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/subscribe(?:/)?$"
+    },
+    {
+      "page": "/api/subscribe-again",
+      "regex": "^/api/subscribe\\-again(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/subscribe\\-again(?:/)?$"
+    },
+    {
+      "page": "/api/subscription-webhook",
+      "regex": "^/api/subscription\\-webhook(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/subscription\\-webhook(?:/)?$"
+    },
+    {
+      "page": "/blog",
+      "regex": "^/blog(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/blog(?:/)?$"
+    },
+    {
+      "page": "/checkout",
+      "regex": "^/checkout(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/checkout(?:/)?$"
+    },
+    {
+      "page": "/contact-us",
+      "regex": "^/contact\\-us(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/contact\\-us(?:/)?$"
+    },
+    {
+      "page": "/faq",
+      "regex": "^/faq(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/faq(?:/)?$"
+    },
+    {
+      "page": "/favicon.ico",
+      "regex": "^/favicon\\.ico(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/favicon\\.ico(?:/)?$"
+    },
+    {
+      "page": "/how-it-works",
+      "regex": "^/how\\-it\\-works(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/how\\-it\\-works(?:/)?$"
+    },
+    {
+      "page": "/login",
+      "regex": "^/login(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/login(?:/)?$"
+    },
+    {
+      "page": "/mobile-app-list",
+      "regex": "^/mobile\\-app\\-list(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/mobile\\-app\\-list(?:/)?$"
+    },
+    {
+      "page": "/pricing-page",
+      "regex": "^/pricing\\-page(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/pricing\\-page(?:/)?$"
+    },
+    {
+      "page": "/privacy-policy",
+      "regex": "^/privacy\\-policy(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/privacy\\-policy(?:/)?$"
+    },
+    {
+      "page": "/services",
+      "regex": "^/services(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/services(?:/)?$"
+    },
+    {
+      "page": "/sitemap",
+      "regex": "^/sitemap(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/sitemap(?:/)?$"
+    },
+    {
+      "page": "/subscribe-again",
+      "regex": "^/subscribe\\-again(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/subscribe\\-again(?:/)?$"
+    },
+    {
+      "page": "/terms-of-service",
+      "regex": "^/terms\\-of\\-service(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/terms\\-of\\-service(?:/)?$"
+    },
+    {
+      "page": "/thank-you",
+      "regex": "^/thank\\-you(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/thank\\-you(?:/)?$"
+    },
+    {
+      "page": "/tutor-list",
+      "regex": "^/tutor\\-list(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/tutor\\-list(?:/)?$"
+    },
+    {
+      "page": "/user-login",
+      "regex": "^/user\\-login(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/user\\-login(?:/)?$"
+    },
+    {
+      "page": "/user-registration",
+      "regex": "^/user\\-registration(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/user\\-registration(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "rsc",
+    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+    "prefetchHeader": "next-router-prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSuffix": ".prefetch.rsc",
+    "prefetchSegmentHeader": "next-router-segment-prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments",
+    "clientParamParsing": false,
+    "dynamicRSCPrerender": false
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}
