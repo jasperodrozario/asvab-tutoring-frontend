@@ -18,7 +18,13 @@ type EmailCheckResult = {
 };
 
 function isProduct(x: any): x is Product {
-  return x === "ASVAB" || x === "AFOQT" || x === "ASTB" || x === "SIFT" || x === "OAR";
+  return (
+    x === "ASVAB" ||
+    x === "AFOQT" ||
+    x === "ASTB" ||
+    x === "SIFT" ||
+    x === "OAR"
+  );
 }
 
 function isCadence(x: any): x is Cadence {
@@ -66,7 +72,7 @@ export default function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const API_URL = "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php";
+  const API_URL = process.env.PHP_API_URL!;
   const EMAIL_CHECK_ACTION = "check-email";
 
   const course_id = searchParams.get("course_id") || "";
@@ -131,27 +137,41 @@ export default function CheckoutContent() {
       const serverMsg = data?.message || "";
 
       if (data?.code === "EMAIL_EXISTS") {
-        return { exists: true, message: serverMsg || "This email address is already registered." };
+        return {
+          exists: true,
+          message: serverMsg || "This email address is already registered.",
+        };
       }
 
       if (data?.isSuccess === true) {
         return { exists: false, message: "" };
       }
 
-      return { exists: null, message: serverMsg || "We could not verify this email right now." };
+      return {
+        exists: null,
+        message: serverMsg || "We could not verify this email right now.",
+      };
     } catch {
       const t = raw.trim().toLowerCase();
       if (t.includes("exists")) {
-        return { exists: true, message: "This email address is already registered." };
+        return {
+          exists: true,
+          message: "This email address is already registered.",
+        };
       }
       if (t.includes("success") || t === "0") {
         return { exists: false, message: "" };
       }
-      return { exists: null, message: "We could not verify this email right now." };
+      return {
+        exists: null,
+        message: "We could not verify this email right now.",
+      };
     }
   };
 
-  const checkEmailExists = async (emailRaw: string): Promise<EmailCheckResult> => {
+  const checkEmailExists = async (
+    emailRaw: string,
+  ): Promise<EmailCheckResult> => {
     const email = normalizeEmail(emailRaw);
     if (!looksLikeEmail(email)) return { exists: null, message: "" };
 
@@ -170,7 +190,10 @@ export default function CheckoutContent() {
       const raw = await res.text();
       return parseEmailExistsFromResponse(raw);
     } catch {
-      return { exists: null, message: "Unable to check email right now. Please try again." };
+      return {
+        exists: null,
+        message: "Unable to check email right now. Please try again.",
+      };
     }
   };
 
@@ -200,7 +223,9 @@ export default function CheckoutContent() {
 
       if (result.exists === true) {
         setEmailExists(true);
-        setEmailCheckMsg(result.message || "This email address is already registered.");
+        setEmailCheckMsg(
+          result.message || "This email address is already registered.",
+        );
         return;
       }
 
@@ -211,7 +236,9 @@ export default function CheckoutContent() {
       }
 
       setEmailExists(false);
-      setEmailCheckMsg(result.message || "Unable to verify email right now. Please try again.");
+      setEmailCheckMsg(
+        result.message || "Unable to verify email right now. Please try again.",
+      );
     } catch {
       setEmailExists(false);
       setEmailCheckMsg("Unable to verify email right now. Please try again.");
@@ -248,13 +275,17 @@ export default function CheckoutContent() {
   };
 
   const invalidBase =
-    !course_id || !session_id || !package_id || !Number.isFinite(amountCents) || amountCents <= 0;
+    !course_id ||
+    !session_id ||
+    !package_id ||
+    !Number.isFinite(amountCents) ||
+    amountCents <= 0;
 
   const subscriptionInvalid =
     mode === "subscription" && (!isProduct(product) || !isCadence(cadence));
 
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(() =>
-    mode === "subscription" ? "card" : "mobile"
+    mode === "subscription" ? "card" : "mobile",
   );
 
   useEffect(() => {
@@ -298,12 +329,18 @@ export default function CheckoutContent() {
     setMobileResult(null);
 
     if (!agreeTerms) {
-      setMobileResult({ type: "danger", text: "Please agree to the Terms & Conditions to continue." });
+      setMobileResult({
+        type: "danger",
+        text: "Please agree to the Terms & Conditions to continue.",
+      });
       return;
     }
 
     if (!looksLikeEmail(user.email)) {
-      setMobileResult({ type: "danger", text: "Please enter a valid email address." });
+      setMobileResult({
+        type: "danger",
+        text: "Please enter a valid email address.",
+      });
       return;
     }
 
@@ -320,12 +357,18 @@ export default function CheckoutContent() {
     }
 
     if (emailChecking) {
-      setMobileResult({ type: "info", text: "We are checking your email. Please wait a moment and try again." });
+      setMobileResult({
+        type: "info",
+        text: "We are checking your email. Please wait a moment and try again.",
+      });
       return;
     }
 
     if (emailExists) {
-      setMobileResult({ type: "danger", text: emailCheckMsg || "This email address is already registered." });
+      setMobileResult({
+        type: "danger",
+        text: emailCheckMsg || "This email address is already registered.",
+      });
       return;
     }
 
@@ -367,14 +410,23 @@ export default function CheckoutContent() {
       }
 
       if (data?.isSuccess) {
-        setMobileResult({ type: "success", text: data?.message || "Submitted successfully." });
+        setMobileResult({
+          type: "success",
+          text: data?.message || "Submitted successfully.",
+        });
         router.push("/thank-you?method=mobile");
         return;
       }
 
-      setMobileResult({ type: "danger", text: data?.message || "Submission failed. Please try again." });
+      setMobileResult({
+        type: "danger",
+        text: data?.message || "Submission failed. Please try again.",
+      });
     } catch {
-      setMobileResult({ type: "danger", text: "Network error. Please try again." });
+      setMobileResult({
+        type: "danger",
+        text: "Network error. Please try again.",
+      });
     } finally {
       setMobileSubmitting(false);
     }
@@ -384,7 +436,8 @@ export default function CheckoutContent() {
     return <p className="text-danger">Invalid checkout link.</p>;
   }
 
-  const pageTitle = mode === "subscription" ? "Subscription Checkout" : "Checkout";
+  const pageTitle =
+    mode === "subscription" ? "Subscription Checkout" : "Checkout";
   const pageSub =
     mode === "subscription"
       ? "Your subscription will renew automatically based on your plan."
@@ -393,7 +446,12 @@ export default function CheckoutContent() {
   const TermsRadio = () => (
     <div className="mt-3">
       <label className="d-flex align-items-center gap-2 small mb-0">
-        <input type="radio" name="agree_terms" checked={agreeTerms} onChange={() => setAgreeTerms(true)} />
+        <input
+          type="radio"
+          name="agree_terms"
+          checked={agreeTerms}
+          onChange={() => setAgreeTerms(true)}
+        />
         <span>
           Agree{" "}
           <a
@@ -408,7 +466,9 @@ export default function CheckoutContent() {
         </span>
       </label>
       {!agreeTerms && (
-        <div className="small text-muted mt-2">Please complete all required fields to enable the button.</div>
+        <div className="small text-muted mt-2">
+          Please complete all required fields to enable the button.
+        </div>
       )}
     </div>
   );
@@ -416,7 +476,8 @@ export default function CheckoutContent() {
   const showPaymentMethodChooser = mode !== "subscription";
   const showMobileUI = showPaymentMethodChooser && paymentMethod === "mobile";
   const showCardUI = mode === "subscription" || paymentMethod === "card";
-  const cardBlockedByEmail = emailChecking || emailExists || !looksLikeEmail(user.email);
+  const cardBlockedByEmail =
+    emailChecking || emailExists || !looksLikeEmail(user.email);
 
   return (
     <div className="container py-5" style={{ maxWidth: 1100 }}>
@@ -478,9 +539,15 @@ export default function CheckoutContent() {
               {(emailTouched || !!user.email.trim()) && emailCheckMsg && (
                 <div
                   className={`small mb-2 ${
-                    emailExists || !looksLikeEmail(user.email) ? "text-danger" : "text-muted"
+                    emailExists || !looksLikeEmail(user.email)
+                      ? "text-danger"
+                      : "text-muted"
                   }`}
-                  role={emailExists || !looksLikeEmail(user.email) ? "alert" : undefined}
+                  role={
+                    emailExists || !looksLikeEmail(user.email)
+                      ? "alert"
+                      : undefined
+                  }
                 >
                   {emailCheckMsg}
                 </div>
@@ -504,11 +571,14 @@ export default function CheckoutContent() {
               />
 
               {mode === "subscription" && subscriptionInvalid && (
-                <div className="alert alert-danger mt-3 mb-0 py-2">Invalid subscription parameters.</div>
+                <div className="alert alert-danger mt-3 mb-0 py-2">
+                  Invalid subscription parameters.
+                </div>
               )}
 
               <div className="mt-3 small text-muted">
-                We’ll use your email for purchase confirmation and account access.
+                We’ll use your email for purchase confirmation and account
+                access.
               </div>
             </div>
           </div>
@@ -568,7 +638,10 @@ export default function CheckoutContent() {
                         <div className="fw-bold" style={{ fontSize: 18 }}>
                           Send payment to:
                         </div>
-                        <div className="fw-bold text-success" style={{ fontSize: 20 }}>
+                        <div
+                          className="fw-bold text-success"
+                          style={{ fontSize: 20 }}
+                        >
                           (718) 200-6396
                         </div>
                       </div>
@@ -609,7 +682,9 @@ export default function CheckoutContent() {
                       </button>
 
                       {mobileResult && (
-                        <div className={`alert alert-${mobileResult.type} mt-3 mb-0`}>
+                        <div
+                          className={`alert alert-${mobileResult.type} mt-3 mb-0`}
+                        >
                           {mobileResult.text}
                         </div>
                       )}
@@ -620,7 +695,9 @@ export default function CheckoutContent() {
                 {showCardUI && (
                   <>
                     <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                      <div className="fw-semibold text-muted">Card Payment Details</div>
+                      <div className="fw-semibold text-muted">
+                        Card Payment Details
+                      </div>
                       <div className="d-flex gap-2 flex-wrap">
                         <span className="badge text-bg-light border">VISA</span>
                         <span className="badge text-bg-light border">AMEX</span>
@@ -642,27 +719,35 @@ export default function CheckoutContent() {
                       agreeTerms={agreeTerms}
                       onAgreeTermsChange={setAgreeTerms}
                       onPaymentSuccess={(id?: string) => {
-                        const q = id ? `?method=card&id=${encodeURIComponent(id)}` : `?method=card`;
+                        const q = id
+                          ? `?method=card&id=${encodeURIComponent(id)}`
+                          : `?method=card`;
                         router.push(`/thank-you${q}`);
                       }}
                     />
 
                     {(emailTouched || !!user.email.trim()) &&
-                      (emailChecking || emailExists || !looksLikeEmail(user.email)) && (
+                      (emailChecking ||
+                        emailExists ||
+                        !looksLikeEmail(user.email)) && (
                         <div
                           className={`alert ${
-                            emailExists || !looksLikeEmail(user.email) ? "alert-danger" : "alert-info"
+                            emailExists || !looksLikeEmail(user.email)
+                              ? "alert-danger"
+                              : "alert-info"
                           } mt-3 mb-0 py-2`}
                         >
                           {emailExists
                             ? emailCheckMsg
                             : !looksLikeEmail(user.email)
-                            ? "Please enter a valid email address."
-                            : "Checking email... Please wait."}
+                              ? "Please enter a valid email address."
+                              : "Checking email... Please wait."}
                         </div>
                       )}
 
-                    <div className="small text-muted mt-3">Secure payment • PCI compliant</div>
+                    <div className="small text-muted mt-3">
+                      Secure payment • PCI compliant
+                    </div>
                   </>
                 )}
               </div>

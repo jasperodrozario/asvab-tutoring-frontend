@@ -37,14 +37,11 @@ export default function Navbar() {
   useEffect(() => {
     async function fetchCourses() {
       try {
-        const response = await fetch(
-          "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({ action: "get-all-courses" }),
-          }
-        );
+        const response = await fetch(process.env.PHP_API_URL!, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({ action: "get-all-courses" }),
+        });
         const data = await response.json();
         if (data?.isSuccess && Array.isArray(data.data)) {
           setCourses(data.data);
@@ -56,14 +53,11 @@ export default function Navbar() {
 
     async function fetchServices() {
       try {
-        const response = await fetch(
-          "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({ action: "get-service-course-list" }),
-          }
-        );
+        const response = await fetch(process.env.PHP_API_URL!, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({ action: "get-service-course-list" }),
+        });
         const data = await response.json();
         if (data?.isSuccess && Array.isArray(data.data)) {
           setServices(data.data);
@@ -124,17 +118,26 @@ export default function Navbar() {
         >
           <div className="d-flex align-items-center gap-3">
             <FaPhone />
-            <a href="tel:+17182006396" className="primary-color-custom text-decoration-none">
+            <a
+              href="tel:+17182006396"
+              className="primary-color-custom text-decoration-none"
+            >
               (718)-200-6396
             </a>
             <FaEnvelope />
-            <a href="mailto:info@asvab-tutoring.com" className="primary-color-custom text-decoration-none">
+            <a
+              href="mailto:info@asvab-tutoring.com"
+              className="primary-color-custom text-decoration-none"
+            >
               info@asvab-tutoring.com
             </a>
           </div>
           <div className="d-flex align-items-center gap-2">
             <FaApple />
-            <Link href="/mobile-app-list" className="primary-color-custom text-decoration-none">
+            <Link
+              href="/mobile-app-list"
+              className="primary-color-custom text-decoration-none"
+            >
               Our Mobile App
             </Link>
           </div>
@@ -144,7 +147,6 @@ export default function Navbar() {
       {/* 🔹 Main Navbar */}
       <nav className="navbar navbar-expand-lg bg-custom-secondary text-white py-2 py-md-3 fixed-top navbar-desktop-mt">
         <div className="container d-flex justify-content-between align-items-center px-3">
-
           {/* MOBILE HEADER */}
           <div className="d-flex d-lg-none justify-content-between align-items-center w-100">
             <Link href="/" className="navbar-brand">
@@ -156,7 +158,8 @@ export default function Navbar() {
               />
             </Link>
 
-            <button className="navbar-toggler border-0"
+            <button
+              className="navbar-toggler border-0"
               type="button"
               onClick={toggleMenu}
             >
@@ -166,32 +169,45 @@ export default function Navbar() {
 
           {/* DESKTOP MENU */}
           <div className="d-none d-lg-flex justify-content-center align-items-center w-100">
-
             {/* LEFT MENU */}
             <ul className="navbar-nav flex-row flex-nowrap align-items-center me-2 gap-3 gap-lg-4">
-
               <li className="nav-item">
-                <Link href="/" className="nav-link text-white px-2">HOME</Link>
+                <Link href="/" className="nav-link text-white px-2">
+                  HOME
+                </Link>
               </li>
               <li className="nav-item">
-                <Link href="/about-us" className="nav-link text-white px-2">ABOUT US</Link>
+                <Link href="/about-us" className="nav-link text-white px-2">
+                  ABOUT US
+                </Link>
               </li>
               <li className="nav-item">
-                <Link href="/how-it-works" className="nav-link text-white px-2">HOW IT WORKS</Link>
+                <Link href="/how-it-works" className="nav-link text-white px-2">
+                  HOW IT WORKS
+                </Link>
               </li>
 
               {/* COURSES */}
-              <li className="nav-item dropdown"
+              <li
+                className="nav-item dropdown"
                 onMouseEnter={() => setIsCoursesOpen(true)}
                 onMouseLeave={() => setIsCoursesOpen(false)}
               >
-                <span className="nav-link text-white d-flex align-items-center gap-1 px-2" role="button">
+                <span
+                  className="nav-link text-white d-flex align-items-center gap-1 px-2"
+                  role="button"
+                >
                   COURSES <FaCaretDown className="fs-6" />
                 </span>
-                <ul className={`dropdown-menu mt-0 ${isCoursesOpen ? "show" : ""}`}>
+                <ul
+                  className={`dropdown-menu mt-0 ${isCoursesOpen ? "show" : ""}`}
+                >
                   {courses.map((course) => (
                     <li key={course.course_id}>
-                      <Link className="dropdown-item" href={`/course-detail/${course.course_id}`}>
+                      <Link
+                        className="dropdown-item"
+                        href={`/course-detail/${course.course_id}`}
+                      >
                         {course.name}
                       </Link>
                     </li>
@@ -237,19 +253,27 @@ export default function Navbar() {
 
             {/* RIGHT MENU */}
             <ul className="navbar-nav flex-row flex-nowrap align-items-center ms-2 gap-3 gap-lg-4">
-
               {/* SERVICES */}
-              <li className="nav-item dropdown"
+              <li
+                className="nav-item dropdown"
                 onMouseEnter={() => setIsServicesOpen(true)}
                 onMouseLeave={() => setIsServicesOpen(false)}
               >
-                <span className="nav-link text-white d-flex align-items-center gap-1 px-2" role="button">
+                <span
+                  className="nav-link text-white d-flex align-items-center gap-1 px-2"
+                  role="button"
+                >
                   SERVICES <FaCaretDown className="fs-6" />
                 </span>
-                <ul className={`dropdown-menu mt-0 ${isServicesOpen ? "show" : ""}`}>
+                <ul
+                  className={`dropdown-menu mt-0 ${isServicesOpen ? "show" : ""}`}
+                >
                   {services.map((service) => (
                     <li key={service.service_id}>
-                      <Link className="dropdown-item" href={`/service-detail/${service.service_id}`}>
+                      <Link
+                        className="dropdown-item"
+                        href={`/service-detail/${service.service_id}`}
+                      >
                         {service.course_name}
                       </Link>
                     </li>
@@ -257,17 +281,44 @@ export default function Navbar() {
                 </ul>
               </li>
               {/* PRICING */}
-              <li className="nav-item dropdown"
+              <li
+                className="nav-item dropdown"
                 onMouseEnter={() => setIsPricingOpen(true)}
                 onMouseLeave={() => setIsPricingOpen(false)}
               >
-                <span className="nav-link text-white d-flex align-items-center gap-1 px-2" role="button">
+                <span
+                  className="nav-link text-white d-flex align-items-center gap-1 px-2"
+                  role="button"
+                >
                   PRICING <FaCaretDown className="fs-6" />
                 </span>
-                <ul className={`dropdown-menu mt-0 ${isPricingOpen ? "show" : ""}`}>
-                  <li><Link href="/pricing-page?submenu=one" className="dropdown-item">1-on-1 Tutoring</Link></li>
-                  <li><Link href="/pricing-page?submenu=group" className="dropdown-item">Group Tutoring</Link></li>
-                  <li><Link href="/pricing-page?submenu=subscribe" className="dropdown-item">Self Study</Link></li>
+                <ul
+                  className={`dropdown-menu mt-0 ${isPricingOpen ? "show" : ""}`}
+                >
+                  <li>
+                    <Link
+                      href="/pricing-page?submenu=one"
+                      className="dropdown-item"
+                    >
+                      1-on-1 Tutoring
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/pricing-page?submenu=group"
+                      className="dropdown-item"
+                    >
+                      Group Tutoring
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/pricing-page?submenu=subscribe"
+                      className="dropdown-item"
+                    >
+                      Self Study
+                    </Link>
+                  </li>
                 </ul>
               </li>
 
@@ -276,7 +327,9 @@ export default function Navbar() {
               </li> */}
 
               <li className="nav-item">
-                <Link href="/blog" className="nav-link text-white px-2">BLOG</Link>
+                <Link href="/blog" className="nav-link text-white px-2">
+                  BLOG
+                </Link>
               </li>
 
               {/* <li className="nav-item">
@@ -284,9 +337,12 @@ export default function Navbar() {
                   ONLINE STUDY
                 </Link>
               </li> */}
-               {/* ✅ LOGIN */}
+              {/* ✅ LOGIN */}
               <li className="nav-item">
-                <Link href="/user-login" className="btn btn-outline-light d-flex align-items-center gap-2 px-3">
+                <Link
+                  href="/user-login"
+                  className="btn btn-outline-light d-flex align-items-center gap-2 px-3"
+                >
                   <FaSignInAlt /> Login
                 </Link>
               </li>
@@ -296,12 +352,10 @@ export default function Navbar() {
                 <Link
                   href="/user-registration"
                   className="btn btn-outline-light d-flex align-items-center gap-2 px-3"
-                  
                 >
                   <FaUserPlus /> Register
                 </Link>
-                </li>
-
+              </li>
             </ul>
           </div>
 
@@ -309,26 +363,38 @@ export default function Navbar() {
           {isMenuOpen && (
             <div className="d-lg-none mt-3 w-100 text-left">
               <ul className="navbar-nav">
-
                 <li className="nav-item">
-                  <Link href="/" className="nav-link text-white" onClick={handleLinkClick}>
+                  <Link
+                    href="/"
+                    className="nav-link text-white"
+                    onClick={handleLinkClick}
+                  >
                     HOME
                   </Link>
                 </li>
                 <li className="nav-item">
-                  <Link href="/about-us" className="nav-link text-white" onClick={handleLinkClick}>
+                  <Link
+                    href="/about-us"
+                    className="nav-link text-white"
+                    onClick={handleLinkClick}
+                  >
                     ABOUT US
                   </Link>
                 </li>
                 <li className="nav-item">
-                  <Link href="/how-it-works" className="nav-link text-white" onClick={handleLinkClick}>
+                  <Link
+                    href="/how-it-works"
+                    className="nav-link text-white"
+                    onClick={handleLinkClick}
+                  >
                     HOW IT WORKS
                   </Link>
                 </li>
 
                 {/* COURSES MOBILE */}
                 <li className="nav-item">
-                  <span className="nav-link text-white d-flex align-items-center gap-1"
+                  <span
+                    className="nav-link text-white d-flex align-items-center gap-1"
                     role="button"
                     onClick={toggleCourses}
                   >
@@ -339,7 +405,11 @@ export default function Navbar() {
                     <ul className="navbar-nav ps-3">
                       {courses.map((course) => (
                         <li key={course.course_id} className="nav-item">
-                          <Link href={`/course-detail/${course.course_id}`} className="nav-link text-white" onClick={handleLinkClick}>
+                          <Link
+                            href={`/course-detail/${course.course_id}`}
+                            className="nav-link text-white"
+                            onClick={handleLinkClick}
+                          >
                             {course.name}
                           </Link>
                         </li>
@@ -350,7 +420,8 @@ export default function Navbar() {
 
                 {/* SERVICES MOBILE */}
                 <li className="nav-item">
-                  <span className="nav-link text-white d-flex align-items-center gap-1"
+                  <span
+                    className="nav-link text-white d-flex align-items-center gap-1"
                     role="button"
                     onClick={toggleServices}
                   >
@@ -361,7 +432,11 @@ export default function Navbar() {
                     <ul className="navbar-nav ps-3">
                       {services.map((service) => (
                         <li key={service.service_id} className="nav-item">
-                          <Link href={`/service-detail/${service.service_id}`} className="nav-link text-white" onClick={handleLinkClick}>
+                          <Link
+                            href={`/service-detail/${service.service_id}`}
+                            className="nav-link text-white"
+                            onClick={handleLinkClick}
+                          >
                             {service.course_name}
                           </Link>
                         </li>
@@ -372,7 +447,8 @@ export default function Navbar() {
 
                 {/* PRICING MOBILE */}
                 <li className="nav-item">
-                  <span className="nav-link text-white d-flex align-items-center gap-1"
+                  <span
+                    className="nav-link text-white d-flex align-items-center gap-1"
                     role="button"
                     onClick={togglePricing}
                   >
@@ -381,14 +457,40 @@ export default function Navbar() {
 
                   {isPricingOpen && (
                     <ul className="navbar-nav ps-3">
-                      <li><Link href="/pricing-page?submenu=one" className="nav-link text-white" onClick={handleLinkClick}>1-on-1 Tutoring</Link></li>
-                      <li><Link href="/pricing-page?submenu=group" className="nav-link text-white" onClick={handleLinkClick}>Group Tutoring</Link></li>
-                      <li><Link href="/pricing-page?submenu=subscribe" className="nav-link text-white" onClick={handleLinkClick}>Self Study</Link></li>
+                      <li>
+                        <Link
+                          href="/pricing-page?submenu=one"
+                          className="nav-link text-white"
+                          onClick={handleLinkClick}
+                        >
+                          1-on-1 Tutoring
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          href="/pricing-page?submenu=group"
+                          className="nav-link text-white"
+                          onClick={handleLinkClick}
+                        >
+                          Group Tutoring
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          href="/pricing-page?submenu=subscribe"
+                          className="nav-link text-white"
+                          onClick={handleLinkClick}
+                        >
+                          Self Study
+                        </Link>
+                      </li>
                     </ul>
                   )}
                 </li>
                 <li className="nav-item">
-                  <Link href="/blog" className="nav-link text-white px-2">BLOG</Link>
+                  <Link href="/blog" className="nav-link text-white px-2">
+                    BLOG
+                  </Link>
                 </li>
 
                 {/* <li className="nav-item">
@@ -402,21 +504,27 @@ export default function Navbar() {
                   </Link>
                 </li> */}
                 <li className="nav-item">
-                  <Link href="/user-login" className="nav-link text-white" onClick={handleLinkClick}>
+                  <Link
+                    href="/user-login"
+                    className="nav-link text-white"
+                    onClick={handleLinkClick}
+                  >
                     <FaSignInAlt /> Login
                   </Link>
                 </li>
 
                 <li className="nav-item">
-                  <Link href="/user-registration" className="nav-link text-white" onClick={handleLinkClick}>
+                  <Link
+                    href="/user-registration"
+                    className="nav-link text-white"
+                    onClick={handleLinkClick}
+                  >
                     <FaUserPlus /> Register
                   </Link>
                 </li>
-
               </ul>
             </div>
           )}
-
         </div>
       </nav>
     </>

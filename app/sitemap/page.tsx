@@ -15,7 +15,7 @@ export default function SitemapPage() {
   useEffect(() => {
     const fetchSitemap = async () => {
       try {
-        const response = await fetch("https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php", {
+        const response = await fetch(process.env.PHP_API_URL!, {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: new URLSearchParams({ action: "get-sitemap" }),
@@ -40,7 +40,10 @@ export default function SitemapPage() {
   return (
     <div className="container py-5">
       {/* Header */}
-      <h1 className="text-center text-white py-3 mb-5" style={{ backgroundColor: "#f2a155", borderRadius: "6px" }}>
+      <h1
+        className="text-center text-white py-3 mb-5"
+        style={{ backgroundColor: "#f2a155", borderRadius: "6px" }}
+      >
         Sitemap
       </h1>
 
@@ -48,8 +51,8 @@ export default function SitemapPage() {
       <div className="row g-3">
         {items.map((item, index) => (
           <div key={index} className="col-12 col-md-6 col-lg-4">
-            <Link 
-              href={`/course-detail/${item.course_id}`} 
+            <Link
+              href={`/course-detail/${item.course_id}`}
               className="d-block text-decoration-none p-3 h-100 shadow-sm rounded bg-light text-dark hover-link"
             >
               {item.name}

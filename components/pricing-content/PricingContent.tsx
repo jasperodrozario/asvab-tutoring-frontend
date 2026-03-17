@@ -22,19 +22,16 @@ export default function PricingContent({ submenu }: { submenu: string }) {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch(
-          "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
-            },
-            body: new URLSearchParams({
-              action: "specific-get-pricing-page-content",
-              submenu,
-            }),
-          }
-        );
+        const res = await fetch(process.env.PHP_API_URL!, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            action: "specific-get-pricing-page-content",
+            submenu,
+          }),
+        });
 
         const data = await res.json();
 
@@ -88,5 +85,5 @@ export default function PricingContent({ submenu }: { submenu: string }) {
         </div>
       ))}
     </div>
-  )
+  );
 }

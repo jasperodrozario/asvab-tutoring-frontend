@@ -36,19 +36,16 @@ export default function ServiceDetailContent({
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch(
-          "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
-            },
-            body: new URLSearchParams({
-              action: "get-specific-service-detail",
-              service_id: serviceId,
-            }),
-          }
-        );
+        const res = await fetch(process.env.PHP_API_URL!, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            action: "get-specific-service-detail",
+            service_id: serviceId,
+          }),
+        });
 
         const json = await res.json();
 
@@ -90,9 +87,7 @@ export default function ServiceDetailContent({
     <>
       {/* Banner */}
       <div className="banner bg-black bg-opacity-50 py-3 px-4 rounded text-center mb-4">
-        <h1 className="text-white mb-2 text-3xl fw-bold">
-          {pageTitle}
-        </h1>
+        <h1 className="text-white mb-2 text-3xl fw-bold">{pageTitle}</h1>
 
         <Breadcrumb
           segments={["services", data.service_id]}
