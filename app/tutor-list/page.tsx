@@ -56,7 +56,7 @@ export default function TutorsListPage() {
       <div className="text-center mb-5 position-relative">
         <h2 className="fw-bold display-5 d-inline-block pb-3 position-relative">
           Meet Our Teachers
-          <img
+          <Image
             src="/images/border_v1.png"
             alt="underline"
             width={160}
