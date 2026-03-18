@@ -38,7 +38,7 @@ function htmlToText(html: string): string {
   const doc = new DOMParser().parseFromString(decoded, "text/html");
 
   let text = doc.body.textContent || "";
-  text = text.replace(/\u00A0/g, " ");     // &nbsp; -> space
+  text = text.replace(/\u00A0/g, " "); // &nbsp; -> space
   text = text.replace(/\s+/g, " ").trim(); // collapse whitespace
 
   return text;
@@ -60,17 +60,14 @@ export default function BlogListPage() {
     async function fetchBlogs() {
       setLoading(true);
       try {
-        const res = await fetch(
-          "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({
-              action: "get-blogs",
-              page_no: page.toString(),
-            }),
-          }
-        );
+        const res = await fetch(process.env.PHP_API_URL!, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({
+            action: "get-blogs",
+            page_no: page.toString(),
+          }),
+        });
 
         // Safer parsing (prevents JSON parse crashes if server returns HTML/text)
         const raw = await res.text();
@@ -225,7 +222,7 @@ export default function BlogListPage() {
                   <li key={index} className="page-item disabled">
                     <span className="page-link">…</span>
                   </li>
-                )
+                ),
               )}
 
               <li

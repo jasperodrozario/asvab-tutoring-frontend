@@ -77,18 +77,15 @@ export default function SpecificPackageDetailsPage({
   useEffect(() => {
     async function fetchCourseData() {
       try {
-        const res = await fetch(
-          "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({
-              action: "specific-tutoring-package-details-page",
-              course_id: String(course_id),
-              submenu: String(submenu),
-            }),
-          }
-        );
+        const res = await fetch(process.env.PHP_API_URL!, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({
+            action: "specific-tutoring-package-details-page",
+            course_id: String(course_id),
+            submenu: String(submenu),
+          }),
+        });
 
         const data = await res.json();
         setCourseData(data);
@@ -137,7 +134,7 @@ export default function SpecificPackageDetailsPage({
               </h4>
 
               {renderTextWithLineBreaks(
-                cleanQuestionText(courseData.course_intro ?? "")
+                cleanQuestionText(courseData.course_intro ?? ""),
               )}
 
               {/* ✅ show ONLY for one-time payments */}
@@ -170,7 +167,9 @@ export default function SpecificPackageDetailsPage({
               className="mx-auto text-start"
               style={{ marginTop: "1rem", marginBottom: "2rem" }}
             >
-              {renderTextWithLineBreaks(cleanQuestionText(pkg.description ?? ""))}
+              {renderTextWithLineBreaks(
+                cleanQuestionText(pkg.description ?? ""),
+              )}
             </div>
 
             <div className={styles.pricingGrid}>
@@ -188,7 +187,9 @@ export default function SpecificPackageDetailsPage({
                     }`}
                   >
                     {session.is_most_popular === "1" && (
-                      <div className={styles.mostPopularBadge}>Most Popular</div>
+                      <div className={styles.mostPopularBadge}>
+                        Most Popular
+                      </div>
                     )}
 
                     <div className={styles.cardInner}>
@@ -207,7 +208,7 @@ export default function SpecificPackageDetailsPage({
                       <div className={styles.featureWrap}>
                         <div className={styles.featureBox}>
                           {renderTextWithLineBreaks(
-                            cleanQuestionText(session.feature ?? "")
+                            cleanQuestionText(session.feature ?? ""),
                           )}
                         </div>
                       </div>
@@ -221,7 +222,7 @@ export default function SpecificPackageDetailsPage({
                               package_id: String(pkg.package_id),
                               session_id: String(session.session_id),
                               amount: String(
-                                Math.round(Number(session.price) * 100)
+                                Math.round(Number(session.price) * 100),
                               ),
                               mode: isSub ? "subscription" : "one_time",
                               product: String(session.product ?? ""),
@@ -247,39 +248,40 @@ export default function SpecificPackageDetailsPage({
       ))}
 
       {/* ✅ Notes + Cancellation Policy (fixed) */}
-    <div className="container">
-  {isSubscribePage ? (
-    <p
-      className="fs-6 text-start mx-auto mb-5"
-      style={{ maxWidth: "960px" }}
-    >
-      <span className="fw-semibold text-danger">NOTE:</span>{" "}
-      Each subscription is auto-renewable until you cancel it.
-    </p>
-  ) : (
-    <>
-      <p
-        className="fs-6 text-start mx-auto mb-3"
-        style={{ maxWidth: "960px" }}
-      >
-        <span className="fw-semibold text-danger">NOTE:</span>{" "}
-        No session will be scheduled without payment information on file.
-        Students are required to submit homework before each session.
-      </p>
+      <div className="container">
+        {isSubscribePage ? (
+          <p
+            className="fs-6 text-start mx-auto mb-5"
+            style={{ maxWidth: "960px" }}
+          >
+            <span className="fw-semibold text-danger">NOTE:</span> Each
+            subscription is auto-renewable until you cancel it.
+          </p>
+        ) : (
+          <>
+            <p
+              className="fs-6 text-start mx-auto mb-3"
+              style={{ maxWidth: "960px" }}
+            >
+              <span className="fw-semibold text-danger">NOTE:</span> No session
+              will be scheduled without payment information on file. Students
+              are required to submit homework before each session.
+            </p>
 
-      <p
-        className="fs-6 text-start mx-auto mb-5"
-        style={{ maxWidth: "960px" }}
-      >
-        <span className="fw-semibold text-primary">
-          Cancellation Policy:
-        </span>{" "}
-        If you want to cancel a session or reschedule, 24 hrs. advance notice
-        is required. You can cancel the entire service within 7 days.
-      </p>
-    </>
-  )}
-</div>
+            <p
+              className="fs-6 text-start mx-auto mb-5"
+              style={{ maxWidth: "960px" }}
+            >
+              <span className="fw-semibold text-primary">
+                Cancellation Policy:
+              </span>{" "}
+              If you want to cancel a session or reschedule, 24 hrs. advance
+              notice is required. You can cancel the entire service within 7
+              days.
+            </p>
+          </>
+        )}
+      </div>
 
       {/* Related Courses */}
       <section className="py-5 bg-white">
@@ -300,7 +302,7 @@ export default function SpecificPackageDetailsPage({
                     style={{ borderRadius: "10px" }}
                     onClick={() =>
                       router.push(
-                        `/SpecificPackageDetailsPage/${submenu}/${rel.course_id}`
+                        `/SpecificPackageDetailsPage/${submenu}/${rel.course_id}`,
                       )
                     }
                   >

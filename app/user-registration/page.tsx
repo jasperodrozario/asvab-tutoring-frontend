@@ -18,13 +18,17 @@ type SessionPkg = {
   is_most_popular?: "0" | "1" | string;
 };
 
-const API_URL = "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php";
+const API_URL = process.env.PHP_API_URL!;
 
 async function postForm(body: Record<string, string>) {
   const fd = new FormData();
   Object.entries(body).forEach(([k, v]) => fd.append(k, v));
 
-  const res = await fetch(API_URL, { method: "POST", body: fd, cache: "no-store" });
+  const res = await fetch(API_URL, {
+    method: "POST",
+    body: fd,
+    cache: "no-store",
+  });
   const text = await res.text();
   try {
     return JSON.parse(text);
@@ -73,7 +77,7 @@ export default function RegisterPage() {
 
   const selectedSession = useMemo(
     () => sessions.find((s) => s.session_id === sessionId) || null,
-    [sessions, sessionId]
+    [sessions, sessionId],
   );
 
   // Load courses + services
@@ -89,13 +93,20 @@ export default function RegisterPage() {
 
         if (json?.status === 200 && json?.isSuccess) {
           if (Array.isArray(json?.data)) setCourses(json.data);
-          if (json?.services && typeof json.services === "object") setServicesMap(json.services);
+          if (json?.services && typeof json.services === "object")
+            setServicesMap(json.services);
         } else {
-          setStatus({ type: "error", text: json?.message || "Failed to load course list." });
+          setStatus({
+            type: "error",
+            text: json?.message || "Failed to load course list.",
+          });
         }
       } catch (e: any) {
         if (!alive) return;
-        setStatus({ type: "error", text: e?.message || "Failed to load course list." });
+        setStatus({
+          type: "error",
+          text: e?.message || "Failed to load course list.",
+        });
       } finally {
         if (!alive) return;
         setLoadingCourses(false);
@@ -138,12 +149,18 @@ export default function RegisterPage() {
 
         if (!alive) return;
 
-        if (json?.status === 200 && json?.isSuccess && Array.isArray(json?.data)) {
+        if (
+          json?.status === 200 &&
+          json?.isSuccess &&
+          Array.isArray(json?.data)
+        ) {
           const list: SessionPkg[] = json.data;
           setSessions(list);
 
           // Auto-select "Most Popular" if present, else keep existing, else first
-          const mostPopular = list.find((p) => String(p.is_most_popular) === "1");
+          const mostPopular = list.find(
+            (p) => String(p.is_most_popular) === "1",
+          );
           const keepExisting = list.some((p) => p.session_id === sessionId);
 
           if (mostPopular) setSessionId(mostPopular.session_id);
@@ -151,11 +168,17 @@ export default function RegisterPage() {
           else if (list[0]) setSessionId(list[0].session_id);
           else setSessionId("");
         } else {
-          setStatus({ type: "error", text: json?.message || "Failed to load package list." });
+          setStatus({
+            type: "error",
+            text: json?.message || "Failed to load package list.",
+          });
         }
       } catch (e: any) {
         if (!alive) return;
-        setStatus({ type: "error", text: e?.message || "Failed to load package list." });
+        setStatus({
+          type: "error",
+          text: e?.message || "Failed to load package list.",
+        });
       } finally {
         if (!alive) return;
         setLoadingSessions(false);
@@ -193,10 +216,17 @@ export default function RegisterPage() {
     e.preventDefault();
     setStatus(null);
 
-    if (!courseId) return setStatus({ type: "error", text: "Please select a course." });
-    if (serviceType === "") return setStatus({ type: "error", text: "Please select a service." });
-    if (!sessionId) return setStatus({ type: "error", text: "Please select a package." });
-    if (!agree) return setStatus({ type: "error", text: "Please agree to the terms & conditions." });
+    if (!courseId)
+      return setStatus({ type: "error", text: "Please select a course." });
+    if (serviceType === "")
+      return setStatus({ type: "error", text: "Please select a service." });
+    if (!sessionId)
+      return setStatus({ type: "error", text: "Please select a package." });
+    if (!agree)
+      return setStatus({
+        type: "error",
+        text: "Please agree to the terms & conditions.",
+      });
 
     try {
       setSubmitting(true);
@@ -223,7 +253,10 @@ export default function RegisterPage() {
         return;
       }
 
-      setStatus({ type: "error", text: json?.message || "Registration failed." });
+      setStatus({
+        type: "error",
+        text: json?.message || "Registration failed.",
+      });
     } catch (e: any) {
       setStatus({ type: "error", text: e?.message || "Registration failed." });
     } finally {
@@ -245,8 +278,14 @@ export default function RegisterPage() {
       <div className="container">
         <div className="row justify-content-center">
           <div className="col-12 col-md-10 col-lg-7 col-xl-6">
-            <div className="card border-0 shadow-sm" style={{ borderRadius: 16, overflow: "hidden" }}>
-              <div className="p-4" style={{ background: "#002341", color: "white" }}>
+            <div
+              className="card border-0 shadow-sm"
+              style={{ borderRadius: 16, overflow: "hidden" }}
+            >
+              <div
+                className="p-4"
+                style={{ background: "#002341", color: "white" }}
+              >
                 <h3 className="mb-1 fw-bold">Create Account</h3>
                 <p className="mb-0" style={{ opacity: 0.85 }}>
                   Register to access your courses and study materials.
@@ -256,12 +295,13 @@ export default function RegisterPage() {
               <div className="card-body p-4">
                 {status && (
                   <div
-                    className={`alert ${status.type === "success"
+                    className={`alert ${
+                      status.type === "success"
                         ? "alert-success"
                         : status.type === "error"
                           ? "alert-danger"
                           : "alert-info"
-                      }`}
+                    }`}
                     role="alert"
                   >
                     {status.text}
@@ -288,7 +328,9 @@ export default function RegisterPage() {
                         }}
                       >
                         <option value="">
-                          {loadingCourses ? "Loading courses..." : "Select a course"}
+                          {loadingCourses
+                            ? "Loading courses..."
+                            : "Select a course"}
                         </option>
                         {courses.map((c) => (
                           <option key={c.course_id} value={c.course_id}>
@@ -315,7 +357,9 @@ export default function RegisterPage() {
                         }}
                       >
                         {/* ✅ Always show "Select Service" as initial label */}
-                        <option value="">{!courseId ? "Select Service" : "Select Service"}</option>
+                        <option value="">
+                          {!courseId ? "Select Service" : "Select Service"}
+                        </option>
                         {servicesOptions.map((s) => (
                           <option key={s.value} value={s.value}>
                             {s.label}
@@ -333,7 +377,9 @@ export default function RegisterPage() {
                           setSessionId(e.target.value);
                           setStatus(null);
                         }}
-                        disabled={!courseId || serviceType === "" || loadingSessions}
+                        disabled={
+                          !courseId || serviceType === "" || loadingSessions
+                        }
                         style={{
                           borderRadius: 10,
                           borderColor: "rgba(0,35,65,0.20)",
@@ -342,7 +388,9 @@ export default function RegisterPage() {
                       >
                         {/* ✅ Always show "Select package" as initial label */}
                         <option value="">
-                          {loadingSessions ? "Loading packages..." : "Select package"}
+                          {loadingSessions
+                            ? "Loading packages..."
+                            : "Select package"}
                         </option>
 
                         {sessions.map((s) => {
@@ -470,7 +518,9 @@ export default function RegisterPage() {
                     />
                     <button
                       type="button"
-                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
                       onClick={() => setShowPassword((s) => !s)}
                       className="btn btn-link p-0"
                       style={{
@@ -482,7 +532,11 @@ export default function RegisterPage() {
                         textDecoration: "none",
                       }}
                     >
-                      {showPassword ? <BsEyeSlash size={18} /> : <BsEye size={18} />}
+                      {showPassword ? (
+                        <BsEyeSlash size={18} />
+                      ) : (
+                        <BsEye size={18} />
+                      )}
                     </button>
                   </div>
 
@@ -492,8 +546,10 @@ export default function RegisterPage() {
                       className="d-flex align-items-start gap-3 p-3"
                       style={{
                         borderRadius: 14,
-                        border:"1px solid rgba(0,35,65,0.55)",
-                        background: agree ? "rgba(242,161,85,0.10)" : "rgba(255,255,255,0.95)",
+                        border: "1px solid rgba(0,35,65,0.55)",
+                        background: agree
+                          ? "rgba(242,161,85,0.10)"
+                          : "rgba(255,255,255,0.95)",
                         boxShadow: agree
                           ? "0 10px 28px rgba(0,35,65,0.18)"
                           : "0 8px 22px rgba(0,0,0,0.10)",
@@ -540,13 +596,19 @@ export default function RegisterPage() {
                           Terms &amp; Conditions
                         </a>
                         .
-                        <div style={{ fontSize: 12, fontWeight: 600, opacity: 0.85, marginTop: 4 }}>
+                        <div
+                          style={{
+                            fontSize: 12,
+                            fontWeight: 600,
+                            opacity: 0.85,
+                            marginTop: 4,
+                          }}
+                        >
                           Required to enable Register
                         </div>
                       </label>
                     </div>
                   </div>
-
 
                   {/* Submit */}
                   <button
@@ -567,7 +629,9 @@ export default function RegisterPage() {
 
                   {/* Login link */}
                   <div className="text-center mt-3">
-                    <span className="text-muted">Already have an account? </span>
+                    <span className="text-muted">
+                      Already have an account?{" "}
+                    </span>
                     <Link
                       href="/user-login"
                       className="fw-semibold text-decoration-none"

@@ -19,8 +19,7 @@ export default function ContactPage() {
   });
   const [submitting, setSubmitting] = useState(false);
 
-  const API_URL =
-    "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php";
+  const API_URL = process.env.PHP_API_URL!;
 
   useEffect(() => {
     const fetchStates = async () => {
@@ -69,7 +68,7 @@ export default function ContactPage() {
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    >,
   ) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -126,7 +125,10 @@ export default function ContactPage() {
       {/* ✅ Banner */}
       <div className="banner bg-black bg-opacity-50 py-3 px-4 rounded flex flex-col items-center text-center mb-5">
         <h1 className="text-white mb-2 text-3xl font-bold">Contact Us</h1>
-        <Breadcrumb segments={["contact-us"]} className="text-white text-base mt-1" />
+        <Breadcrumb
+          segments={["contact-us"]}
+          className="text-white text-base mt-1"
+        />
       </div>
 
       {/* ✅ Contact Section */}
@@ -154,7 +156,10 @@ export default function ContactPage() {
 
               <p className="mb-0">
                 <i className="bi bi-telephone-fill text-primary me-2"></i>
-                <a href="tel:+17182006396" className="text-dark text-decoration-none">
+                <a
+                  href="tel:+17182006396"
+                  className="text-dark text-decoration-none"
+                >
                   (718)-200-6396
                 </a>
               </p>
