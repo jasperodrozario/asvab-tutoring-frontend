@@ -12,6 +12,8 @@ build
 # Environment variables
 .env
 .env.*
+.env.local
+.env.local.bac
 !.env.example
 
 # Logs
