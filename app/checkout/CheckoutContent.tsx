@@ -72,7 +72,7 @@ export default function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const API_URL = process.env.PHP_API_URL!;
+  const API_URL = process.env.NEXT_PUBLIC_PHP_API_URL!;
   const EMAIL_CHECK_ACTION = "check-email";
 
   const course_id = searchParams.get("course_id") || "";

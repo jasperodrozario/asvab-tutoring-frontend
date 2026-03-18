@@ -22,7 +22,7 @@ export default function PricingContent({ submenu }: { submenu: string }) {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch(process.env.PHP_API_URL!, {
+        const res = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
           method: "POST",
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
@@ -70,7 +70,7 @@ export default function PricingContent({ submenu }: { submenu: string }) {
           <h2 className="text-dark mb-3">{item.title}</h2>
           <hr className="mb-4 mt-2" />
           <div
-            className="mb-3"
+            className="mb-3 service-description"
             dangerouslySetInnerHTML={{
               __html: decodeHtml(item.description),
             }}

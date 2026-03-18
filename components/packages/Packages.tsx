@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import Image from 'next/image';
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import Image from "next/image";
 
 type CoursePackage = {
   course_id: string;
@@ -19,7 +19,7 @@ type PackagesProps = {
 
 const Packages = ({
   // showEnrollButton = true,
-  headingSize = 'fs-5', // default smaller heading
+  headingSize = "fs-5", // default smaller heading
 }: PackagesProps) => {
   const [packages, setPackages] = useState<CoursePackage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,19 +28,19 @@ const Packages = ({
     const fetchPackages = async () => {
       try {
         const formData = new FormData();
-        formData.append('action', 'course-list-tutoring-package');
+        formData.append("action", "course-list-tutoring-package");
 
-        const res = await fetch(
-          'https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php',
-          { method: 'POST', body: formData }
-        );
+        const res = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
+          method: "POST",
+          body: formData,
+        });
 
         const data = await res.json();
         if (data?.isSuccess) {
           setPackages(data.data);
         }
       } catch (error) {
-        console.error('Error fetching tutor packages:', error);
+        console.error("Error fetching tutor packages:", error);
       } finally {
         setLoading(false);
       }
@@ -62,25 +62,23 @@ const Packages = ({
               width={160}
               height={8}
               className="position-absolute start-50 translate-middle-x bottom-0"
-              style={{ objectFit: 'cover' }}
+              style={{ objectFit: "cover" }}
             />
           </h2>
         </div>
 
         {/* Description */}
-        <p
-          className="text-start mx-auto mb-4"
-          style={{ maxWidth: '960px' }}
-        >
-          ASVAB Tutoring will provide One-on-One online tutoring service. All the
-          study materials with a lesson plan will be provided. Each session is 2
-          hours. The tutoring services offered by ASVAB Tutoring are as follows.
+        <p className="text-start mx-auto mb-4" style={{ maxWidth: "960px" }}>
+          ASVAB Tutoring will provide One-on-One online tutoring service. All
+          the study materials with a lesson plan will be provided. Each session
+          is 2 hours. The tutoring services offered by ASVAB Tutoring are as
+          follows.
         </p>
 
         {/* Subheading */}
         <h3
           className={`fw-semibold ${headingSize} mb-4 text-start`}
-          style={{ maxWidth: '960px', marginInline: 'auto' }}
+          style={{ maxWidth: "960px", marginInline: "auto" }}
         >
           Select online Tutoring package:
         </h3>
@@ -91,10 +89,7 @@ const Packages = ({
             <p>Loading packages...</p>
           ) : (
             packages.map((pkg) => (
-              <div
-                key={pkg.course_id}
-                className="col-sm-6 col-lg-4 hover-lift"
-              >
+              <div key={pkg.course_id} className="col-sm-6 col-lg-4 hover-lift">
                 <div className="card h-100 shadow-sm">
                   <Image
                     src={encodeURI(pkg.image_src.trim())}
@@ -102,15 +97,13 @@ const Packages = ({
                     width={400}
                     height={200}
                     className="card-img-top"
-                    style={{ height: '200px', objectFit: 'cover' }}
+                    style={{ height: "200px", objectFit: "cover" }}
                   />
                   <div className="card-body text-start">
                     <h5 className="card-title fw-bold text-primary">
                       {pkg.name}
                     </h5>
-                    <p className="card-text fw-semibold">
-                      {pkg.price_range}
-                    </p>
+                    <p className="card-text fw-semibold">{pkg.price_range}</p>
                     <div className="text-center">
                       <Link
                         href={`/tutor-package-details/${pkg.course_id}`}
@@ -125,7 +118,6 @@ const Packages = ({
             ))
           )}
         </div>
-
       </div>
     </section>
   );

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import styles from "../../packageDetails.module.css";
 import Link from "next/link";
+import Button from "@/components/button/Button";
 
 function decodeHtmlEntitiesOnce(input: string): string {
   if (!input) return "";
@@ -77,7 +78,7 @@ export default function SpecificPackageDetailsPage({
   useEffect(() => {
     async function fetchCourseData() {
       try {
-        const res = await fetch(process.env.PHP_API_URL!, {
+        const res = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: new URLSearchParams({
@@ -164,19 +165,33 @@ export default function SpecificPackageDetailsPage({
             </h1>
 
             <div
-              className="mx-auto text-start"
-              style={{ marginTop: "1rem", marginBottom: "2rem" }}
+              className={styles.ckContent}
+              dangerouslySetInnerHTML={{
+                __html: decodeHtmlEntitiesDeep(pkg.description ?? ""),
+              }}
+            ></div>
+            {/* <div
+              className={"text-start"}
+              style={{ marginTop: "1rem", marginBottom: "3rem" }}
             >
               {renderTextWithLineBreaks(
                 cleanQuestionText(pkg.description ?? ""),
               )}
-            </div>
+            </div> */}
 
             <div className={styles.pricingGrid}>
               {pkg.sessions.map((session: any) => {
                 const isSub = isSubscriptionSession(session);
                 const buttonLabel = isSub ? "Subscribe" : "Enroll Now";
-
+                const query = {
+                  course_id: String(course_id),
+                  package_id: String(pkg.package_id),
+                  session_id: String(session.session_id),
+                  amount: String(Math.round(Number(session.price) * 100)),
+                  mode: isSub ? "subscription" : "one_time",
+                  product: String(session.product ?? ""),
+                  cadence: String(session.cadence ?? ""),
+                };
                 return (
                   <div
                     key={session.session_id}
@@ -212,31 +227,14 @@ export default function SpecificPackageDetailsPage({
                           )}
                         </div>
                       </div>
-
                       <div className={styles.cardFooter}>
-                        <Link
-                          href={{
-                            pathname: "/checkout",
-                            query: {
-                              course_id: String(course_id),
-                              package_id: String(pkg.package_id),
-                              session_id: String(session.session_id),
-                              amount: String(
-                                Math.round(Number(session.price) * 100),
-                              ),
-                              mode: isSub ? "subscription" : "one_time",
-                              product: String(session.product ?? ""),
-                              cadence: String(session.cadence ?? ""),
-                            },
-                          }}
-                          className="text-decoration-none"
+                        <Button
+                          pathname={"/checkout"}
+                          queryObj={query}
+                          className={`btn btn-primary-custom ${styles.cardBtn}`}
                         >
-                          <button
-                            className={`btn btn-primary-custom ${styles.cardBtn}`}
-                          >
-                            {buttonLabel}
-                          </button>
-                        </Link>
+                          {buttonLabel}
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -298,7 +296,7 @@ export default function SpecificPackageDetailsPage({
                   className="col-12 col-sm-6 col-md-4 col-lg-3"
                 >
                   <div
-                    className="card h-100 shadow-sm border-0 cursor-pointer"
+                    className="card h-100 shadow-sm border-0 cursor-pointer related-course-card"
                     style={{ borderRadius: "10px" }}
                     onClick={() =>
                       router.push(
@@ -316,7 +314,7 @@ export default function SpecificPackageDetailsPage({
                         style={{ objectFit: "cover", height: "200px" }}
                       />
                       <h6
-                        className="fw-semibold mb-2"
+                        className="fw-semibold mb-2 related-course-card-title"
                         style={{ color: "#e58a34" }}
                       >
                         {decodeHtmlEntitiesDeep(rel.name ?? "")}

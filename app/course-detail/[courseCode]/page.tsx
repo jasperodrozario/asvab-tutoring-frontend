@@ -1,30 +1,36 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
+// import Image from "next/image";
 import { Suspense, useState, useEffect } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
+import Button from "@/components/button/Button";
 
 // Type definitions
+
+interface VideoObject {
+  video_title?: string | string[];
+  video_link?: string | string[];
+  thumb_pic?: string | string[];
+}
+
 interface CourseData {
-  status?: number;
-  isSuccess?: boolean;
-  message?: string;
+  status: number;
+  isSuccess: boolean;
+  message: string;
   course_name?: string;
   course_header?: string;
   course_tagline?: string;
   overview?: string;
   curriculum?: string;
   picture?: string;
-  // video?: string;
-  video?: string | string[];
+  video?: VideoObject;
   ft_cat_list?: string[];
   ft_ques_list?: { [key: string]: Question[] };
   courses?: Course[];
   faqs?: FAQ[];
-  // similar_courses?: SimilarCourse[];
   related_courses?: RelatedCourse[];
   total_ques?: number;
   image_src?: string;
@@ -140,12 +146,11 @@ const CourseDetailPage: React.FC = () => {
       formData.append("action", "get-course-details");
       formData.append("course_code", courseCode);
 
-      const response = await fetch(process.env.PHP_API_URL!, {
+      const response = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
         method: "POST",
         body: formData,
       });
       const data = await response.json();
-      console.log("API raw data:", data);
 
       if (data && data.status === 200) {
         setCourseData({
@@ -165,6 +170,25 @@ const CourseDetailPage: React.FC = () => {
   useEffect(() => {
     fetchCourseData();
   }, [courseCode]);
+
+  const hasVideo = (() => {
+    if (!courseData) return false;
+    const v = courseData.video;
+
+    if (!v) return false;
+
+    // object case from API
+    if (typeof v === "object" && "video_link" in v) {
+      const link = (v as VideoObject).video_link;
+      if (typeof link === "string") {
+        return link.trim().length > 0;
+      }
+      if (Array.isArray(link)) {
+        return link.length > 0;
+      }
+    }
+    return false;
+  })();
 
   const handleAnswerChange = (
     categoryIndex: number,
@@ -243,6 +267,8 @@ const CourseDetailPage: React.FC = () => {
     );
   }
 
+  console.log(courseData);
+
   return (
     <>
       {/* Page Title */}
@@ -284,7 +310,16 @@ const CourseDetailPage: React.FC = () => {
               )}
 
               {/* Tabs */}
-              <div className="single-course-tab">
+              <div
+                className="single-course-tab"
+                style={{
+                  border: "1px solid #dee2e6",
+                  borderRadius: "8px",
+                  padding: "10px 18px 0px 18px",
+                  marginBottom: "24px",
+                  minHeight: "740px",
+                }}
+              >
                 {/* <ul className="nav nav-tabs mb-4">
                                     {['Overview', 'Curriculum', 'Course Video', 'Online Free Test'].map((tab, i) => (
                                         <li key={i} className="nav-item">
@@ -298,7 +333,10 @@ const CourseDetailPage: React.FC = () => {
                                     ))}
                                 </ul> */}
 
-                <ul className="nav nav-tabs mb-4">
+                <ul
+                  className="nav nav-tabs mb-4"
+                  style={{ borderBottom: "none" }}
+                >
                   {/* Overview */}
                   {courseData.overview && courseData.overview.trim() !== "" && (
                     <li className="nav-item">
@@ -325,7 +363,7 @@ const CourseDetailPage: React.FC = () => {
                     )}
 
                   {/* Course Video */}
-                  {courseData.video && courseData.video.length > 0 && (
+                  {hasVideo && (
                     <li className="nav-item">
                       <button
                         className={`nav-link ${activeTab === 2 ? "active" : ""}`}
@@ -387,43 +425,81 @@ const CourseDetailPage: React.FC = () => {
                     <div className="instructor-content">
                       <div className="row">
                         {(() => {
-                          // ✅ Ensure TypeScript knows this is always a string array
                           let videoArray: string[] = [];
 
-                          if (typeof courseData.video === "string") {
-                            videoArray = courseData.video
-                              .split(",")
-                              .map((v) => v.trim())
-                              .filter((v) => v.length > 0);
-                          } else if (Array.isArray(courseData.video)) {
-                            videoArray = courseData.video
-                              .map((v) => String(v).trim())
-                              .filter((v) => v.length > 0);
-                          }
+                          if (courseData && courseData.video) {
+                            const v = courseData.video;
+                            if (typeof v.video_link === "string") {
+                              videoArray = v.video_link
+                                .split(",")
+                                .map((x) => x.trim())
+                                .filter((x) => x.length > 0);
+                            } else if (Array.isArray(v)) {
+                              videoArray = v
+                                .map((x) => String(x).trim())
+                                .filter((x) => x.length > 0);
+                            } else if (v && typeof v === "object") {
+                              const link = (v as VideoObject).video_link;
+                              if (typeof link === "string") {
+                                // This logic needs to be changed if custom video title is required.
+                                videoArray = link
+                                  .split(",")
+                                  .map((x) => x.trim())
+                                  .filter((x) => x.length > 0);
+                              } else if (Array.isArray(link)) {
+                                videoArray = link
+                                  .map((x) => String(x).trim())
+                                  .filter((x) => x.length > 0);
+                              }
+                            }
+                            if (videoArray.length === 0) {
+                              return (
+                                <div
+                                  className="col-12 text-center"
+                                  style={{
+                                    padding: "40px 20px",
+                                    color: "#6c757d",
+                                    fontSize: "1.1rem",
+                                  }}
+                                >
+                                  <p>
+                                    No video available to view at the moment.
+                                  </p>
+                                </div>
+                              );
+                            }
 
-                          if (videoArray.length === 0) {
-                            return (
-                              <div className="col-12 text-center  ">
-                                <p>No video available to view at the moment.</p>
-                              </div>
-                            );
-                          }
-
-                          return videoArray.map(
-                            (url: string, index: number) => (
+                            return videoArray.map((url, index) => (
                               <div key={index} className="col-12 mb-4">
-                                <iframe
-                                  width="100%"
-                                  height={415}
-                                  src={url}
-                                  title={`Course video player ${index + 1}`}
-                                  frameBorder={0}
-                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                  allowFullScreen
-                                />
+                                <div
+                                  style={{
+                                    borderRadius: "12px",
+                                    overflow: "hidden",
+                                    boxShadow:
+                                      "0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08)",
+                                    transition: "box-shadow 0.3s ease",
+                                    backgroundColor: "#fff",
+                                    padding: "8px",
+                                    border: "1px solid #e0e0e0",
+                                  }}
+                                >
+                                  <h2>{}</h2>
+                                  <iframe
+                                    width="100%"
+                                    height={415}
+                                    src={url}
+                                    title={`Course video player ${index + 1}`}
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                    style={{
+                                      borderRadius: "8px",
+                                      border: "none",
+                                    }}
+                                  />
+                                </div>
                               </div>
-                            ),
-                          );
+                            ));
+                          }
                         })()}
                       </div>
                     </div>
@@ -534,7 +610,7 @@ const CourseDetailPage: React.FC = () => {
                             );
                           })
                         ) : (
-                          <div className="alert alert-info">
+                          <div className="alert alert-info text-center">
                             No questions available for this category.
                           </div>
                         )
@@ -643,7 +719,7 @@ const CourseDetailPage: React.FC = () => {
                               className="btn btn-outline-secondary mt-3 d-flex align-items-center"
                               title="Go to Top"
                             >
-                              <i className="bi bi-arrow-up-circle fs-5 me-1"></i>{" "}
+                              <i className="bi bi-arrow-up-circle fs-5 me-1"></i>
                               Top
                             </button>
                           </div>
@@ -668,7 +744,7 @@ const CourseDetailPage: React.FC = () => {
                       {location && ` ${location.replace(/-/g, " ")}`}
                     </h4>
                     {courseData.related_courses.map((course, i) => (
-                      <div key={i} className="card mb-3">
+                      <div key={i} className="card mb-3 related-course-card">
                         <Link
                           href={`/course-detail/${encodeURIComponent(course.course_code)}`}
                         >
@@ -679,16 +755,19 @@ const CourseDetailPage: React.FC = () => {
                             style={{ height: "200px", objectFit: "cover" }}
                           />
                         </Link>
-                        <div className="card-body p-2">
+                        <div className="card-body">
                           <Link
                             href={`/course-detail/${encodeURIComponent(course.course_code)}`}
                             className="text-decoration-none"
                           >
-                            <h6 className="card-title mb-1">
+                            <h6
+                              className="card-title mb-1 related-course-card-title"
+                              style={{ color: "#002341" }}
+                            >
                               {cleanQuestionText(course.name)}
                             </h6>
                           </Link>
-                          <p className="card-text small mb-2">
+                          <p className="card-text small">
                             {cleanQuestionText(course.details || "").substring(
                               0,
                               100,
@@ -709,6 +788,14 @@ const CourseDetailPage: React.FC = () => {
                   </div>
                 )}
             </div>
+          </div>
+          <div className={"text-center"}>
+            <Button
+              pathname={`/SpecificPackageDetailsPage/one/${encodeURIComponent(courseCode)}`}
+              className="btn-primary-custom2"
+            >
+              Enroll Now
+            </Button>
           </div>
         </div>
       </section>

@@ -10,7 +10,6 @@
   }
 } */
 
-
 body {
   padding-top: 120px; /* Default for md and larger screens */
   color: #000;
@@ -53,12 +52,11 @@ a {
   }
 }
 
-
 /* --- */
 :root {
   --primary-color: #f2a155;
   --secondary-color: #002341;
-  --primary-color-dark: #e58a34
+  --primary-color-dark: #e58a34;
 }
 
 .navbar-nav .nav-link {
@@ -156,13 +154,13 @@ a {
 
 /* Homepage Hero section */
 .bg-hero {
-  background-image: url('/images/asvab-bg.jpg');
+  background-image: url("/images/asvab-bg.jpg");
   background-size: cover;
   background-position: center;
   position: relative;
 }
 .bg-hero::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background-color: rgba(0, 0, 0, 0.8);
@@ -198,7 +196,9 @@ a {
   transform: translateY(-5px);
 }
 .btn-secondary-custom {
-  transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;;
+  transition:
+    background-color 0.3s ease-in-out,
+    color 0.3s ease-in-out;
   border: 1px solid var(--secondary-color);
 }
 .btn-secondary-custom:hover {
@@ -206,7 +206,6 @@ a {
   color: #fff;
 }
 /* Top Courses Section End*/
-
 
 /* Meet Our Teachers Section*/
 .text-primary {
@@ -246,7 +245,7 @@ a {
 
 /*Slide Testimonial-section */
 .testimonial-section {
-  background: url('/images/review_bg-1.jpg') center/cover no-repeat;
+  background: url("/images/review_bg-1.jpg") center/cover no-repeat;
   padding: 4rem 1rem;
 }
 
@@ -289,16 +288,16 @@ a {
 
 /* Footer Section Start*/
 .footer-link,
-  .footer-icon {
-    transition: color 0.3s ease-in-out;
-  }
+.footer-icon {
+  transition: color 0.3s ease-in-out;
+}
 
-  .footer-link:hover,
-  .footer-icon:hover {
-    color: var(--primary-color) !important;
-  }
+.footer-link:hover,
+.footer-icon:hover {
+  color: var(--primary-color) !important;
+}
 
-  /* Featured Links */
+/* Featured Links */
 .footer-link {
   color: white;
   text-decoration: none;
@@ -352,7 +351,6 @@ a {
   cursor: pointer;
 }
 
-
 /* Base tab styling */
 .nav-link.primary-color-custom {
   color: var(--primary-color-dark);
@@ -375,12 +373,11 @@ a {
   border-color: var(--primary-color-dark);
 }
 .social-icon {
-  transition: all 0.3s ease-in-out ;
+  transition: all 0.3s ease-in-out;
 }
 .social-icon:hover {
   color: var(--secondary-color);
 }
-
 
 .question-number {
   color: #fff;
@@ -412,7 +409,20 @@ a {
   width: 100%;
   border: none;
   border-radius: 1rem;
- 
+}
+
+.related-course-card {
+  transition: transform 0.2s ease-in-out;
+}
+
+.related-course-card:hover {
+  transform: scale(1.02);
+}
+.related-course-card-title {
+  width: fit-content;
+}
+.related-course-card-title:hover {
+  text-decoration: underline;
 }
 
 .form-control {
@@ -425,7 +435,6 @@ a {
   }
 }
 
-
 .ckeditor-container .ck-editor__editable_inline {
   min-height: 200px;
 }
@@ -436,55 +445,68 @@ a {
 
 /* Custom color for checked radio buttons */
 .form-check-input:checked {
-    background-color: #f2a155 !important;
-    border-color: #f2a155 !important;
+  background-color: #f2a155 !important;
+  border-color: #f2a155 !important;
 }
 
 /* Optional: hover/focus states */
 .form-check-input:focus {
-    border-color: #f2a155 !important;
-    box-shadow: 0 0 0 0.25rem rgba(242, 161, 85, 0.25);
+  border-color: #f2a155 !important;
+  box-shadow: 0 0 0 0.25rem rgba(242, 161, 85, 0.25);
 }
-
 
 /* Course Detail Page */
 .page-title-area {
-    position: relative;
-    background-image: url('/images/course_detail_page_cover.jpg'); /* set your static image path here */
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    overflow: hidden;
+  position: relative;
+  background-image: url("/images/course_detail_page_cover.jpg"); /* set your static image path here */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  overflow: hidden;
 }
 
 .page-title-area::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    backdrop-filter: blur(2px);
-    background-color: rgba(0, 0, 0, 0.7); /* Dark overlay for text readability */
-    z-index: 0;
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(2px);
+  background-color: rgba(0, 0, 0, 0.7); /* Dark overlay for text readability */
+  z-index: 0;
 }
 
 .page-title-area .container {
-    position: relative;
-    z-index: 1; /* Keep text above overlay */
+  position: relative;
+  z-index: 1; /* Keep text above overlay */
 }
 
+.btn-primary-custom2 {
+  padding: 10px;
+  width: 150px;
+  border: #f2a155;
+  border-radius: 6px;
+  background-color: #f2a155;
+  color: #fff;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.btn-primary-custom2:hover {
+  color: #fff;
+  background-color: #e58a34;
+}
 
 /* Default color for all nav links */
 .nav-tabs .nav-link {
-    color: #000;
+  color: #000;
 }
 
 /* Active tab color (Bootstrap already applies .active) */
 .nav-tabs .nav-link.active {
-    color: #e58a34; 
-    /* background-color: #f7ac67;  */
-    /* border-color: #e58a34 #e58a34 #fff; */
+  color: #e58a34;
+  /* background-color: #f7ac67;  */
+  /* border-color: #e58a34 #e58a34 #fff; */
 }
 
 /* @media (prefers-color-scheme: dark) {
@@ -511,6 +533,60 @@ a {
   }
 }
 
+/* === Our Mobile Apps === */
+/* Card */
+.app-card {
+  border-radius: 16px;
+  padding: 32px 24px;
+  text-align: center;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  border: 1px solid #dde3ec;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.app-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.13);
+  border-color: #c8d0dc;
+}
+
+/* App Name */
+.app-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+/* App Description */
+.app-description {
+  font-size: 0.8rem;
+  color: #888; /* Muted gray */
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+/* Logo */
+.app-logo {
+  display: block;
+  margin: 0 auto 16px auto;
+  width: 90px;
+  height: 90px;
+  border-radius: 20px;
+}
+
+/* App Link Button */
+.app-link-btn {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+.app-link-btn:hover {
+  transform: scale(1.03);
+}
 
 /* === Mobile menu alignment === */
 @media (max-width: 767px) {
@@ -561,7 +637,6 @@ table {
   width: 100% !important;
 }
 
-
 .payment-row {
   padding: 10px 5px;
   border-radius: 8px;
@@ -581,9 +656,8 @@ table {
   display: flex;
   justify-content: center;
   align-items: center;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
 }
-
 
 /* Prevent nav items from wrapping + reduce spacing on medium screens */
 @media (max-width: 1400px) {
@@ -620,7 +694,7 @@ table {
 @media (min-width: 992px) {
   .navbar-nav .nav-link,
   .navbar-nav .btn {
-    white-space: nowrap !important;   /* stops breaking into 2 lines */
+    white-space: nowrap !important; /* stops breaking into 2 lines */
   }
 
   /* If your dropdown triggers are <span class="nav-link ..."> */
@@ -640,7 +714,6 @@ table {
   color: rgba(var(--bs-link-color-rgb), var(--bs-link-opacity, 1));
   text-decoration: underline !important;
 }
-
 
 /* Blog detail HTML content responsiveness */
 .blog-content img {

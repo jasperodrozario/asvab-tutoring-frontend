@@ -1,12 +1,12 @@
+// components\subscribe-again-payment-form\SubscribeAgainPaymentForm.tsx
+
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
 declare global {
   interface Window {
-    Square?: {
-      payments: (appId: string, locationId: string) => Promise<any> | any;
-    };
+    Square?: any;
   }
 }
 
@@ -29,43 +29,41 @@ type Props = {
   onError?: (message: string) => void;
 };
 
-const squareScriptPromises = new Map<string, Promise<void>>();
-
-function cleanString(value: unknown): string {
-  return typeof value === "string" ? value.trim() : "";
-}
-
-function safeMsg(value: unknown, fallback = "Something went wrong. Please try again.") {
-  const s = cleanString(value);
-  if (!s || s.length > 200) return fallback;
-  return s;
-}
+let squareScriptPromise: Promise<void> | null = null;
 
 function mask(v: string, a = 6, b = 4) {
-  const str = String(v || "");
-  if (!str) return "";
-  if (str.length <= a + b) return "*".repeat(str.length);
-  return `${str.slice(0, a)}***${str.slice(-b)}`;
+  v = String(v || "");
+  if (!v) return "";
+  if (v.length <= a + b) return "*".repeat(v.length);
+  return `${v.slice(0, a)}***${v.slice(-b)}`;
 }
 
 function loadSquareScriptOnce(src: string): Promise<void> {
-  const existingPromise = squareScriptPromises.get(src);
-  if (existingPromise) return existingPromise;
+  if (squareScriptPromise) return squareScriptPromise;
 
-  const promise = new Promise<void>((resolve, reject) => {
+  squareScriptPromise = new Promise<void>((resolve, reject) => {
     const existing = document.getElementById("square-js") as HTMLScriptElement | null;
 
-    if (existing && (existing.dataset.src || existing.src) === src && existing.dataset.loaded === "1") {
-      resolve();
-      return;
-    }
+    if (existing?.dataset.loaded === "1") return resolve();
 
-    if (existing && (existing.dataset.src || existing.src) !== src) {
-      try {
-        existing.remove();
-      } catch {
-        // ignore
-      }
+    if (existing) {
+      const onLoad = () => {
+        existing.dataset.loaded = "1";
+        cleanup();
+        resolve();
+      };
+      const onError = () => {
+        cleanup();
+        reject(new Error("Failed to load Square JS"));
+      };
+      const cleanup = () => {
+        existing.removeEventListener("load", onLoad);
+        existing.removeEventListener("error", onError);
+      };
+
+      existing.addEventListener("load", onLoad);
+      existing.addEventListener("error", onError);
+      return;
     }
 
     const script = document.createElement("script");
@@ -73,63 +71,32 @@ function loadSquareScriptOnce(src: string): Promise<void> {
     script.src = src;
     script.async = true;
     script.crossOrigin = "anonymous";
-    script.dataset.src = src;
-    script.dataset.loaded = "0";
 
-    const onLoad = () => {
+    script.onload = () => {
       script.dataset.loaded = "1";
-      cleanup();
       resolve();
     };
-
-    const onError = () => {
-      cleanup();
-      reject(new Error("Failed to load Square payments library."));
-    };
-
-    const cleanup = () => {
-      script.removeEventListener("load", onLoad);
-      script.removeEventListener("error", onError);
-    };
-
-    script.addEventListener("load", onLoad);
-    script.addEventListener("error", onError);
+    script.onerror = () => reject(new Error("Failed to load Square JS"));
 
     document.body.appendChild(script);
   });
 
-  squareScriptPromises.set(src, promise);
-  return promise;
+  return squareScriptPromise;
 }
 
-async function waitForWindowSquare(maxMs = 10000): Promise<boolean> {
+async function waitForWindowSquare(maxMs = 10_000): Promise<boolean> {
   const start = Date.now();
   while (!window.Square && Date.now() - start < maxMs) {
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise((r) => setTimeout(r, 120));
   }
   return !!window.Square;
 }
 
-async function readJsonSafe(res: Response): Promise<any> {
-  const contentType = (res.headers.get("content-type") || "").toLowerCase();
-  const text = await res.text();
-
-  if (contentType.includes("application/json")) {
-    try {
-      return JSON.parse(text);
-    } catch {
-      return { ok: false, message: "We received an invalid response from the server." };
-    }
-  }
-
-  return { ok: false, message: "We received an unexpected response from the server." };
-}
-
 function pickSubscriptionId(data: any): string {
   return (
-    cleanString(data?.subscription_id) ||
-    cleanString(data?.subscriptionId) ||
-    cleanString(data?.id)
+    String(data?.subscription_id || "").trim() ||
+    String(data?.subscriptionId || "").trim() ||
+    String(data?.id || "").trim()
   );
 }
 
@@ -148,22 +115,24 @@ export default function SubscribeAgainPaymentForm({
 }: Props) {
   const cardContainerRef = useRef<HTMLDivElement | null>(null);
   const cardInstanceRef = useRef<any>(null);
-  const initTokenRef = useRef(0);
-  const mountedRef = useRef(false);
+  const initSeqRef = useRef(0);
 
   const [initializing, setInitializing] = useState(true);
   const [paying, setPaying] = useState(false);
   const [completed, setCompleted] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-  const [subscriptionId, setSubscriptionId] = useState("");
 
-  const appId = process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID || "";
-  const locationId = process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID || "";
-  const squareScriptSrc =
-    process.env.NEXT_PUBLIC_SQUARE_SCRIPT_URL ||
-    (appId.startsWith("sandbox-")
+  const [message, setMessage] = useState<string | null>(null);
+  const [subscriptionId, setSubscriptionId] = useState<string>("");
+
+  const appId = process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID;
+  const locationId = process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID;
+
+  const squareScriptSrc = useMemo(() => {
+    const isSandbox = (appId || "").startsWith("sandbox-");
+    return isSandbox
       ? "https://sandbox.web.squarecdn.com/v1/square.js"
-      : "https://web.squarecdn.com/v1/square.js");
+      : "https://web.squarecdn.com/v1/square.js";
+  }, [appId]);
 
   const displayAmount = useMemo(() => (Number(amount || 0) / 100).toFixed(2), [amount]);
 
@@ -171,119 +140,56 @@ export default function SubscribeAgainPaymentForm({
   const termsAgreed = termsRequired ? !!agreeTerms : true;
 
   const missingInfo = useMemo(() => {
-    if (!cleanString(auth_token)) return "Missing auth token.";
-    if (!cleanString(user_id)) return "Missing user id.";
-    if (!cleanString(course_id)) return "Missing course id.";
-    if (!cleanString(plan_variation_id)) return "Missing plan variation id.";
+    if (!auth_token) return "Missing auth token.";
+    if (!user_id) return "Missing user id.";
+    if (!course_id) return "Missing course id.";
+    if (!plan_variation_id) return "Missing plan_variation_id (Square plan).";
     if (!Number.isFinite(Number(amount)) || Number(amount) <= 0) return "Invalid amount.";
     return "";
   }, [auth_token, user_id, course_id, plan_variation_id, amount]);
 
   const canSubmit = useMemo(() => {
-    return !disabled && !completed && !initializing && !paying && termsAgreed && !missingInfo;
+    if (disabled) return false;
+    if (completed) return false;
+    if (initializing) return false;
+    if (paying) return false;
+    if (!termsAgreed) return false;
+    if (missingInfo) return false;
+    return true;
   }, [disabled, completed, initializing, paying, termsAgreed, missingInfo]);
 
+  // Init Square card form
   useEffect(() => {
-    mountedRef.current = true;
     let cancelled = false;
-    const myToken = ++initTokenRef.current;
-
-    const setSafe = (fn: () => void) => {
-      if (!cancelled && mountedRef.current && initTokenRef.current === myToken) {
-        fn();
-      }
-    };
-
-    const cleanupCard = async () => {
-      try {
-        if (cardInstanceRef.current) {
-          await cardInstanceRef.current.destroy();
-          cardInstanceRef.current = null;
-        }
-      } catch {
-        // ignore
-      }
-
-      if (cardContainerRef.current) {
-        cardContainerRef.current.innerHTML = "";
-      }
-    };
+    const seq = ++initSeqRef.current;
 
     const init = async () => {
-      setSafe(() => {
+      try {
         setInitializing(true);
         setMessage(null);
-      });
 
-      if (!appId || !locationId) {
-        setSafe(() => {
+        if (!appId || !locationId) {
           setMessage("Payment is not configured correctly.");
-          setInitializing(false);
-        });
-        return;
-      }
+          return;
+        }
 
-      try {
         await loadSquareScriptOnce(squareScriptSrc);
 
-        const ready = await waitForWindowSquare(10000);
-        if (!ready) {
-          setSafe(() => {
-            setMessage("Unable to load the payment form. Please refresh the page and try again.");
-            setInitializing(false);
-          });
+        const ok = await waitForWindowSquare(10_000);
+        if (!ok) {
+          setMessage("Unable to load payment form. Please refresh the page.");
           return;
         }
 
         if (!cardContainerRef.current) {
-          setSafe(() => {
-            setMessage("Card container not found.");
-            setInitializing(false);
-          });
+          setMessage("Card container not found.");
           return;
         }
 
-        await cleanupCard();
+        // Cancelled or stale init
+        if (cancelled || initSeqRef.current !== seq) return;
 
-        const payments = await window.Square!.payments(appId, locationId);
-        const card = await payments.card();
-
-        if (cancelled || initTokenRef.current !== myToken) {
-          try {
-            await card.destroy();
-          } catch {
-            // ignore
-          }
-          return;
-        }
-
-        await card.attach(cardContainerRef.current);
-        cardInstanceRef.current = card;
-
-        if (!cleanString(plan_variation_id)) {
-          setSafe(() => setMessage("This package is not linked to a Square plan yet."));
-        } else {
-          setSafe(() => setMessage(null));
-        }
-      } catch (error: any) {
-        console.error("Square init error:", error);
-        setSafe(() => {
-          setMessage(
-            safeMsg(error?.message, "We could not initialize the payment form. Please refresh the page and try again.")
-          );
-        });
-      } finally {
-        setSafe(() => setInitializing(false));
-      }
-    };
-
-    init();
-
-    return () => {
-      cancelled = true;
-      mountedRef.current = false;
-
-      (async () => {
+        // Destroy previous instance if any
         try {
           if (cardInstanceRef.current) {
             await cardInstanceRef.current.destroy();
@@ -293,8 +199,46 @@ export default function SubscribeAgainPaymentForm({
           // ignore
         }
 
-        if (cardContainerRef.current) {
-          cardContainerRef.current.innerHTML = "";
+        cardContainerRef.current.innerHTML = "";
+
+        const payments = window.Square!.payments(appId, locationId);
+        const card = await payments.card();
+
+        if (cancelled || initSeqRef.current !== seq) {
+          await card.destroy();
+          return;
+        }
+
+        await card.attach(cardContainerRef.current);
+        cardInstanceRef.current = card;
+
+        // If plan_variation_id missing, show a helpful hint (page might already block)
+        if (String(plan_variation_id || "").trim() === "") {
+          setMessage("This package is not linked to a Square plan yet.");
+        }
+      } catch (err: any) {
+        console.error("Square init error:", err);
+        setMessage(err?.message || "Failed to initialize payment.");
+      } finally {
+        if (!cancelled && initSeqRef.current === seq) setInitializing(false);
+      }
+    };
+
+    init();
+
+    return () => {
+      cancelled = true;
+      (async () => {
+        try {
+          if (cardInstanceRef.current) {
+            await cardInstanceRef.current.destroy();
+            cardInstanceRef.current = null;
+          }
+          if (cardContainerRef.current) {
+            cardContainerRef.current.innerHTML = "";
+          }
+        } catch {
+          // ignore
         }
       })();
     };
@@ -302,14 +246,8 @@ export default function SubscribeAgainPaymentForm({
 
   const handleSubscribe = async () => {
     if (!canSubmit) {
-      const msg =
-        missingInfo ||
-        (termsRequired && !termsAgreed ? "Please agree to the terms to continue." : "");
-
-      if (msg) {
-        setMessage(msg);
-        onError?.(msg);
-      }
+      const msg = missingInfo || (termsRequired && !termsAgreed ? "Please agree to the terms to continue." : "");
+      if (msg) setMessage(msg);
       return;
     }
 
@@ -324,27 +262,21 @@ export default function SubscribeAgainPaymentForm({
     setMessage(null);
 
     try {
+      // Tokenize card (kept for logs / future payment; subscriptions creation currently uses customer+plan)
       const tokenizeResult = await cardInstanceRef.current.tokenize();
 
       if (tokenizeResult?.status !== "OK") {
-        const msg = safeMsg(
-          tokenizeResult?.errors?.[0]?.message || tokenizeResult?.errors?.[0]?.detail,
-          "Card details could not be verified. Please try again."
-        );
+        const msg =
+          tokenizeResult?.errors?.[0]?.message ||
+          "Card details could not be verified. Please try again.";
         setMessage(msg);
         onError?.(msg);
         return;
       }
 
-      const sourceId = cleanString(tokenizeResult?.token);
-      if (!sourceId) {
-        const msg = "We couldn't verify your payment method. Please refresh the page and try again.";
-        setMessage(msg);
-        onError?.(msg);
-        return;
-      }
+      const sourceId = String(tokenizeResult.token || "").trim();
 
-      console.log("subscribe-again request", {
+      console.log("➡️ subscribe-again POST", {
         user_id,
         course_id,
         plan_variation_id: mask(plan_variation_id),
@@ -359,25 +291,21 @@ export default function SubscribeAgainPaymentForm({
         cache: "no-store",
         body: JSON.stringify({
           sourceId,
-          auth_token: cleanString(auth_token),
-          user_id: cleanString(user_id),
-          course_id: cleanString(course_id),
-          plan_variation_id: cleanString(plan_variation_id),
+          auth_token,
+          user_id,
+          course_id,
+          plan_variation_id,
           amount,
-          return_url: cleanString(return_url),
+          return_url,
         }),
       });
 
-      const data = await readJsonSafe(res);
+      const data = await res.json().catch(() => ({}));
 
-      console.log("subscribe-again response", {
-        http_ok: res.ok,
-        status: res.status,
-        data,
-      });
+      console.log("⬅️ subscribe-again POST response", { http_ok: res.ok, status: res.status, data });
 
       if (!res.ok || !data?.ok) {
-        const msg = safeMsg(data?.message || data?.error, "Subscription failed. Please try again.");
+        const msg = String(data?.message || "Subscription failed. Please try again.");
         setMessage(msg);
         onError?.(msg);
         return;
@@ -388,18 +316,17 @@ export default function SubscribeAgainPaymentForm({
       setCompleted(true);
       if (id) {
         setSubscriptionId(id);
+        onSuccess?.(id);
       }
 
-      onSuccess?.(id || undefined);
-      setMessage("Subscription created successfully.");
+      setMessage("✅ Subscription created successfully!");
 
-      const back = cleanString(data?.back_to_portal) || cleanString(return_url);
-      if (back) {
-        window.location.href = back;
-      }
-    } catch (error: any) {
-      console.error("Subscribe-again error:", error);
-      const msg = safeMsg(error?.message, "Error while processing payment.");
+      // Redirect
+      const back = String(data?.back_to_portal || "").trim() || String(return_url || "").trim();
+      if (back) window.location.href = back;
+    } catch (err: any) {
+      console.error("Subscribe error:", err);
+      const msg = err?.message || "Error while processing payment.";
       setMessage(msg);
       onError?.(msg);
     } finally {
@@ -409,19 +336,22 @@ export default function SubscribeAgainPaymentForm({
 
   return (
     <div>
+      {/* Card UI */}
       <div
         ref={cardContainerRef}
         className="border p-3 rounded bg-white"
         style={{ minHeight: 56 }}
       />
 
+      {/* Terms */}
       {termsRequired && (
         <div className="mt-3">
           <label className="d-flex align-items-center gap-2 small mb-0">
             <input
-              type="checkbox"
+              type="radio"
+              name="agree_terms"
               checked={!!agreeTerms}
-              onChange={(e) => onAgreeTermsChange?.(e.target.checked)}
+              onChange={() => onAgreeTermsChange?.(true)}
               disabled={paying || disabled || completed}
             />
             <span>
@@ -444,22 +374,18 @@ export default function SubscribeAgainPaymentForm({
         </div>
       )}
 
+      {/* Button */}
       <div className="mt-4 d-flex align-items-center gap-3">
         <button
-          type="button"
           className="btn btn-primary-custom px-5 py-2"
           onClick={handleSubscribe}
           disabled={!canSubmit}
+          type="button"
         >
-          {completed
-            ? "Subscribed"
-            : initializing
-            ? "Loading…"
-            : paying
-            ? "Processing…"
-            : `Subscribe $${displayAmount}`}
+          {completed ? "Subscribed" : initializing ? "Loading…" : paying ? "Processing…" : "Subscribe"}
         </button>
 
+        {/* Sub ID */}
         {completed && subscriptionId && (
           <div className="small text-muted">
             <span className="fw-semibold">Subscription ID:</span> {subscriptionId}
@@ -467,6 +393,7 @@ export default function SubscribeAgainPaymentForm({
         )}
       </div>
 
+      {/* Messages */}
       {missingInfo && !message && (
         <p className="mt-3 fw-bold" style={{ color: "#8a5a00" }}>
           {missingInfo}

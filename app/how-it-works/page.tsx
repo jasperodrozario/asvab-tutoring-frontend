@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
+import Button from "@/components/button/Button";
 
 /* ================= TYPES ================= */
 
@@ -29,7 +30,7 @@ export default function HowItWorkPage() {
   useEffect(() => {
     async function fetchHowItWorks() {
       try {
-        const res = await fetch(process.env.PHP_API_URL!, {
+        const res = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
           method: "POST",
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
@@ -82,6 +83,15 @@ export default function HowItWorkPage() {
                   __html: decodeHtml(item.description),
                 }}
               />
+              <div className={"text-center"}>
+                <Button
+                  pathname={"/pricing-page"}
+                  queryObj={{ submenu: "one" }}
+                  className="btn-primary-custom2"
+                >
+                  Enroll Now
+                </Button>
+              </div>
             </div>
           ))
         ) : (

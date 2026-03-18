@@ -18,7 +18,7 @@ type SessionPkg = {
   is_most_popular?: "0" | "1" | string;
 };
 
-const API_URL = process.env.PHP_API_URL!;
+const API_URL = process.env.NEXT_PUBLIC_PHP_API_URL!;
 
 async function postForm(body: Record<string, string>) {
   const fd = new FormData();

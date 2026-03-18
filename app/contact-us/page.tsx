@@ -19,7 +19,7 @@ export default function ContactPage() {
   });
   const [submitting, setSubmitting] = useState(false);
 
-  const API_URL = process.env.PHP_API_URL!;
+  const API_URL = process.env.NEXT_PUBLIC_PHP_API_URL!;
 
   useEffect(() => {
     const fetchStates = async () => {

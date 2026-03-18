@@ -10,6 +10,12 @@ const nextConfig = {
         port: '',
         pathname: '/**', // ✅ allow all paths (not just /uploads/**)
       },
+      {
+        protocol: 'https',
+        hostname: 'staging-test-prep.asvab-tutoring.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };

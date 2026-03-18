@@ -13,7 +13,7 @@ interface State {
 type StatusType = "success" | "error" | "info";
 
 export default function Welcome() {
-  const API_URL = process.env.PHP_API_URL!;
+  const API_URL = process.env.NEXT_PUBLIC_PHP_API_URL!;
 
   const [states, setStates] = useState<State[]>([]);
   const [form, setForm] = useState({

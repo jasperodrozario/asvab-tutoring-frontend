@@ -171,7 +171,7 @@ export async function POST(req: NextRequest) {
   // ✅ MUST match your .env
   const signatureKey = safeStr(process.env.SQUARE_DISPUTE_WEBHOOK_SIGNATURE_KEY || "", 500);
   const notificationUrl = safeStr(process.env.SQUARE_DISPUTE_WEBHOOK_URL || "", 500);
-  const phpUrl = safeStr(process.env.PHP_API_URL || "", 800);
+  const phpUrl = safeStr(process.env.NEXT_PUBLIC_PHP_API_URL || "", 800);
 
   // ---- Receive RAW body (required for signature)
   const rawBody = await req.text();

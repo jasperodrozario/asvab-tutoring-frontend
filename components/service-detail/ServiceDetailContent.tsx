@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
+import Button from "../button/Button";
 
 /* ================= TYPES ================= */
 
@@ -13,6 +14,7 @@ type ServiceDetail = {
   course_id: string;
   ord: string;
   description: string;
+  service_type: string;
 };
 
 /* ================= HTML DECODE ================= */
@@ -36,7 +38,7 @@ export default function ServiceDetailContent({
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch(process.env.PHP_API_URL!, {
+        const res = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
           method: "POST",
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
@@ -65,6 +67,8 @@ export default function ServiceDetailContent({
     load();
   }, [serviceId]);
 
+  console.log(data);
+
   if (loading) {
     return (
       <div className="container py-5 text-center">
@@ -82,6 +86,8 @@ export default function ServiceDetailContent({
   }
 
   const pageTitle = data.title || "Service Detail";
+
+  console.log(data.service_id);
 
   return (
     <>
@@ -108,6 +114,15 @@ export default function ServiceDetailContent({
             __html: decodeHtml(data.description),
           }}
         />
+        <div className="text-center my-4">
+          <Button
+            pathname="/pricing-page"
+            queryObj={{ submenu: data.service_type }}
+            className="btn-primary-custom2"
+          >
+            Enroll Now
+          </Button>
+        </div>
       </div>
     </>
   );

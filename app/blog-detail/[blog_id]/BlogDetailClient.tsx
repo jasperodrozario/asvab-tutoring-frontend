@@ -42,7 +42,7 @@ export default function BlogDetailClient({ blog_id }: { blog_id: string }) {
   useEffect(() => {
     async function fetchBlog() {
       try {
-        const res = await fetch(process.env.PHP_API_URL!, {
+        const res = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
           method: "POST",
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
@@ -106,7 +106,7 @@ export default function BlogDetailClient({ blog_id }: { blog_id: string }) {
               src={
                 blog.writer_img?.startsWith("http")
                   ? blog.writer_img
-                  : `https://test-prep.asvab-tutoring.com/practice-test/${blog.writer_img}`
+                  : `https://staging-test-prep.asvab-tutoring.com/practice-test/${blog.writer_img}`
               }
               alt={blog.written_by}
               width={40}

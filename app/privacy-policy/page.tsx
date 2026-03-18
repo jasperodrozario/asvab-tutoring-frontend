@@ -23,7 +23,7 @@ export default function PrivacyPolicyPage() {
   useEffect(() => {
     async function fetchPrivacyPolicy() {
       try {
-        const response = await fetch(process.env.PHP_API_URL!, {
+        const response = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: new URLSearchParams({

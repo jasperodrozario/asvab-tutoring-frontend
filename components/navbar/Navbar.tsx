@@ -37,7 +37,7 @@ export default function Navbar() {
   useEffect(() => {
     async function fetchCourses() {
       try {
-        const response = await fetch(process.env.PHP_API_URL!, {
+        const response = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: new URLSearchParams({ action: "get-all-courses" }),
@@ -53,7 +53,7 @@ export default function Navbar() {
 
     async function fetchServices() {
       try {
-        const response = await fetch(process.env.PHP_API_URL!, {
+        const response = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: new URLSearchParams({ action: "get-service-course-list" }),
@@ -138,13 +138,13 @@ export default function Navbar() {
               href="/mobile-app-list"
               className="primary-color-custom text-decoration-none"
             >
-              Our Mobile App
+              Our Mobile Apps
             </Link>
           </div>
         </div>
       </div>
 
-      {/* 🔹 Main Navbar */}
+      {/* Main Navbar */}
       <nav className="navbar navbar-expand-lg bg-custom-secondary text-white py-2 py-md-3 fixed-top navbar-desktop-mt">
         <div className="container d-flex justify-content-between align-items-center px-3">
           {/* MOBILE HEADER */}
@@ -333,7 +333,7 @@ export default function Navbar() {
               </li>
 
               {/* <li className="nav-item">
-                <Link href="https://test-prep.asvab-tutoring.com/register-free" className="btn border text-white px-3 py-1 fs-6">
+                <Link href="https://staging-test-prep.asvab-tutoring.com/register-free" className="btn border text-white px-3 py-1 fs-6">
                   ONLINE STUDY
                 </Link>
               </li> */}
@@ -495,7 +495,7 @@ export default function Navbar() {
 
                 {/* <li className="nav-item">
                   <Link 
-                    href="https://test-prep.asvab-tutoring.com/register-free"
+                    href="https://staging-test-prep.asvab-tutoring.com/register-free"
                     className="nav-link text-white d-flex align-items-center btn border px-3 py-1 fs-6"  style={{ maxWidth: "112px", textAlign: "center" }}
                    
                     onClick={handleLinkClick}

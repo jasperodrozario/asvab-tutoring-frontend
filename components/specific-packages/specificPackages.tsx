@@ -46,7 +46,7 @@ const PricingPackages: React.FC<Props> = ({
         formData.append("action", "specific-course-list-tutoring-package");
         formData.append("submenu", activeSubmenu);
 
-        const res = await fetch(process.env.PHP_API_URL!, {
+        const res = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
           method: "POST",
           body: formData,
         });
