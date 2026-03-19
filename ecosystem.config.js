@@ -3,7 +3,7 @@ module.exports = {
     {
       name: "asvab-tutoring",
       script: ".next/standalone/server.js",
-      cwd: "/mnt/BLOCKSTORAGE/home/372023.cloudwaysapps.com/krdbzuugjm/public_html",
+      cwd: "/home/master/applications/asvabtutoring/public_html",
       interpreter: "node",
       env: {
         NODE_ENV: "production",
