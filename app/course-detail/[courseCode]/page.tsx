@@ -508,7 +508,9 @@ const CourseDetailPage: React.FC = () => {
                   {/* Online Free Test */}
                   {activeTab === 3 && courseData.ft_cat_list && (
                     <div className="online-test-content container py-4">
-                      <h3 className="text-center mb-4">Online Free Test</h3>
+                      <h3 className="text-center mb-4">
+                        Free {courseData.course_name} Practice Test
+                      </h3>
 
                       {/* Category Nav */}
                       <ul className="nav nav-pills mb-4">

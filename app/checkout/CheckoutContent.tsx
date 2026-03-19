@@ -312,11 +312,11 @@ export default function CheckoutContent() {
 
   const [agreeTerms, setAgreeTerms] = useState(false);
 
-  const canSubmitMobile =
+  const canSubmit =
     agreeTerms &&
     looksLikeEmail(user.email) &&
-    !!mobilePay.mobile.trim() &&
-    !!mobilePay.ref_code.trim() &&
+    // !!mobilePay.mobile.trim() &&
+    // !!mobilePay.ref_code.trim() &&
     !!user.first_name.trim() &&
     !!user.last_name.trim() &&
     !!user.password.trim() &&
@@ -344,7 +344,7 @@ export default function CheckoutContent() {
       return;
     }
 
-    if (!canSubmitMobile) {
+    if (!canSubmit) {
       setMobileResult({
         type: "danger",
         text: "Please complete all required registration and mobile payment fields.",
@@ -443,14 +443,14 @@ export default function CheckoutContent() {
       ? "Your subscription will renew automatically based on your plan."
       : "One-time payment for your selected package.";
 
-  const TermsRadio = () => (
+  const TermsCheckbox = () => (
     <div className="mt-3">
       <label className="d-flex align-items-center gap-2 small mb-0">
         <input
-          type="radio"
+          type="checkbox"
           name="agree_terms"
           checked={agreeTerms}
-          onChange={() => setAgreeTerms(true)}
+          onChange={() => setAgreeTerms((prev) => !prev)}
         />
         <span>
           Agree{" "}
@@ -465,9 +465,9 @@ export default function CheckoutContent() {
           </a>
         </span>
       </label>
-      {!agreeTerms && (
+      {(!agreeTerms || !canSubmit) && (
         <div className="small text-muted mt-2">
-          Please complete all required fields to enable the button.
+          Please complete all required fields and agree to enable the button.
         </div>
       )}
     </div>
@@ -580,6 +580,29 @@ export default function CheckoutContent() {
                 We’ll use your email for purchase confirmation and account
                 access.
               </div>
+              {paymentMethod === "mobile" ? (
+                <div>
+                  <TermsCheckbox />
+                  <button
+                    type="button"
+                    className="btn btn-primary-custom mt-4 px-5 py-2 d-block mx-auto"
+                    onClick={submitMobilePayment}
+                    disabled={mobileSubmitting || !canSubmit}
+                  >
+                    {mobileSubmitting ? "Submitting..." : "Submit"}
+                  </button>
+
+                  {mobileResult && (
+                    <div
+                      className={`alert alert-${mobileResult.type} mt-3 mb-0`}
+                    >
+                      {mobileResult.text}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                ""
+              )}
             </div>
           </div>
         </div>
@@ -598,7 +621,10 @@ export default function CheckoutContent() {
                           type="radio"
                           name="pay_method"
                           checked={paymentMethod === "mobile"}
-                          onChange={() => setPaymentMethod("mobile")}
+                          onChange={() => {
+                            setAgreeTerms(false);
+                            setPaymentMethod("mobile");
+                          }}
                         />
                         Mobile Payment
                       </label>
@@ -608,7 +634,10 @@ export default function CheckoutContent() {
                           type="radio"
                           name="pay_method"
                           checked={paymentMethod === "card"}
-                          onChange={() => setPaymentMethod("card")}
+                          onChange={() => {
+                            setAgreeTerms(false);
+                            setPaymentMethod("card");
+                          }}
                         />
                         Card Payment
                       </label>
@@ -648,35 +677,73 @@ export default function CheckoutContent() {
                     </div>
 
                     <div className="mt-4">
-                      <div className="row g-2">
-                        <div className="col-12">
-                          <input
-                            className="form-control"
-                            name="mobile"
-                            placeholder="Payment account number"
-                            value={mobilePay.mobile}
-                            onChange={handleMobilePayChange}
-                          />
-                        </div>
+                      {/* <div className="col-12">
+                        <input
+                          className="form-control"
+                          name="mobile"
+                          placeholder="Payment account number"
+                          value={mobilePay.mobile}
+                          onChange={handleMobilePayChange}
+                        />
+                      </div>
 
-                        <div className="col-12">
-                          <input
-                            className="form-control"
-                            name="ref_code"
-                            placeholder="Reference Code"
-                            value={mobilePay.ref_code}
-                            onChange={handleMobilePayChange}
-                          />
+                      <div className="col-12">
+                        <input
+                          className="form-control"
+                          name="ref_code"
+                          placeholder="Reference Code"
+                          value={mobilePay.ref_code}
+                          onChange={handleMobilePayChange}
+                        />
+                      </div> */}
+
+                      {/* New change to the mobile payment UI according to Deb sir */}
+                      <div
+                        className="rounded-3 p-4"
+                        style={{
+                          backgroundColor: "#e7f3ff",
+                          borderLeft: "4px solid #0573e6",
+                        }}
+                      >
+                        <div>
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 8,
+                            }}
+                          >
+                            <i
+                              className="bi bi-info-square-fill"
+                              style={{
+                                fontSize: 24,
+                                color: "#0573e6",
+                                flexShrink: 0,
+                              }}
+                            />
+                            <h5
+                              className="fw-bold"
+                              style={{ marginTop: 5, color: "#0573e6" }}
+                            >
+                              Next Step
+                            </h5>
+                          </div>
+                          <div>
+                            <p className="mb-0 text-muted">
+                              Please let us know once you have made the payment,
+                              and we will activate your account.
+                            </p>
+                          </div>
                         </div>
                       </div>
 
-                      <TermsRadio />
+                      {/* <TermsCheckbox />
 
                       <button
                         type="button"
                         className="btn btn-primary-custom mt-4 px-5 py-2 d-block mx-auto"
                         onClick={submitMobilePayment}
-                        disabled={mobileSubmitting || !canSubmitMobile}
+                        disabled={mobileSubmitting || !canSubmit}
                       >
                         {mobileSubmitting ? "Submitting..." : "Submit"}
                       </button>
@@ -687,7 +754,7 @@ export default function CheckoutContent() {
                         >
                           {mobileResult.text}
                         </div>
-                      )}
+                      )} */}
                     </div>
                   </div>
                 )}
@@ -717,6 +784,7 @@ export default function CheckoutContent() {
                       cadence={mode === "subscription" ? cadence : undefined}
                       disabled={subscriptionInvalid || cardBlockedByEmail}
                       agreeTerms={agreeTerms}
+                      canSubmit={canSubmit}
                       onAgreeTermsChange={setAgreeTerms}
                       onPaymentSuccess={(id?: string) => {
                         const q = id
@@ -726,7 +794,7 @@ export default function CheckoutContent() {
                       }}
                     />
 
-                    {(emailTouched || !!user.email.trim()) &&
+                    {!!user.email.trim() &&
                       (emailChecking ||
                         emailExists ||
                         !looksLikeEmail(user.email)) && (
