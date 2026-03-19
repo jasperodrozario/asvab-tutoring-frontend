@@ -2,6 +2,8 @@
 node_modules
 
 # Next.js build output
+_next
+_next/
 .next
 out
 build
@@ -52,3 +54,10 @@ pids
 
 # Docker
 docker-compose.override.yml
+
+# build-time created files
+file.svg
+globe.svg
+vercel.svg
+window.svg
+next.svg
