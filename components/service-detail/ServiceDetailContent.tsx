@@ -67,8 +67,6 @@ export default function ServiceDetailContent({
     load();
   }, [serviceId]);
 
-  console.log(data);
-
   if (loading) {
     return (
       <div className="container py-5 text-center">
@@ -87,7 +85,21 @@ export default function ServiceDetailContent({
 
   const pageTitle = data.title || "Service Detail";
 
-  console.log(data.service_id);
+  let serviceType;
+  switch (serviceId) {
+    case "2":
+      serviceType = "one";
+      break;
+    case "3":
+      serviceType = "group";
+      break;
+    case "4":
+      serviceType = "subscribe";
+      break;
+    default:
+      serviceType = "unknown";
+      break;
+  }
 
   return (
     <>
@@ -117,7 +129,7 @@ export default function ServiceDetailContent({
         <div className="text-center my-4">
           <Button
             pathname="/pricing-page"
-            queryObj={{ submenu: data.service_type }}
+            queryObj={{ submenu: serviceType }}
             className="btn-primary-custom2"
           >
             Enroll Now
