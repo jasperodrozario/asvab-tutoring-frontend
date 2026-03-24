@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 interface AppInfo {
   app_id: string;
@@ -69,14 +70,13 @@ export default function OurAppsPage() {
     <section className="py-5 bg-light">
       <div className="container">
         <h2 className="text-center fw-bold mb-5">Our Mobile Apps</h2>
-
         <div className="row g-4">
           {apps.map((app) => (
             <div className="col-md-6" key={app.app_id}>
               <div className="app-card h-100 shadow-sm text-center p-3">
                 {/* App Logo */}
                 <div className="app-logo mb-3">
-                  <img
+                  <Image
                     src={app.logo_img}
                     alt={app.app_name}
                     width={100}
@@ -94,35 +94,39 @@ export default function OurAppsPage() {
                 {/* App Store & Google Play */}
                 <div className="d-flex justify-content-center gap-3">
                   {app.app_store_url && app.app_store_url !== "dummy" && (
-                    <a
+                    <Link
                       href={app.app_store_url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="app-link-btn"
                     >
-                      <img
+                      <Image
                         src="/images/download-on-the-app-store.svg"
                         alt="App Store"
-                        width={120}
-                        height={40}
+                        width={0}
+                        height={0}
+                        sizes="100vw"
+                        style={{ width: "auto", height: "40px" }}
                       />
-                    </a>
+                    </Link>
                   )}
 
                   {app.google_play_url && app.google_play_url !== "dummy" && (
-                    <a
+                    <Link
                       href={app.google_play_url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="app-link-btn"
                     >
-                      <img
+                      <Image
                         src="/images/Google_Play_Store_badge_EN.svg"
                         alt="Google Play"
-                        width={120}
-                        height={40}
+                        width={0}
+                        height={0}
+                        sizes="100vw"
+                        style={{ width: "auto", height: "40px" }}
                       />
-                    </a>
+                    </Link>
                   )}
                 </div>
               </div>

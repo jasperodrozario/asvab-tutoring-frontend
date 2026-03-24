@@ -15,9 +15,6 @@ type StatusType = "success" | "error" | "info";
 export default function Welcome() {
   const API_URL = process.env.NEXT_PUBLIC_PHP_API_URL!;
 
-
-
-
   const [states, setStates] = useState<State[]>([]);
   const [form, setForm] = useState({
     name: "",
@@ -288,6 +285,7 @@ export default function Welcome() {
                       value={form.message}
                       onChange={handleChange}
                       disabled={submitting}
+                      placeholder="Write us a message..."
                     />
                   </div>
 
@@ -308,21 +306,24 @@ export default function Welcome() {
                 </form>
 
                 <div className="d-flex justify-content-center gap-2 mt-4">
-                  <Link href="/mobile-app-list">
-                    <Image
-                      src="/images/Google_Play_Store_badge_EN.svg"
-                      alt="Google Play"
-                      width={180}
-                      height={40}
-                    />
-                  </Link>
-
-                  <Link href="/mobile-app-list">
+                  <Link href="/mobile-app-list" className="app-link-btn">
                     <Image
                       src="/images/download-on-the-app-store.svg"
                       alt="App Store"
-                      width={180}
-                      height={40}
+                      width={0}
+                      height={0}
+                      sizes="100vw"
+                      style={{ width: "auto", height: "40px" }}
+                    />
+                  </Link>
+                  <Link href="/mobile-app-list" className="app-link-btn">
+                    <Image
+                      src="/images/Google_Play_Store_badge_EN.svg"
+                      alt="Google Play"
+                      width={0}
+                      height={0}
+                      sizes="100vw"
+                      style={{ width: "auto", height: "40px" }}
                     />
                   </Link>
                 </div>

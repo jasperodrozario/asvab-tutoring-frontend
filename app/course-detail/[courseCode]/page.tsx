@@ -764,7 +764,7 @@ const CourseDetailPage: React.FC = () => {
                           >
                             <h6
                               className="card-title mb-1 related-course-card-title"
-                              style={{ color: "#002341" }}
+                              style={{ color: "#002341", fontWeight: "600" }}
                             >
                               {cleanQuestionText(course.name)}
                             </h6>
