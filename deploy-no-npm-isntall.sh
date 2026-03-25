@@ -1,7 +1,13 @@
 #!/bin/bash
+
 set -e
 
 cd /home/master/applications/asvabtutoring/public_html
+
+echo "Loading Node/NVM in current shell..."
+export NVM_DIR="$HOME/.nvm"
+source "$NVM_DIR/nvm.sh"
+nvm use 20.20.1
 
 echo "Loading environment variables..."
 set -a
@@ -11,9 +17,6 @@ set +a
 echo "Cleaning old build..."
 rm -rf .next
 rm -rf _next
-
-echo "Installing packages..."
-npm install
 
 echo "Building app..."
 npm run build
