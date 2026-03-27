@@ -3,6 +3,11 @@ set -e
 
 cd /home/master/applications/asvabtutoring/public_html
 
+echo "Loading Node/NVM in current shell..."
+export NVM_DIR="$HOME/.nvm"
+source "$NVM_DIR/nvm.sh"
+nvm use 20.20.1
+
 echo "Loading environment variables..."
 set -a
 source .env.local
