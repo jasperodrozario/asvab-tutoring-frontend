@@ -132,7 +132,7 @@ export default function ServiceDetailContent({
             queryObj={{ submenu: serviceType }}
             className="btn-primary-custom2"
           >
-            Enroll Now
+            {serviceType === "subscribe" ? "Subscribe Now" : "Enroll Now"}
           </Button>
         </div>
       </div>
