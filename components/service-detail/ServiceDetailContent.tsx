@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
+import Button from "../button/Button";
 
 /* ================= TYPES ================= */
 
@@ -13,6 +14,7 @@ type ServiceDetail = {
   course_id: string;
   ord: string;
   description: string;
+  service_type: string;
 };
 
 /* ================= HTML DECODE ================= */
@@ -36,19 +38,16 @@ export default function ServiceDetailContent({
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch(
-          "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
-            },
-            body: new URLSearchParams({
-              action: "get-specific-service-detail",
-              service_id: serviceId,
-            }),
-          }
-        );
+        const res = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            action: "get-specific-service-detail",
+            service_id: serviceId,
+          }),
+        });
 
         const json = await res.json();
 
@@ -86,13 +85,27 @@ export default function ServiceDetailContent({
 
   const pageTitle = data.title || "Service Detail";
 
+  let serviceType;
+  switch (serviceId) {
+    case "2":
+      serviceType = "one";
+      break;
+    case "3":
+      serviceType = "group";
+      break;
+    case "4":
+      serviceType = "subscribe";
+      break;
+    default:
+      serviceType = "unknown";
+      break;
+  }
+
   return (
     <>
       {/* Banner */}
       <div className="banner bg-black bg-opacity-50 py-3 px-4 rounded text-center mb-4">
-        <h1 className="text-white mb-2 text-3xl fw-bold">
-          {pageTitle}
-        </h1>
+        <h1 className="text-white mb-2 text-3xl fw-bold">{pageTitle}</h1>
 
         <Breadcrumb
           segments={["services", data.service_id]}
@@ -113,6 +126,15 @@ export default function ServiceDetailContent({
             __html: decodeHtml(data.description),
           }}
         />
+        <div className="text-center my-4">
+          <Button
+            pathname="/pricing-page"
+            queryObj={{ submenu: serviceType }}
+            className="btn-primary-custom2"
+          >
+            Enroll Now
+          </Button>
+        </div>
       </div>
     </>
   );

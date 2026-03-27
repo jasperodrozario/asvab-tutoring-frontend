@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-cd /mnt/BLOCKSTORAGE/home/372023.cloudwaysapps.com/kzbesluikq/public_html
+cd /home/master/applications/asvabtutoring/public_html
 
 echo "Loading environment variables..."
 set -a
@@ -40,4 +40,8 @@ pm2 restart asvab-tutoring --update-env
 echo "Saving PM2 process list..."
 pm2 save
 
+<<<<<<< HEAD
 echo "Deploy completed successfully."
+=======
+echo "Deploy completed successfully."
+>>>>>>> Mahmud

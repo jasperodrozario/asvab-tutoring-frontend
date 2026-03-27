@@ -189,7 +189,7 @@ async function searchInvoiceByOrderId(params: {
  * - If PHP is unavailable/misconfigured, silently skip.
  */
 async function postToPhp(action: string, fields: Record<string, string>) {
-  const url = safeTrim(process.env.PHP_API_URL);
+  const url = safeTrim(process.env.NEXT_PUBLIC_PHP_API_URL);
   if (!url) return { ok: false as const, skipped: true as const };
 
   const form = new URLSearchParams();

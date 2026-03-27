@@ -67,7 +67,7 @@ async function fetchWithTimeout(
 function envConfig() {
   const signatureKey = safeStr(process.env.SQUARE_PAYMENT_WEBHOOK_SIGNATURE_KEY || "", 500);
   const notificationUrl = safeStr(process.env.SQUARE_PAYMENT_WEBHOOK_URL || "", 800);
-  const phpUrl = safeStr(process.env.PHP_API_URL || "", 800);
+  const phpUrl = safeStr(process.env.NEXT_PUBLIC_PHP_API_URL || "", 800);
   return { signatureKey, notificationUrl, phpUrl };
 }
 

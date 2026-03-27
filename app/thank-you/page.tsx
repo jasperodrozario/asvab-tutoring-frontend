@@ -26,32 +26,32 @@ export default async function ThankYouPage({
       <>
         <p className="mb-3" style={{ fontSize: 16, lineHeight: 1.6 }}>
           Congratulations, your registration has been done successfully. Your
-          account will be activated by your tutor.
+          account will be activated by the admin soon.
         </p>
 
         <p className="mb-0" style={{ fontSize: 16, lineHeight: 1.6 }}>
           After activation, you will be able to{" "}
-          <Link href="/user-login" className="fw-bold text-decoration-underline">
+          <Link
+            href="/user-login"
+            className="fw-bold text-decoration-underline"
+          >
             log in
           </Link>{" "}
-          and start the online practice test. We will inform you when your
-          account will be activated by your tutor within 24 hours.
+          and start the lessons.
         </p>
       </>
     ) : (
       <>
         <p className="mb-0" style={{ fontSize: 16, lineHeight: 1.6 }}>
           Congratulations, your payment has been done successfully. Now you can{" "}
-          <Link href="/user-login" className="fw-bold text-decoration-underline">
+          <Link
+            href="/user-login"
+            className="fw-bold text-decoration-underline"
+          >
             log in
           </Link>{" "}
-          and start the online practice test.
-          {params.id ? (
-            <>
-              {" "}
-              
-            </>
-          ) : null}
+          and start the lessons.
+          {params.id ? <> </> : null}
         </p>
       </>
     );
@@ -131,7 +131,10 @@ export default async function ThankYouPage({
                   <div className="text-muted" style={{ fontSize: 14 }}>
                     Thanks again,
                   </div>
-                  <div className="fw-bold" style={{ color: "#002341", fontSize: 16 }}>
+                  <div
+                    className="fw-bold"
+                    style={{ color: "#002341", fontSize: 16 }}
+                  >
                     ASVAB Tutoring
                   </div>
                 </div>
@@ -139,7 +142,10 @@ export default async function ThankYouPage({
             </div>
 
             {/* Small help note */}
-            <div className="text-center mt-3 text-muted" style={{ fontSize: 13 }}>
+            <div
+              className="text-center mt-3 text-muted"
+              style={{ fontSize: 13 }}
+            >
               Need help? Email{" "}
               <a
                 href="mailto:info@asvab-tutoring.com"

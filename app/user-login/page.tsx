@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Cookies from 'js-cookie';
-import Link from 'next/link';
-import { BsEye, BsEyeSlash } from 'react-icons/bs';
+import { useState } from "react";
+import Cookies from "js-cookie";
+import Link from "next/link";
+import { BsEye, BsEyeSlash } from "react-icons/bs";
 
-type LoginStatus = { type: 'success' | 'error'; text: string } | null;
+type LoginStatus = { type: "success" | "error"; text: string } | null;
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -21,30 +21,34 @@ export default function LoginPage() {
     setSubmitting(true);
 
     const formData = new URLSearchParams();
-    formData.append('action', 'user-login');
-    formData.append('email', email.trim());
-    formData.append('password', password);
+    formData.append("action", "user-login");
+    formData.append("email", email.trim());
+    formData.append("password", password);
 
     try {
-      const response = await fetch(
-        'https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: formData,
-        }
-      );
+      const response = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: formData,
+      });
 
       const result = await response.json();
 
       if (result?.status === 200 && result?.isSuccess) {
         // ✅ store minimal safe info
-        Cookies.set('user-auth', 'true', { expires: 7 });
-        Cookies.set('user-email', String(result?.data?.email ?? email).toLowerCase(), { expires: 7 });
+        Cookies.set("user-auth", "true", { expires: 7 });
+        Cookies.set(
+          "user-email",
+          String(result?.data?.email ?? email).toLowerCase(),
+          { expires: 7 },
+        );
 
         // If API gives a login url, you can redirect there
-        const redirectUrl = result?.url ? String(result.url) : '/';
-        setStatus({ type: 'success', text: result?.message || 'Login successful.' });
+        const redirectUrl = result?.url ? String(result.url) : "/";
+        setStatus({
+          type: "success",
+          text: result?.message || "Login successful.",
+        });
 
         // small delay so user sees message
         setTimeout(() => {
@@ -52,13 +56,14 @@ export default function LoginPage() {
         }, 600);
       } else {
         setStatus({
-          type: 'error',
-          text: result?.message || 'Invalid email or password. Please try again.',
+          type: "error",
+          text:
+            result?.message || "Invalid email or password. Please try again.",
         });
       }
     } catch (err) {
       console.error(err);
-      setStatus({ type: 'error', text: 'Failed to connect to the server.' });
+      setStatus({ type: "error", text: "Failed to connect to the server." });
     } finally {
       setSubmitting(false);
     }
@@ -68,10 +73,11 @@ export default function LoginPage() {
     <section
       className="py-5"
       style={{
-        background: 'linear-gradient(135deg, rgba(242,161,85,0.12) 0%, rgba(0,35,65,0.08) 100%)',
-        minHeight: 'calc(100vh - 80px)',
-        display: 'flex',
-        alignItems: 'center',
+        background:
+          "linear-gradient(135deg, rgba(242,161,85,0.12) 0%, rgba(0,35,65,0.08) 100%)",
+        minHeight: "calc(100vh - 80px)",
+        display: "flex",
+        alignItems: "center",
       }}
     >
       <div className="container">
@@ -81,15 +87,15 @@ export default function LoginPage() {
               className="card border-0 shadow-sm"
               style={{
                 borderRadius: 16,
-                overflow: 'hidden',
+                overflow: "hidden",
               }}
             >
               {/* Header strip */}
               <div
                 className="p-4"
                 style={{
-                  background: '#002341',
-                  color: 'white',
+                  background: "#002341",
+                  color: "white",
                 }}
               >
                 <h3 className="mb-1 fw-bold">Login</h3>
@@ -103,7 +109,9 @@ export default function LoginPage() {
                 {status && (
                   <div
                     className={`alert ${
-                      status.type === 'success' ? 'alert-success' : 'alert-danger'
+                      status.type === "success"
+                        ? "alert-success"
+                        : "alert-danger"
                     }`}
                     role="alert"
                   >
@@ -114,7 +122,10 @@ export default function LoginPage() {
                 <form onSubmit={handleSubmit}>
                   {/* Email */}
                   <div className="mb-3">
-                    <label className="form-label fw-semibold" style={{ color: '#002341' }}>
+                    <label
+                      className="form-label fw-semibold"
+                      style={{ color: "#002341" }}
+                    >
                       Email
                     </label>
                     <input
@@ -124,65 +135,84 @@ export default function LoginPage() {
                       value={email}
                       onChange={(e) => {
                         setEmail(e.target.value);
-                        if (status?.type === 'error') setStatus(null);
+                        if (status?.type === "error") setStatus(null);
                       }}
                       required
                       style={{
                         borderRadius: 10,
-                        borderColor: 'rgba(0,35,65,0.20)',
-                        padding: '12px 12px',
+                        borderColor: "rgba(0,35,65,0.20)",
+                        padding: "12px 12px",
                       }}
                     />
                   </div>
 
                   {/* Password with toggle */}
                   <div className="mb-2 position-relative">
-                    <label className="form-label fw-semibold" style={{ color: '#002341' }}>
+                    <label
+                      className="form-label fw-semibold"
+                      style={{ color: "#002341" }}
+                    >
                       Password
                     </label>
                     <input
-                      type={showPassword ? 'text' : 'password'}
+                      type={showPassword ? "text" : "password"}
                       className="form-control pe-5"
                       placeholder="Enter your password"
                       value={password}
                       onChange={(e) => {
                         setPassword(e.target.value);
-                        if (status?.type === 'error') setStatus(null);
+                        if (status?.type === "error") setStatus(null);
                       }}
                       required
                       style={{
                         borderRadius: 10,
-                        borderColor: 'rgba(0,35,65,0.20)',
-                        padding: '12px 12px',
+                        borderColor: "rgba(0,35,65,0.20)",
+                        padding: "12px 12px",
                       }}
                     />
                     <button
                       type="button"
-                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
                       onClick={() => setShowPassword((s) => !s)}
                       className="btn btn-link p-0"
                       style={{
-                        position: 'absolute',
+                        position: "absolute",
                         right: 12,
                         top: 42,
-                        color: '#002341',
-                        textDecoration: 'none',
+                        color: "#002341",
+                        textDecoration: "none",
                       }}
                     >
-                      {showPassword ? <BsEyeSlash size={18} /> : <BsEye size={18} />}
+                      {showPassword ? (
+                        <BsEyeSlash size={18} />
+                      ) : (
+                        <BsEye size={18} />
+                      )}
                     </button>
                   </div>
 
                   {/* Optional helper row */}
                   <div className="d-flex justify-content-between align-items-center mb-3">
                     <div className="form-check">
-                      <input className="form-check-input" type="checkbox" id="rememberMe" />
-                      <label className="form-check-label small" htmlFor="rememberMe">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id="rememberMe"
+                      />
+                      <label
+                        className="form-check-label small"
+                        htmlFor="rememberMe"
+                      >
                         Remember me
                       </label>
                     </div>
 
-                    <Link href="/forgot-password" className="small text-decoration-none">
+                    <Link
+                      href="/forgot-password"
+                      className="small text-decoration-none"
+                    >
                       Forgot password?
                     </Link>
                   </div>
@@ -193,13 +223,13 @@ export default function LoginPage() {
                     className="btn w-100 fw-bold"
                     disabled={submitting}
                     style={{
-                      background: '#f2a155',
-                      color: '#002341',
+                      background: "#f2a155",
+                      color: "#002341",
                       borderRadius: 12,
-                      padding: '12px 14px',
+                      padding: "12px 14px",
                     }}
                   >
-                    {submitting ? 'Logging in...' : 'Login'}
+                    {submitting ? "Logging in..." : "Login"}
                   </button>
 
                   {/* Register link */}
@@ -208,7 +238,7 @@ export default function LoginPage() {
                     <Link
                       href="/user-registration"
                       className="fw-semibold text-decoration-none"
-                      style={{ color: '#f2a155' }}
+                      style={{ color: "#f2a155" }}
                     >
                       Register
                     </Link>

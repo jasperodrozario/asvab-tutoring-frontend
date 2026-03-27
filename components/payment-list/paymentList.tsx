@@ -18,22 +18,20 @@ export default function PaymentMethodSection() {
   useEffect(() => {
     async function fetchMethods() {
       try {
-        const response = await fetch(
-          "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({
-              action: "get-payment-method-list",
-            }),
-          }
-        );
+        const response = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({
+            action: "get-payment-method-list",
+          }),
+        });
 
         const data = await response.json();
 
         if (data?.isSuccess && Array.isArray(data.data)) {
           const sorted = data.data.sort(
-            (a: PaymentMethod, b: PaymentMethod) => Number(a.ord) - Number(b.ord)
+            (a: PaymentMethod, b: PaymentMethod) =>
+              Number(a.ord) - Number(b.ord),
           );
           setMethods(sorted);
         }
@@ -85,7 +83,7 @@ export default function PaymentMethodSection() {
         </div>
 
         {/* RIGHT SIDE IMAGE */}
-       {/*  <div className="col-12 col-md-5 text-center mt-4 mt-md-0">
+        {/*  <div className="col-12 col-md-5 text-center mt-4 mt-md-0">
           <Image
             src="/images/how-to-send-payment-new.webp"
             alt="Payment Methods Illustration"

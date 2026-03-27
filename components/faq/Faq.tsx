@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -20,13 +20,10 @@ export default function Faq() {
       formData.append("action", "get-faq");
 
       try {
-        const res = await fetch(
-          "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
-          {
-            method: "POST",
-            body: formData,
-          }
-        );
+        const res = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
+          method: "POST",
+          body: formData,
+        });
 
         const data = await res.json();
         if (data?.status === 200 && Array.isArray(data.data)) {

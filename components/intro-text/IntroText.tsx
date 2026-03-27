@@ -24,20 +24,21 @@ export default function WelcomeSection() {
   useEffect(() => {
     async function fetchWelcomeText() {
       try {
-        const response = await fetch(
-          "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({
-              action: "get-welcome-text",
-            }),
-          }
-        );
+        const response = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({
+            action: "get-welcome-text",
+          }),
+        });
 
         const data = await response.json();
 
-        if (data?.isSuccess && Array.isArray(data.data) && data.data.length > 0) {
+        if (
+          data?.isSuccess &&
+          Array.isArray(data.data) &&
+          data.data.length > 0
+        ) {
           setWelcome(data.data[0]);
         } else {
           setWelcome(null);
@@ -75,7 +76,8 @@ export default function WelcomeSection() {
           {loading ? (
             <p className="text-center text-muted">Loading welcome content...</p>
           ) : welcome ? (
-            <div className="fs-6"
+            <div
+              className="fs-6"
               dangerouslySetInnerHTML={{
                 __html: decodeHtml(welcome.description),
               }}

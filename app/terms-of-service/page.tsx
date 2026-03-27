@@ -23,16 +23,13 @@ export default function TermsOfServicePage() {
   useEffect(() => {
     async function fetchTerms() {
       try {
-        const response = await fetch(
-          "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({
-              action: "get-terms-conditions",
-            }),
-          }
-        );
+        const response = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({
+            action: "get-terms-conditions",
+          }),
+        });
 
         const text = await response.text();
         console.log("Raw Terms response:", text);

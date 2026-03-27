@@ -11,6 +11,12 @@ const nextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'staging-test-prep.asvab-tutoring.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };

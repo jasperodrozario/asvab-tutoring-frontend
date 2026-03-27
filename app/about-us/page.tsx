@@ -29,18 +29,15 @@ export default function AboutUsPage() {
   useEffect(() => {
     async function fetchAboutUs() {
       try {
-        const res = await fetch(
-          "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
-            },
-            body: new URLSearchParams({
-              action: "get-about-us",
-            }),
-          }
-        );
+        const res = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            action: "get-about-us",
+          }),
+        });
 
         const data = await res.json();
 
