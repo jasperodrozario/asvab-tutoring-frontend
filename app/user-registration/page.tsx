@@ -309,7 +309,7 @@ export default function RegisterPage() {
                 )}
 
                 <form onSubmit={handleSubmit}>
-                  {/* 3 dropdowns - default placeholders exactly like your screenshot */}
+                  {/* 2 dropdowns */}
                   <div className="row g-2 mb-3">
                     {/* Course */}
                     <div className="col-12">
@@ -358,13 +358,15 @@ export default function RegisterPage() {
                       >
                         {/* ✅ Always show "Select Service" as initial label */}
                         <option value="">
-                          {!courseId ? "Select Service" : "Select Service"}
+                          {!courseId ? "Select service" : "Select service"}
                         </option>
-                        {servicesOptions.map((s) => (
-                          <option key={s.value} value={s.value}>
-                            {s.label}
-                          </option>
-                        ))}
+                        {servicesOptions.map((s) =>
+                          s.value !== "2" ? (
+                            <option key={s.value} value={s.value}>
+                              {s.label}
+                            </option>
+                          ) : null,
+                        )}
                       </select>
                     </div>
 
@@ -372,7 +374,7 @@ export default function RegisterPage() {
                     <div className="col-12">
                       <select
                         className="form-select"
-                        value={sessionId}
+                        // value={sessionId}
                         onChange={(e) => {
                           setSessionId(e.target.value);
                           setStatus(null);
@@ -390,7 +392,7 @@ export default function RegisterPage() {
                         <option value="">
                           {loadingSessions
                             ? "Loading packages..."
-                            : "Select package"}
+                            : "Select your purchased package"}
                         </option>
 
                         {sessions.map((s) => {
