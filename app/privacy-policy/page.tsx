@@ -32,7 +32,6 @@ export default function PrivacyPolicyPage() {
         });
 
         const text = await response.text();
-        console.log("Raw response:", text);
 
         let data;
         try {

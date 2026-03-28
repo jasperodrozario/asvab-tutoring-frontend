@@ -32,7 +32,6 @@ export default function TermsOfServicePage() {
         });
 
         const text = await response.text();
-        console.log("Raw Terms response:", text);
 
         let data;
         try {

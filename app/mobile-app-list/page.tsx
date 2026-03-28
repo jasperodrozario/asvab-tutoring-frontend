@@ -64,8 +64,6 @@ export default function OurAppsPage() {
     );
   }
 
-  console.log("Fetched apps:", apps);
-
   return (
     <section className="py-5 bg-light">
       <div className="container">
