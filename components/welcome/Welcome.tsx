@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import IntroText from "../intro-text/IntroText";
 import Link from "next/link";
+import NoticeContent from "@/components/notice-content/NoticeContent";
 
 interface State {
   id: string;
@@ -332,6 +333,8 @@ export default function Welcome() {
           </div>
         </div>
       </div>
+
+      <NoticeContent />
 
       {/* Welcome Section */}
       <IntroText />
