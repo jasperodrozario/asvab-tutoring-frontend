@@ -92,7 +92,7 @@ const PricingPackages: React.FC<Props> = ({
   const subText = subTextMap[activeSubmenu];
 
   return (
-    <section className="bg-white py-5 text-center">
+    <section className="bg-white mt-5 text-center">
       <div className="container">
         {/* Heading */}
         <div className="text-center mb-2 position-relative">

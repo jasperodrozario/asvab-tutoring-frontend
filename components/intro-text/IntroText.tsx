@@ -91,8 +91,8 @@ export default function WelcomeSection() {
 
         <div className="text-center">
           <Link href="/about-us">
-            <button className="btn btn-primary-custom mt-4 px-5 py-2">
-              READ MORE
+            <button className="btn btn-primary-custom px-4 py-2">
+              Read More
             </button>
           </Link>
         </div>
