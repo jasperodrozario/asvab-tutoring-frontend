@@ -327,7 +327,7 @@ const CourseDetailPage: React.FC = () => {
               <div
                 className="single-course-tab"
                 style={{
-                  border: "1px solid #dee2e6",
+                  border: "1px solid #cfd4d8",
                   borderRadius: "8px",
                   padding: "10px 18px 0px 18px",
                   marginBottom: "24px",

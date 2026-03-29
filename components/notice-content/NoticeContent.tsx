@@ -62,10 +62,10 @@ const NoticeCard: React.FC<{ notice: Notice }> = ({ notice }) => {
   return (
     <div
       className={`notice-card border rounded-3 p-3 mb-3 shadow-sm ${
-        notice.is_pinned ? "border-warning border-2" : "border-light"
+        notice.is_pinned ? "border-warning border-2" : "border-2"
       }`}
       style={{
-        backgroundColor: "#fff",
+        backgroundColor: "#ffffff",
         transition: "transform 0.2s ease, box-shadow 0.2s ease",
       }}
     >
@@ -161,6 +161,13 @@ export default function NoticeContent({
 
         const data = await res.json();
         if (data?.status === 200 && Array.isArray(data.data)) {
+          for (const notice of data.data) {
+            if (notice.is_pinned === "1") {
+              notice.is_pinned = true;
+            } else {
+              notice.is_pinned = false;
+            }
+          }
           setNotices(data.data);
         } else {
           console.error(data?.message || "Failed to fetch notices");
@@ -205,98 +212,100 @@ export default function NoticeContent({
   })();
 
   return (
-    <section
-      id="notices"
-      className="py-5 px-3"
-      style={{ backgroundColor: "#002341" }}
-    >
-      <div className="container">
-        {/* Title Section - In the blue background */}
-        <div className="text-center mb-4 position-relative">
-          <h2
-            className="fw-bold display-6 d-inline-block pb-3 position-relative text-white"
-            style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.3)" }}
-          >
-            Notices & Announcements
-            <img
-              src="/images/border_v1.png"
-              alt="underline"
-              width={160}
-              height={8}
-              className="position-absolute start-50 translate-middle-x bottom-0"
-              style={{ height: "8px", width: "160px", objectFit: "cover" }}
-            />
-          </h2>
-        </div>
+    notices.length > 0 && (
+      <section
+        id="notices"
+        className="py-5 px-3"
+        style={{ backgroundColor: "#002341" }}
+      >
+        <div className="container">
+          {/* Title Section - In the blue background */}
+          <div className="text-center mb-4 position-relative">
+            <h2
+              className="fw-bold display-6 d-inline-block pb-3 position-relative text-white"
+              style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.3)" }}
+            >
+              Notices & Announcements
+              <img
+                src="/images/border_v1.png"
+                alt="underline"
+                width={160}
+                height={8}
+                className="position-absolute start-50 translate-middle-x bottom-0"
+                style={{ height: "8px", width: "160px", objectFit: "cover" }}
+              />
+            </h2>
+          </div>
 
-        {/* White Card Container for Notice Content */}
-        <div className="card border-0 rounded-4 shadow-lg overflow-hidden">
-          <div className="card-body p-4 p-md-5">
-            {/* Loading State */}
-            {loading && (
-              <div className="notices-list">
-                {[1, 2, 3].map((i) => (
-                  <NoticeSkeleton key={i} />
-                ))}
-              </div>
-            )}
+          {/* White Card Container for Notice Content */}
+          <div className="card border-0 rounded-4 shadow-lg overflow-hidden">
+            <div className="card-body p-4 p-md-5">
+              {/* Loading State */}
+              {loading && (
+                <div className="notices-list">
+                  {[1, 2, 3].map((i) => (
+                    <NoticeSkeleton key={i} />
+                  ))}
+                </div>
+              )}
 
-            {/* Error State */}
-            {!loading && error && (
-              <div className="alert alert-danger text-center" role="alert">
-                <i className="bi bi-exclamation-triangle me-2"></i>
-                {error}
-              </div>
-            )}
+              {/* Error State */}
+              {!loading && error && (
+                <div className="alert alert-danger text-center" role="alert">
+                  <i className="bi bi-exclamation-triangle me-2"></i>
+                  {error}
+                </div>
+              )}
 
-            {/* Empty State */}
-            {!loading && !error && processedNotices.length === 0 && (
-              <EmptyState />
-            )}
+              {/* Empty State */}
+              {!loading && !error && processedNotices.length === 0 && (
+                <EmptyState />
+              )}
 
-            {/* Notices List */}
-            {!loading && !error && processedNotices.length > 0 && (
-              <div className="notices-list">
-                {processedNotices.map((notice) => (
-                  <NoticeCard key={notice.id} notice={notice} />
-                ))}
-              </div>
-            )}
+              {/* Notices List */}
+              {!loading && !error && processedNotices.length > 0 && (
+                <div className="notices-list">
+                  {processedNotices.map((notice) => (
+                    <NoticeCard key={notice.id} notice={notice} />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* CSS for hover effects */}
-      <style jsx>{`
-        .notice-card:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-        }
-
-        .notice-description :global(a) {
-          color: #f2a155;
-          text-decoration: underline;
-        }
-
-        .notice-description :global(a:hover) {
-          color: #e58a34;
-        }
-
-        .skeleton-text,
-        .skeleton-badge {
-          animation: pulse 1.5s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-          0%,
-          100% {
-            opacity: 1;
+        {/* CSS for hover effects */}
+        <style jsx>{`
+          .notice-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
           }
-          50% {
-            opacity: 0.5;
+
+          .notice-description :global(a) {
+            color: #f2a155;
+            text-decoration: underline;
           }
-        }
-      `}</style>
-    </section>
+
+          .notice-description :global(a:hover) {
+            color: #e58a34;
+          }
+
+          .skeleton-text,
+          .skeleton-badge {
+            animation: pulse 1.5s ease-in-out infinite;
+          }
+
+          @keyframes pulse {
+            0%,
+            100% {
+              opacity: 1;
+            }
+            50% {
+              opacity: 0.5;
+            }
+          }
+        `}</style>
+      </section>
+    )
   );
 }
