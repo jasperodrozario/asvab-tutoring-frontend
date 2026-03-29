@@ -209,7 +209,7 @@ export default function TopCourses() {
         {loading && <p className="text-center">Loading...</p>}
         {error && <p className="text-center text-danger">{error}</p>}
 
-        <div className="row justify-content-center g-4">
+        <div className="row justify-content-center g-4 pb-3">
           {!loading &&
             !error &&
             courses.map((course) => (
