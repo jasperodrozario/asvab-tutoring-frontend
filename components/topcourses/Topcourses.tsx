@@ -214,32 +214,33 @@ export default function TopCourses() {
             !error &&
             courses.map((course) => (
               <div className="col-sm-6 col-lg-4" key={course.course_id}>
-                <div className="card h-100 shadow-sm hover-lift">
-                  <img
-                    src={resolveImageUrl(course.image_src)}
-                    alt={course.name || "Course"}
-                    className="card-img-top"
-                    width={300}
-                    height={210}
-                    style={{ height: "200px", objectFit: "cover" }}
-                  />
-                  <div className="card-body d-flex flex-column">
-                    <h5 className="card-title fw-semibold">
-                      {course.name || course.course_code}
-                    </h5>
-                    <p className="card-text small">
-                      {getPlainTextPreview(course.details, 100)}
-                    </p>
-                    <div className="text-center mt-auto">
-                      <Link
-                        href={`/course-detail/${encodeURIComponent(course.course_code)}`}
-                        className="btn btn-secondary-custom btn-sm w-50"
-                      >
-                        LEARN MORE
-                      </Link>
+                <Link
+                  href={`/course-detail/${encodeURIComponent(course.course_code)}`}
+                >
+                  <div className="card h-100 shadow-sm hover-lift">
+                    <img
+                      src={resolveImageUrl(course.image_src)}
+                      alt={course.name || "Course"}
+                      className="card-img-top"
+                      width={300}
+                      height={210}
+                      style={{ height: "200px", objectFit: "cover" }}
+                    />
+                    <div className="card-body d-flex flex-column">
+                      <h5 className="card-title fw-semibold">
+                        {course.name || course.course_code}
+                      </h5>
+                      <p className="card-text small">
+                        {getPlainTextPreview(course.details, 100)}
+                      </p>
+                      <div className="text-center mt-auto">
+                        <button className="btn btn-secondary-custom btn-sm w-50">
+                          LEARN MORE
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </Link>
               </div>
             ))}
         </div>

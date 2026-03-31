@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
+import Link from "next/link";
 
 interface Blog {
   blog_id: string;
@@ -136,55 +137,57 @@ export default function BlogListPage() {
           ) : blogs.length > 0 ? (
             blogs.map((blog) => (
               <div key={blog.blog_id} className="col-md-6 col-lg-4">
-                <div className="card hover-lift shadow cursor-pointer h-100 border-0">
-                  <div className="card-body d-flex flex-column">
-                    <h5 className="card-title mb-2 py-4 px-4">
-                      {blog.blog_title}
-                    </h5>
+                <Link href={`/blog-detail/${blog.blog_id}`}>
+                  <div className="card hover-lift shadow cursor-pointer h-100 border-0">
+                    <div className="card-body d-flex flex-column">
+                      <h5 className="card-title mb-2 py-4 px-4">
+                        {blog.blog_title}
+                      </h5>
 
-                    {/* Author + Date */}
-                    <div className="d-flex justify-content-between align-items-center mb-3 px-4">
-                      <div className="d-flex align-items-center">
-                        <img
-                          src={
-                            blog.writer_img &&
-                            !blog.writer_img.includes("image.php?src")
-                              ? blog.writer_img
-                              : "/images/author_blog.png"
-                          }
-                          className="rounded-circle me-2"
-                          alt="Author"
-                          width="30"
-                          height="30"
-                        />
-                        <small>{blog.written_by || "Unknown Author"}</small>
+                      {/* Author + Date */}
+                      <div className="d-flex justify-content-between align-items-center mb-3 px-4">
+                        <div className="d-flex align-items-center">
+                          <img
+                            src={
+                              blog.writer_img &&
+                              !blog.writer_img.includes("image.php?src")
+                                ? blog.writer_img
+                                : "/images/author_blog.png"
+                            }
+                            className="rounded-circle me-2"
+                            alt="Author"
+                            width="30"
+                            height="30"
+                          />
+                          <small>{blog.written_by || "Unknown Author"}</small>
+                        </div>
+
+                        <small className="text-end">
+                          {new Date(blog.created_at).toLocaleDateString(
+                            "en-US",
+                            {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            },
+                          )}
+                        </small>
                       </div>
 
-                      <small className="text-end">
-                        {new Date(blog.created_at).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </small>
-                    </div>
+                      {/* ✅ Blog Excerpt (NO HTML TAGS) */}
+                      <p className="card-text px-4">
+                        {makeExcerpt(blog.blog_content, 120)}
+                      </p>
 
-                    {/* ✅ Blog Excerpt (NO HTML TAGS) */}
-                    <p className="card-text px-4">
-                      {makeExcerpt(blog.blog_content, 120)}
-                    </p>
-
-                    {/* Read More – FIXED POSITION */}
-                    <div className="text-center mt-auto">
-                      <a
-                        href={`/blog-detail/${blog.blog_id}`}
-                        className="btn btn-primary-custom mt-4 px-3 py-1 text-nowrap"
-                      >
-                        CONTINUE READING
-                      </a>
+                      {/* Read More – FIXED POSITION */}
+                      <div className="text-center mt-auto">
+                        <button className="btn btn-primary-custom my-3 px-3 py-2 text-nowrap">
+                          Continue Reading
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </Link>
               </div>
             ))
           ) : (

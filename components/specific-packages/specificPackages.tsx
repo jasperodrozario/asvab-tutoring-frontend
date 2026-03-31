@@ -137,33 +137,34 @@ const PricingPackages: React.FC<Props> = ({
           ) : packages.length > 0 ? (
             packages.map((pkg) => (
               <div key={pkg.course_id} className="col-sm-6 col-lg-3 hover-lift">
-                <div className="card h-100 shadow-sm border-0">
-                  <Image
-                    src={encodeURI(pkg.image_src.trim())}
-                    alt={pkg.name}
-                    width={400}
-                    height={200}
-                    className="card-img-top"
-                    style={{ height: "200px", objectFit: "cover" }}
-                  />
+                <Link
+                  href={`/SpecificPackageDetailsPage/${activeSubmenu}/${pkg.course_id}`}
+                >
+                  <div className="card h-100 shadow-sm border-0">
+                    <Image
+                      src={encodeURI(pkg.image_src.trim())}
+                      alt={pkg.name}
+                      width={400}
+                      height={200}
+                      className="card-img-top"
+                      style={{ height: "200px", objectFit: "cover" }}
+                    />
 
-                  <div className="card-body text-start">
-                    <h5 className="card-title fw-bold text-primary">
-                      {pkg.name}
-                    </h5>
+                    <div className="card-body text-start">
+                      <h5 className="card-title fw-bold text-primary">
+                        {pkg.name}
+                      </h5>
 
-                    <p className="card-text fw-semibold">{pkg.price_range}</p>
+                      <p className="card-text fw-semibold">{pkg.price_range}</p>
 
-                    <div className="text-center">
-                      <Link
-                        href={`/SpecificPackageDetailsPage/${activeSubmenu}/${pkg.course_id}`}
-                        className="btn btn-secondary-custom btn-sm w-50"
-                      >
-                        Details
-                      </Link>
+                      <div className="text-center">
+                        <button className="btn btn-secondary-custom btn-sm w-50">
+                          Details
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </Link>
               </div>
             ))
           ) : (
