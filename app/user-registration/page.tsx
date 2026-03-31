@@ -568,7 +568,6 @@ export default function RegisterPage() {
                           width: 18,
                           height: 18,
                           marginTop: 2,
-                          border: "2px solid rgba(0,35,65,0.55)",
                           cursor: "pointer",
                         }}
                       />

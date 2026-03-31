@@ -581,6 +581,7 @@ export default function SquarePaymentForm({
               type="checkbox"
               checked={!!agreeTerms}
               onChange={(e) => onAgreeTermsChange?.(e.target.checked)}
+              className="form-check-input mb-1"
             />
             <span>
               Agree{" "}

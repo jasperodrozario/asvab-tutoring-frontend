@@ -451,6 +451,7 @@ export default function CheckoutContent() {
           name="agree_terms"
           checked={agreeTerms}
           onChange={() => setAgreeTerms((prev) => !prev)}
+          className="form-check-input mb-1"
         />
         <span>
           Agree{" "}
@@ -701,8 +702,8 @@ export default function CheckoutContent() {
                       <div
                         className="rounded-3 p-4"
                         style={{
-                          backgroundColor: "#e7f3ff",
-                          borderLeft: "4px solid #0573e6",
+                          backgroundColor: "#fff9e7",
+                          borderLeft: "4px solid #f2a155",
                         }}
                       >
                         <div>
@@ -717,13 +718,13 @@ export default function CheckoutContent() {
                               className="bi bi-info-square-fill"
                               style={{
                                 fontSize: 24,
-                                color: "#0573e6",
+                                color: "#f2a155",
                                 flexShrink: 0,
                               }}
                             />
                             <h5
                               className="fw-bold"
-                              style={{ marginTop: 5, color: "#0573e6" }}
+                              style={{ marginTop: 5, color: "#f2a155" }}
                             >
                               Next Step
                             </h5>
