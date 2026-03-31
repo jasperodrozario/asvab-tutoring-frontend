@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import IntroText from "../intro-text/IntroText";
 import Link from "next/link";
+import NoticeContent from "@/components/notice-content/NoticeContent";
 
 interface State {
   id: string;
@@ -13,7 +14,7 @@ interface State {
 type StatusType = "success" | "error" | "info";
 
 export default function Welcome() {
-  const API_URL = "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php";
+  const API_URL = process.env.NEXT_PUBLIC_PHP_API_URL!;
 
   const [states, setStates] = useState<State[]>([]);
   const [form, setForm] = useState({
@@ -97,7 +98,9 @@ export default function Welcome() {
   }, []);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
   ) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -171,8 +174,8 @@ export default function Welcome() {
     status?.type === "success"
       ? "alert alert-success"
       : status?.type === "error"
-      ? "alert alert-danger"
-      : "alert alert-info";
+        ? "alert alert-danger"
+        : "alert alert-info";
 
   return (
     <>
@@ -188,8 +191,8 @@ export default function Welcome() {
               </h1>
 
               <p className="lead mt-3">
-                11,000+ successful candidates. Online Test Prep for the ASVAB, ASTB,
-                OAR, AFOQT, and SIFT
+                11,000+ successful candidates. Online Test Prep for the ASVAB,
+                ASTB, OAR, AFOQT, and SIFT
               </p>
 
               <div className="mt-4 bg-white p-3 rounded shadow">
@@ -199,7 +202,10 @@ export default function Welcome() {
                   className="w-100 rounded"
                   style={{ objectFit: "cover" }}
                 >
-                  <source src="/videos/ASVAB-Promo-video.mp4" type="video/mp4" />
+                  <source
+                    src="/videos/ASVAB-Promo-video.mp4"
+                    type="video/mp4"
+                  />
                   Your browser does not support the video tag.
                 </video>
               </div>
@@ -225,7 +231,9 @@ export default function Welcome() {
                   </div>
 
                   <div className="mb-3">
-                    <label className="form-label">Email (Use your valid email address)</label>
+                    <label className="form-label">
+                      Email (Use your valid email address)
+                    </label>
                     <input
                       type="email"
                       className="form-control"
@@ -278,6 +286,7 @@ export default function Welcome() {
                       value={form.message}
                       onChange={handleChange}
                       disabled={submitting}
+                      placeholder="Write us a message..."
                     />
                   </div>
 
@@ -298,21 +307,24 @@ export default function Welcome() {
                 </form>
 
                 <div className="d-flex justify-content-center gap-2 mt-4">
-                  <Link href="/mobile-app-list">
-                    <Image 
-                      src="/images/Google_Play_Store_badge_EN.svg"
-                      alt="Google Play"
-                      width={180}
-                      height={40}
-                    />
-                  </Link>
-
-                  <Link href="/mobile-app-list">
+                  <Link href="/mobile-app-list" className="app-link-btn">
                     <Image
                       src="/images/download-on-the-app-store.svg"
                       alt="App Store"
-                      width={180}
-                      height={40}
+                      width={0}
+                      height={0}
+                      sizes="100vw"
+                      style={{ width: "auto", height: "40px" }}
+                    />
+                  </Link>
+                  <Link href="/mobile-app-list" className="app-link-btn">
+                    <Image
+                      src="/images/Google_Play_Store_badge_EN.svg"
+                      alt="Google Play"
+                      width={0}
+                      height={0}
+                      sizes="100vw"
+                      style={{ width: "auto", height: "40px" }}
                     />
                   </Link>
                 </div>
@@ -321,6 +333,8 @@ export default function Welcome() {
           </div>
         </div>
       </div>
+
+      <NoticeContent />
 
       {/* Welcome Section */}
       <IntroText />

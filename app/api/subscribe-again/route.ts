@@ -76,7 +76,7 @@ async function fetchWithTimeout(
   }
 }
 
-const PHP_API_URL = safeStr(process.env.PHP_API_URL || "", 800);
+const PHP_API_URL = safeStr(process.env.NEXT_PUBLIC_PHP_API_URL || "", 800);
 
 type PhpResult = {
   http_ok: boolean;

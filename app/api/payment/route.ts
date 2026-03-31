@@ -23,7 +23,7 @@ function getEnv() {
     ),
     environment: safeStr(process.env.SQUARE_ENVIRONMENT || "sandbox", 30).toLowerCase(),
     squareVersion: safeStr(process.env.SQUARE_VERSION || "2026-01-22", 50),
-    phpApiUrl: safeStr(process.env.PHP_API_URL || "", 500),
+    phpApiUrl: safeStr(process.env.NEXT_PUBLIC_PHP_API_URL || "", 500),
     internalApiSecret: safeStr(process.env.INTERNAL_API_SECRET || "", 200),
   };
 }

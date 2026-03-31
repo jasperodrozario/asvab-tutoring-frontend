@@ -3,12 +3,19 @@
 const nextConfig = {
   output: 'standalone',
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'test-prep.asvab-tutoring.com',
         port: '',
-        pathname: '/**', // ✅ allow all paths (not just /uploads/**)
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'staging-test-prep.asvab-tutoring.com',
+        port: '',
+        pathname: '/**',
       },
     ],
   },

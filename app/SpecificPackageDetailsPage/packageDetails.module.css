@@ -54,7 +54,6 @@
   justify-content: center;
 }
 
-
 @media (max-width: 992px) {
   .pricingGrid {
     grid-template-columns: repeat(2, 1fr);
@@ -74,7 +73,9 @@
   background: linear-gradient(180deg, #fffbe8 0%, #ffe6c7 100%);
   border: 3px solid rgba(226, 160, 107, 0.7);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
   position: relative;
 }
 
@@ -145,7 +146,7 @@
   /* ✅ fixed size for visual consistency */
   width: 100%;
   max-width: 260px;
-  min-height: 96px;      /* 🔑 same height for all cards */
+  min-height: 96px; /* 🔑 same height for all cards */
   height: 96px;
 
   /* Center content */
@@ -171,7 +172,6 @@
   margin-left: auto;
   margin-right: auto;
 }
-
 
 /* Remove default <p> spacing inside featureBox */
 .featureBox p {
@@ -224,6 +224,12 @@
   font-size: 0.85rem;
   font-weight: 700;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.ckContent {
+  text-align: left;
+  margin-bottom: 3rem;
+  margin-top: 1.5rem;
 }
 
 /* small responsive tweaks */

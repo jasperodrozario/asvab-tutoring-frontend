@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
+import Button from "@/components/button/Button";
 
 /* ================= TYPES ================= */
 
@@ -29,18 +30,15 @@ export default function HowItWorkPage() {
   useEffect(() => {
     async function fetchHowItWorks() {
       try {
-        const res = await fetch(
-          "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
-            },
-            body: new URLSearchParams({
-              action: "get-how-it-works",
-            }),
-          }
-        );
+        const res = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            action: "get-how-it-works",
+          }),
+        });
 
         const data = await res.json();
 
@@ -64,9 +62,7 @@ export default function HowItWorkPage() {
     <section>
       {/* Banner */}
       <div className="banner bg-black bg-opacity-50 py-3 px-4 rounded flex flex-col items-center text-center">
-        <h1 className="text-white mb-2 text-3xl font-bold">
-          How it works
-        </h1>
+        <h1 className="text-white mb-2 text-3xl font-bold">How it works</h1>
         <Breadcrumb
           segments={["how-it-works"]}
           className="text-white text-base mt-1"
@@ -87,12 +83,19 @@ export default function HowItWorkPage() {
                   __html: decodeHtml(item.description),
                 }}
               />
+              <div className={"text-center"}>
+                <Button
+                  pathname={"/pricing-page"}
+                  queryObj={{ submenu: "one" }}
+                  className="btn-primary-custom2"
+                >
+                  Enroll Now
+                </Button>
+              </div>
             </div>
           ))
         ) : (
-          <p className="text-center">
-            No content available at the moment.
-          </p>
+          <p className="text-center">No content available at the moment.</p>
         )}
       </div>
     </section>

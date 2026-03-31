@@ -46,10 +46,10 @@ const PricingPackages: React.FC<Props> = ({
         formData.append("action", "specific-course-list-tutoring-package");
         formData.append("submenu", activeSubmenu);
 
-        const res = await fetch(
-          "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
-          { method: "POST", body: formData }
-        );
+        const res = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
+          method: "POST",
+          body: formData,
+        });
 
         const data = await res.json();
 
@@ -92,7 +92,7 @@ const PricingPackages: React.FC<Props> = ({
   const subText = subTextMap[activeSubmenu];
 
   return (
-    <section className="bg-white py-5 text-center">
+    <section className="bg-white mt-5 text-center">
       <div className="container">
         {/* Heading */}
         <div className="text-center mb-2 position-relative">
@@ -122,22 +122,16 @@ const PricingPackages: React.FC<Props> = ({
         */}
         {/* Homepage description (if provided) */}
         {homepageDescription && (
-          <p
-            className="text-start mx-auto mb-4"
-            style={{ maxWidth: "960px" }}
-          >
+          <p className="text-start mx-auto mb-4" style={{ maxWidth: "960px" }}>
             {homepageDescription}
           </p>
         )}
 
         {/* Always show subText after homepageDescription (or alone on pricing page) */}
-        <p className="text-start mx-auto mb-4 fs-5">
-          {subText}
-        </p>
-
+        <p className="text-start mx-auto mb-4 fs-5">{subText}</p>
 
         {/* Cards */}
-        <div className="row justify-content-center g-4 mb-5">
+        <div className="row justify-content-center g-4">
           {loading ? (
             <p>Loading packages...</p>
           ) : packages.length > 0 ? (

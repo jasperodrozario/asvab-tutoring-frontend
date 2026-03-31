@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import Image from 'next/image';
+import { useEffect, useState } from "react";
+import Image from "next/image";
 
 interface Tutor {
   id: string;
@@ -18,23 +18,23 @@ export default function TutorsListPage() {
   useEffect(() => {
     const fetchTutors = async () => {
       const formData = new FormData();
-      formData.append('action', 'get-tutor-list');
+      formData.append("action", "get-tutor-list");
 
       try {
-        const res = await fetch(
-          'https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php',
-          { method: 'POST', body: formData }
-        );
+        const res = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
+          method: "POST",
+          body: formData,
+        });
 
         const data = await res.json();
 
         if (data?.isSuccess) {
           setTeachers(data.data);
         } else {
-          console.error('Failed to load tutors:', data?.message);
+          console.error("Failed to load tutors:", data?.message);
         }
       } catch (err) {
-        console.error('Error fetching tutors:', err);
+        console.error("Error fetching tutors:", err);
       } finally {
         setLoading(false);
       }
@@ -53,7 +53,7 @@ export default function TutorsListPage() {
       </div>
 
       {/* Title with bottom border */}
-      <div className="text-center mb-5 position-relative">
+      <div className="text-center position-relative mb-4">
         <h2 className="fw-bold display-5 d-inline-block pb-3 position-relative">
           Meet Our Teachers
           <img
@@ -62,13 +62,13 @@ export default function TutorsListPage() {
             width={160}
             height={8}
             className="position-absolute start-50 translate-middle-x bottom-0"
-            style={{ objectFit: 'cover' }}
+            style={{ objectFit: "cover" }}
           />
         </h2>
       </div>
 
       {/* Tutors list */}
-      <div className="container py-5">
+      <div className="container mb-5">
         {loading ? (
           <p className="text-center">Loading tutors...</p>
         ) : (
@@ -79,26 +79,26 @@ export default function TutorsListPage() {
                   <div className="pt-4">
                     <Image
                       src={teacher.photo}
-                      alt={teacher.name || 'Tutor'}
+                      alt={teacher.name || "Tutor"}
                       width={220}
                       height={277}
-                      style={{ objectFit: 'contain' }}
+                      style={{ objectFit: "contain" }}
                       unoptimized={true}
                     />
                   </div>
                   <div className="card-body d-flex flex-column text-start px-4">
                     <h5 className="card-title text-center fw-semibold mt-3">
-                      {teacher.name || 'No Name'}
+                      {teacher.name || "No Name"}
                     </h5>
                     <p className="text-center text-primary small mb-3 fw-medium">
-                      {teacher.designation || 'Tutor'}
+                      {teacher.designation || "Tutor"}
                     </p>
 
                     {/* ✅ Render HTML safely */}
                     <p
                       className="card-text small  "
                       dangerouslySetInnerHTML={{
-                        __html: teacher.about || 'No bio available.',
+                        __html: teacher.about || "No bio available.",
                       }}
                     />
                   </div>

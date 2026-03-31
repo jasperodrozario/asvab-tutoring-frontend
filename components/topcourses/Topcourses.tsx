@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
 
 interface Course {
   course_id: string;
@@ -17,21 +17,22 @@ interface Course {
  * Works on server & client without DOM.
  */
 const decodeHtmlEntities = (input: string): string => {
-  if (!input) return '';
+  if (!input) return "";
 
   // Replace some common named entities first
   const namedMap: Record<string, string> = {
-    nbsp: ' ',
-    amp: '&',
+    nbsp: " ",
+    amp: "&",
     quot: '"',
     apos: "'",
-    lt: '<',
-    gt: '>',
+    lt: "<",
+    gt: ">",
   };
 
   // Replace named entities like &nbsp; &amp;
   let s = input.replace(/&([a-zA-Z]+);/g, (match, name) => {
-    if (Object.prototype.hasOwnProperty.call(namedMap, name)) return namedMap[name];
+    if (Object.prototype.hasOwnProperty.call(namedMap, name))
+      return namedMap[name];
     return match; // leave unknown named entities for numeric handler
   });
 
@@ -40,7 +41,7 @@ const decodeHtmlEntities = (input: string): string => {
     try {
       return String.fromCharCode(Number(dec));
     } catch {
-      return '';
+      return "";
     }
   });
 
@@ -49,7 +50,7 @@ const decodeHtmlEntities = (input: string): string => {
     try {
       return String.fromCharCode(parseInt(hex, 16));
     } catch {
-      return '';
+      return "";
     }
   });
 
@@ -57,11 +58,15 @@ const decodeHtmlEntities = (input: string): string => {
 };
 
 /** Remove HTML tags (anything between < and >) */
-const stripHtmlTags = (str: string): string => (str ? str.replace(/<[^>]*>/g, '') : '');
+const stripHtmlTags = (str: string): string =>
+  str ? str.replace(/<[^>]*>/g, "") : "";
 
 /** Collapse whitespace and trim */
 const cleanWhitespace = (str: string): string =>
-  (str || '').replace(/\r\n|\n|\r|\t/g, ' ').replace(/\s+/g, ' ').trim();
+  (str || "")
+    .replace(/\r\n|\n|\r|\t/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 
 /**
  * Convert an HTML/HTML-encoded string into plain preview text.
@@ -71,7 +76,7 @@ const cleanWhitespace = (str: string): string =>
  *  - collapses whitespace and truncates cleanly
  */
 const getPlainTextPreview = (htmlString: string, maxLength = 100): string => {
-  if (!htmlString) return 'No description available';
+  if (!htmlString) return "No description available";
 
   try {
     let s = htmlString;
@@ -89,27 +94,27 @@ const getPlainTextPreview = (htmlString: string, maxLength = 100): string => {
     // Clean whitespace
     s = cleanWhitespace(s);
 
-    if (!s) return 'No description available';
+    if (!s) return "No description available";
 
     if (s.length > maxLength) {
       const truncated = s.substring(0, maxLength);
-      const lastSpace = truncated.lastIndexOf(' ');
+      const lastSpace = truncated.lastIndexOf(" ");
       if (lastSpace > Math.floor(maxLength * 0.6)) {
-        s = truncated.substring(0, lastSpace) + '...';
+        s = truncated.substring(0, lastSpace) + "...";
       } else {
-        s = truncated + '...';
+        s = truncated + "...";
       }
     }
 
     return s;
   } catch {
-    return 'Description unavailable';
+    return "Description unavailable";
   }
 };
 
 /** Build a safe image URL — trims and encodes as needed */
 const resolveImageUrl = (path?: string): string => {
-  if (!path) return '/images/asvab-courses-d.jpg';
+  if (!path) return "/images/asvab-courses-d.jpg";
   const cleaned = path.trim();
 
   // If it already looks like an absolute URL, just return (trimmed)
@@ -118,7 +123,7 @@ const resolveImageUrl = (path?: string): string => {
   }
 
   // Otherwise prefix your site and encode
-  return `https://test-prep.asvab-tutoring.com/${encodeURI(cleaned)}`;
+  return `https://staging-test-prep.asvab-tutoring.com/${encodeURI(cleaned)}`;
 };
 
 export default function TopCourses() {
@@ -135,10 +140,10 @@ export default function TopCourses() {
     const fetchCourses = async () => {
       try {
         const formData = new FormData();
-        formData.append('action', 'get-all-courses');
+        formData.append("action", "get-all-courses");
 
-        const res = await fetch('https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php', {
-          method: 'POST',
+        const res = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
+          method: "POST",
           body: formData,
         });
 
@@ -147,12 +152,12 @@ export default function TopCourses() {
         if (result?.isSuccess && Array.isArray(result.data)) {
           setCourses(result.data);
         } else {
-          console.error('Unexpected response:', result);
-          setError('Failed to load course list.');
+          console.error("Unexpected response:", result);
+          setError("Failed to load course list.");
         }
       } catch (err) {
-        console.error('Fetch error:', err);
-        setError('An error occurred while fetching courses.');
+        console.error("Fetch error:", err);
+        setError("An error occurred while fetching courses.");
       } finally {
         setLoading(false);
       }
@@ -173,7 +178,7 @@ export default function TopCourses() {
               width={160}
               height={8}
               className="position-absolute start-50 translate-middle-x bottom-0"
-              style={{ objectFit: 'cover' }}
+              style={{ objectFit: "cover" }}
             />
           </h2>
         </div>
@@ -195,7 +200,7 @@ export default function TopCourses() {
             width={160}
             height={8}
             className="position-absolute start-50 translate-middle-x bottom-0"
-            style={{ objectFit: 'cover' }}
+            style={{ objectFit: "cover" }}
           />
         </h2>
       </div>
@@ -204,7 +209,7 @@ export default function TopCourses() {
         {loading && <p className="text-center">Loading...</p>}
         {error && <p className="text-center text-danger">{error}</p>}
 
-        <div className="row justify-content-center g-4">
+        <div className="row justify-content-center g-4 pb-3">
           {!loading &&
             !error &&
             courses.map((course) => (
@@ -212,15 +217,17 @@ export default function TopCourses() {
                 <div className="card h-100 shadow-sm hover-lift">
                   <img
                     src={resolveImageUrl(course.image_src)}
-                    alt={course.name || 'Course'}
+                    alt={course.name || "Course"}
                     className="card-img-top"
                     width={300}
                     height={210}
-                    style={{ height: '200px', objectFit: 'cover' }}
+                    style={{ height: "200px", objectFit: "cover" }}
                   />
                   <div className="card-body d-flex flex-column">
-                    <h5 className="card-title fw-semibold">{course.name || course.course_code}</h5>
-                    <p className="card-text small  ">
+                    <h5 className="card-title fw-semibold">
+                      {course.name || course.course_code}
+                    </h5>
+                    <p className="card-text small">
                       {getPlainTextPreview(course.details, 100)}
                     </p>
                     <div className="text-center mt-auto">

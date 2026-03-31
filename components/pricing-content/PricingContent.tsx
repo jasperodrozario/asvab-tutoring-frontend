@@ -22,19 +22,16 @@ export default function PricingContent({ submenu }: { submenu: string }) {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch(
-          "https://test-prep.asvab-tutoring.com/practice-test/asvab-api.php",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
-            },
-            body: new URLSearchParams({
-              action: "specific-get-pricing-page-content",
-              submenu,
-            }),
-          }
-        );
+        const res = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            action: "specific-get-pricing-page-content",
+            submenu,
+          }),
+        });
 
         const data = await res.json();
 
@@ -70,10 +67,10 @@ export default function PricingContent({ submenu }: { submenu: string }) {
     <div className="container pb-5 py-5">
       {items.map((item) => (
         <div key={item.pricing_id} className="mb-5">
-          <h2 className="text-dark mb-3">{item.title}</h2>
+          <h2 className="text-dark mb-3 fw-bold">{item.title}</h2>
           <hr className="mb-4 mt-2" />
           <div
-            className="mb-3"
+            className="mb-3 service-description"
             dangerouslySetInnerHTML={{
               __html: decodeHtml(item.description),
             }}
@@ -88,5 +85,5 @@ export default function PricingContent({ submenu }: { submenu: string }) {
         </div>
       ))}
     </div>
-  )
+  );
 }

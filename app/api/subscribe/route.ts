@@ -35,7 +35,7 @@ function assertRequiredEnv(): void {
   const missing: string[] = [];
   if (!process.env.SQUARE_ACCESS_TOKEN) missing.push("SQUARE_ACCESS_TOKEN");
   if (!process.env.SQUARE_LOCATION_ID) missing.push("SQUARE_LOCATION_ID");
-  if (!process.env.PHP_API_URL) missing.push("PHP_API_URL");
+  if (!process.env.NEXT_PUBLIC_PHP_API_URL) missing.push("PHP_API_URL");
   if (missing.length) {
     throw new Error(
       "The server is missing required configuration. Please contact support."
@@ -107,7 +107,7 @@ async function saveSubscriptionToPhp(args: {
   planVariationId: string;
   orderTemplateId: string;
 }) {
-  const phpUrl = process.env.PHP_API_URL!;
+  const phpUrl = process.env.NEXT_PUBLIC_PHP_API_URL!;
   const phpSecret = (process.env.INTERNAL_API_SECRET || "").trim();
 
   const form = new URLSearchParams();

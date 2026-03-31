@@ -42,7 +42,9 @@ function loadSquareScriptOnce(src: string): Promise<void> {
   if (squareScriptPromise) return squareScriptPromise;
 
   squareScriptPromise = new Promise<void>((resolve, reject) => {
-    const existing = document.getElementById("square-js") as HTMLScriptElement | null;
+    const existing = document.getElementById(
+      "square-js",
+    ) as HTMLScriptElement | null;
 
     if (existing?.dataset.loaded === "1") return resolve();
 
@@ -134,7 +136,10 @@ export default function SubscribeAgainPaymentForm({
       : "https://web.squarecdn.com/v1/square.js";
   }, [appId]);
 
-  const displayAmount = useMemo(() => (Number(amount || 0) / 100).toFixed(2), [amount]);
+  const displayAmount = useMemo(
+    () => (Number(amount || 0) / 100).toFixed(2),
+    [amount],
+  );
 
   const termsRequired = typeof agreeTerms === "boolean";
   const termsAgreed = termsRequired ? !!agreeTerms : true;
@@ -144,7 +149,8 @@ export default function SubscribeAgainPaymentForm({
     if (!user_id) return "Missing user id.";
     if (!course_id) return "Missing course id.";
     if (!plan_variation_id) return "Missing plan_variation_id (Square plan).";
-    if (!Number.isFinite(Number(amount)) || Number(amount) <= 0) return "Invalid amount.";
+    if (!Number.isFinite(Number(amount)) || Number(amount) <= 0)
+      return "Invalid amount.";
     return "";
   }, [auth_token, user_id, course_id, plan_variation_id, amount]);
 
@@ -246,7 +252,11 @@ export default function SubscribeAgainPaymentForm({
 
   const handleSubscribe = async () => {
     if (!canSubmit) {
-      const msg = missingInfo || (termsRequired && !termsAgreed ? "Please agree to the terms to continue." : "");
+      const msg =
+        missingInfo ||
+        (termsRequired && !termsAgreed
+          ? "Please agree to the terms to continue."
+          : "");
       if (msg) setMessage(msg);
       return;
     }
@@ -276,14 +286,14 @@ export default function SubscribeAgainPaymentForm({
 
       const sourceId = String(tokenizeResult.token || "").trim();
 
-      console.log("➡️ subscribe-again POST", {
-        user_id,
-        course_id,
-        plan_variation_id: mask(plan_variation_id),
-        amount,
-        sourceId: mask(sourceId),
-        auth_token: mask(auth_token),
-      });
+      // console.log("➡️ subscribe-again POST", {
+      //   user_id,
+      //   course_id,
+      //   plan_variation_id: mask(plan_variation_id),
+      //   amount,
+      //   sourceId: mask(sourceId),
+      //   auth_token: mask(auth_token),
+      // });
 
       const res = await fetch("/api/subscribe-again", {
         method: "POST",
@@ -302,10 +312,16 @@ export default function SubscribeAgainPaymentForm({
 
       const data = await res.json().catch(() => ({}));
 
-      console.log("⬅️ subscribe-again POST response", { http_ok: res.ok, status: res.status, data });
+      // console.log("⬅️ subscribe-again POST response", {
+      //   http_ok: res.ok,
+      //   status: res.status,
+      //   data,
+      // });
 
       if (!res.ok || !data?.ok) {
-        const msg = String(data?.message || "Subscription failed. Please try again.");
+        const msg = String(
+          data?.message || "Subscription failed. Please try again.",
+        );
         setMessage(msg);
         onError?.(msg);
         return;
@@ -322,7 +338,9 @@ export default function SubscribeAgainPaymentForm({
       setMessage("✅ Subscription created successfully!");
 
       // Redirect
-      const back = String(data?.back_to_portal || "").trim() || String(return_url || "").trim();
+      const back =
+        String(data?.back_to_portal || "").trim() ||
+        String(return_url || "").trim();
       if (back) window.location.href = back;
     } catch (err: any) {
       console.error("Subscribe error:", err);
@@ -369,7 +387,9 @@ export default function SubscribeAgainPaymentForm({
           </label>
 
           {!termsAgreed && (
-            <div className="small text-muted mt-2">Please agree to enable the button.</div>
+            <div className="small text-muted mt-2">
+              Please agree to enable the button.
+            </div>
           )}
         </div>
       )}
@@ -382,13 +402,20 @@ export default function SubscribeAgainPaymentForm({
           disabled={!canSubmit}
           type="button"
         >
-          {completed ? "Subscribed" : initializing ? "Loading…" : paying ? "Processing…" : "Subscribe"}
+          {completed
+            ? "Subscribed"
+            : initializing
+              ? "Loading…"
+              : paying
+                ? "Processing…"
+                : "Subscribe"}
         </button>
 
         {/* Sub ID */}
         {completed && subscriptionId && (
           <div className="small text-muted">
-            <span className="fw-semibold">Subscription ID:</span> {subscriptionId}
+            <span className="fw-semibold">Subscription ID:</span>{" "}
+            {subscriptionId}
           </div>
         )}
       </div>

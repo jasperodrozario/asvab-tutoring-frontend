@@ -75,13 +75,13 @@ export default function SubscribeAgainClient() {
     return (
       ctx?.return_url ||
       return_url ||
-      "https://test-prep.asvab-tutoring.com/subscription-profile"
+      "https://staging-test-prep.asvab-tutoring.com/subscription-profile"
     );
   }, [ctx?.return_url, return_url]);
 
   const course_id = useMemo(
     () => (ctx?.course?.course_id || "").trim(),
-    [ctx?.course?.course_id]
+    [ctx?.course?.course_id],
   );
 
   const packages = useMemo(() => {
@@ -98,7 +98,7 @@ export default function SubscribeAgainClient() {
 
     // Sort by ord if present, else keep original
     cleaned.sort(
-      (a, b) => (Number(a.ord || 0) || 0) - (Number(b.ord || 0) || 0)
+      (a, b) => (Number(a.ord || 0) || 0) - (Number(b.ord || 0) || 0),
     );
 
     return cleaned;
@@ -127,7 +127,7 @@ export default function SubscribeAgainClient() {
         const r = await fetch(`/api/subscribe-again?${qs.toString()}`, {
           cache: "no-store",
         });
-        const data: ContextResponse = await r.json().catch(() => ({} as any));
+        const data: ContextResponse = await r.json().catch(() => ({}) as any);
 
         if (!alive) return;
 
@@ -161,7 +161,7 @@ export default function SubscribeAgainClient() {
 
   const userLabel = useMemo(
     () => fullName(ctx?.user) || ctx?.user?.email || "User",
-    [ctx?.user]
+    [ctx?.user],
   );
 
   const selectedTitle = useMemo(() => {
@@ -171,12 +171,12 @@ export default function SubscribeAgainClient() {
 
   const selectedAmountCents = useMemo(
     () => Number(selected?.amount_cents || 0),
-    [selected?.amount_cents]
+    [selected?.amount_cents],
   );
 
   const selectedPlanId = useMemo(
     () => String(selected?.plan_variation_id || "").trim(),
-    [selected?.plan_variation_id]
+    [selected?.plan_variation_id],
   );
 
   const canPay = useMemo(() => {
@@ -203,35 +203,59 @@ export default function SubscribeAgainClient() {
             Subscribe Again
           </h1>
           <div style={{ marginTop: 6, opacity: 0.85 }}>
-            Course:{" "}
-            <b>{ctx?.course?.course_name || course_id || "Course"}</b> · User:{" "}
-            <b>{userLabel}</b>
+            Course: <b>{ctx?.course?.course_name || course_id || "Course"}</b> ·
+            User: <b>{userLabel}</b>
           </div>
         </div>
 
-        <a href={backUrl} style={{ textDecoration: "underline", whiteSpace: "nowrap" }}>
+        <a
+          href={backUrl}
+          style={{ textDecoration: "underline", whiteSpace: "nowrap" }}
+        >
           Back to Study
         </a>
       </div>
 
       {loading ? (
-        <div style={{ marginTop: 18, padding: 14, border: "1px solid #ddd", borderRadius: 12 }}>
+        <div
+          style={{
+            marginTop: 18,
+            padding: 14,
+            border: "1px solid #ddd",
+            borderRadius: 12,
+          }}
+        >
           Loading…
         </div>
       ) : err ? (
-        <div style={{ marginTop: 18, padding: 14, border: "1px solid #f2c1c1", borderRadius: 12 }}>
+        <div
+          style={{
+            marginTop: 18,
+            padding: 14,
+            border: "1px solid #f2c1c1",
+            borderRadius: 12,
+          }}
+        >
           <b>Error:</b> {err}
         </div>
       ) : (
         <>
           {/* Packages */}
           <section style={{ marginTop: 18 }}>
-            <h2 style={{ fontSize: 18, fontWeight: 800, margin: "40px 0 10px 0" }}>
+            <h2
+              style={{ fontSize: 18, fontWeight: 800, margin: "40px 0 10px 0" }}
+            >
               Choose a package
             </h2>
 
             {packages.length === 0 ? (
-              <div style={{ padding: 14, border: "1px solid #ddd", borderRadius: 12 }}>
+              <div
+                style={{
+                  padding: 14,
+                  border: "1px solid #ddd",
+                  borderRadius: 12,
+                }}
+              >
                 No packages available for this course.
               </div>
             ) : (
@@ -272,8 +296,17 @@ export default function SubscribeAgainClient() {
                         cursor: "pointer",
                       }}
                     >
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-                        <div style={{ fontWeight: 900, fontSize: 16 }}>{title}</div>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: 10,
+                        }}
+                      >
+                        <div style={{ fontWeight: 900, fontSize: 16 }}>
+                          {title}
+                        </div>
                         {popular && (
                           <span
                             style={{
@@ -293,10 +326,16 @@ export default function SubscribeAgainClient() {
                         ${dollarsFromCents(cents)}
                       </div>
 
-                      {feature ? <div style={{ marginTop: 6, opacity: 0.85 }}>{feature}</div> : null}
+                      {feature ? (
+                        <div style={{ marginTop: 6, opacity: 0.85 }}>
+                          {feature}
+                        </div>
+                      ) : null}
 
                       {!String(p.plan_variation_id || "").trim() ? (
-                        <div style={{ marginTop: 8, fontSize: 12, opacity: 0.75 }}>
+                        <div
+                          style={{ marginTop: 8, fontSize: 12, opacity: 0.75 }}
+                        >
                           Not linked to Square plan yet
                         </div>
                       ) : null}
@@ -314,26 +353,59 @@ export default function SubscribeAgainClient() {
             </h2>
 
             {!selected ? (
-              <div style={{ padding: 14, border: "1px solid #ddd", borderRadius: 12 }}>
+              <div
+                style={{
+                  padding: 14,
+                  border: "1px solid #ddd",
+                  borderRadius: 12,
+                }}
+              >
                 Select a package to continue.
               </div>
             ) : !course_id ? (
-              <div style={{ padding: 14, border: "1px solid #ddd", borderRadius: 12 }}>
-                Missing course context. Please reopen Subscribe Again from the portal.
+              <div
+                style={{
+                  padding: 14,
+                  border: "1px solid #ddd",
+                  borderRadius: 12,
+                }}
+              >
+                Missing course context. Please reopen Subscribe Again from the
+                portal.
               </div>
             ) : !selectedPlanId ? (
-              <div style={{ padding: 14, border: "1px solid #f0d9a8", borderRadius: 12 }}>
+              <div
+                style={{
+                  padding: 14,
+                  border: "1px solid #f0d9a8",
+                  borderRadius: 12,
+                }}
+              >
                 <b>Cannot continue:</b>{" "}
-                <span style={{ fontWeight: 700 }}>{selectedTitle}</span> is missing{" "}
-                <code>plan_variation_id</code>. Add it to your PHP response per package session so
-                Square can create the subscription.
+                <span style={{ fontWeight: 700 }}>{selectedTitle}</span> is
+                missing <code>plan_variation_id</code>. Add it to your PHP
+                response per package session so Square can create the
+                subscription.
               </div>
-            ) : !Number.isFinite(selectedAmountCents) || selectedAmountCents <= 0 ? (
-              <div style={{ padding: 14, border: "1px solid #ddd", borderRadius: 12 }}>
+            ) : !Number.isFinite(selectedAmountCents) ||
+              selectedAmountCents <= 0 ? (
+              <div
+                style={{
+                  padding: 14,
+                  border: "1px solid #ddd",
+                  borderRadius: 12,
+                }}
+              >
                 Invalid package amount. Please select a different package.
               </div>
             ) : (
-              <div style={{ padding: 14, border: "1px solid #ddd", borderRadius: 12 }}>
+              <div
+                style={{
+                  padding: 14,
+                  border: "1px solid #ddd",
+                  borderRadius: 12,
+                }}
+              >
                 <SubscribeAgainPaymentForm
                   amount={selectedAmountCents}
                   course_id={course_id}
