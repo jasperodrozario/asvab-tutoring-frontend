@@ -11,21 +11,34 @@ export default function ScrollToTop() {
   const pathname = usePathname();
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    // Add a small delay to ensure the new page content has loaded
+    // and to avoid conflicts with any browser restore scroll behavior
+    const timer = setTimeout(() => {
+      window.scrollTo(0, 0);
+    }, 50);
+    return () => clearTimeout(timer);
   }, [pathname]);
 
   useEffect(() => {
     const toggleVisibility = () => {
+      // Use document.documentElement.scrollTop for better mobile compatibility
+      const scrollTop = window.scrollY ?? document.documentElement.scrollTop;
       // Show button when page is scrolled down 300px
-      if (window.scrollY > 300) {
+      if (scrollTop > 300) {
         setIsVisible(true);
       } else {
         setIsVisible(false);
       }
     };
 
-    window.addEventListener("scroll", toggleVisibility);
-    return () => window.removeEventListener("scroll", toggleVisibility);
+    // Use passive event listener for better scroll performance on mobile
+    window.addEventListener("scroll", toggleVisibility, { passive: true });
+    // Also check on touchmove for mobile
+    window.addEventListener("touchmove", toggleVisibility, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", toggleVisibility);
+      window.removeEventListener("touchmove", toggleVisibility);
+    };
   }, []);
 
   const scrollToTop = () => {
