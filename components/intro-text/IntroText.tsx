@@ -72,7 +72,7 @@ export default function WelcomeSection() {
           </h2>
         </div>
 
-        <div className="mt-4 fs-5">
+        <div className="my-4 fs-5">
           {loading ? (
             <p className="text-center text-muted">Loading welcome content...</p>
           ) : welcome ? (

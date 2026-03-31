@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import Image from 'next/image';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'bootstrap-icons/font/bootstrap-icons.css';
-import { Carousel } from 'react-bootstrap';
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap-icons/font/bootstrap-icons.css";
+import { Carousel } from "react-bootstrap";
 
 interface ReviewItem {
   id: number;
@@ -20,34 +20,34 @@ const Review = () => {
   const reviewsData: ReviewItem[] = [
     {
       id: 1,
-      name: 'Jahmiah Jester Watson',
-      profile: '/images/default_profile.jpeg',
-      text: 'The practice tests and flashcards were incredibly helpful in preparing me for the ASVAB. Dalia is an excellent tutor who really helped me improve my arithmetic and math knowledge!'
+      name: "Jahmiah Jester Watson",
+      profile: "/images/default_profile.jpeg",
+      text: "The practice tests and flashcards were incredibly helpful in preparing me for the ASVAB. Dalia is an excellent tutor who really helped me improve my arithmetic and math knowledge!",
     },
     {
       id: 2,
-      name: 'Eunice Alberson',
-      profile: '/images/default_profile.jpeg',
-      text: 'I highly recommend this company. They were flexible and able to get our four sessions in under a week. The results were amazing. Worth every penny. Thank you.'
+      name: "Eunice Alberson",
+      profile: "/images/default_profile.jpeg",
+      text: "I highly recommend this company. They were flexible and able to get our four sessions in under a week. The results were amazing. Worth every penny. Thank you.",
     },
     {
       id: 3,
-      name: 'Jake Lin',
-      profile: '/images/default_profile.jpeg',
-      text: 'ASVAB tutoring really helped me 3x my score on the ASVAB. All thanks to ASVAB tutoring and my tutor Sudeshna Das, she really helped me understand a lot about the ASVAB.'
+      name: "Jake Lin",
+      profile: "/images/default_profile.jpeg",
+      text: "ASVAB tutoring really helped me 3x my score on the ASVAB. All thanks to ASVAB tutoring and my tutor Sudeshna Das, she really helped me understand a lot about the ASVAB.",
     },
     {
       id: 4,
-      name: 'Roberto Lira',
-      profile: '/images/default_profile.jpeg',
-      text: 'Personally, it was a great help from the tutors who help each of us and motivate us to take the ASVAB and have a good score. Highly recommend them!'
+      name: "Roberto Lira",
+      profile: "/images/default_profile.jpeg",
+      text: "Personally, it was a great help from the tutors who help each of us and motivate us to take the ASVAB and have a good score. Highly recommend them!",
     },
     {
       id: 5,
-      name: 'Charlie Eckhardt',
-      profile: '/images/default_profile.jpeg',
-      text: 'I scored a 50 on my OAR!!'
-    }
+      name: "Charlie Eckhardt",
+      profile: "/images/default_profile.jpeg",
+      text: "I scored a 50 on my OAR!!",
+    },
   ];
 
   useEffect(() => {
@@ -59,8 +59,8 @@ const Review = () => {
   };
 
   return (
-    <section className="testimonial-section text-center py-5">
-      <div className="container" style={{ maxWidth: '800px' }}>
+    <section className="testimonial-section text-center mb-5">
+      <div className="container" style={{ maxWidth: "800px" }}>
         <h2 className="display-5 fw-bold text-gray-800 d-inline-block pb-3 position-relative">
           Students Reviews
           <img
@@ -69,7 +69,7 @@ const Review = () => {
             width={160}
             height={8}
             className="position-absolute bottom-0 start-50 translate-middle-x"
-            style={{ objectFit: 'cover' }}
+            style={{ objectFit: "cover" }}
           />
         </h2>
 
@@ -81,7 +81,7 @@ const Review = () => {
           slide
           controls={false}
           indicators={false}
-          className="mt-5 smooth-carousel"
+          className="smooth-carousel"
         >
           {reviews.map((review) => (
             <Carousel.Item key={review.id}>
@@ -108,17 +108,20 @@ const Review = () => {
             <button
               key={idx}
               type="button"
-              className={`rounded-circle border-0 ${idx === index ? 'bg-custom-primary' : 'bg-secondary opacity-50'
-                }`}
-              style={{ width: '12px', height: '12px', cursor: 'pointer' }}
+              className={`rounded-circle border-0 ${
+                idx === index ? "bg-custom-primary" : "bg-secondary opacity-50"
+              }`}
+              style={{ width: "12px", height: "12px", cursor: "pointer" }}
               onClick={() => handleSelect(idx)}
             />
           ))}
         </div>
 
-
         <div className="mt-4">
-          <a href="https://www.facebook.com/asvabtutoring/reviews" className="btn btn-primary-custom">
+          <a
+            href="https://www.facebook.com/asvabtutoring/reviews"
+            className="btn btn-primary-custom"
+          >
             View All Reviews
           </a>
         </div>

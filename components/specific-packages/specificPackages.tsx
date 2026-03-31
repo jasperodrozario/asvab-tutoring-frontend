@@ -131,7 +131,7 @@ const PricingPackages: React.FC<Props> = ({
         <p className="text-start mx-auto mb-4 fs-5">{subText}</p>
 
         {/* Cards */}
-        <div className="row justify-content-center g-4 mb-5">
+        <div className="row justify-content-center g-4">
           {loading ? (
             <p>Loading packages...</p>
           ) : packages.length > 0 ? (

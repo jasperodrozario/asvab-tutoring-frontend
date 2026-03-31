@@ -53,7 +53,7 @@ export default function TutorsListPage() {
       </div>
 
       {/* Title with bottom border */}
-      <div className="text-center mb-5 position-relative">
+      <div className="text-center position-relative mb-4">
         <h2 className="fw-bold display-5 d-inline-block pb-3 position-relative">
           Meet Our Teachers
           <img
@@ -68,7 +68,7 @@ export default function TutorsListPage() {
       </div>
 
       {/* Tutors list */}
-      <div className="container py-5">
+      <div className="container mb-5">
         {loading ? (
           <p className="text-center">Loading tutors...</p>
         ) : (
