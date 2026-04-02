@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SquareClient, SquareEnvironment, SquareError } from "square";
 import { randomUUID } from "crypto";
+import { Currency } from "square";
 
 export const runtime = "nodejs";
 
@@ -10,18 +11,46 @@ type Product = "ASVAB" | "AFOQT" | "ASTB" | "SIFT" | "OAR";
 type Cadence = "1M" | "3M" | "6M" | "12M";
 
 type Payload = {
-  sourceId: string; // token from Square Web Payments SDK tokenize()
+  sourceId: string;
   product: Product;
   cadence: Cadence;
   userEmail: string;
   userName: string;
-  password?: string; // Needed for PHP registration
-  mobile?: string; // Needed for PHP registration
+  password?: string;
+  mobile?: string;
   amount: number | string;
   course_id?: string;
   session_id?: string;
+  package_id?: string;
+};
 
-  package_id?: string; // ✅ optional
+type PhpPlanRow = {
+  session_id: string;
+  course_id: string;
+  course_name: string;
+  package_id: string;
+  package_duration: string;
+  payment_mode: string;
+  title: string;
+  price: string;
+  currency: string;
+  is_most_popular: string;
+  production_plan_variation_id: string;
+  sandbox_plan_variation_id: string;
+  is_active: string;
+  updated_at: string | null;
+  ord: string;
+  asvab: string | null;
+  ocs: string | null;
+  test_prep: string | null;
+  feature: string | null;
+};
+
+type PhpPlanResponse = {
+  status: number;
+  isSuccess: boolean;
+  data?: PhpPlanRow[];
+  message?: string;
 };
 
 function getSquareEnvironment(): SquareEnvironment {
@@ -31,11 +60,17 @@ function getSquareEnvironment(): SquareEnvironment {
     : SquareEnvironment.Sandbox;
 }
 
+function isProductionEnvironment(): boolean {
+  return (process.env.SQUARE_ENVIRONMENT || "sandbox").toLowerCase() === "production";
+}
+
 function assertRequiredEnv(): void {
   const missing: string[] = [];
+
   if (!process.env.SQUARE_ACCESS_TOKEN) missing.push("SQUARE_ACCESS_TOKEN");
   if (!process.env.SQUARE_LOCATION_ID) missing.push("SQUARE_LOCATION_ID");
-  if (!process.env.NEXT_PUBLIC_PHP_API_URL) missing.push("PHP_API_URL");
+  if (!process.env.NEXT_PUBLIC_PHP_API_URL) missing.push("NEXT_PUBLIC_PHP_API_URL");
+
   if (missing.length) {
     throw new Error(
       "The server is missing required configuration. Please contact support."
@@ -43,24 +78,12 @@ function assertRequiredEnv(): void {
   }
 }
 
-function isProduct(x: any): x is Product {
-  return ["ASVAB", "AFOQT", "ASTB", "SIFT", "OAR"].includes(x);
+function isProduct(x: unknown): x is Product {
+  return ["ASVAB", "AFOQT", "ASTB", "SIFT", "OAR"].includes(String(x));
 }
 
-function isCadence(x: any): x is Cadence {
-  return ["1M", "3M", "6M", "12M"].includes(x);
-}
-
-function getPlanVariationId(product: Product, cadence: Cadence): string {
-  const key = `SQUARE_SUB_PLAN_${product}_${cadence}`;
-  const value = process.env[key];
-  if (!value) {
-    // Keep this message friendly (no env var names shown to the user)
-    throw new Error(
-      "This subscription option is not available right now. Please try a different plan or contact support."
-    );
-  }
-  return value;
+function isCadence(x: unknown): x is Cadence {
+  return ["1M", "3M", "6M", "12M"].includes(String(x));
 }
 
 function parseAmountToCents(amount: number | string): number {
@@ -70,24 +93,90 @@ function parseAmountToCents(amount: number | string): number {
     const cleaned = amount.trim();
     if (!cleaned) throw new Error("Please enter a valid amount.");
 
-    // If user sends "15.00" treat as dollars; if "1500" treat as cents
     if (cleaned.includes(".")) {
       const dollars = parseFloat(cleaned.replace(/[^0-9.]/g, ""));
-      if (!Number.isFinite(dollars)) throw new Error("Please enter a valid amount.");
+      if (!Number.isFinite(dollars)) {
+        throw new Error("Please enter a valid amount.");
+      }
       return Math.round(dollars * 100);
     }
 
     const cents = parseInt(cleaned.replace(/[^0-9]/g, ""), 10);
-    if (!Number.isFinite(cents)) throw new Error("Please enter a valid amount.");
+    if (!Number.isFinite(cents)) {
+      throw new Error("Please enter a valid amount.");
+    }
     return cents;
   }
 
   throw new Error("Please enter a valid amount.");
 }
 
+async function getPlanSessionData(sessionId: string): Promise<{
+  row: PhpPlanRow;
+  planVariationId: string;
+}> {
+  const phpUrl = process.env.NEXT_PUBLIC_PHP_API_URL!;
+  const phpSecret = (process.env.INTERNAL_API_SECRET || "").trim();
+
+  const form = new URLSearchParams();
+  form.append("action", "get-plan-variation-id");
+  form.append("session_id", sessionId);
+
+  const res = await fetch(phpUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      ...(phpSecret ? { "X-ASVAB-SECRET": phpSecret } : {}),
+    },
+    body: form.toString(),
+    cache: "no-store",
+  });
+
+  const raw = await res.text();
+
+  let parsed: PhpPlanResponse | null = null;
+  try {
+    parsed = JSON.parse(raw) as PhpPlanResponse;
+  } catch {
+    parsed = null;
+  }
+
+  if (!res.ok) {
+    throw new Error(
+      "We couldn't load the subscription details right now. Please try again in a moment."
+    );
+  }
+
+  if (!parsed || parsed.isSuccess !== true || !Array.isArray(parsed.data) || parsed.data.length === 0) {
+    throw new Error(
+      parsed?.message ||
+        "This subscription option is not available right now. Please try a different plan or contact support."
+    );
+  }
+
+  const row = parsed.data[0];
+
+  if (!row || String(row.is_active) !== "1") {
+    throw new Error(
+      "This subscription option is not available right now. Please try a different plan or contact support."
+    );
+  }
+
+  const planVariationId = isProductionEnvironment()
+    ? String(row.production_plan_variation_id || "").trim()
+    : String(row.sandbox_plan_variation_id || "").trim();
+
+  if (!planVariationId) {
+    throw new Error(
+      "This subscription option is not available right now. Please try a different plan or contact support."
+    );
+  }
+
+  return { row, planVariationId };
+}
+
 /**
  * Sends data to PHP backend (x-www-form-urlencoded).
- * IMPORTANT: Keep user-facing errors friendly; do not expose raw PHP output.
  */
 async function saveSubscriptionToPhp(args: {
   product: Product;
@@ -100,7 +189,6 @@ async function saveSubscriptionToPhp(args: {
   course_id?: string;
   session_id?: string;
   package_id?: string;
-
   squareSubscriptionId: string;
   squareCustomerId: string;
   squareCardId: string;
@@ -112,10 +200,8 @@ async function saveSubscriptionToPhp(args: {
 
   const form = new URLSearchParams();
 
-  // Matches PHP switch case
   form.append("action", "user-registration-subscription");
 
-  // Registration data
   form.append("email", args.userEmail);
   form.append("password", args.password || "");
   form.append("mobile", args.mobile || "");
@@ -124,14 +210,12 @@ async function saveSubscriptionToPhp(args: {
   form.append("first_name", nameParts[0] || "");
   form.append("last_name", nameParts.slice(1).join(" ") || "");
 
-  // Payment details expected by PHP
   form.append("amount", String(args.amountInCents));
   form.append("currency", "USD");
   form.append("payment_status", "PENDING");
   form.append("square_customer_id", args.squareCustomerId);
   form.append("payment_source_type", "CARD");
 
-  // Square identifiers expected by PHP
   form.append("subscription_id", args.squareSubscriptionId);
   form.append("plan_variation_id", args.planVariationId);
 
@@ -150,7 +234,6 @@ async function saveSubscriptionToPhp(args: {
 
   const raw = await res.text();
 
-  // Try to parse JSON, but do not leak raw errors to users.
   let parsed: any = null;
   try {
     parsed = JSON.parse(raw);
@@ -158,7 +241,6 @@ async function saveSubscriptionToPhp(args: {
     parsed = null;
   }
 
-  // If PHP returns a structured error, still keep it user-friendly.
   if (!res.ok) {
     throw new Error(
       "We couldn't finish setting up your account on our system. Please try again in a moment."
@@ -166,7 +248,6 @@ async function saveSubscriptionToPhp(args: {
   }
 
   if (!parsed || parsed.isSuccess !== true) {
-    // Some PHP responses may use ok instead of isSuccess; accept either.
     const ok = Boolean(parsed?.isSuccess ?? parsed?.ok);
     if (!ok) {
       throw new Error(
@@ -189,7 +270,11 @@ function friendlySquareError(err: unknown): string {
     const detail = first?.detail || first?.code || "A payment service error occurred.";
     return `We couldn't complete the request with our payment provider. ${detail}`;
   }
-  if (err instanceof Error) return err.message || "Something went wrong. Please try again.";
+
+  if (err instanceof Error) {
+    return err.message || "Something went wrong. Please try again.";
+  }
+
   return "Something went wrong. Please try again.";
 }
 
@@ -207,7 +292,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Validation
     if (!body.sourceId) {
       return NextResponse.json(
         {
@@ -244,7 +328,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const amountInCents = parseAmountToCents(body.amount as any);
+    if (!body.session_id || !String(body.session_id).trim()) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Session ID is required.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const amountInCents = parseAmountToCents(body.amount as number | string);
     if (!Number.isFinite(amountInCents) || amountInCents <= 0) {
       return NextResponse.json(
         { success: false, message: "Please enter a valid amount." },
@@ -252,33 +346,52 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const planVariationId = getPlanVariationId(body.product, body.cadence);
+    // 1) Get session/package/plan data from PHP API
+    const { row: planRow, planVariationId } = await getPlanSessionData(
+      String(body.session_id)
+    );
 
-    // 1) Square: Create Customer
+    // Optional consistency check: cadence sent from frontend should match DB
+    if (String(planRow.package_duration).trim() !== String(body.cadence).trim()) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "The selected subscription length does not match the package configuration.",
+        },
+        { status: 400 }
+      );
+    }
+
+    // 2) Square: Create Customer
     const { customer } = await squareClient.customers.create({
       idempotencyKey: randomUUID(),
       givenName: String(body.userName),
       emailAddress: String(body.userEmail),
     });
+
     if (!customer?.id) {
       throw new Error(
         "We couldn't create your customer profile with the payment provider. Please try again."
       );
     }
 
-    // 2) Square: Create Card on File
+    // 3) Square: Create Card on File
     const { card } = await squareClient.cards.create({
       idempotencyKey: randomUUID(),
       sourceId: String(body.sourceId),
-      card: { customerId: customer.id },
+      card: {
+        customerId: customer.id,
+      },
     });
+
     if (!card?.id) {
       throw new Error(
         "We couldn't securely save your payment method. Please try again."
       );
     }
 
-    // 3) Square: Create Order Template for pricing
+    // 4) Square: Create Order Template
     const { order } = await squareClient.orders.create({
       idempotencyKey: randomUUID(),
       order: {
@@ -286,38 +399,50 @@ export async function POST(req: NextRequest) {
         state: "DRAFT",
         lineItems: [
           {
-            name: `${body.product} Subscription`,
+            name: `${planRow.course_name || body.product} Subscription`,
             quantity: "1",
             basePriceMoney: {
               amount: BigInt(amountInCents),
-              currency: "USD",
+              currency: (planRow.currency || "USD") as Currency,
             },
           },
         ],
       },
     });
+
     if (!order?.id) {
       throw new Error(
         "We couldn't prepare your subscription details. Please try again."
       );
     }
 
-    // 4) Square: Create Subscription
+    // 5) Square: Create Subscription
     const { subscription } = await squareClient.subscriptions.create({
       idempotencyKey: randomUUID(),
       locationId: process.env.SQUARE_LOCATION_ID!,
       customerId: customer.id,
       planVariationId,
       cardId: card.id,
-      phases: [{ ordinal: BigInt(0), orderTemplateId: order.id }],
+      phases: [
+        {
+          ordinal: BigInt(0),
+          orderTemplateId: order.id,
+        },
+      ],
     });
+
     if (!subscription?.id) {
       throw new Error(
         "We couldn't create your subscription. Please try again."
       );
     }
 
-    // 5) Save to PHP
+    // Use DB values from PHP as source of truth when available
+    const resolvedCourseId = String(body.course_id || planRow.course_id || "").trim();
+    const resolvedPackageId = String(body.package_id || planRow.package_id || "").trim();
+    const resolvedSessionId = String(body.session_id || planRow.session_id || "").trim();
+
+    // 6) Save to PHP
     const phpSave = await saveSubscriptionToPhp({
       product: body.product,
       cadence: body.cadence,
@@ -326,10 +451,9 @@ export async function POST(req: NextRequest) {
       userName: String(body.userName),
       password: body.password,
       mobile: body.mobile,
-      course_id: body.course_id,
-      session_id: body.session_id,
-      package_id: body.package_id,
-
+      course_id: resolvedCourseId || undefined,
+      session_id: resolvedSessionId || undefined,
+      package_id: resolvedPackageId || undefined,
       squareSubscriptionId: subscription.id,
       squareCustomerId: customer.id,
       squareCardId: card.id,
@@ -342,16 +466,23 @@ export async function POST(req: NextRequest) {
       message: "All set! Your subscription has been created successfully.",
       subscriptionId: subscription.id,
       php: phpSave,
+      plan_data: {
+        session_id: resolvedSessionId,
+        course_id: resolvedCourseId,
+        package_id: resolvedPackageId,
+        plan_variation_id: planVariationId,
+      },
     });
   } catch (error: unknown) {
     const message = friendlySquareError(error);
 
-    // If it’s one of our known “friendly” messages, return 400; otherwise 500.
     const isClientStyle =
       typeof message === "string" &&
       (message.startsWith("Please ") ||
         message.startsWith("We couldn't verify") ||
         message.startsWith("This subscription option") ||
+        message.startsWith("The selected subscription") ||
+        message.startsWith("Session ID is required") ||
         message.startsWith("We couldn't"));
 
     return NextResponse.json(
