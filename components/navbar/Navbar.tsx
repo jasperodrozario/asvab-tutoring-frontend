@@ -333,10 +333,10 @@ export default function Navbar() {
               </li>
 
               {/* <li className="nav-item">
-                <Link href="https://staging-test-prep.asvab-tutoring.com/register-free" className="btn border text-white px-3 py-1 fs-6">
-                  ONLINE STUDY
-                </Link>
-              </li> */}
+                    <Link href={`${process.env.NEXT_PUBLIC_RESOURCES_URL}/register-free`} className="btn border text-white px-3 py-1 fs-6">
+                      ONLINE STUDY
+                    </Link>
+                  </li> */}
               {/* ✅ LOGIN */}
               <li className="nav-item">
                 <Link
@@ -495,7 +495,7 @@ export default function Navbar() {
 
                 {/* <li className="nav-item">
                   <Link 
-                    href="https://staging-test-prep.asvab-tutoring.com/register-free"
+                    href={`${process.env.NEXT_PUBLIC_RESOURCES_URL}/register-free"
                     className="nav-link text-white d-flex align-items-center btn border px-3 py-1 fs-6"  style={{ maxWidth: "112px", textAlign: "center" }}
                    
                     onClick={handleLinkClick}

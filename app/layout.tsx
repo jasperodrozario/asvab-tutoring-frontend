@@ -1,11 +1,10 @@
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
 import Navbar from "@/components/navbar/Navbar";
 import Footer from "@/components/footer/Footer";
 import ScrollToTop from "@/components/scroll-to-top/ScrollToTop";
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
-// import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import "./globals.css";
 
 const geistSans = Geist({

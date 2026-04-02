@@ -38,11 +38,7 @@ function assertRequiredEnv(): void {
 }
 
 function validateProductAvailability(product: string): void {
-  const p = product.toUpperCase().trim();
-  const cadences = ["1M", "3M", "6M", "12M"];
-  const exists = cadences.some(c => process.env[`SQUARE_SUB_PLAN_${p}_${c}`]);
-
-  if (!exists) {
+  if (!product || !product.trim()) {
     throw new Error("The Selected course or package does not exist.");
   }
 }

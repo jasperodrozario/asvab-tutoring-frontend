@@ -1,24 +1,33 @@
-// next.config.js
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+// next.config.ts
+import type { NextConfig } from 'next';
+
+const phpApiUrl = process.env.PHP_API_URL || process.env.NEXT_PUBLIC_PHP_API_URL;
+
+let apiHostname = '';
+
+if (phpApiUrl) {
+  try {
+    apiHostname = new URL(phpApiUrl).hostname;
+  } catch (error) {
+    console.error('Invalid PHP API URL in env:', phpApiUrl);
+  }
+}
+
+const nextConfig: NextConfig = {
   output: 'standalone',
   images: {
     unoptimized: true,
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'test-prep.asvab-tutoring.com',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'staging-test-prep.asvab-tutoring.com',
-        port: '',
-        pathname: '/**',
-      },
-    ],
+    remotePatterns: apiHostname
+      ? [
+          {
+            protocol: 'https',
+            hostname: apiHostname,
+            port: '',
+            pathname: '/**',
+          },
+        ]
+      : [],
   },
 };
 
-module.exports = nextConfig;
+export default nextConfig;
