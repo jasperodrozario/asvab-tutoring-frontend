@@ -115,15 +115,16 @@ const getPlainTextPreview = (htmlString: string, maxLength = 100): string => {
 /** Build a safe image URL — trims and encodes as needed */
 const resolveImageUrl = (path?: string): string => {
   if (!path) return "/images/asvab-courses-d.jpg";
+
   const cleaned = path.trim();
 
-  // If it already looks like an absolute URL, just return (trimmed)
+  // If already absolute URL → return as is
   if (/^https?:\/\//i.test(cleaned)) {
     return cleaned;
   }
 
-  // Otherwise prefix your site and encode
-  return `https://staging-test-prep.asvab-tutoring.com/${encodeURI(cleaned)}`;
+  // Use env-based base URL
+  return `${process.env.NEXT_PUBLIC_RESOURCES_URL}/${encodeURI(cleaned)}`;
 };
 
 export default function TopCourses() {

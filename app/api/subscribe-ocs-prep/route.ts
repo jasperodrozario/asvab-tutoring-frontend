@@ -79,6 +79,14 @@ async function saveSubscriptionToPhp(args: any) {
   form.append("amount", String(args.amountInCents));
   form.append("currency", "USD");
 
+  // ✅ DEBUG LOGS (IMPORTANT)
+  console.log("===== SENDING DATA TO PHP =====");
+  console.log("ARGS:", args);
+  console.log("course_id:", args.course_id);
+  console.log("session_id:", args.session_id);
+  console.log("package_id:", args.package_id);
+  console.log("FORM BODY:", form.toString());
+  console.log("================================");
 
   const res = await fetch(phpUrl, {
     method: "POST",
@@ -91,6 +99,10 @@ async function saveSubscriptionToPhp(args: any) {
 
   const raw = await res.text();
 
+  // ✅ DEBUG RESPONSE FROM PHP
+  console.log("===== PHP RESPONSE =====");
+  console.log(raw);
+  console.log("========================");
 
   try {
     const parsed = JSON.parse(raw);
@@ -111,10 +123,13 @@ export async function POST(req: NextRequest) {
     assertRequiredEnv();
 
     const rawText = await req.clone().text();
-
+    console.log("RAW BODY:", rawText);
+    console.log("HEADERS:", Object.fromEntries(req.headers.entries()));
 
     const body: Payload = await req.json();
 
+    console.log("PARSED BODY:", body);
+    console.log("BODY.course_id:", body.course_id);
 
     validateProductAvailability(body.product);
     

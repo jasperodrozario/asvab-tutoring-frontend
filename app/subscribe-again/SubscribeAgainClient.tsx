@@ -75,7 +75,7 @@ export default function SubscribeAgainClient() {
     return (
       ctx?.return_url ||
       return_url ||
-      "https://staging-test-prep.asvab-tutoring.com/subscription-profile"
+      `${process.env.NEXT_PUBLIC_RESOURCES_URL}/subscription-profile`
     );
   }, [ctx?.return_url, return_url]);
 
