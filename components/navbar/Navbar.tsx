@@ -108,6 +108,8 @@ export default function Navbar() {
     setIsServicesOpen(false);
   };
 
+  console.log(courses);
+
   return (
     <>
       {/* 🔹 Top Contact Bar */}

@@ -107,7 +107,7 @@ export default function Teachers() {
 
         <div className="text-center mt-4">
           <Link
-            href="/tutor-list"
+            href="/our-tutors"
             className="btn btn-primary-custom text-white fw-semibold px-4 py-2"
           >
             See All Tutors
