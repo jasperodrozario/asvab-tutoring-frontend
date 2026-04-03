@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
+import Link from "next/link";
 import Image from "next/image";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 export default function Footer() {
   // Add client-side only state to handle rendering
@@ -16,14 +16,19 @@ export default function Footer() {
 
   // Create a simple placeholder with similar structure for SSR
   if (!isMounted) {
-    return <footer className="text-white py-5"><div className="container"></div></footer>;
+    return (
+      <footer className="text-white py-5">
+        <div className="container"></div>
+      </footer>
+    );
   }
 
   return (
     <footer
       className="text-white py-5"
       style={{
-        background: "url('/images/footer_bg.jpg') center center/cover no-repeat",
+        background:
+          "url('/images/footer_bg.jpg') center center/cover no-repeat",
       }}
     >
       <div className="container-xxl">
@@ -32,9 +37,14 @@ export default function Footer() {
           <div className="col-12 col-md-6 col-lg-3">
             <h5 className="fw-semibold mb-3">ABOUT US</h5>
             <p className="small">
-              At ASVAB Tutoring, we’re dedicated to helping future service members achieve their dreams of joining the United States Armed Forces.
+              At ASVAB Tutoring, we’re dedicated to helping future service
+              members achieve their dreams of joining the United States Armed
+              Forces.
             </p>
-            <Link href="/about-us" className="read-more-link mt-4 d-inline-block">
+            <Link
+              href="/about-us"
+              className="read-more-link mt-4 d-inline-block"
+            >
               READ MORE &gt;&gt;
             </Link>
           </div>
@@ -66,7 +76,6 @@ export default function Footer() {
                 </li>
               </ul>
               <ul className="list-unstyled col-6">
-
                 <li className="mb-3">
                   <Link href="/faq" className="footer-link">
                     <span>&gt;&gt;</span> FAQs
@@ -80,7 +89,6 @@ export default function Footer() {
               </ul>
             </div>
           </div>
-
 
           {/* Keep in Touch */}
           <div className="col-12 col-md-6 col-lg-3">
@@ -125,7 +133,7 @@ export default function Footer() {
             {/* App Store Badges */}
             <div className="d-flex flex-xxl-row flex-column gap-2 mt-2">
               <a
-                href="/mobile-app-list"
+                href="/our-mobile-apps"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -138,7 +146,7 @@ export default function Footer() {
               </a>
 
               <a
-                href="/mobile-app-list"
+                href="/our-mobile-apps"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -151,8 +159,6 @@ export default function Footer() {
               </a>
             </div>
           </div>
-
-
 
           {/* Contact */}
           <div className="col-12 col-md-6 col-lg-3">
@@ -188,18 +194,23 @@ export default function Footer() {
                 (718)-200-6396
               </a>
             </p>
-
           </div>
         </div>
 
         {/* Copyright */}
         <div className="text-center small pt-4 mt-4 border-top border-light">
           <p className="mb-1">© 2026 ASVAB TUTORING LLC All Rights Reserved</p>
-          <Link href="/privacy-policy" className="text-warning text-decoration-none">
+          <Link
+            href="/privacy-policy"
+            className="text-warning text-decoration-none"
+          >
             Privacy Policy
-          </Link>{' '}
-          |{' '}
-          <Link href="/terms-of-service" className="text-warning text-decoration-none">
+          </Link>{" "}
+          |{" "}
+          <Link
+            href="/terms-of-service"
+            className="text-warning text-decoration-none"
+          >
             Terms of Service
           </Link>
         </div>

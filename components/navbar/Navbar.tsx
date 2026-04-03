@@ -149,7 +149,7 @@ export default function Navbar() {
           <div className="d-flex align-items-center gap-2">
             <FaApple />
             <Link
-              href="/mobile-app-list"
+              href="/our-mobile-apps"
               className="primary-color-custom text-decoration-none"
             >
               Our Mobile Apps

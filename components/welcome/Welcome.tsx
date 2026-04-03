@@ -307,7 +307,7 @@ export default function Welcome() {
                 </form>
 
                 <div className="d-flex justify-content-center gap-2 mt-4">
-                  <Link href="/mobile-app-list" className="app-link-btn">
+                  <Link href="/our-mobile-apps" className="app-link-btn">
                     <Image
                       src="/images/download-on-the-app-store.svg"
                       alt="App Store"
@@ -317,7 +317,7 @@ export default function Welcome() {
                       style={{ width: "auto", height: "40px" }}
                     />
                   </Link>
-                  <Link href="/mobile-app-list" className="app-link-btn">
+                  <Link href="/our-mobile-apps" className="app-link-btn">
                     <Image
                       src="/images/Google_Play_Store_badge_EN.svg"
                       alt="Google Play"
