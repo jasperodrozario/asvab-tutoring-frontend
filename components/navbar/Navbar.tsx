@@ -14,13 +14,13 @@ import {
 import { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-type Courses = {
+type Course = {
   course_id: string;
   course_code: string;
   name: string;
 };
 
-type ServiceCourse = {
+type Service = {
   service_id: string;
   course_name: string;
 };
@@ -28,12 +28,25 @@ type ServiceCourse = {
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const [courses, setCourses] = useState<Courses[]>([]);
-  const [services, setServices] = useState<ServiceCourse[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
 
   const [isCoursesOpen, setIsCoursesOpen] = useState(false);
   const [isServicesOpen, setIsServicesOpen] = useState(false);
   const [isPricingOpen, setIsPricingOpen] = useState(false);
+
+  const getServiceSlug = (serviceId: string) => {
+    switch (serviceId) {
+      case "2":
+        return "1-on-1-tutoring";
+      case "3":
+        return "group-tutoring";
+      case "4":
+        return "self-study";
+      default:
+        return "unknown";
+    }
+  };
 
   useEffect(() => {
     async function fetchCourses() {
@@ -108,8 +121,6 @@ export default function Navbar() {
     setIsCoursesOpen(false);
     setIsServicesOpen(false);
   };
-
-  console.log(courses);
 
   return (
     <>
@@ -275,7 +286,7 @@ export default function Navbar() {
                     <li key={service.service_id}>
                       <Link
                         className="dropdown-item"
-                        href={`/service-detail/${service.service_id}`}
+                        href={`/service-detail/${getServiceSlug(service.service_id)}`}
                       >
                         {service.course_name}
                       </Link>
@@ -436,7 +447,7 @@ export default function Navbar() {
                       {services.map((service) => (
                         <li key={service.service_id} className="nav-item">
                           <Link
-                            href={`/service-detail/${service.service_id}`}
+                            href={`/service-detail/${getServiceSlug(service.service_id)}`}
                             className="nav-link text-white"
                             onClick={handleLinkClick}
                           >
