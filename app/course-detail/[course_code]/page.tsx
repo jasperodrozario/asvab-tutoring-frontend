@@ -134,7 +134,7 @@ const CourseDetailPage: React.FC = () => {
   const [mounted, setMounted] = useState<boolean>(false);
 
   const courseCode =
-    typeof params?.courseCode === "string" ? params.courseCode : "asvab";
+    typeof params?.course_code === "string" ? params.course_code : "asvab";
   const location = searchParams?.get("location") || "";
 
   useEffect(() => setMounted(true), []);
