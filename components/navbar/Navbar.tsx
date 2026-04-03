@@ -309,30 +309,16 @@ export default function Navbar() {
                 <ul
                   className={`dropdown-menu mt-0 ${isPricingOpen ? "show" : ""}`}
                 >
-                  <li>
-                    <Link
-                      href="/pricing-page?submenu=one"
-                      className="dropdown-item"
-                    >
-                      1-on-1 Tutoring
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="/pricing-page?submenu=group"
-                      className="dropdown-item"
-                    >
-                      Group Tutoring
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="/pricing-page?submenu=subscribe"
-                      className="dropdown-item"
-                    >
-                      Self Study
-                    </Link>
-                  </li>
+                  {services.map((service) => (
+                    <li key={service.service_id}>
+                      <Link
+                        className="dropdown-item"
+                        href={`/pricing/${getServiceSlug(service.service_id)}`}
+                      >
+                        {service.course_name}
+                      </Link>
+                    </li>
+                  ))}
                 </ul>
               </li>
 
@@ -471,33 +457,16 @@ export default function Navbar() {
 
                   {isPricingOpen && (
                     <ul className="navbar-nav ps-3">
-                      <li>
-                        <Link
-                          href="/pricing-page?submenu=one"
-                          className="nav-link text-white"
-                          onClick={handleLinkClick}
-                        >
-                          1-on-1 Tutoring
-                        </Link>
-                      </li>
-                      <li>
-                        <Link
-                          href="/pricing-page?submenu=group"
-                          className="nav-link text-white"
-                          onClick={handleLinkClick}
-                        >
-                          Group Tutoring
-                        </Link>
-                      </li>
-                      <li>
-                        <Link
-                          href="/pricing-page?submenu=subscribe"
-                          className="nav-link text-white"
-                          onClick={handleLinkClick}
-                        >
-                          Self Study
-                        </Link>
-                      </li>
+                      {services.map((service) => (
+                        <li key={service.service_id}>
+                          <Link
+                            className="dropdown-item"
+                            href={`/pricing/${getServiceSlug(service.service_id)}`}
+                          >
+                            {service.course_name}
+                          </Link>
+                        </li>
+                      ))}
                     </ul>
                   )}
                 </li>
