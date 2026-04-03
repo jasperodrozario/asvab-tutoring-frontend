@@ -14,8 +14,9 @@ import {
 import { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-type Course = {
+type Courses = {
   course_id: string;
+  course_code: string;
   name: string;
 };
 
@@ -27,7 +28,7 @@ type ServiceCourse = {
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [courses, setCourses] = useState<Courses[]>([]);
   const [services, setServices] = useState<ServiceCourse[]>([]);
 
   const [isCoursesOpen, setIsCoursesOpen] = useState(false);
@@ -205,10 +206,10 @@ export default function Navbar() {
                   className={`dropdown-menu mt-0 ${isCoursesOpen ? "show" : ""}`}
                 >
                   {courses.map((course) => (
-                    <li key={course.course_id}>
+                    <li key={course.course_code}>
                       <Link
                         className="dropdown-item"
-                        href={`/course-detail/${course.course_id}`}
+                        href={`/course-detail/${course.course_code}`}
                       >
                         {course.name}
                       </Link>
@@ -408,7 +409,7 @@ export default function Navbar() {
                       {courses.map((course) => (
                         <li key={course.course_id} className="nav-item">
                           <Link
-                            href={`/course-detail/${course.course_id}`}
+                            href={`/course-detail/${course.course_code}`}
                             className="nav-link text-white"
                             onClick={handleLinkClick}
                           >

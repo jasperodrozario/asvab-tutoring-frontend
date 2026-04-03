@@ -134,7 +134,7 @@ const CourseDetailPage: React.FC = () => {
   const [mounted, setMounted] = useState<boolean>(false);
 
   const courseCode =
-    typeof params?.courseCode === "string" ? params.courseCode : "8";
+    typeof params?.courseCode === "string" ? params.courseCode : "asvab";
   const location = searchParams?.get("location") || "";
 
   useEffect(() => setMounted(true), []);
@@ -143,7 +143,7 @@ const CourseDetailPage: React.FC = () => {
   const fetchCourseData = async (): Promise<void> => {
     try {
       const formData = new FormData();
-      formData.append("action", "get-course-details");
+      formData.append("action", "get-course-details-by-code");
       formData.append("course_code", courseCode);
 
       const response = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
@@ -171,8 +171,6 @@ const CourseDetailPage: React.FC = () => {
   useEffect(() => {
     fetchCourseData();
   }, [courseCode]);
-
-  console.log(courseData);
 
   const hasVideo = (() => {
     if (!courseData) return false;
