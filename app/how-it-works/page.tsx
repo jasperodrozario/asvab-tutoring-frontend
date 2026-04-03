@@ -85,8 +85,7 @@ export default function HowItWorkPage() {
               />
               <div className={"text-center"}>
                 <Button
-                  pathname={"/pricing-page"}
-                  queryObj={{ submenu: "one" }}
+                  pathname={"/pricing/1-on-1-tutoring"}
                   className="btn-primary-custom2"
                 >
                   Enroll Now

@@ -809,7 +809,7 @@ const CourseDetailPage: React.FC = () => {
           </div>
           <div className={"text-center"}>
             <Button
-              pathname={`/SpecificPackageDetailsPage/one/${encodeURIComponent(courseCode)}`}
+              pathname={`/package-details/1-on-1-tutoring/${encodeURIComponent(courseCode)}`}
               className="btn-primary-custom2"
             >
               Enroll Now

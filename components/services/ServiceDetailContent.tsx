@@ -29,8 +29,10 @@ function decodeHtml(html: string): string {
 
 export default function ServiceDetailContent({
   serviceId,
+  serviceType,
 }: {
   serviceId: string;
+  serviceType: string;
 }) {
   const [data, setData] = useState<ServiceDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -85,22 +87,6 @@ export default function ServiceDetailContent({
 
   const pageTitle = data.title || "Service Detail";
 
-  let serviceType;
-  switch (serviceId) {
-    case "2":
-      serviceType = "one";
-      break;
-    case "3":
-      serviceType = "group";
-      break;
-    case "4":
-      serviceType = "subscribe";
-      break;
-    default:
-      serviceType = "unknown";
-      break;
-  }
-
   return (
     <>
       {/* Banner */}
@@ -128,11 +114,10 @@ export default function ServiceDetailContent({
         />
         <div className="text-center my-4">
           <Button
-            pathname="/pricing-page"
-            queryObj={{ submenu: serviceType }}
+            pathname={`/pricing/${serviceType}`}
             className="btn-primary-custom2"
           >
-            {serviceType === "subscribe" ? "Subscribe Now" : "Enroll Now"}
+            {data.service_type === "subscribe" ? "Subscribe Now" : "Enroll Now"}
           </Button>
         </div>
       </div>

@@ -286,7 +286,7 @@ export default function Navbar() {
                     <li key={service.service_id}>
                       <Link
                         className="dropdown-item"
-                        href={`/service-detail/${getServiceSlug(service.service_id)}`}
+                        href={`/services/${getServiceSlug(service.service_id)}`}
                       >
                         {service.course_name}
                       </Link>
@@ -433,7 +433,7 @@ export default function Navbar() {
                       {services.map((service) => (
                         <li key={service.service_id} className="nav-item">
                           <Link
-                            href={`/service-detail/${getServiceSlug(service.service_id)}`}
+                            href={`/services/${getServiceSlug(service.service_id)}`}
                             className="nav-link text-white"
                             onClick={handleLinkClick}
                           >
