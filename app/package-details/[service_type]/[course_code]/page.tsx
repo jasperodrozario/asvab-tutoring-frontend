@@ -63,12 +63,35 @@ function isSubscriptionSession(session: any): boolean {
   return String(session?.mode ?? "").toLowerCase() === "subscription";
 }
 
-export default function SpecificPackageDetailsPage({
+const serviceTypeToSubmenuMap: Record<string, string> = {
+  "one-on-1-tutoring": "one",
+  "one-on-one-tutoring": "one",
+  "group-tutoring": "group",
+  "self-study": "subscribe",
+};
+
+const courseCodeToIdMap: Record<string, string> = {
+  asvab: "40",
+  afoqt: "49",
+  sift: "50",
+  astb: "51",
+  oar: "52",
+};
+
+function convertServiceTypeToSubmenu(serviceType: string): string {
+  return serviceTypeToSubmenuMap[serviceType] ?? serviceType;
+}
+
+function convertCourseCodeToId(courseCode: string): string {
+  return courseCodeToIdMap[courseCode] ?? courseCode;
+}
+
+export default function PricingPackages({
   params,
 }: {
-  params: Promise<{ submenu: string; course_id: string }>;
+  params: Promise<{ service_type: string; course_code: string }>;
 }) {
-  const { submenu, course_id } = use(params);
+  const { service_type, course_code } = use(params);
   const router = useRouter();
   const pathname = usePathname(); // ✅ added
   const isSubscribePage = pathname?.includes("subscribe"); // ✅ added
@@ -78,13 +101,16 @@ export default function SpecificPackageDetailsPage({
   useEffect(() => {
     async function fetchCourseData() {
       try {
+        const apiSubmenu = convertServiceTypeToSubmenu(service_type);
+        const apiCourseId = convertCourseCodeToId(course_code);
+
         const res = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: new URLSearchParams({
             action: "specific-tutoring-package-details-page",
-            course_id: String(course_id),
-            submenu: String(submenu),
+            course_id: apiCourseId,
+            submenu: apiSubmenu,
           }),
         });
 
@@ -96,7 +122,7 @@ export default function SpecificPackageDetailsPage({
     }
 
     fetchCourseData();
-  }, [submenu, course_id]);
+  }, [service_type, course_code]);
 
   // ✅ safe boolean compute (works even when courseData is null)
   const showPaymentImage = (() => {
@@ -184,7 +210,7 @@ export default function SpecificPackageDetailsPage({
                 const isSub = isSubscriptionSession(session);
                 const buttonLabel = isSub ? "Subscribe" : "Enroll Now";
                 const query = {
-                  course_id: String(course_id),
+                  course_id: convertCourseCodeToId(course_code),
                   package_id: String(pkg.package_id),
                   session_id: String(session.session_id),
                   amount: String(Math.round(Number(session.price) * 100)),
@@ -300,7 +326,7 @@ export default function SpecificPackageDetailsPage({
                     style={{ borderRadius: "10px" }}
                     onClick={() =>
                       router.push(
-                        `/SpecificPackageDetailsPage/${submenu}/${rel.course_id}`,
+                        `/package-details/${service_type}/${rel.course_code}`,
                       )
                     }
                   >

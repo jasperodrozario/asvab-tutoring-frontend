@@ -1,13 +1,12 @@
 // app/pricing-page/page.tsx
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
-import PricingPackages from "@/components/specific-packages/specificPackages";
+import PricingPackages from "@/components/pricing-packages/PricingPackages";
 import PricingContent from "@/components/pricing-content/PricingContent";
+import { ServiceType } from "@/types/Services";
 
-type ServiceType = "1-on-1-tutoring" | "group-tutoring" | "self-study";
 type Submenu = "one" | "group" | "subscribe";
 
 // export const dynamic = "force-dynamic";
-
 export default async function PricingPage({
   params,
 }: {

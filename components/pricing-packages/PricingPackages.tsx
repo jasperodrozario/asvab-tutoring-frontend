@@ -4,6 +4,7 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { ServiceType } from "@/types/Services";
 
 type Submenu = "one" | "group" | "subscribe";
 
@@ -36,6 +37,14 @@ const PricingPackages: React.FC<Props> = ({
   const [loading, setLoading] = useState(true);
 
   const activeSubmenu: Submenu = submenu ?? fixedSubmenu;
+
+  const serviceTypeMap: Record<Submenu, ServiceType> = {
+    one: "1-on-1-tutoring",
+    group: "group-tutoring",
+    subscribe: "self-study",
+  };
+
+  const serviceType = serviceTypeMap[activeSubmenu] ?? null;
 
   useEffect(() => {
     setLoading(true);
@@ -138,7 +147,7 @@ const PricingPackages: React.FC<Props> = ({
             packages.map((pkg) => (
               <div key={pkg.course_id} className="col-sm-6 col-lg-3 hover-lift">
                 <Link
-                  href={`/SpecificPackageDetailsPage/${activeSubmenu}/${pkg.course_id}`}
+                  href={`/package-details/${serviceType}/${pkg.course_code}`}
                 >
                   <div className="card h-100 shadow-sm border-0">
                     <Image

@@ -4,7 +4,7 @@ import Teachers from "@/components/teachers/Teachers";
 import Faq from "@/components/faq/Faq";
 import Review from "@/components/review/Review";
 import Packages from "@/components/packages/Packages";
-import PricingPackages from "@/components/specific-packages/specificPackages";
+import PricingPackages from "@/components/pricing-packages/PricingPackages";
 
 export default function Home() {
   return (
