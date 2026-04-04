@@ -52,7 +52,7 @@ export default function SitemapPage() {
         {items.map((item, index) => (
           <div key={index} className="col-12 col-md-6 col-lg-4">
             <Link
-              href={`/course-detail/${item.course_id}`}
+              href={`/courses/${item.course_id}`}
               className="d-block text-decoration-none p-3 h-100 shadow-sm rounded bg-light text-dark hover-link"
             >
               {item.name}

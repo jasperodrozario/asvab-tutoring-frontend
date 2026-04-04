@@ -297,7 +297,7 @@ const CourseDetailPage: React.FC = () => {
             )}
           </h4>
           <Breadcrumb
-            segments={["course-detail", courseCode]} // path segments
+            segments={["courses", courseCode]} // path segments
             dynamicTitle={courseData?.course_name} // pass course_name here
           />
         </div>
@@ -764,7 +764,7 @@ const CourseDetailPage: React.FC = () => {
                     {courseData.related_courses.map((course, i) => (
                       <div key={i} className="card mb-3 related-course-card">
                         <Link
-                          href={`/course-detail/${encodeURIComponent(course.course_code)}`}
+                          href={`/courses/${encodeURIComponent(course.course_code)}`}
                         >
                           <img
                             src={course.image || "/img/default-course.jpg"}
@@ -775,7 +775,7 @@ const CourseDetailPage: React.FC = () => {
                         </Link>
                         <div className="card-body">
                           <Link
-                            href={`/course-detail/${encodeURIComponent(course.course_code)}`}
+                            href={`/courses/${encodeURIComponent(course.course_code)}`}
                             className="text-decoration-none"
                           >
                             <h6

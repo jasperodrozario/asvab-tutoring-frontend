@@ -216,7 +216,7 @@ export default function TopCourses() {
             courses.map((course) => (
               <div className="col-sm-6 col-lg-4" key={course.course_id}>
                 <Link
-                  href={`/course-detail/${encodeURIComponent(course.course_code)}`}
+                  href={`/courses/${encodeURIComponent(course.course_code)}`}
                 >
                   <div className="card h-100 shadow-sm hover-lift">
                     <img

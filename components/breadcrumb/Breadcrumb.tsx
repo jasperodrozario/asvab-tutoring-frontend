@@ -11,7 +11,7 @@ export default function Breadcrumb({ segments, dynamicTitle, className }: Breadc
   const lastIndex = segments.length - 1;
 
   // Add any segment names here that should NOT be clickable
-  const nonClickableSegments = ["course-detail", "pricing", "services"];
+  const nonClickableSegments = ["courses", "pricing", "services"];
 
   return (
     <nav className={`flex justify-center items-center gap-2 flex-wrap ${className || ""}`}>

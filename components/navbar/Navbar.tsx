@@ -220,7 +220,7 @@ export default function Navbar() {
                     <li key={course.course_code}>
                       <Link
                         className="dropdown-item"
-                        href={`/course-detail/${course.course_code}`}
+                        href={`/courses/${course.course_code}`}
                       >
                         {course.name}
                       </Link>
@@ -406,7 +406,7 @@ export default function Navbar() {
                       {courses.map((course) => (
                         <li key={course.course_id} className="nav-item">
                           <Link
-                            href={`/course-detail/${course.course_code}`}
+                            href={`/courses/${course.course_code}`}
                             className="nav-link text-white"
                             onClick={handleLinkClick}
                           >
