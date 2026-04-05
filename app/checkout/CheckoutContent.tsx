@@ -323,7 +323,7 @@ export default function CheckoutContent() {
     try {
       await navigator.clipboard.writeText("somdtutoring@gmail.com");
       setEmailCopied(true);
-      setTimeout(() => setEmailCopied(false), 2000);
+      setTimeout(() => setEmailCopied(false), 1400);
     } catch (err) {
       console.error("Failed to copy email:", err);
     }
@@ -770,8 +770,54 @@ export default function CheckoutContent() {
                                   lineHeight: "1.6",
                                 }}
                               >
-                                Download the Microsoft Teams app from App Store
-                                or Google Play
+                                Download the Microsoft Teams app from{" "}
+                                <a
+                                  href="https://apps.apple.com/us/app/microsoft-teams/id1113153706"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{
+                                    color: "#f2a155",
+                                    fontWeight: "600",
+                                    textDecoration: "none",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: "4px",
+                                  }}
+                                  className="text-decoration-underline"
+                                >
+                                  App Store{" "}
+                                  <i
+                                    className="bi bi-box-arrow-up-right"
+                                    style={{
+                                      fontSize: "12px",
+                                      marginLeft: "2px",
+                                    }}
+                                  />
+                                </a>{" "}
+                                or{" "}
+                                <a
+                                  href="https://play.google.com/store/apps/details?id=com.microsoft.teams"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{
+                                    color: "#f2a155",
+                                    fontWeight: "600",
+                                    textDecoration: "none",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: "4px",
+                                  }}
+                                  className="text-decoration-underline"
+                                >
+                                  Google Play{" "}
+                                  <i
+                                    className="bi bi-box-arrow-up-right"
+                                    style={{
+                                      fontSize: "12px",
+                                      marginLeft: "2px",
+                                    }}
+                                  />{" "}
+                                </a>
                               </li>
                               <li
                                 className="mb-2"
@@ -803,7 +849,7 @@ export default function CheckoutContent() {
                                     style={{
                                       display: "flex",
                                       alignItems: "center",
-                                      gap: 2,
+                                      gap: 1,
                                       color: "#f2a155",
                                       fontWeight: "600",
                                       textDecoration: "none",
@@ -839,7 +885,7 @@ export default function CheckoutContent() {
                                       <i
                                         className={`bi ${emailCopied ? "bi-check-lg" : "bi-copy"}`}
                                         style={{
-                                          fontSize: "16px",
+                                          fontSize: "14px",
                                           color: "#f2a155",
                                           transition:
                                             "transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease",
