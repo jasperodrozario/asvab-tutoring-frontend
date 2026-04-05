@@ -123,6 +123,7 @@ export default function CheckoutContent() {
   const [emailTouched, setEmailTouched] = useState(false);
   const [lastCheckedEmail, setLastCheckedEmail] = useState<string>("");
   const emailCheckNonceRef = useRef<number>(0);
+  const [emailCopied, setEmailCopied] = useState(false);
 
   const normalizeEmail = (email: string) => email.trim().toLowerCase();
 
@@ -308,6 +309,16 @@ export default function CheckoutContent() {
   const handleMobilePayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setMobilePay((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleCopyEmail = async () => {
+    try {
+      await navigator.clipboard.writeText("somdtutoring@gmail.com");
+      setEmailCopied(true);
+      setTimeout(() => setEmailCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy email:", err);
+    }
   };
 
   const [agreeTerms, setAgreeTerms] = useState(false);
@@ -704,6 +715,7 @@ export default function CheckoutContent() {
                         style={{
                           backgroundColor: "#fff9e7",
                           borderLeft: "4px solid #f2a155",
+                          minWidth: "500px",
                         }}
                       >
                         <div>
@@ -712,6 +724,7 @@ export default function CheckoutContent() {
                               display: "flex",
                               alignItems: "center",
                               gap: 8,
+                              marginBottom: "10px",
                             }}
                           >
                             <i
@@ -729,11 +742,111 @@ export default function CheckoutContent() {
                               Next Step
                             </h5>
                           </div>
-                          <div>
-                            <p className="mb-0 text-muted">
-                              Please let us know once you have made the payment,
-                              and we will activate your account.
+                          <div className="text-muted">
+                            <p
+                              className="fw-semibold mb-3"
+                              style={{
+                                color: "#333333d7",
+                                fontSize: "15px",
+                                lineHeight: "1.5",
+                              }}
+                            >
+                              Follow the steps to start 1-on-1 tutoring:
                             </p>
+                            <ol style={{ paddingLeft: "20px", margin: 0 }}>
+                              <li
+                                className="mb-2"
+                                style={{
+                                  color: "#555",
+                                  fontSize: "14px",
+                                  lineHeight: "1.6",
+                                }}
+                              >
+                                Download the Microsoft Teams app from App Store
+                                or Google Play
+                              </li>
+                              <li
+                                className="mb-2"
+                                style={{
+                                  color: "#555",
+                                  fontSize: "14px",
+                                  lineHeight: "1.6",
+                                }}
+                              >
+                                Create a Teams account
+                              </li>
+                              <li
+                                style={{
+                                  color: "#555",
+                                  fontSize: "14px",
+                                  lineHeight: "1.6",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 5,
+                                  }}
+                                >
+                                  <span>Send a text message on teams to:</span>
+
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: 2,
+                                      color: "#f2a155",
+                                      fontWeight: "600",
+                                      textDecoration: "none",
+                                    }}
+                                  >
+                                    <span>somdtutoring@gmail.com</span>
+
+                                    <button
+                                      type="button"
+                                      onClick={handleCopyEmail}
+                                      style={{
+                                        background: "none",
+                                        border: "none",
+                                        padding: "2px 6px",
+                                        cursor: "pointer",
+                                        display: "inline-flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        borderRadius: "4px",
+                                        transition:
+                                          "background-color 0.2s ease",
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        e.currentTarget.style.backgroundColor =
+                                          "#ffe7c1";
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        e.currentTarget.style.backgroundColor =
+                                          "transparent";
+                                      }}
+                                      title="Copy email address"
+                                    >
+                                      <i
+                                        className={`bi ${emailCopied ? "bi-check-lg" : "bi-copy"}`}
+                                        style={{
+                                          fontSize: "16px",
+                                          color: "#f2a155",
+                                          transition:
+                                            "transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease",
+                                          display: "inline-block",
+                                          transform: emailCopied
+                                            ? "scale(1.2)"
+                                            : "scale(1)",
+                                          opacity: 1,
+                                        }}
+                                      />
+                                    </button>
+                                  </div>
+                                </div>
+                              </li>
+                            </ol>
                           </div>
                         </div>
                       </div>

@@ -216,8 +216,8 @@ export default function Navbar() {
                 <ul
                   className={`dropdown-menu mt-0 ${isCoursesOpen ? "show" : ""}`}
                 >
-                  {courses.map((course) => (
-                    <li key={course.course_code}>
+                  {courses.map((course, index) => (
+                    <li key={index}>
                       <Link
                         className="dropdown-item"
                         href={`/courses/${course.course_code}`}
