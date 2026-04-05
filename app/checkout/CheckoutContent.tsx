@@ -125,6 +125,14 @@ export default function CheckoutContent() {
   const emailCheckNonceRef = useRef<number>(0);
   const [emailCopied, setEmailCopied] = useState(false);
 
+  const oneOnOneArray: string[] = ["12", "14", "16", "18", "23", "28", "30"];
+  const groupArray: string[] = ["15", "19", "29", "31"];
+  const service = oneOnOneArray.includes(package_id)
+    ? "1-on-1 Tutoring"
+    : groupArray.includes(package_id)
+      ? "Group Tutoring"
+      : "";
+
   const normalizeEmail = (email: string) => email.trim().toLowerCase();
 
   const looksLikeEmail = (email: string) => {
@@ -751,7 +759,7 @@ export default function CheckoutContent() {
                                 lineHeight: "1.5",
                               }}
                             >
-                              Follow the steps to start 1-on-1 tutoring:
+                              Follow the steps to start {service}:
                             </p>
                             <ol style={{ paddingLeft: "20px", margin: 0 }}>
                               <li
