@@ -94,7 +94,7 @@ export default function PricingPackages({
   const { service_type, course_code } = use(params);
   const router = useRouter();
   const pathname = usePathname(); // ✅ added
-  const isSubscribePage = pathname?.includes("subscribe"); // ✅ added
+  const isSubscribePage = pathname?.includes("self-study"); // ✅ added
 
   const [courseData, setCourseData] = useState<any>(null);
 
@@ -278,8 +278,11 @@ export default function PricingPackages({
             className="fs-6 text-start mx-auto mb-5"
             style={{ maxWidth: "960px" }}
           >
-            <span className="fw-semibold text-danger">NOTE:</span> Each
-            subscription is auto-renewable until you cancel it.
+            <span className="fw-semibold text-danger">NOTE:</span> Your
+            subscription will automatically renew at the end of each billing
+            cycle (as disclosed at the time of purchase). You may cancel your
+            subscription at any time. Upon cancellation, you will retain access
+            to the service until the end of your current billing period.
           </p>
         ) : (
           <>
