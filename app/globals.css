@@ -273,7 +273,8 @@ a {
 
 .testimonial-text,
 .testimonial-author span {
-  color: #1f2937; /* text-gray-800 */
+  color: #1f2937;
+  /* text-gray-800 */
 }
 
 .carousel-indicators {
@@ -288,7 +289,8 @@ a {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background-color: #d1d5db; /* gray-300 */
+  background-color: #d1d5db;
+  /* gray-300 */
   border: 1px solid transparent;
   transition: background-color 0.3s ease-in-out;
 }
@@ -440,14 +442,14 @@ td {
   padding-left: 10px;
 }
 
-th {
-  padding-top: 5px;
-  padding-bottom: 5px;
-}
-
 .curriculum-table td {
   padding-top: 2px;
   padding-bottom: 2px;
+}
+
+.curriculum-table th {
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 
 /* Table Styling End */
@@ -490,7 +492,8 @@ th {
 }
 
 .ck-editor__editable {
-  min-height: 200px; /* adjust as needed */
+  min-height: 200px;
+  /* adjust as needed */
 }
 
 /* Start: Checkbox Styling */
@@ -532,7 +535,8 @@ input[type="radio"]::before {
   border-radius: 50%;
   transform: scale(0);
   transition: 120ms transform ease-in-out;
-  background-color: #f2a155; /* Color of the dot when checked */
+  background-color: #f2a155;
+  /* Color of the dot when checked */
 }
 
 input[type="radio"]:checked::before {
@@ -560,13 +564,15 @@ input[type="radio"]:checked::before {
   width: 100%;
   height: 100%;
   backdrop-filter: blur(2px);
-  background-color: rgba(0, 0, 0, 0.7); /* Dark overlay for text readability */
+  background-color: rgba(0, 0, 0, 0.7);
+  /* Dark overlay for text readability */
   z-index: 0;
 }
 
 .page-title-area .container {
   position: relative;
-  z-index: 1; /* Keep text above overlay */
+  z-index: 1;
+  /* Keep text above overlay */
 }
 
 .btn-primary-custom2 {
@@ -733,7 +739,8 @@ input[type="radio"]:checked::before {
 /* App Description */
 .app-description {
   font-size: 0.8rem;
-  color: #888; /* Muted gray */
+  color: #888;
+  /* Muted gray */
   font-weight: 400;
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -778,8 +785,10 @@ input[type="radio"]:checked::before {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
-    padding-left: 1rem; /* slight indent */
-    position: static !important; /* ensure it stays inline */
+    padding-left: 1rem;
+    /* slight indent */
+    position: static !important;
+    /* ensure it stays inline */
   }
 
   .nav-item.dropdown .dropdown-menu .dropdown-item {
@@ -794,7 +803,8 @@ input[type="radio"]:checked::before {
 }
 
 .breadcrumb-inline {
-  font-size: 2rem; /* same as h1 */
+  font-size: 2rem;
+  /* same as h1 */
   font-weight: 600;
   line-height: 1.2;
 }
@@ -873,8 +883,8 @@ table {
   }
 
   /* If your dropdown triggers are <span class="nav-link ..."> */
-  .navbar-nav .nav-item > .nav-link,
-  .navbar-nav .nav-item > span.nav-link {
+  .navbar-nav .nav-item>.nav-link,
+  .navbar-nav .nav-item>span.nav-link {
     white-space: nowrap !important;
   }
 }
@@ -916,14 +926,18 @@ table {
 /* Custom checkbox and radio button styling */
 .custom-checkbox-input {
   -webkit-appearance: none;
-  appearance: none; /* Removes default styling */
-  background-color: #eee; /* Sets unchecked background color */
+  appearance: none;
+  /* Removes default styling */
+  background-color: #eee;
+  /* Sets unchecked background color */
   width: 1.15em;
   height: 1.15em;
-  border: 0.15em solid #7f83a2; /* Sets unchecked border color */
+  border: 0.15em solid #7f83a2;
+  /* Sets unchecked border color */
   border-radius: 0.15em;
   display: grid;
-  place-content: center; /* Centers the checkmark */
+  place-content: center;
+  /* Centers the checkmark */
 }
 
 /* Checkmark style */
@@ -933,15 +947,15 @@ table {
   height: 0.65em;
   transform: scale(0);
   transition: transform 120ms ease-in-out;
-  box-shadow: inset 1em 1em #fff; /* Checkmark color */
-  clip-path: polygon(
-    14% 44%,
+  box-shadow: inset 1em 1em #fff;
+  /* Checkmark color */
+  clip-path: polygon(14% 44%,
       0 65%,
       50% 100%,
       100% 16%,
       80% 0%,
-    43% 62%
-  ); /* Checkmark shape */
+      43% 62%);
+  /* Checkmark shape */
 }
 
 /* Checked state style */
@@ -951,5 +965,6 @@ table {
 }
 
 .custom-checkbox-input:checked::before {
-  transform: scale(1); /* Shows checkmark */
+  transform: scale(1);
+  /* Shows checkmark */
 }
