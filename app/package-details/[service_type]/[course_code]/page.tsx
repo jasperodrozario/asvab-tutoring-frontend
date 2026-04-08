@@ -135,6 +135,8 @@ export default function PricingPackages({
     return <p className="text-center py-5">Loading...</p>;
   }
 
+  console.log(courseData);
+
   return (
     <main>
       {/* Top Section */}
@@ -221,11 +223,10 @@ export default function PricingPackages({
                 return (
                   <div
                     key={session.session_id}
-                    className={`${styles.pricingCard} ${
-                      session.is_most_popular === "1"
-                        ? styles.mostPopularWrap
-                        : ""
-                    }`}
+                    className={`${styles.pricingCard} ${session.is_most_popular === "1"
+                      ? styles.mostPopularWrap
+                      : ""
+                      }`}
                   >
                     {session.is_most_popular === "1" && (
                       <div className={styles.mostPopularBadge}>

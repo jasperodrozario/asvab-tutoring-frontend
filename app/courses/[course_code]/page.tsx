@@ -404,7 +404,9 @@ const CourseDetailPage: React.FC = () => {
                   )}
                 </ul>
 
+
                 {/* Tab Content */}
+
                 <div className="tab-content">
                   {/* Overview Tab */}
                   {activeTab === 0 && (
@@ -421,6 +423,7 @@ const CourseDetailPage: React.FC = () => {
                       />
                     </div>
                   )}
+                  {/* Curriculum Tab */}
                   {activeTab === 1 && (
                     <div
                       dangerouslySetInnerHTML={{
@@ -428,9 +431,9 @@ const CourseDetailPage: React.FC = () => {
                           courseData.curriculum || "No curriculum",
                         ),
                       }}
+                      className="curriculum-table"
                     />
                   )}
-
                   {/* Course Video Tab */}
                   {activeTab === 2 && (
                     <div className="instructor-content">
@@ -494,7 +497,7 @@ const CourseDetailPage: React.FC = () => {
                                     border: "1px solid #e0e0e0",
                                   }}
                                 >
-                                  <h2>{}</h2>
+                                  <h2>{ }</h2>
                                   <iframe
                                     width="100%"
                                     height={415}
@@ -557,9 +560,9 @@ const CourseDetailPage: React.FC = () => {
                         {/* Questions */}
                         {!testSubmitted ? (
                           courseData.ft_ques_list &&
-                          courseData.ft_ques_list[
+                            courseData.ft_ques_list[
                             courseData.ft_cat_list[activeCategory]
-                          ] ? (
+                            ] ? (
                             courseData.ft_ques_list[
                               courseData.ft_cat_list[activeCategory]
                             ].map((q, qIdx) => {
@@ -592,7 +595,7 @@ const CourseDetailPage: React.FC = () => {
                                           id={`q-${activeCategory}-${qIdx}-o-${oIdx}`}
                                           checked={
                                             userAnswers[
-                                              `${activeCategory}-${qIdx}`
+                                            `${activeCategory}-${qIdx}`
                                             ] === oIdx
                                           }
                                           onChange={() =>
@@ -696,7 +699,7 @@ const CourseDetailPage: React.FC = () => {
                         {/* Submit / Retake Button */}
                         {courseData.ft_ques_list &&
                           courseData.ft_ques_list[
-                            courseData.ft_cat_list[activeCategory]
+                          courseData.ft_cat_list[activeCategory]
                           ] &&
                           courseData.ft_ques_list[
                             courseData.ft_cat_list[activeCategory]

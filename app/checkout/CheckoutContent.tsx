@@ -3,8 +3,12 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import SquarePaymentForm from "@/components/square-payment-form/SquarePaymentForm";
+import SquarePaymentForm, {
+  SquarePaymentFormHandle,
+  CardState,
+} from "@/components/square-payment-form/SquarePaymentForm";
 import Image from "next/image";
+import NextStepCard from "@/components/next-step-card/NextStepCard";
 
 type PaymentMode = "one_time" | "subscription";
 type Product = "ASVAB" | "AFOQT" | "ASTB" | "SIFT" | "OAR";
@@ -123,7 +127,6 @@ export default function CheckoutContent() {
   const [emailTouched, setEmailTouched] = useState(false);
   const [lastCheckedEmail, setLastCheckedEmail] = useState<string>("");
   const emailCheckNonceRef = useRef<number>(0);
-  const [emailCopied, setEmailCopied] = useState(false);
 
   const oneOnOneArray: string[] = ["12", "14", "16", "18", "23", "28", "30"];
   const groupArray: string[] = ["15", "19", "29", "31"];
@@ -297,6 +300,20 @@ export default function CheckoutContent() {
     mode === "subscription" ? "card" : "mobile",
   );
 
+  const squareFormRef = useRef<SquarePaymentFormHandle>(null);
+  const [cardState, setCardState] = useState<CardState>({
+    initializing: true,
+    paying: false,
+    completed: false,
+    message: null,
+    paymentId: "",
+    isCardValid: false,
+  });
+
+  const handleCardStateChange = (state: CardState) => {
+    setCardState(state);
+  };
+
   useEffect(() => {
     if (mode === "subscription") {
       setPaymentMethod("card");
@@ -317,16 +334,6 @@ export default function CheckoutContent() {
   const handleMobilePayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setMobilePay((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleCopyEmail = async () => {
-    try {
-      await navigator.clipboard.writeText("somdtutoring@gmail.com");
-      setEmailCopied(true);
-      setTimeout(() => setEmailCopied(false), 1400);
-    } catch (err) {
-      console.error("Failed to copy email:", err);
-    }
   };
 
   const [agreeTerms, setAgreeTerms] = useState(false);
@@ -433,7 +440,10 @@ export default function CheckoutContent() {
           type: "success",
           text: data?.message || "Submitted successfully.",
         });
-        router.push("/thank-you?method=mobile");
+        const q = package_id
+          ? `?method=mobile&package_id=${package_id}`
+          : `?method=mobile`;
+        router.push(`/thank-you${q}`);
         return;
       }
 
@@ -520,114 +530,8 @@ export default function CheckoutContent() {
         </div>
       </div>
 
-      <div className="row g-4 align-items-stretch">
-        <div className="col-12 col-lg-6 d-flex">
-          <div className="card shadow-sm border-0 w-100">
-            <div className="card-body p-4 d-flex flex-column">
-              <h5 className="fw-bold mb-3">Your Registration Information</h5>
-
-              <input
-                className="form-control mb-2"
-                name="first_name"
-                placeholder="First Name"
-                value={user.first_name}
-                onChange={handleChange}
-              />
-
-              <input
-                className="form-control mb-2"
-                name="last_name"
-                placeholder="Last Name"
-                value={user.last_name}
-                onChange={handleChange}
-              />
-
-              <input
-                className="form-control mb-2"
-                type="email"
-                name="email"
-                placeholder="Email"
-                value={user.email}
-                onChange={handleChange}
-                onBlur={() => {
-                  setEmailTouched(true);
-                  runEmailCheck(user.email);
-                }}
-                onFocus={() => setEmailTouched(true)}
-              />
-
-              {(emailTouched || !!user.email.trim()) && emailCheckMsg && (
-                <div
-                  className={`small mb-2 ${
-                    emailExists || !looksLikeEmail(user.email)
-                      ? "text-danger"
-                      : "text-muted"
-                  }`}
-                  role={
-                    emailExists || !looksLikeEmail(user.email)
-                      ? "alert"
-                      : undefined
-                  }
-                >
-                  {emailCheckMsg}
-                </div>
-              )}
-
-              <input
-                className="form-control mb-2"
-                name="mobile"
-                placeholder="Mobile"
-                value={user.mobile}
-                onChange={handleChange}
-              />
-
-              <input
-                className="form-control mb-0"
-                type="password"
-                name="password"
-                placeholder="Password"
-                value={user.password}
-                onChange={handleChange}
-              />
-
-              {mode === "subscription" && subscriptionInvalid && (
-                <div className="alert alert-danger mt-3 mb-0 py-2">
-                  Invalid subscription parameters.
-                </div>
-              )}
-
-              <div className="mt-3 small text-muted">
-                We’ll use your email for purchase confirmation and account
-                access.
-              </div>
-              {paymentMethod === "mobile" ? (
-                <div>
-                  <TermsCheckbox />
-                  <button
-                    type="button"
-                    className="btn btn-primary-custom mt-4 px-5 py-2 d-block mx-auto"
-                    onClick={submitMobilePayment}
-                    disabled={mobileSubmitting || !canSubmit}
-                  >
-                    {mobileSubmitting ? "Submitting..." : "Submit"}
-                  </button>
-
-                  {mobileResult && (
-                    <div
-                      className={`alert alert-${mobileResult.type} mt-3 mb-0`}
-                    >
-                      {mobileResult.text}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                ""
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="col-12 col-lg-6 d-flex">
+      <div className="row g-4 align-items-start">
+        <div className="col-12 col-lg-6">
           <div className="card shadow-sm border-0 w-100">
             <div className="card-body p-0 d-flex flex-column">
               <div className="px-4 pt-4 pb-3 border-bottom">
@@ -717,193 +621,7 @@ export default function CheckoutContent() {
                         />
                       </div> */}
 
-                      {/* New change to the mobile payment UI according to Deb sir */}
-                      <div
-                        className="rounded-3 p-4"
-                        style={{
-                          backgroundColor: "#fff9e7",
-                          borderLeft: "4px solid #f2a155",
-                          minWidth: "500px",
-                        }}
-                      >
-                        <div>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 8,
-                              marginBottom: "10px",
-                            }}
-                          >
-                            <i
-                              className="bi bi-info-square-fill"
-                              style={{
-                                fontSize: 24,
-                                color: "#f2a155",
-                                flexShrink: 0,
-                              }}
-                            />
-                            <h5
-                              className="fw-bold"
-                              style={{ marginTop: 5, color: "#f2a155" }}
-                            >
-                              Next Step
-                            </h5>
-                          </div>
-                          <div className="text-muted">
-                            <p
-                              className="fw-semibold mb-3"
-                              style={{
-                                color: "#333333d7",
-                                fontSize: "15px",
-                                lineHeight: "1.5",
-                              }}
-                            >
-                              Follow the steps to start {service}:
-                            </p>
-                            <ol style={{ paddingLeft: "20px", margin: 0 }}>
-                              <li
-                                className="mb-2"
-                                style={{
-                                  color: "#555",
-                                  fontSize: "14px",
-                                  lineHeight: "1.6",
-                                }}
-                              >
-                                Download the Microsoft Teams app from{" "}
-                                <a
-                                  href="https://apps.apple.com/us/app/microsoft-teams/id1113153706"
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  style={{
-                                    color: "#f2a155",
-                                    fontWeight: "600",
-                                    textDecoration: "none",
-                                    display: "inline-flex",
-                                    alignItems: "center",
-                                    gap: "4px",
-                                  }}
-                                  className="text-decoration-underline"
-                                >
-                                  App Store{" "}
-                                  <i
-                                    className="bi bi-box-arrow-up-right"
-                                    style={{
-                                      fontSize: "12px",
-                                      marginLeft: "2px",
-                                    }}
-                                  />
-                                </a>{" "}
-                                or{" "}
-                                <a
-                                  href="https://play.google.com/store/apps/details?id=com.microsoft.teams"
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  style={{
-                                    color: "#f2a155",
-                                    fontWeight: "600",
-                                    textDecoration: "none",
-                                    display: "inline-flex",
-                                    alignItems: "center",
-                                    gap: "4px",
-                                  }}
-                                  className="text-decoration-underline"
-                                >
-                                  Google Play{" "}
-                                  <i
-                                    className="bi bi-box-arrow-up-right"
-                                    style={{
-                                      fontSize: "12px",
-                                      marginLeft: "2px",
-                                    }}
-                                  />{" "}
-                                </a>
-                              </li>
-                              <li
-                                className="mb-2"
-                                style={{
-                                  color: "#555",
-                                  fontSize: "14px",
-                                  lineHeight: "1.6",
-                                }}
-                              >
-                                Create a Teams account
-                              </li>
-                              <li
-                                style={{
-                                  color: "#555",
-                                  fontSize: "14px",
-                                  lineHeight: "1.6",
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: 5,
-                                  }}
-                                >
-                                  <span>Send a text message on teams to:</span>
-
-                                  <div
-                                    style={{
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: 1,
-                                      color: "#f2a155",
-                                      fontWeight: "600",
-                                      textDecoration: "none",
-                                    }}
-                                  >
-                                    <span>somdtutoring@gmail.com</span>
-
-                                    <button
-                                      type="button"
-                                      onClick={handleCopyEmail}
-                                      style={{
-                                        background: "none",
-                                        border: "none",
-                                        padding: "2px 6px",
-                                        cursor: "pointer",
-                                        display: "inline-flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        borderRadius: "4px",
-                                        transition:
-                                          "background-color 0.2s ease",
-                                      }}
-                                      onMouseEnter={(e) => {
-                                        e.currentTarget.style.backgroundColor =
-                                          "#ffe7c1";
-                                      }}
-                                      onMouseLeave={(e) => {
-                                        e.currentTarget.style.backgroundColor =
-                                          "transparent";
-                                      }}
-                                      title="Copy email address"
-                                    >
-                                      <i
-                                        className={`bi ${emailCopied ? "bi-check-lg" : "bi-copy"}`}
-                                        style={{
-                                          fontSize: "14px",
-                                          color: "#f2a155",
-                                          transition:
-                                            "transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease",
-                                          display: "inline-block",
-                                          transform: emailCopied
-                                            ? "scale(1.2)"
-                                            : "scale(1)",
-                                          opacity: 1,
-                                        }}
-                                      />
-                                    </button>
-                                  </div>
-                                </div>
-                              </li>
-                            </ol>
-                          </div>
-                        </div>
-                      </div>
+                      <NextStepCard service={service} />
 
                       {/* <TermsCheckbox />
 
@@ -942,6 +660,7 @@ export default function CheckoutContent() {
                     </div>
 
                     <SquarePaymentForm
+                      ref={squareFormRef}
                       amount={amountCents}
                       course_id={course_id}
                       session_id={session_id}
@@ -950,28 +669,27 @@ export default function CheckoutContent() {
                       mode={mode}
                       product={mode === "subscription" ? product : undefined}
                       cadence={mode === "subscription" ? cadence : undefined}
-                      disabled={subscriptionInvalid || cardBlockedByEmail}
-                      agreeTerms={agreeTerms}
-                      canSubmit={canSubmit}
-                      onAgreeTermsChange={setAgreeTerms}
                       onPaymentSuccess={(id?: string) => {
-                        const q = id
+                        let q = id
                           ? `?method=card&id=${encodeURIComponent(id)}`
                           : `?method=card`;
+                        if (package_id) {
+                          q += `&package_id=${package_id}`;
+                        }
                         router.push(`/thank-you${q}`);
                       }}
+                      onStateChange={handleCardStateChange}
                     />
 
-                    {!!user.email.trim() &&
+                    {/* {!!user.email.trim() &&
                       (emailChecking ||
                         emailExists ||
                         !looksLikeEmail(user.email)) && (
                         <div
-                          className={`alert ${
-                            emailExists || !looksLikeEmail(user.email)
-                              ? "alert-danger"
-                              : "alert-info"
-                          } mt-3 mb-0 py-2`}
+                          className={`alert ${emailExists || !looksLikeEmail(user.email)
+                            ? "alert-danger"
+                            : "alert-info"
+                            } mt-3 mb-0 py-2`}
                         >
                           {emailExists
                             ? emailCheckMsg
@@ -979,16 +697,159 @@ export default function CheckoutContent() {
                               ? "Please enter a valid email address."
                               : "Checking email... Please wait."}
                         </div>
-                      )}
-
-                    <div className="small text-muted mt-3">
-                      Secure payment • PCI compliant
-                    </div>
+                      )} */}
                   </>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
 
-              <div className="px-4 pb-4" />
+        <div className="col-12 col-lg-6">
+          <div className="card shadow-sm border-0 w-100">
+            <div className="card-body p-4 d-flex flex-column">
+              <h5 className="fw-bold mb-3">Your Registration Information</h5>
+
+              <input
+                className="form-control mb-2"
+                name="first_name"
+                placeholder="First Name"
+                value={user.first_name}
+                onChange={handleChange}
+              />
+
+              <input
+                className="form-control mb-2"
+                name="last_name"
+                placeholder="Last Name"
+                value={user.last_name}
+                onChange={handleChange}
+              />
+
+              <input
+                className="form-control mb-2"
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={user.email}
+                onChange={handleChange}
+                onBlur={() => {
+                  setEmailTouched(true);
+                  runEmailCheck(user.email);
+                }}
+                onFocus={() => setEmailTouched(true)}
+              />
+
+              {(emailTouched || !!user.email.trim()) && emailCheckMsg && (
+                <div
+                  className={`small mb-2 ${emailExists || !looksLikeEmail(user.email)
+                    ? "text-danger"
+                    : "text-muted"
+                    }`}
+                  role={
+                    emailExists || !looksLikeEmail(user.email)
+                      ? "alert"
+                      : undefined
+                  }
+                >
+                  {emailCheckMsg}
+                </div>
+              )}
+
+              <input
+                className="form-control mb-2"
+                name="mobile"
+                placeholder="Mobile"
+                value={user.mobile}
+                onChange={handleChange}
+              />
+
+              <input
+                className="form-control mb-0"
+                type="password"
+                name="password"
+                placeholder="Password"
+                value={user.password}
+                onChange={handleChange}
+              />
+
+              {mode === "subscription" && subscriptionInvalid && (
+                <div className="alert alert-danger mt-3 mb-0 py-2">
+                  Invalid subscription parameters.
+                </div>
+              )}
+
+              <div className="mt-3 small text-muted">
+                We’ll use your email for purchase confirmation and account
+                access.
+              </div>
+              <TermsCheckbox />
+
+              {paymentMethod === "mobile" ? (
+                <div>
+                  <button
+                    type="button"
+                    className="btn btn-primary-custom mt-4 px-5 py-2 d-block mx-auto"
+                    onClick={submitMobilePayment}
+                    disabled={mobileSubmitting || !canSubmit}
+                  >
+                    {mobileSubmitting ? "Submitting..." : "Submit"}
+                  </button>
+
+                  {mobileResult && (
+                    <div
+                      className={`alert alert-${mobileResult.type} mt-3 mb-0`}
+                    >
+                      {mobileResult.text}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="mt-3">
+                  <div className="small text-muted text-center mb-3">
+                    Secure payment • PCI compliant
+                  </div>
+
+                  <button
+                    type="button"
+                    className="btn btn-primary-custom mt-2 px-5 py-2 d-block mx-auto"
+                    onClick={() => squareFormRef.current?.submitPayment()}
+                    disabled={
+                      cardState.initializing ||
+                      cardState.paying ||
+                      cardState.completed ||
+                      subscriptionInvalid ||
+                      cardBlockedByEmail ||
+                      !agreeTerms ||
+                      !cardState.isCardValid ||
+                      !canSubmit
+                    }
+                  >
+                    {cardState.completed
+                      ? "Paid"
+                      : cardState.paying
+                        ? "Processing…"
+                        : mode === "subscription"
+                          ? "Subscribe"
+                          : `Pay $${amountDollarsForUI.toFixed(2)}`}
+                  </button>
+
+                  {cardState.completed && cardState.paymentId && (
+                    <div className="mt-3 text-center">
+                      <div className="small text-muted">
+                        <span className="fw-semibold">Payment ID:</span>{" "}
+                        {cardState.paymentId}
+                      </div>
+                    </div>
+                  )}
+
+                  {cardState.message && (
+                    <p className="mt-3 fw-bold text-center text-danger">
+                      {cardState.message}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -14,12 +14,11 @@ export default async function PricingPage({
 }) {
   // ✅ MUST await searchParams in new Next.js
   const { service_type } = await params;
-  console.log(service_type);
 
   const serviceType: ServiceType | null =
     service_type === "1-on-1-tutoring" ||
-    service_type === "group-tutoring" ||
-    service_type === "self-study"
+      service_type === "group-tutoring" ||
+      service_type === "self-study"
       ? service_type
       : null;
 
