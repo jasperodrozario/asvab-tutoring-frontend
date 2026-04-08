@@ -11,7 +11,8 @@
 } */
 
 body {
-  padding-top: 120px; /* Default for md and larger screens */
+  padding-top: 120px;
+  /* Default for md and larger screens */
   color: #000;
 }
 
@@ -21,6 +22,7 @@ body {
     padding-top: 90px;
   }
 }
+
 html,
 body {
   max-width: 100vw;
@@ -75,6 +77,7 @@ a {
 .primary-color-custom {
   color: var(--primary-color);
 }
+
 .primary-color-dark {
   color: var(--primary-color-dark);
 }
@@ -124,7 +127,7 @@ a {
 
 /* Show dropdown on hover for desktop */
 @media (min-width: 768px) {
-  .navbar .dropdown:hover > .dropdown-menu {
+  .navbar .dropdown:hover>.dropdown-menu {
     display: block;
     opacity: 1;
     visibility: visible;
@@ -160,6 +163,7 @@ a {
   background-position: center;
   position: relative;
 }
+
 .bg-hero::before {
   content: "";
   position: absolute;
@@ -167,22 +171,27 @@ a {
   background-color: rgba(0, 0, 0, 0.8);
   z-index: 0;
 }
+
 .hero-content {
   position: relative;
   z-index: 1;
 }
+
 .bg-custom-dark {
   background-color: var(--secondary-color);
 }
+
 .btn-primary-custom {
   background-color: #f2a155;
   color: #fff;
   transition: background-color 0.3s ease-in-out;
 }
+
 .btn-primary-custom:hover {
   color: #fff;
   background-color: #e58a34;
 }
+
 /* Hero section end */
 
 /* Top Courses Section */
@@ -193,25 +202,30 @@ a {
 .hover-lift {
   transition: transform 0.3s ease-in-out;
 }
+
 .hover-lift:hover {
   transform: translateY(-5px);
 }
+
 .btn-secondary-custom {
   transition:
     background-color 0.3s ease-in-out,
     color 0.3s ease-in-out;
   border: 1px solid var(--secondary-color);
 }
+
 .btn-secondary-custom:hover {
   background-color: var(--secondary-color);
   color: #fff;
 }
+
 /* Top Courses Section End*/
 
 /* Meet Our Teachers Section*/
 .text-primary {
   color: var(--secondary-color) !important;
 }
+
 /* Meet Our Teachers Section End*/
 
 /* FAQ section accordion */
@@ -242,6 +256,7 @@ a {
 .icon-down {
   display: none;
 }
+
 /* FAQ section accordion End*/
 
 /*Slide Testimonial-section */
@@ -281,10 +296,12 @@ a {
 .carousel-indicators .active {
   background-color: var(--primary-color);
 }
+
 .quote-close {
   transform: rotate(180deg);
   display: inline-block;
 }
+
 /*Slide Testimonial-section End*/
 
 /* Footer Section Start*/
@@ -322,6 +339,7 @@ a {
 .read-more-link:hover {
   color: white;
 }
+
 /* Footer Section End*/
 
 /* Common Banner */
@@ -335,6 +353,7 @@ a {
   align-items: center;
   position: relative;
 }
+
 .banner h1 {
   background-color: rgba(0, 0, 0, 0.5);
   color: white;
@@ -342,6 +361,7 @@ a {
   border-radius: 0.5rem;
   font-size: 2rem;
 }
+
 @media (min-width: 768px) {
   .banner h1 {
     font-size: 3rem;
@@ -373,9 +393,11 @@ a {
   color: #fff !important;
   border-color: var(--primary-color-dark);
 }
+
 .social-icon {
   transition: all 0.3s ease-in-out;
 }
+
 .social-icon:hover {
   color: var(--secondary-color);
 }
@@ -394,6 +416,7 @@ a {
   flex-shrink: 0;
   box-shadow: 2px 3px 4px #999;
 }
+
 .question-title {
   color: #666;
 }
@@ -405,11 +428,29 @@ a {
   padding: 40px 15px;
 }
 
+
+/* Table Styling Start */
+table {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
 th,
 td {
-  padding: 10px;
-  /* border: 1px solid black; */
+  padding-left: 10px;
 }
+
+th {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.curriculum-table td {
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+/* Table Styling End */
 
 .login-card {
   max-width: 500px;
@@ -425,9 +466,11 @@ td {
 .related-course-card:hover {
   transform: scale(1.02);
 }
+
 .related-course-card-title {
   width: fit-content;
 }
+
 .related-course-card-title:hover {
   text-decoration: underline;
 }
@@ -466,6 +509,7 @@ td {
   border-color: #f2a155 !important;
   box-shadow: 0 0 0 0.25rem rgba(242, 161, 85, 0.25);
 }
+
 /* End: Checkbox Styling */
 
 /* Start: Radio Button Styling */
@@ -494,12 +538,14 @@ input[type="radio"]::before {
 input[type="radio"]:checked::before {
   transform: scale(0.8);
 }
+
 /* End: Radio Button Styling */
 
 /* Course Detail Page */
 .page-title-area {
   position: relative;
-  background-image: url("/images/course_detail_page_cover.jpg"); /* set your static image path here */
+  background-image: url("/images/course_detail_page_cover.jpg");
+  /* set your static image path here */
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -582,6 +628,7 @@ input[type="radio"]:checked::before {
     height: 45px;
   }
 }
+
 /* End: Scroll to top button style */
 
 /* Default color for all nav links */
@@ -796,6 +843,7 @@ table {
   .navbar-nav {
     gap: 6px !important;
   }
+
   .navbar-nav .nav-link {
     font-size: 0.85rem !important;
     padding-left: 4px !important;
@@ -807,6 +855,7 @@ table {
   .navbar-nav {
     gap: 6px !important;
   }
+
   .navbar-nav .nav-link {
     font-size: 0.85rem !important;
     padding-left: 4px !important;
@@ -816,9 +865,11 @@ table {
 
 /* ✅ Desktop navbar: keep menu items in ONE line (no text wrap) */
 @media (min-width: 992px) {
+
   .navbar-nav .nav-link,
   .navbar-nav .btn {
-    white-space: nowrap !important; /* stops breaking into 2 lines */
+    white-space: nowrap !important;
+    /* stops breaking into 2 lines */
   }
 
   /* If your dropdown triggers are <span class="nav-link ..."> */
@@ -885,10 +936,10 @@ table {
   box-shadow: inset 1em 1em #fff; /* Checkmark color */
   clip-path: polygon(
     14% 44%,
-    0 65%,
-    50% 100%,
-    100% 16%,
-    80% 0%,
+      0 65%,
+      50% 100%,
+      100% 16%,
+      80% 0%,
     43% 62%
   ); /* Checkmark shape */
 }
