@@ -5,7 +5,7 @@ export interface Session {
   topics: string[];
 }
 
-const SessionTab: React.FC<{ sessions?: Session[] }> = ({ sessions }) => {
+const LessonPlanTab: React.FC<{ sessions?: Session[] }> = ({ sessions }) => {
   const dummySessions: Session[] = [
     {
       session: 1,
@@ -70,4 +70,4 @@ const SessionTab: React.FC<{ sessions?: Session[] }> = ({ sessions }) => {
   );
 };
 
-export default SessionTab;
+export default LessonPlanTab;

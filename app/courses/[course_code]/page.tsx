@@ -7,7 +7,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
 import Button from "@/components/button/Button";
-import SessionTab, { Session } from "@/components/tabs/SessionTab";
+import LessonPlanTab, { Session } from "@/components/tabs/LessonPlanTab";
 
 // Type definitions
 
@@ -376,13 +376,13 @@ const CourseDetailPage: React.FC = () => {
                       </li>
                     )}
 
-                  {/* Sessions */}
+                  {/* Lesson Plan */}
                   <li className="nav-item">
                     <button
                       className={`nav-link ${activeTab === 4 ? "active" : ""}`}
                       onClick={() => setActiveTab(4)}
                     >
-                      Sessions
+                      Lesson Plan
                     </button>
                   </li>
 
@@ -447,10 +447,10 @@ const CourseDetailPage: React.FC = () => {
                     />
                   )}
 
-                  {/* Sessions Tab */}
+                  {/* Lesson Plan Tab */}
                   {activeTab === 4 && (
                     <div className="sessions-tab transition-fade">
-                      <SessionTab sessions={courseData.sessions} />
+                      <LessonPlanTab sessions={courseData.sessions} />
                     </div>
                   )}
 
