@@ -495,11 +495,6 @@ export default function CheckoutContent() {
           </a>
         </span>
       </label>
-      {(!agreeTerms || !canSubmit) && (
-        <div className="small text-muted mt-2">
-          Please complete all required fields and agree to enable the button.
-        </div>
-      )}
     </div>
   );
 
@@ -806,10 +801,6 @@ export default function CheckoutContent() {
                 </div>
               ) : (
                 <div className="mt-3">
-                  <div className="small text-muted text-center mb-3">
-                    Secure payment • PCI compliant
-                  </div>
-
                   <button
                     type="button"
                     className="btn btn-primary-custom mt-2 px-5 py-2 d-block mx-auto"

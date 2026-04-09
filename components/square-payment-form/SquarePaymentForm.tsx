@@ -217,7 +217,7 @@ const SquarePaymentForm = forwardRef<SquarePaymentFormHandle, Props>(function Sq
   useEffect(() => {
     const newState = { initializing, paying, completed, message, paymentId, isCardValid };
     const oldState = stateRef.current;
-    
+
     let changed = false;
     if (newState.initializing !== oldState.initializing) changed = true;
     if (newState.paying !== oldState.paying) changed = true;
@@ -381,7 +381,7 @@ const SquarePaymentForm = forwardRef<SquarePaymentFormHandle, Props>(function Sq
         });
 
         setSafe(() => setMessage(null));
-      } catch {
+      } catch (err) {
         setSafe(() =>
           setMessage(
             "We could not initialize the payment form. Please refresh the page and try again.",
@@ -569,12 +569,25 @@ const SquarePaymentForm = forwardRef<SquarePaymentFormHandle, Props>(function Sq
   }));
 
   return (
-    <div>
+    <div className="border p-3 rounded bg-white position-relative">
+      {initializing && (
+        <div
+          className="d-flex justify-content-center align-items-center position-absolute w-100 h-100 start-0 top-0 bg-white"
+          style={{ zIndex: 10, borderRadius: 'inherit' }}
+        >
+          <div className="spinner-border spinner-border-sm" style={{ color: "#f2a155" }} role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <span className="ms-2 small text-muted">Loading secure form...</span>
+        </div>
+      )}
       <div
         ref={cardContainerRef}
-        className="border p-3 rounded bg-white"
-        style={{ minHeight: 56 }}
-      />
+        style={{ minHeight: 56, marginBottom: -24 }}
+      ></div>
+      <div className="small text-muted text-center mt-3">
+        Secure payment • PCI compliant
+      </div>
     </div>
   );
 });
