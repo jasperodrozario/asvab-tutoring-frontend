@@ -7,6 +7,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
 import Button from "@/components/button/Button";
+import SessionTab, { Session } from "@/components/tabs/SessionTab";
 
 // Type definitions
 
@@ -20,6 +21,7 @@ interface CourseData {
   status: number;
   isSuccess: boolean;
   message: string;
+  sessions?: Session[];
   course_name?: string;
   course_header?: string;
   course_tagline?: string;
@@ -374,6 +376,16 @@ const CourseDetailPage: React.FC = () => {
                       </li>
                     )}
 
+                  {/* Sessions */}
+                  <li className="nav-item">
+                    <button
+                      className={`nav-link ${activeTab === 4 ? "active" : ""}`}
+                      onClick={() => setActiveTab(4)}
+                    >
+                      Sessions
+                    </button>
+                  </li>
+
                   {/* Course Video */}
                   {hasVideo && (
                     <li className="nav-item">
@@ -434,6 +446,14 @@ const CourseDetailPage: React.FC = () => {
                       className="curriculum-table"
                     />
                   )}
+
+                  {/* Sessions Tab */}
+                  {activeTab === 4 && (
+                    <div className="sessions-tab transition-fade">
+                      <SessionTab sessions={courseData.sessions} />
+                    </div>
+                  )}
+
                   {/* Course Video Tab */}
                   {activeTab === 2 && (
                     <div className="instructor-content">
