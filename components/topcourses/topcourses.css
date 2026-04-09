@@ -1,0 +1,40 @@
+/* Custom Swiper Styles for Top Courses */
+.slider-wrapper {
+  padding: 0 50px;
+}
+
+@media (max-width: 576px) {
+  .slider-wrapper {
+    padding: 0 35px;
+  }
+}
+
+.top-courses-swiper {
+  position: static !important; /* Force Swiper container to not trap absolute positioned children */
+}
+
+.top-courses-swiper .swiper-button-next,
+.top-courses-swiper .swiper-button-prev {
+  color: #fca311 !important; /* Premium orange accent */
+  width: 40px;
+  height: 40px;
+}
+
+/* Position exactly at the edges to sit inside the slider-wrapper's padding space */
+/* Because top-courses-swiper is static, these properties are bounded by slider-wrapper which is position-relative */
+.top-courses-swiper .swiper-button-prev {
+  left: 0px !important; 
+}
+
+.top-courses-swiper .swiper-button-next {
+  right: 0px !important;
+}
+
+/* Make arrows a bit smaller on mobile */
+@media (max-width: 576px) {
+  .top-courses-swiper .swiper-button-next,
+  .top-courses-swiper .swiper-button-prev {
+    width: 30px;
+    height: 30px;
+  }
+}

@@ -22,7 +22,8 @@
     "react-dom": "^19.0.0",
     "react-icons": "^5.5.0",
     "react-square-web-payments-sdk": "^3.3.0",
-    "square": "^44.0.0"
+    "square": "^44.0.0",
+    "swiper": "^12.1.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
