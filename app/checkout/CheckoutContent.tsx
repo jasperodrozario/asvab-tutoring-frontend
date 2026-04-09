@@ -839,6 +839,7 @@ export default function CheckoutContent() {
                       {cardState.message}
                     </p>
                   )}
+                  <NextStepCard service={service} />
                 </div>
               )}
             </div>
