@@ -140,12 +140,12 @@ const PricingPackages: React.FC<Props> = ({
         <p className="text-start mx-auto mb-4 fs-5">{subText}</p>
 
         {/* Cards */}
-        <div className="row justify-content-center g-4">
+        <div className="row justify-content-center g-3 row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5">
           {loading ? (
             <p>Loading packages...</p>
           ) : packages.length > 0 ? (
             packages.map((pkg) => (
-              <div key={pkg.course_id} className="col-sm-6 col-lg-3 hover-lift">
+              <div key={pkg.course_id} className="col hover-lift">
                 <Link
                   href={`/package-details/${serviceType}/${pkg.course_code}`}
                 >
@@ -154,9 +154,9 @@ const PricingPackages: React.FC<Props> = ({
                       src={encodeURI(pkg.image_src.trim())}
                       alt={pkg.name}
                       width={400}
-                      height={200}
+                      height={250}
                       className="card-img-top"
-                      style={{ height: "200px", objectFit: "cover" }}
+                      style={{ width: "100%", height: "auto", aspectRatio: "4 / 3", objectFit: "cover" }}
                     />
 
                     <div className="card-body text-start">
