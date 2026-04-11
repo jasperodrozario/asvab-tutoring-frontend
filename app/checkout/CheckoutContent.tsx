@@ -525,7 +525,10 @@ export default function CheckoutContent() {
         </div>
       </div>
 
-      <div className="row g-4 align-items-start">
+      <div
+        className={`row g-4 ${showCardUI ? "flex-column align-items-center" : "align-items-start"
+          }`}
+      >
         <div className="col-12 col-lg-6">
           <div className="card shadow-sm border-0 w-100">
             <div className="card-body p-0 d-flex flex-column">
