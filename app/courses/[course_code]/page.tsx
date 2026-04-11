@@ -21,12 +21,12 @@ interface CourseData {
   status: number;
   isSuccess: boolean;
   message: string;
-  sessions?: Session[];
   course_name?: string;
   course_header?: string;
   course_tagline?: string;
   overview?: string;
   curriculum?: string;
+  sessions?: Session[];
   picture?: string;
   video?: VideoObject;
   ft_cat_list?: string[];
