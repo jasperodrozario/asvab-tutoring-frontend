@@ -311,6 +311,7 @@ const CourseDetailPage: React.FC = () => {
                       <button
                         className={`nav-link ${activeTab === 0 ? "active" : ""}`}
                         onClick={() => setActiveTab(0)}
+                        style={{ minWidth: "160px", textAlign: "center" }}
                       >
                         Overview
                       </button>
@@ -324,6 +325,7 @@ const CourseDetailPage: React.FC = () => {
                         <button
                           className={`nav-link ${activeTab === 1 ? "active" : ""}`}
                           onClick={() => setActiveTab(1)}
+                          style={{ minWidth: "160px", textAlign: "center" }}
                         >
                           Curriculum
                         </button>
@@ -335,6 +337,7 @@ const CourseDetailPage: React.FC = () => {
                     <button
                       className={`nav-link ${activeTab === 4 ? "active" : ""}`}
                       onClick={() => setActiveTab(4)}
+                      style={{ minWidth: "160px", textAlign: "center" }}
                     >
                       Lesson Plan
                     </button>
@@ -346,6 +349,7 @@ const CourseDetailPage: React.FC = () => {
                       <button
                         className={`nav-link ${activeTab === 2 ? "active" : ""}`}
                         onClick={() => setActiveTab(2)}
+                        style={{ minWidth: "160px", textAlign: "center" }}
                       >
                         Course Video
                       </button>
@@ -363,6 +367,7 @@ const CourseDetailPage: React.FC = () => {
                           setTestResults(null);
                           setUserAnswers({});
                         }}
+                        style={{ minWidth: "160px", textAlign: "center" }}
                       >
                         Online Free Test
                       </button>
