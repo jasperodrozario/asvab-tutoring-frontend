@@ -271,11 +271,11 @@ export default function PricingPackages({
         </section>
       ))}
 
-      {/* ✅ Notes + Cancellation Policy (fixed) */}
+      {/* Notes + Cancellation Policy */}
       <div className="container">
         {isSubscribePage ? (
           <p
-            className="fs-6 text-start mx-auto mb-5"
+            className="fs-6 text-start mx-auto"
             style={{ maxWidth: "960px" }}
           >
             <span className="fw-semibold text-danger">NOTE:</span> Your
@@ -287,7 +287,7 @@ export default function PricingPackages({
         ) : (
           <>
             <p
-              className="fs-6 text-start mx-auto mb-3"
+              className="fs-6 text-start mx-auto"
               style={{ maxWidth: "960px" }}
             >
               <span className="fw-semibold text-danger">NOTE:</span> No session
@@ -296,7 +296,7 @@ export default function PricingPackages({
             </p>
 
             <p
-              className="fs-6 text-start mx-auto mb-5"
+              className="fs-6 text-start mx-auto"
               style={{ maxWidth: "960px" }}
             >
               <span className="fw-semibold text-primary">
