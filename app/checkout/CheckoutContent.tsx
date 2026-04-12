@@ -526,15 +526,14 @@ export default function CheckoutContent() {
       </div>
 
       <div
-        className={`row g-4 ${showCardUI ? "flex-column align-items-center" : "align-items-start"
-          }`}
+        className={"row g-4 flex-column align-items-center"}
       >
         <div className="col-12 col-lg-6">
           <div className="card shadow-sm border-0 w-100">
             <div className="card-body p-0 d-flex flex-column">
               <div className="px-4 pt-4 pb-3 border-bottom">
                 <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                  <div className="fw-semibold text-muted">Payment Method</div>
+                  <h5 className="fw-semibold text-muted mb-0">Payment Method</h5>
 
                   {showPaymentMethodChooser ? (
                     <div className="d-flex align-items-center gap-3">
@@ -618,8 +617,6 @@ export default function CheckoutContent() {
                           onChange={handleMobilePayChange}
                         />
                       </div> */}
-
-                      <NextStepCard service={service} />
 
                       {/* <TermsCheckbox />
 
@@ -706,7 +703,7 @@ export default function CheckoutContent() {
         <div className="col-12 col-lg-6">
           <div className="card shadow-sm border-0 w-100">
             <div className="card-body p-4 d-flex flex-column">
-              <h5 className="fw-bold mb-3">Your Registration Information</h5>
+              <h5 className="fw-bold mb-3 text-muted">Your Registration Information</h5>
 
               <input
                 className="form-control mb-2"
@@ -801,6 +798,7 @@ export default function CheckoutContent() {
                       {mobileResult.text}
                     </div>
                   )}
+                  <NextStepCard service={service} />
                 </div>
               ) : (
                 <div className="mt-3">
