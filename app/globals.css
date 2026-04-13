@@ -374,7 +374,8 @@ a {
   cursor: pointer;
 }
 
-/* Base tab styling */
+/* Start: Tab styling */
+
 .nav-link.primary-color-custom {
   color: var(--primary-color-dark);
   border-radius: 5px;
@@ -395,6 +396,9 @@ a {
   color: #fff !important;
   border-color: var(--primary-color-dark);
 }
+
+/* End: Tab styling */
+
 
 .social-icon {
   transition: all 0.3s ease-in-out;
@@ -637,7 +641,7 @@ input[type="radio"]:checked::before {
 
 /* End: Scroll to top button style */
 
-/* Default color for all nav links */
+/* Default color for all tab links */
 .nav-tabs .nav-link {
   color: #495057;
   /* background-color: #f8f9fa; */
@@ -678,7 +682,46 @@ input[type="radio"]:checked::before {
   border-color: #c5c8c8;  */
 }
 
-/* Course detail page specific tab container styling */
+/* Start: Course detail page specific tab container styling */
+.nav-tabs.responsive-tabs {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 5px !important;
+  padding: 0 !important;
+  border-bottom: none !important;
+  margin-bottom: 20px !important;
+}
+
+.tab-btn {
+  width: 100% !important;
+  text-align: center !important;
+  padding: 10px 5px !important;
+  font-size: 13px !important;
+  height: 100%;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .nav-tabs.responsive-tabs {
+    display: flex !important;
+    grid-template-columns: none !important;
+    gap: 5px !important;
+    /* Restore horizontal gap */
+    border-bottom: 2px solid #dee2e6 !important;
+  }
+
+  .tab-btn {
+    width: auto !important;
+    min-width: 160px !important;
+    font-size: 16px !important;
+    padding: 8px 16px !important;
+  }
+}
+
+/* End: Course detail page specific tab container styling */
+
 .single-course-tab .nav.nav-tabs {
   gap: 6px;
   padding-bottom: 0;

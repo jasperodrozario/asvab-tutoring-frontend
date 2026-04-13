@@ -302,16 +302,14 @@ const CourseDetailPage: React.FC = () => {
                                 </ul> */}
 
                 <ul
-                  className="nav nav-tabs mb-4"
-                  style={{ borderBottom: "none" }}
+                  className="nav nav-tabs mb-4 responsive-tabs"
                 >
                   {/* Overview */}
                   {courseData.overview && courseData.overview.trim() !== "" && (
                     <li className="nav-item">
                       <button
-                        className={`nav-link ${activeTab === 0 ? "active" : ""}`}
+                        className={`nav-link tab-btn ${activeTab === 0 ? "active" : ""}`}
                         onClick={() => setActiveTab(0)}
-                        style={{ minWidth: "160px", textAlign: "center" }}
                       >
                         Overview
                       </button>
@@ -323,9 +321,8 @@ const CourseDetailPage: React.FC = () => {
                     courseData.curriculum.trim() !== "" && (
                       <li className="nav-item">
                         <button
-                          className={`nav-link ${activeTab === 1 ? "active" : ""}`}
+                          className={`nav-link tab-btn ${activeTab === 1 ? "active" : ""}`}
                           onClick={() => setActiveTab(1)}
-                          style={{ minWidth: "160px", textAlign: "center" }}
                         >
                           Curriculum
                         </button>
@@ -335,9 +332,8 @@ const CourseDetailPage: React.FC = () => {
                   {/* Lesson Plan */}
                   <li className="nav-item">
                     <button
-                      className={`nav-link ${activeTab === 4 ? "active" : ""}`}
+                      className={`nav-link tab-btn ${activeTab === 4 ? "active" : ""}`}
                       onClick={() => setActiveTab(4)}
-                      style={{ minWidth: "160px", textAlign: "center" }}
                     >
                       Lesson Plan
                     </button>
@@ -347,9 +343,8 @@ const CourseDetailPage: React.FC = () => {
                   {hasVideo && (
                     <li className="nav-item">
                       <button
-                        className={`nav-link ${activeTab === 2 ? "active" : ""}`}
+                        className={`nav-link tab-btn ${activeTab === 2 ? "active" : ""}`}
                         onClick={() => setActiveTab(2)}
-                        style={{ minWidth: "160px", textAlign: "center" }}
                       >
                         Course Video
                       </button>
@@ -360,14 +355,13 @@ const CourseDetailPage: React.FC = () => {
                   {hasFreeTestQuestions && (
                     <li className="nav-item">
                       <button
-                        className={`nav-link ${activeTab === 3 ? "active" : ""}`}
+                        className={`nav-link tab-btn ${activeTab === 3 ? "active" : ""}`}
                         onClick={() => {
                           setActiveTab(3);
                           setTestSubmitted(false);
                           setTestResults(null);
                           setUserAnswers({});
                         }}
-                        style={{ minWidth: "160px", textAlign: "center" }}
                       >
                         Online Free Test
                       </button>
