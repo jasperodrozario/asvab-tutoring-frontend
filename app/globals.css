@@ -95,6 +95,13 @@ a {
   border: none;
 }
 
+.navbar-toggler:focus,
+.navbar-toggler:active,
+.navbar-toggler-icon:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 /* Hide dropdown by default */
 .custom-dropdown {
   display: none;

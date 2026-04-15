@@ -11,7 +11,7 @@ import {
   FaSignInAlt,
   FaUserPlus,
 } from "react-icons/fa";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 type Course = {
@@ -27,6 +27,7 @@ type Service = {
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
 
   const [courses, setCourses] = useState<Course[]>([]);
   const [services, setServices] = useState<Service[]>([]);
@@ -85,12 +86,41 @@ export default function Navbar() {
     fetchServices();
   }, []);
 
+  const closeAll = () => {
+    setIsMenuOpen(false);
+    setIsCoursesOpen(false);
+    setIsServicesOpen(false);
+    setIsPricingOpen(false);
+  };
+
+  // Close navbar on outside click or scroll
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (isMenuOpen && navRef.current && !navRef.current.contains(event.target as Node)) {
+        closeAll();
+      }
+    };
+
+    const handleScroll = () => {
+      if (isMenuOpen) {
+        closeAll();
+      }
+    };
+
+    if (isMenuOpen) {
+      document.addEventListener("mousedown", handleOutsideClick);
+      window.addEventListener("scroll", handleScroll);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [isMenuOpen]);
+
   const handleLinkClick = () => {
     if (typeof window !== "undefined" && window.innerWidth < 992) {
-      setIsMenuOpen(false);
-      setIsCoursesOpen(false);
-      setIsServicesOpen(false);
-      setIsPricingOpen(false);
+      closeAll();
     }
   };
 
@@ -159,7 +189,10 @@ export default function Navbar() {
       </div>
 
       {/* Main Navbar */}
-      <nav className="navbar navbar-expand-lg bg-custom-secondary text-white py-2 py-md-3 fixed-top navbar-desktop-mt">
+      <nav
+        ref={navRef}
+        className="navbar navbar-expand-lg bg-custom-secondary text-white py-2 py-md-3 fixed-top navbar-desktop-mt"
+      >
         <div className="container d-flex justify-content-between align-items-center px-3">
           {/* MOBILE HEADER */}
           <div className="d-flex d-lg-none justify-content-between align-items-center w-100">
@@ -177,7 +210,10 @@ export default function Navbar() {
               type="button"
               onClick={toggleMenu}
             >
-              <FaBars size={26} className="text-white" />
+              <FaBars
+                size={26}
+                className={isMenuOpen ? "primary-color-custom" : "text-white"}
+              />
             </button>
           </div>
 
@@ -337,7 +373,7 @@ export default function Navbar() {
                       ONLINE STUDY
                     </Link>
                   </li> */}
-              {/* ✅ LOGIN */}
+              {/* LOGIN */}
               <li className="nav-item">
                 <Link
                   href="/user-login"
@@ -347,7 +383,7 @@ export default function Navbar() {
                 </Link>
               </li>
 
-              {/* ✅ REGISTER */}
+              {/* REGISTER */}
               <li className="nav-item">
                 <Link
                   href="/user-registration"
