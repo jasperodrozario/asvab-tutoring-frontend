@@ -95,6 +95,13 @@ a {
   border: none;
 }
 
+.navbar-toggler:focus,
+.navbar-toggler:active,
+.navbar-toggler-icon:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 /* Hide dropdown by default */
 .custom-dropdown {
   display: none;
@@ -127,7 +134,7 @@ a {
 
 /* Show dropdown on hover for desktop */
 @media (min-width: 768px) {
-  .navbar .dropdown:hover>.dropdown-menu {
+  .navbar .dropdown:hover > .dropdown-menu {
     display: block;
     opacity: 1;
     visibility: visible;
@@ -262,7 +269,6 @@ a {
 /*Slide Testimonial-section */
 .testimonial-section {
   background: url("/images/review_bg-1.jpg") center/cover no-repeat;
-  padding: 4rem 1rem;
 }
 
 .quote-icon {
@@ -339,7 +345,7 @@ a {
 }
 
 .read-more-link:hover {
-  color: white;
+  color: var(--primary-color-dark);
 }
 
 /* Footer Section End*/
@@ -374,7 +380,8 @@ a {
   cursor: pointer;
 }
 
-/* Base tab styling */
+/* Start: Tab styling */
+
 .nav-link.primary-color-custom {
   color: var(--primary-color-dark);
   border-radius: 5px;
@@ -395,6 +402,8 @@ a {
   color: #fff !important;
   border-color: var(--primary-color-dark);
 }
+
+/* End: Tab styling */
 
 .social-icon {
   transition: all 0.3s ease-in-out;
@@ -429,7 +438,6 @@ a {
   justify-content: center;
   padding: 40px 15px;
 }
-
 
 /* Table Styling Start */
 table {
@@ -474,7 +482,7 @@ td {
 }
 
 .related-course-card-title:hover {
-  text-decoration: underline;
+  text-decoration: none !important;
 }
 
 .form-control {
@@ -576,7 +584,6 @@ input[type="radio"]:checked::before {
 }
 
 .btn-primary-custom2 {
-  padding: 10px;
   font-weight: 700;
   height: 60px;
   width: 180px;
@@ -637,7 +644,7 @@ input[type="radio"]:checked::before {
 
 /* End: Scroll to top button style */
 
-/* Default color for all nav links */
+/* Default color for all tab links */
 .nav-tabs .nav-link {
   color: #495057;
   /* background-color: #f8f9fa; */
@@ -678,7 +685,97 @@ input[type="radio"]:checked::before {
   border-color: #c5c8c8;  */
 }
 
-/* Course detail page specific tab container styling */
+/* Start: Course detail page specific tab container styling */
+.nav-tabs.responsive-tabs {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 5px !important;
+  padding: 0 !important;
+  border-bottom: none !important;
+}
+
+.tab-btn {
+  width: 100% !important;
+  text-align: center !important;
+  padding: 10px 5px !important;
+  font-size: 13px !important;
+  height: 100%;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .nav-tabs.responsive-tabs {
+    display: flex !important;
+    grid-template-columns: none !important;
+    gap: 5px !important;
+    /* Restore horizontal gap */
+    border-bottom: 2px solid #dee2e6 !important;
+  }
+
+  .tab-btn {
+    width: auto !important;
+    min-width: 160px !important;
+    font-size: 16px !important;
+    padding: 8px 16px !important;
+  }
+}
+
+/* End: Course detail page specific tab container styling */
+
+/* Start: Payment Method Tabs for Checkout Page */
+.checkout-tabs-container {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 12px !important;
+  /* padding: 18px 0 !important; */
+}
+
+/* Ensure title and tabs stay on one row above 466px */
+@media (min-width: 501px) {
+  .checkout-tabs-container {
+    flex-wrap: nowrap !important;
+  }
+}
+
+.checkout-payment-methods {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  gap: 8px !important;
+  padding: 0 !important;
+  border: none !important;
+  margin: 0 !important;
+  list-style: none;
+}
+
+.checkout-payment-methods .tab-btn {
+  width: auto !important;
+  min-width: 125px !important;
+  font-size: 13px !important;
+  padding: 8px 12px !important;
+  white-space: nowrap !important;
+  text-align: center !important;
+}
+/* End: Payment Method Tabs for Checkout Page */
+
+.breadcrumb-link:hover {
+  color: var(--primary-color) !important;
+  transition: all 0.2s ease-in-out;
+}
+
+/* @media (min-width: 1200px) {
+  .checkout-payment-methods .tab-btn {
+    min-width: 160px !important;
+    font-size: 16px !important;
+    padding: 10px 20px !important;
+  }
+} */
+
 .single-course-tab .nav.nav-tabs {
   gap: 6px;
   padding-bottom: 0;
@@ -875,7 +972,6 @@ table {
 
 /* ✅ Desktop navbar: keep menu items in ONE line (no text wrap) */
 @media (min-width: 992px) {
-
   .navbar-nav .nav-link,
   .navbar-nav .btn {
     white-space: nowrap !important;
@@ -883,8 +979,8 @@ table {
   }
 
   /* If your dropdown triggers are <span class="nav-link ..."> */
-  .navbar-nav .nav-item>.nav-link,
-  .navbar-nav .nav-item>span.nav-link {
+  .navbar-nav .nav-item > .nav-link,
+  .navbar-nav .nav-item > span.nav-link {
     white-space: nowrap !important;
   }
 }
@@ -923,48 +1019,44 @@ table {
   overflow-x: auto;
 }
 
-/* Custom checkbox and radio button styling */
-.custom-checkbox-input {
-  -webkit-appearance: none;
-  appearance: none;
-  /* Removes default styling */
-  background-color: #eee;
-  /* Sets unchecked background color */
-  width: 1.15em;
-  height: 1.15em;
-  border: 0.15em solid #7f83a2;
-  /* Sets unchecked border color */
-  border-radius: 0.15em;
-  display: grid;
-  place-content: center;
-  /* Centers the checkmark */
+/* Responsive Course Full Form */
+.card-body,
+.related-course-card .card-body,
+.single-course-area .col-lg-6,
+.related-courses-sidebar .card-body {
+  container-type: inline-size;
 }
 
-/* Checkmark style */
-.custom-checkbox-input::before {
-  content: "";
-  width: 0.65em;
-  height: 0.65em;
-  transform: scale(0);
-  transition: transform 120ms ease-in-out;
-  box-shadow: inset 1em 1em #fff;
-  /* Checkmark color */
-  clip-path: polygon(14% 44%,
-      0 65%,
-      50% 100%,
-      100% 16%,
-      80% 0%,
-      43% 62%);
-  /* Checkmark shape */
+.course-name {
+  font-size: 1.2rem;
 }
 
-/* Checked state style */
-.custom-checkbox-input:checked {
-  background-color: #007bff;
-  border-color: #007bff;
+/* Selective Underlining */
+.course-name:hover {
+  text-decoration: underline !important;
 }
 
-.custom-checkbox-input:checked::before {
-  transform: scale(1);
-  /* Shows checkmark */
+.course-full-form {
+  display: block;
+  /* white-space: nowrap; */
+  font-weight: bold;
+  /* Scale font-size automatically between 10px and 14px based on container width */
+  font-size: clamp(10px, 4.5cqw, 14px);
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #666; /* Muted color but bold */
+  text-decoration: none !important;
+  margin-top: 3px;
+  margin-bottom: 6px;
+}
+
+/* Ensure no global underlines on these interactive titles */
+a:hover {
+  text-decoration: none !important;
+}
+
+/* For the main H2 heading, larger scaling */
+h2 .course-full-form {
+  font-size: clamp(12px, 5cqw, 1.25rem);
 }

@@ -25,13 +25,16 @@ export default function Footer() {
 
   return (
     <footer
-      className="text-white py-5"
+      className="text-white"
       style={{
         background:
           "url('/images/footer_bg.jpg') center center/cover no-repeat",
       }}
     >
-      <div className="container-xxl">
+      <div
+        className="container-xxl"
+        style={{ paddingTop: "40px", paddingBottom: "25px" }}
+      >
         <div className="row gy-4">
           {/* About Us */}
           <div className="col-12 col-md-6 col-lg-3">
@@ -43,7 +46,7 @@ export default function Footer() {
             </p>
             <Link
               href="/about-us"
-              className="read-more-link mt-4 d-inline-block"
+              className="read-more-link mt-3 d-inline-block"
             >
               READ MORE &gt;&gt;
             </Link>

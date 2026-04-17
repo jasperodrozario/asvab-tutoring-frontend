@@ -64,7 +64,7 @@ export default function PricingContent({ submenu }: { submenu: string }) {
   }
 
   return (
-    <div className="container pb-5 py-5">
+    <div className="container pt-5">
       {items.map((item) => (
         <div key={item.pricing_id} className="mb-5">
           <h2 className="text-dark mb-3 fw-bold">{item.title}</h2>

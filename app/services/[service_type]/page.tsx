@@ -53,7 +53,7 @@ export default async function ServiceDetailPage({
   const service_id = getServiceId(service_type);
 
   return (
-    <section className="py-4">
+    <section className="pb-4">
       {/* Banner (title will come from client component) */}
       <ServiceDetailContent serviceId={service_id} serviceType={service_type} />
     </section>

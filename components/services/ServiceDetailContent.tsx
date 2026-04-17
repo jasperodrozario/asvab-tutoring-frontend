@@ -90,7 +90,7 @@ export default function ServiceDetailContent({
   return (
     <>
       {/* Banner */}
-      <div className="banner bg-black bg-opacity-50 py-3 px-4 rounded text-center mb-4">
+      <div className="banner bg-black bg-opacity-50 py-3 px-4 rounded-bottom flex flex-col items-center text-center mb-5">
         <h1 className="text-white mb-2 text-3xl fw-bold">{pageTitle}</h1>
 
         <Breadcrumb

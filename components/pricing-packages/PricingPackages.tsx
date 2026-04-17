@@ -14,6 +14,7 @@ interface CourseItem {
   name: string;
   image_src: string;
   price_range: string;
+  full_form: string;
 }
 
 type Props = {
@@ -89,7 +90,7 @@ const PricingPackages: React.FC<Props> = ({
 
   const subTextMap: Record<Submenu, string> = {
     one: "Choose from our personalized 1-on-1 tutoring packages.",
-    group: "Select from our group tutoring options.",
+    group: "Choose from one of our group tutoring packages.",
     subscribe:
       "Choose a self-study plan for full access to study materials and practice tests.",
   };
@@ -140,12 +141,12 @@ const PricingPackages: React.FC<Props> = ({
         <p className="text-start mx-auto mb-4 fs-5">{subText}</p>
 
         {/* Cards */}
-        <div className="row justify-content-center g-4">
+        <div className="row justify-content-center g-3 row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5">
           {loading ? (
             <p>Loading packages...</p>
           ) : packages.length > 0 ? (
             packages.map((pkg) => (
-              <div key={pkg.course_id} className="col-sm-6 col-lg-3 hover-lift">
+              <div key={pkg.course_id} className="col hover-lift">
                 <Link
                   href={`/package-details/${serviceType}/${pkg.course_code}`}
                 >
@@ -154,17 +155,36 @@ const PricingPackages: React.FC<Props> = ({
                       src={encodeURI(pkg.image_src.trim())}
                       alt={pkg.name}
                       width={400}
-                      height={200}
+                      height={250}
                       className="card-img-top"
-                      style={{ height: "200px", objectFit: "cover" }}
+                      style={{
+                        width: "100%",
+                        height: "auto",
+                        aspectRatio: "4 / 3",
+                        objectFit: "cover",
+                      }}
                     />
 
-                    <div className="card-body text-start">
-                      <h5 className="card-title fw-bold text-primary">
-                        {pkg.name}
+                    {/* <div
+                      className={`card-body text-start ${fixedSubmenu === "subscribe" ? "text-center" : ""}`}
+                    > */}
+                    <div className={`card-body text-start text-center`}>
+                      <h5 className="card-title fw-bold text-primary text-center">
+                        <span className="course-name">{pkg.name}</span>
+                        <br />
+                        <span className="course-full-form">
+                          {pkg.full_form}
+                        </span>
                       </h5>
 
-                      <p className="card-text fw-semibold">{pkg.price_range}</p>
+                      <p className="card-text fw-semibold">
+                        {(pkg.price_range ?? "").split(" (").map((part: string, i: number) => (
+                          <React.Fragment key={i}>
+                            {i > 0 && <br />}
+                            {i > 0 ? `(${part}` : part}
+                          </React.Fragment>
+                        ))}
+                      </p>
 
                       <div className="text-center">
                         <button className="btn btn-secondary-custom btn-sm w-50">

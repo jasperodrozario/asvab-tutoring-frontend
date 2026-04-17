@@ -12,12 +12,22 @@ export default function Home() {
       <Welcome />
       <TopCourses />
       {/* <Packages /> */}
+
+      {/* 1-on-1 Tutoring Pricing */}
       <PricingPackages
         fixedSubmenu="one"
-        sectionTitle="Our Tutoring Pricing"
-        homepageDescription="ASVAB Tutoring’s 1:1 Online Tutoring and Group Tutoring programs provide focused, two-hour live sessions led by an experienced instructor dedicated to your success. Through personalized guidance, structured lessons, and free access to all online study materials, students strengthen core skills, raise their scores, master key concepts, and prepare with confidence for test day."
+        sectionTitle="1-on-1 Tutoring Pricing"
+        homepageDescription="ASVAB Tutoring’s 1:1 Online Tutoring provide focused, two-hour live sessions led by an experienced instructor dedicated to your success. Through personalized guidance, structured lessons, and free access to all online study materials, students strengthen core skills, raise their scores, master key concepts, and prepare with confidence for test day."
       />
 
+      {/* Group Tutoring Pricing */}
+      <PricingPackages
+        fixedSubmenu="group"
+        sectionTitle="Group Tutoring Pricing"
+        homepageDescription="ASVAB Tutoring’s Group Online Tutoring provide focused, two-hour live sessions led by an experienced instructor dedicated to your success. Each group is intentionally kept small to ensure every learner receives focused instruction while benefiting from peer interaction, shared discussions, and collective problem-solving."
+      />
+
+      {/* Self Study Pricing */}
       <PricingPackages
         fixedSubmenu="subscribe"
         sectionTitle="Self Study Pricing"

@@ -46,7 +46,7 @@ export default function TutorsListPage() {
   return (
     <section className="bg-white text-dark">
       {/* Banner */}
-      <div className="banner mb-5">
+      <div className="banner bg-black bg-opacity-50 mb-5 rounded-bottom flex flex-col items-center text-center">
         <h1 className="text-white text-center bg-black bg-opacity-50 py-3 px-4 rounded">
           Our Tutors
         </h1>

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 
 type CoursePackage = {
@@ -103,7 +103,14 @@ const Packages = ({
                     <h5 className="card-title fw-bold text-primary">
                       {pkg.name}
                     </h5>
-                    <p className="card-text fw-semibold">{pkg.price_range}</p>
+                    <p className="card-text fw-semibold">
+                      {(pkg.price_range ?? "").split(" (").map((part: string, i: number) => (
+                        <React.Fragment key={i}>
+                          {i > 0 && <br />}
+                          {i > 0 ? `(${part}` : part}
+                        </React.Fragment>
+                      ))}
+                    </p>
                     <div className="text-center">
                       <Link
                         href={`/tutor-package-details/${pkg.course_id}`}

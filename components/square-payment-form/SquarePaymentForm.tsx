@@ -1,7 +1,7 @@
 // components/square-payment-form/SquarePaymentForm.tsx
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState, forwardRef, useImperativeHandle } from "react";
 
 declare global {
   interface Window {
@@ -21,6 +21,19 @@ type PaymentMode = "one_time" | "subscription";
 type Product = "ASVAB" | "AFOQT" | "ASTB" | "SIFT" | "OAR";
 type Cadence = "1M" | "3M" | "6M" | "12M";
 
+export type CardState = {
+  initializing: boolean;
+  paying: boolean;
+  completed: boolean;
+  message: string | null;
+  paymentId: string;
+  isCardValid: boolean;
+};
+
+export type SquarePaymentFormHandle = {
+  submitPayment: () => Promise<void>;
+};
+
 type Props = {
   amount: number; // cents
   course_id: string;
@@ -32,18 +45,8 @@ type Props = {
   product?: Product;
   cadence?: Cadence;
 
-  disabled?: boolean;
-
-  /**
-   * If provided, the Pay/Subscribe button stays disabled until user agrees.
-   * Parent keeps the source of truth.
-   */
-  agreeTerms?: boolean;
-  canSubmit?: boolean; // if parent wants to enforce additional conditions for enabling the button
-
-  onAgreeTermsChange?: (next: boolean) => void;
-
   onPaymentSuccess?: (paymentId?: string) => void;
+  onStateChange?: (state: CardState) => void;
 };
 
 function isProduct(x: unknown): x is Product {
@@ -70,10 +73,6 @@ function safeMsg(
   return trimmed;
 }
 
-/**
- * Keep a per-script-src singleton loader (supports sandbox/prod correctly).
- * This avoids race conditions and prevents injecting the script multiple times.
- */
 const squareScriptPromises = new Map<string, Promise<void>>();
 
 function loadSquareScriptOnce(src: string): Promise<void> {
@@ -168,7 +167,7 @@ async function readJsonSafe(res: Response): Promise<any> {
   };
 }
 
-export default function SquarePaymentForm({
+const SquarePaymentForm = forwardRef<SquarePaymentFormHandle, Props>(function SquarePaymentForm({
   amount,
   course_id,
   session_id,
@@ -177,12 +176,9 @@ export default function SquarePaymentForm({
   mode = "one_time",
   product,
   cadence,
-  disabled = false,
-  agreeTerms,
-  canSubmit,
-  onAgreeTermsChange,
   onPaymentSuccess,
-}: Props) {
+  onStateChange,
+}: Props, ref) {
   const cardContainerRef = useRef<HTMLDivElement | null>(null);
   const cardInstanceRef = useRef<any>(null);
 
@@ -209,8 +205,32 @@ export default function SquarePaymentForm({
     process.env.NEXT_PUBLIC_SQUARE_SCRIPT_URL ||
     "https://sandbox.web.squarecdn.com/v1/square.js";
 
-  const termsRequired = typeof agreeTerms === "boolean";
-  const termsAgreed = termsRequired ? !!agreeTerms : true;
+  const stateRef = useRef<CardState>({
+    initializing: true,
+    paying: false,
+    completed: false,
+    message: null,
+    paymentId: "",
+    isCardValid: false,
+  });
+
+  useEffect(() => {
+    const newState = { initializing, paying, completed, message, paymentId, isCardValid };
+    const oldState = stateRef.current;
+
+    let changed = false;
+    if (newState.initializing !== oldState.initializing) changed = true;
+    if (newState.paying !== oldState.paying) changed = true;
+    if (newState.completed !== oldState.completed) changed = true;
+    if (newState.message !== oldState.message) changed = true;
+    if (newState.paymentId !== oldState.paymentId) changed = true;
+    if (newState.isCardValid !== oldState.isCardValid) changed = true;
+
+    if (changed) {
+      stateRef.current = newState;
+      onStateChange?.(newState);
+    }
+  }, [initializing, paying, completed, message, paymentId, isCardValid, onStateChange]);
 
   const validateUser = () => {
     const required: (keyof User)[] = [
@@ -361,7 +381,7 @@ export default function SquarePaymentForm({
         });
 
         setSafe(() => setMessage(null));
-      } catch {
+      } catch (err) {
         setSafe(() =>
           setMessage(
             "We could not initialize the payment form. Please refresh the page and try again.",
@@ -427,11 +447,6 @@ export default function SquarePaymentForm({
       setMessage(
         "The subscription details are invalid. Please reopen the checkout page.",
       );
-      return;
-    }
-
-    if (!termsAgreed) {
-      setMessage("Please agree to the Terms & Conditions to continue.");
       return;
     }
 
@@ -549,79 +564,32 @@ export default function SquarePaymentForm({
     }
   };
 
-  const displayAmount = useMemo(
-    () => (Number(amount) / 100).toFixed(2),
-    [amount],
-  );
-  const buttonLabel =
-    mode === "subscription" ? "Subscribe" : `Pay $${displayAmount}`;
-
-  const uiDisabled =
-    initializing ||
-    paying ||
-    disabled ||
-    completed ||
-    !termsAgreed ||
-    (mode === "subscription" && !validateSubscriptionSelection()) ||
-    !isCardValid ||
-    !canSubmit;
+  useImperativeHandle(ref, () => ({
+    submitPayment: handlePayment,
+  }));
 
   return (
-    <div>
+    <div className="border p-3 rounded bg-white position-relative">
+      {initializing && (
+        <div
+          className="d-flex justify-content-center align-items-center position-absolute w-100 h-100 start-0 top-0 bg-white"
+          style={{ zIndex: 10, borderRadius: 'inherit' }}
+        >
+          <div className="spinner-border spinner-border-sm" style={{ color: "#f2a155" }} role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <span className="ms-2 small text-muted">Loading secure form...</span>
+        </div>
+      )}
       <div
         ref={cardContainerRef}
-        className="border p-3 rounded bg-white"
-        style={{ minHeight: 56 }}
-      />
-
-      {termsRequired && (
-        <div className="mt-3">
-          <label className="d-flex align-items-center gap-2 small mb-0">
-            <input
-              type="checkbox"
-              checked={!!agreeTerms}
-              onChange={(e) => onAgreeTermsChange?.(e.target.checked)}
-              className="form-check-input mb-1"
-            />
-            <span>
-              Agree{" "}
-              <a
-                href="/terms-of-service"
-                className="text-decoration-underline"
-                style={{ color: "#0573e6" }}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Terms &amp; Conditions
-              </a>
-            </span>
-          </label>
-          {(!termsAgreed || !canSubmit) && (
-            <div className="small text-muted mt-2">
-              Please complete all required fields and agree to enable the
-              button.
-            </div>
-          )}
-        </div>
-      )}
-
-      <button
-        className="btn btn-primary-custom mt-4 px-5 py-2"
-        onClick={handlePayment}
-        disabled={uiDisabled}
-      >
-        {completed ? "Paid" : paying ? "Processing…" : buttonLabel}
-      </button>
-
-      {completed && paymentId && (
-        <div className="mt-3">
-          <div className="small text-muted">
-            <span className="fw-semibold">Payment ID:</span> {paymentId}
-          </div>
-        </div>
-      )}
-
-      {message && <p className="mt-3 fw-bold">{message}</p>}
+        style={{ minHeight: 56, marginBottom: -24 }}
+      ></div>
+      <div className="small text-muted text-center mt-3">
+        Secure payment • PCI compliant
+      </div>
     </div>
   );
-}
+});
+
+export default SquarePaymentForm;

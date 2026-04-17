@@ -14,7 +14,6 @@ export default async function PricingPage({
 }) {
   // ✅ MUST await searchParams in new Next.js
   const { service_type } = await params;
-  console.log(service_type);
 
   const serviceType: ServiceType | null =
     service_type === "1-on-1-tutoring" ||
@@ -61,7 +60,7 @@ export default async function PricingPage({
   return (
     <section>
       {/* Banner */}
-      <div className="banner bg-black bg-opacity-50 py-3 px-4 rounded text-center">
+      <div className="banner bg-black bg-opacity-50 py-3 px-4 rounded-bottom flex flex-col items-center text-center">
         <h1 className="text-white mb-2 text-3xl fw-bold">{title}</h1>
         <Breadcrumb
           segments={["pricing", title]}

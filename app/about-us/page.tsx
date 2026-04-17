@@ -60,16 +60,13 @@ export default function AboutUsPage() {
   return (
     <section>
       {/* Banner */}
-      <div className="banner bg-black bg-opacity-50 py-3 px-4 rounded flex flex-col items-center text-center">
+      <div className="banner bg-black bg-opacity-50 py-3 px-4 rounded-bottom flex flex-col items-center text-center">
         <h1 className="text-white mb-2 text-3xl font-bold">About Us</h1>
-        <Breadcrumb
-          segments={["about-us"]}
-          className="text-white text-base mt-1"
-        />
+        <Breadcrumb segments={["about-us"]} className="text-white text-base" />
       </div>
 
       {/* Content */}
-      <div className="container pb-5 py-5">
+      <div className="container my-5">
         {loading ? (
           <p className="text-center">Loading about us information…</p>
         ) : items.length > 0 ? (
