@@ -525,44 +525,41 @@ export default function CheckoutContent() {
         </div>
       </div>
 
-      <div
-        className={"row g-4 flex-column align-items-center"}
-      >
+      <div className={"row g-4 flex-column align-items-center"}>
         <div className="col-12 col-lg-6">
           <div className="card shadow-sm border-0 w-100">
             <div className="card-body p-0 d-flex flex-column">
-              <div className="px-4 pt-4 pb-3 border-bottom">
-                <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                  <h5 className="fw-semibold text-muted mb-0">Payment Method</h5>
+              <div className="px-4 border-bottom">
+                <div className="checkout-tabs-container">
+                  <h5 className="fw-semibold text-muted mb-0">
+                    Payment Method
+                  </h5>
 
                   {showPaymentMethodChooser ? (
-                    <div className="d-flex align-items-center gap-3">
-                      <label className="d-flex align-items-center gap-2 small mb-0">
-                        <input
-                          type="radio"
-                          name="pay_method"
-                          checked={paymentMethod === "mobile"}
-                          onChange={() => {
+                    <ul className="nav nav-tabs checkout-payment-methods">
+                      <li className="nav-item">
+                        <button
+                          className={`nav-link tab-btn ${paymentMethod === "mobile" ? "active" : ""}`}
+                          onClick={() => {
                             setAgreeTerms(false);
                             setPaymentMethod("mobile");
                           }}
-                        />
-                        Mobile Payment
-                      </label>
-
-                      <label className="d-flex align-items-center gap-2 small mb-0">
-                        <input
-                          type="radio"
-                          name="pay_method"
-                          checked={paymentMethod === "card"}
-                          onChange={() => {
+                        >
+                          Mobile Payment
+                        </button>
+                      </li>
+                      <li className="nav-item">
+                        <button
+                          className={`nav-link tab-btn ${paymentMethod === "card" ? "active" : ""}`}
+                          onClick={() => {
                             setAgreeTerms(false);
                             setPaymentMethod("card");
                           }}
-                        />
-                        Card Payment
-                      </label>
-                    </div>
+                        >
+                          Card Payment
+                        </button>
+                      </li>
+                    </ul>
                   ) : (
                     <div className="small text-muted">Card Payment</div>
                   )}
@@ -703,7 +700,9 @@ export default function CheckoutContent() {
         <div className="col-12 col-lg-6">
           <div className="card shadow-sm border-0 w-100">
             <div className="card-body p-4 d-flex flex-column">
-              <h5 className="fw-bold mb-3 text-muted">Your Registration Information</h5>
+              <h5 className="fw-bold mb-3 text-muted">
+                Your Registration Information
+              </h5>
 
               <input
                 className="form-control mb-2"
@@ -737,10 +736,11 @@ export default function CheckoutContent() {
 
               {(emailTouched || !!user.email.trim()) && emailCheckMsg && (
                 <div
-                  className={`small mb-2 ${emailExists || !looksLikeEmail(user.email)
-                    ? "text-danger"
-                    : "text-muted"
-                    }`}
+                  className={`small mb-2 ${
+                    emailExists || !looksLikeEmail(user.email)
+                      ? "text-danger"
+                      : "text-muted"
+                  }`}
                   role={
                     emailExists || !looksLikeEmail(user.email)
                       ? "alert"

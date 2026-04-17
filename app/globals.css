@@ -692,7 +692,6 @@ input[type="radio"]:checked::before {
   gap: 5px !important;
   padding: 0 !important;
   border-bottom: none !important;
-  margin-bottom: 20px !important;
 }
 
 .tab-btn {
@@ -724,6 +723,52 @@ input[type="radio"]:checked::before {
 }
 
 /* End: Course detail page specific tab container styling */
+
+/* Payment Method Tabs for Checkout Page */
+.checkout-tabs-container {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 12px !important;
+  /* padding: 18px 0 !important; */
+}
+
+/* Ensure title and tabs stay on one row above 466px */
+@media (min-width: 501px) {
+  .checkout-tabs-container {
+    flex-wrap: nowrap !important;
+  }
+}
+
+.checkout-payment-methods {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  gap: 8px !important;
+  padding: 0 !important;
+  border: none !important;
+  margin: 0 !important;
+  list-style: none;
+}
+
+.checkout-payment-methods .tab-btn {
+  width: auto !important;
+  min-width: 125px !important;
+  font-size: 13px !important;
+  padding: 8px 12px !important;
+  white-space: nowrap !important;
+  text-align: center !important;
+}
+
+/* @media (min-width: 1200px) {
+  .checkout-payment-methods .tab-btn {
+    min-width: 160px !important;
+    font-size: 16px !important;
+    padding: 10px 20px !important;
+  }
+} */
 
 .single-course-tab .nav.nav-tabs {
   gap: 6px;
