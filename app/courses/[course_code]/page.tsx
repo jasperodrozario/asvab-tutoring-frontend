@@ -262,7 +262,7 @@ const CourseDetailPage: React.FC = () => {
       </div>
 
       {/* Main Course Section */}
-      <section className="single-course-area py-5">
+      <section className="single-course-area pt-5">
         <div className="container">
           <div className="row">
             <div className="col-lg-8">
@@ -432,15 +432,23 @@ const CourseDetailPage: React.FC = () => {
                   )}
                 </div>
               </div>
+              <div className={"text-center mb-5"}>
+                <Button
+                  pathname={`/package-details/1-on-1-tutoring/${encodeURIComponent(courseCode)}`}
+                  className="btn-primary-custom2"
+                >
+                  Enroll Now
+                </Button>
+              </div>
             </div>
 
             {/* Sidebar: Related Courses */}
 
-            <div className="col-lg-4">
+            <div className="col-lg-4 mb-3">
               {courseData.related_courses &&
                 courseData.related_courses.length > 0 && (
                   <div
-                    className="related-courses-sidebar sticky-top p-3 p-lg-0 mt-4 mt-lg-0"
+                    className="related-courses-sidebar sticky-top p-3 p-lg-0 mt-lg-0"
                     style={{ top: "120px" }}
                   >
                     <h4 className="fw-bold mb-4" style={{ color: "#e58a34" }}>
@@ -496,14 +504,6 @@ const CourseDetailPage: React.FC = () => {
                   </div>
                 )}
             </div>
-          </div>
-          <div className={"text-center"}>
-            <Button
-              pathname={`/package-details/1-on-1-tutoring/${encodeURIComponent(courseCode)}`}
-              className="btn-primary-custom2"
-            >
-              Enroll Now
-            </Button>
           </div>
         </div>
       </section>

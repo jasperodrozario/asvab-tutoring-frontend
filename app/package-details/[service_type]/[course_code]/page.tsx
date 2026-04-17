@@ -331,7 +331,7 @@ export default function PricingPackages({
               courseData.related_courses.map((rel: any) => (
                 <div
                   key={rel.course_id}
-                  className="col-12 col-sm-6 col-md-4 col-lg-3"
+                  className="col-12 col-sm-6 col-md-4 col-lg-3 text-center"
                 >
                   <div
                     className="card h-100 shadow-sm border-0 cursor-pointer related-course-card"
@@ -368,7 +368,14 @@ export default function PricingPackages({
                         )}
                       </h6>
                       <p className="fw-bold text-success mb-0 mt-auto">
-                        {decodeHtmlEntitiesDeep(rel.price_range ?? "")}
+                        {decodeHtmlEntitiesDeep(rel.price_range ?? "")
+                          .split(" (")
+                          .map((part: string, i: number) => (
+                            <React.Fragment key={i}>
+                              {i > 0 && <br />}
+                              {i > 0 ? `(${part}` : part}
+                            </React.Fragment>
+                          ))}
                       </p>
                     </div>
                   </div>

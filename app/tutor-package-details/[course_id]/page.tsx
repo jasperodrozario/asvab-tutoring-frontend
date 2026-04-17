@@ -101,7 +101,12 @@ export default function PackageDetailsPage({
                 {courseData.course_name}
               </h2>
               <h4 className="fw-bold text-success mb-3">
-                {courseData.price_range}
+                {(courseData.price_range ?? "").split(" (").map((part: string, i: number) => (
+                  <React.Fragment key={i}>
+                    {i > 0 && <br />}
+                    {i > 0 ? `(${part}` : part}
+                  </React.Fragment>
+                ))}
               </h4>
 
               {renderTextWithLineBreaks(
@@ -277,7 +282,12 @@ export default function PackageDetailsPage({
                         {rel.name}
                       </h6>
                       <p className="fw-bold text-success mb-0 mt-auto">
-                        {rel.price_range}
+                        {(rel.price_range ?? "").split(" (").map((part: string, i: number) => (
+                          <React.Fragment key={i}>
+                            {i > 0 && <br />}
+                            {i > 0 ? `(${part}` : part}
+                          </React.Fragment>
+                        ))}
                       </p>
                     </div>
                   </div>

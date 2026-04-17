@@ -345,7 +345,7 @@ a {
 }
 
 .read-more-link:hover {
-  color: white;
+  color: var(--primary-color-dark);
 }
 
 /* Footer Section End*/
@@ -724,7 +724,7 @@ input[type="radio"]:checked::before {
 
 /* End: Course detail page specific tab container styling */
 
-/* Payment Method Tabs for Checkout Page */
+/* Start: Payment Method Tabs for Checkout Page */
 .checkout-tabs-container {
   display: flex !important;
   flex-direction: row !important;
@@ -760,6 +760,12 @@ input[type="radio"]:checked::before {
   padding: 8px 12px !important;
   white-space: nowrap !important;
   text-align: center !important;
+}
+/* End: Payment Method Tabs for Checkout Page */
+
+.breadcrumb-link:hover {
+  color: var(--primary-color) !important;
+  transition: all 0.2s ease-in-out;
 }
 
 /* @media (min-width: 1200px) {

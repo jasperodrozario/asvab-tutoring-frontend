@@ -46,7 +46,7 @@ export default function Footer() {
             </p>
             <Link
               href="/about-us"
-              className="read-more-link mt-4 d-inline-block"
+              className="read-more-link mt-3 d-inline-block"
             >
               READ MORE &gt;&gt;
             </Link>

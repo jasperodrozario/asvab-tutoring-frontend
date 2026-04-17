@@ -165,7 +165,10 @@ const PricingPackages: React.FC<Props> = ({
                       }}
                     />
 
-                    <div className="card-body text-start">
+                    {/* <div
+                      className={`card-body text-start ${fixedSubmenu === "subscribe" ? "text-center" : ""}`}
+                    > */}
+                    <div className={`card-body text-start text-center`}>
                       <h5 className="card-title fw-bold text-primary text-center">
                         <span className="course-name">{pkg.name}</span>
                         <br />
@@ -174,7 +177,14 @@ const PricingPackages: React.FC<Props> = ({
                         </span>
                       </h5>
 
-                      <p className="card-text fw-semibold">{pkg.price_range}</p>
+                      <p className="card-text fw-semibold">
+                        {(pkg.price_range ?? "").split(" (").map((part: string, i: number) => (
+                          <React.Fragment key={i}>
+                            {i > 0 && <br />}
+                            {i > 0 ? `(${part}` : part}
+                          </React.Fragment>
+                        ))}
+                      </p>
 
                       <div className="text-center">
                         <button className="btn btn-secondary-custom btn-sm w-50">
