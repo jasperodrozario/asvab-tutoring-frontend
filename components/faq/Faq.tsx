@@ -40,7 +40,7 @@ export default function Faq() {
   }, []);
 
   return (
-    <section id="faqs" className="mt-5 mb-4 px-3 bg-[#f8f9fa] ">
+    <section id="faqs" className="mb-4 px-3 bg-[#f8f9fa] ">
       <div className="container">
         {/* Title */}
         <div className="text-center mb-4 position-relative">

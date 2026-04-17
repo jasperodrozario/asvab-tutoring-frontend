@@ -134,7 +134,7 @@ a {
 
 /* Show dropdown on hover for desktop */
 @media (min-width: 768px) {
-  .navbar .dropdown:hover>.dropdown-menu {
+  .navbar .dropdown:hover > .dropdown-menu {
     display: block;
     opacity: 1;
     visibility: visible;
@@ -269,7 +269,6 @@ a {
 /*Slide Testimonial-section */
 .testimonial-section {
   background: url("/images/review_bg-1.jpg") center/cover no-repeat;
-  padding: 4rem 1rem;
 }
 
 .quote-icon {
@@ -406,7 +405,6 @@ a {
 
 /* End: Tab styling */
 
-
 .social-icon {
   transition: all 0.3s ease-in-out;
 }
@@ -440,7 +438,6 @@ a {
   justify-content: center;
   padding: 40px 15px;
 }
-
 
 /* Table Styling Start */
 table {
@@ -485,7 +482,7 @@ td {
 }
 
 .related-course-card-title:hover {
-  text-decoration: underline;
+  text-decoration: none !important;
 }
 
 .form-control {
@@ -587,7 +584,6 @@ input[type="radio"]:checked::before {
 }
 
 .btn-primary-custom2 {
-  padding: 10px;
   font-weight: 700;
   height: 60px;
   width: 180px;
@@ -925,7 +921,6 @@ table {
 
 /* ✅ Desktop navbar: keep menu items in ONE line (no text wrap) */
 @media (min-width: 992px) {
-
   .navbar-nav .nav-link,
   .navbar-nav .btn {
     white-space: nowrap !important;
@@ -933,8 +928,8 @@ table {
   }
 
   /* If your dropdown triggers are <span class="nav-link ..."> */
-  .navbar-nav .nav-item>.nav-link,
-  .navbar-nav .nav-item>span.nav-link {
+  .navbar-nav .nav-item > .nav-link,
+  .navbar-nav .nav-item > span.nav-link {
     white-space: nowrap !important;
   }
 }
@@ -971,4 +966,46 @@ table {
   display: block;
   width: 100%;
   overflow-x: auto;
+}
+
+/* Responsive Course Full Form */
+.card-body,
+.related-course-card .card-body,
+.single-course-area .col-lg-6,
+.related-courses-sidebar .card-body {
+  container-type: inline-size;
+}
+
+.course-name {
+  font-size: 1.2rem;
+}
+
+/* Selective Underlining */
+.course-name:hover {
+  text-decoration: underline !important;
+}
+
+.course-full-form {
+  display: block;
+  /* white-space: nowrap; */
+  font-weight: bold;
+  /* Scale font-size automatically between 10px and 14px based on container width */
+  font-size: clamp(10px, 4.5cqw, 14px);
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #666; /* Muted color but bold */
+  text-decoration: none !important;
+  margin-top: 3px;
+  margin-bottom: 6px;
+}
+
+/* Ensure no global underlines on these interactive titles */
+a:hover {
+  text-decoration: none !important;
+}
+
+/* For the main H2 heading, larger scaling */
+h2 .course-full-form {
+  font-size: clamp(12px, 5cqw, 1.25rem);
 }

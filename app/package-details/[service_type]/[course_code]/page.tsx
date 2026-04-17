@@ -155,8 +155,18 @@ export default function PricingPackages({
             </div>
 
             <div className="col-lg-6 text-start">
-              <h2 className="fw-bold text-uppercase">
-                {decodeHtmlEntitiesDeep(courseData.course_name ?? "")}
+              <h2 className="fw-bold">
+                <span>
+                  {decodeHtmlEntitiesDeep(courseData.course_name ?? "")}
+                </span>
+                {courseData.full_form && (
+                  <>
+                    <br />
+                    <span className="course-full-form">
+                      {decodeHtmlEntitiesDeep(courseData.full_form)}
+                    </span>
+                  </>
+                )}
               </h2>
               <h4 className="fw-bold text-success mb-3">
                 {decodeHtmlEntitiesDeep(courseData.price_range ?? "")}
@@ -186,7 +196,7 @@ export default function PricingPackages({
 
       {/* Pricing Packages */}
       {courseData.data?.map((pkg: any) => (
-        <section key={pkg.package_id} className="py-5">
+        <section key={pkg.package_id} className="pb-5">
           <div className="container text-center">
             <h1 className={styles.heroTitle}>
               {decodeHtmlEntitiesDeep(pkg.title ?? "")}
@@ -223,10 +233,11 @@ export default function PricingPackages({
                 return (
                   <div
                     key={session.session_id}
-                    className={`${styles.pricingCard} ${session.is_most_popular === "1"
-                      ? styles.mostPopularWrap
-                      : ""
-                      }`}
+                    className={`${styles.pricingCard} ${
+                      session.is_most_popular === "1"
+                        ? styles.mostPopularWrap
+                        : ""
+                    }`}
                   >
                     {session.is_most_popular === "1" && (
                       <div className={styles.mostPopularBadge}>
@@ -273,12 +284,9 @@ export default function PricingPackages({
       ))}
 
       {/* Notes + Cancellation Policy */}
-      <div className="container">
+      <div className="container pb-4">
         {isSubscribePage ? (
-          <p
-            className="fs-6 text-start mx-auto"
-            style={{ maxWidth: "960px" }}
-          >
+          <p className="fs-6 text-start mx-auto" style={{ maxWidth: "960px" }}>
             <span className="fw-semibold text-danger">NOTE:</span> Your
             subscription will automatically renew at the end of each billing
             cycle (as disclosed at the time of purchase). You may cancel your
@@ -312,7 +320,7 @@ export default function PricingPackages({
       </div>
 
       {/* Related Courses */}
-      <section className="py-5 bg-white">
+      <section className="pb-5 bg-white">
         <div className="container">
           <h5 className="mb-4 text-uppercase fs-3 fw-bold text-center">
             Related Packages
@@ -344,10 +352,20 @@ export default function PricingPackages({
                         style={{ objectFit: "cover", height: "200px" }}
                       />
                       <h6
-                        className="fw-semibold mb-2 related-course-card-title"
-                        style={{ color: "#e58a34" }}
+                        className="fw-semibold mb-2 related-course-card-title text-center"
+                        style={{ color: "#e58a34", width: "100%" }}
                       >
-                        {decodeHtmlEntitiesDeep(rel.name ?? "")}
+                        <span className="course-name">
+                          {decodeHtmlEntitiesDeep(rel.name ?? "")}
+                        </span>
+                        {rel.full_form && (
+                          <>
+                            <br />
+                            <span className="course-full-form">
+                              {decodeHtmlEntitiesDeep(rel.full_form)}
+                            </span>
+                          </>
+                        )}
                       </h6>
                       <p className="fw-bold text-success mb-0 mt-auto">
                         {decodeHtmlEntitiesDeep(rel.price_range ?? "")}

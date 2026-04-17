@@ -24,9 +24,7 @@ export default function Home() {
       <PricingPackages
         fixedSubmenu="group"
         sectionTitle="Group Tutoring Pricing"
-        homepageDescription="ASVAB Tutoring’s Group Online Tutoring provide focused, two-hour live sessions led by an experienced instructor dedicated to your success. Each group is intentionally kept small to ensure every learner receives focused instruction while benefiting from peer interaction, shared discussions, and collective problem-solving.
-
-"
+        homepageDescription="ASVAB Tutoring’s Group Online Tutoring provide focused, two-hour live sessions led by an experienced instructor dedicated to your success. Each group is intentionally kept small to ensure every learner receives focused instruction while benefiting from peer interaction, shared discussions, and collective problem-solving."
       />
 
       {/* Self Study Pricing */}

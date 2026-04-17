@@ -24,6 +24,7 @@ interface CourseData {
   isSuccess: boolean;
   message: string;
   course_name?: string;
+  full_form: string;
   course_header?: string;
   course_tagline?: string;
   overview?: string;
@@ -53,6 +54,7 @@ interface FAQ {
 interface RelatedCourse {
   course_id: string;
   course_code: string;
+  full_form: string;
   subscribe_button_url?: string;
   image?: string;
   name: string;
@@ -301,9 +303,7 @@ const CourseDetailPage: React.FC = () => {
                                     ))}
                                 </ul> */}
 
-                <ul
-                  className="nav nav-tabs mb-4 responsive-tabs"
-                >
+                <ul className="nav nav-tabs mb-4 responsive-tabs">
                   {/* Overview */}
                   {courseData.overview && courseData.overview.trim() !== "" && (
                     <li className="nav-item">
@@ -368,7 +368,6 @@ const CourseDetailPage: React.FC = () => {
                     </li>
                   )}
                 </ul>
-
 
                 {/* Tab Content */}
 
@@ -449,40 +448,50 @@ const CourseDetailPage: React.FC = () => {
                       {location && ` ${location.replace(/-/g, " ")}`}
                     </h4>
                     {courseData.related_courses.map((course, i) => (
-                      <div key={i} className="card mb-3 related-course-card">
-                        <Link
-                          href={`/courses/${encodeURIComponent(course.course_code)}`}
-                        >
+                      <Link
+                        href={`/courses/${encodeURIComponent(course.course_code)}`}
+                      >
+                        <div key={i} className="card mb-3 related-course-card">
                           <img
                             src={course.image || "/img/default-course.jpg"}
                             alt={course.name}
                             className="card-img-top"
                             style={{ height: "200px", objectFit: "cover" }}
                           />
-                        </Link>
-                        <div className="card-body">
-                          <Link
-                            href={`/courses/${encodeURIComponent(course.course_code)}`}
-                            className="text-decoration-none"
-                          >
-                            <h6
-                              className="card-title mb-1 related-course-card-title"
-                              style={{ color: "#002341", fontWeight: "600" }}
+
+                          <div className="card-body">
+                            <Link
+                              href={`/courses/${encodeURIComponent(course.course_code)}`}
+                              className="text-decoration-none"
                             >
-                              {cleanQuestionText(course.name)}
-                            </h6>
-                          </Link>
-                          <p className="card-text small">
-                            {cleanQuestionText(course.details || "").substring(
-                              0,
-                              100,
-                            ) +
-                              (course.details && course.details.length > 100
-                                ? "..."
-                                : "")}
-                          </p>
+                              <h6
+                                className="card-title mb-1 related-course-card-title text-center"
+                                style={{
+                                  color: "#002341",
+                                  fontWeight: "600",
+                                  width: "100%",
+                                }}
+                              >
+                                <span className="course-name">
+                                  {course.name}
+                                </span>
+                                <br />
+                                <span className="course-full-form">
+                                  {course.full_form}
+                                </span>
+                              </h6>
+                            </Link>
+                            <p className="card-text small">
+                              {cleanQuestionText(
+                                course.details || "",
+                              ).substring(0, 100) +
+                                (course.details && course.details.length > 100
+                                  ? "..."
+                                  : "")}
+                            </p>
+                          </div>
                         </div>
-                      </div>
+                      </Link>
                     ))}
                   </div>
                 )}

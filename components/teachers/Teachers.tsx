@@ -48,10 +48,7 @@ export default function Teachers() {
   const homepageTutors = teachers.slice(0, 4);
 
   return (
-    <section
-      className="bg-white text-dark mt-5 px-3"
-      style={{ marginBottom: "100px" }}
-    >
+    <section className="bg-white text-dark my-5 px-3">
       <div className="text-center mb-4 position-relative">
         <h2 className="fw-bold display-5 d-inline-block pb-3 position-relative">
           Meet Our Teachers

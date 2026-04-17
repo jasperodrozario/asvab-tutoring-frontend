@@ -61,9 +61,9 @@ export default function PrivacyPolicyPage() {
   const pageTitle = policy?.title || "Privacy Policy";
 
   return (
-    <section className="bg-light">
+    <section>
       {/* Banner */}
-      <div className="banner bg-black bg-opacity-50 py-3 px-4 rounded flex flex-col items-center text-center mb-5">
+      <div className="banner bg-black bg-opacity-50 py-3 px-4 rounded-bottom flex flex-col items-center text-center mb-5">
         <h1 className="text-white mb-2 text-3xl font-bold">{pageTitle}</h1>
         <Breadcrumb
           segments={["privacy-policy"]}
@@ -73,7 +73,7 @@ export default function PrivacyPolicyPage() {
       </div>
 
       {/* Content */}
-      <div className="container py-4">
+      <div className="container mb-5">
         {loading ? (
           <p>Loading...</p>
         ) : policy ? (

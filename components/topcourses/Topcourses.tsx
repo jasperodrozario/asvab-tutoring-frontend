@@ -13,6 +13,7 @@ interface Course {
   course_id: string;
   course_code: string;
   name: string;
+  full_form: string;
   details: string;
   image_src: string;
 }
@@ -147,13 +148,15 @@ const CourseCard = ({ course }: { course: Course }) => (
         height={210}
       />
       <div className="card-body d-flex flex-column">
-        <h5 className="card-title fw-semibold text-dark">
-          {course.name || course.course_code}
+        <h5 className="card-title fw-semibold text-dark text-center">
+          <span className="course-name">{course.name}</span>
+          <br />
+          <span className="course-full-form">{course.full_form}</span>
         </h5>
         <p className="card-text small text-dark">
           {getPlainTextPreview(course.details, 100)}
         </p>
-        <div className="text-center mt-auto">
+        <div className="text-center">
           <button className="btn btn-secondary-custom btn-sm w-50">
             LEARN MORE
           </button>

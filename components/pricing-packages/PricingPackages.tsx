@@ -14,6 +14,7 @@ interface CourseItem {
   name: string;
   image_src: string;
   price_range: string;
+  full_form: string;
 }
 
 type Props = {
@@ -89,7 +90,7 @@ const PricingPackages: React.FC<Props> = ({
 
   const subTextMap: Record<Submenu, string> = {
     one: "Choose from our personalized 1-on-1 tutoring packages.",
-    group: "Select from our group tutoring options.",
+    group: "Choose from one of our group tutoring packages.",
     subscribe:
       "Choose a self-study plan for full access to study materials and practice tests.",
   };
@@ -156,12 +157,21 @@ const PricingPackages: React.FC<Props> = ({
                       width={400}
                       height={250}
                       className="card-img-top"
-                      style={{ width: "100%", height: "auto", aspectRatio: "4 / 3", objectFit: "cover" }}
+                      style={{
+                        width: "100%",
+                        height: "auto",
+                        aspectRatio: "4 / 3",
+                        objectFit: "cover",
+                      }}
                     />
 
                     <div className="card-body text-start">
-                      <h5 className="card-title fw-bold text-primary">
-                        {pkg.name}
+                      <h5 className="card-title fw-bold text-primary text-center">
+                        <span className="course-name">{pkg.name}</span>
+                        <br />
+                        <span className="course-full-form">
+                          {pkg.full_form}
+                        </span>
                       </h5>
 
                       <p className="card-text fw-semibold">{pkg.price_range}</p>
