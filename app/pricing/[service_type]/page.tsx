@@ -38,7 +38,7 @@ export default async function PricingPage({
       case "group-tutoring":
         return "Group Tutoring";
       case "self-study":
-        return "Subscribe";
+        return "Subscription";
       default:
         return "Unknown";
     }

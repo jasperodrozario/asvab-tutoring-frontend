@@ -135,10 +135,8 @@ export default function PricingPackages({
     return <p className="text-center py-5">Loading...</p>;
   }
 
-  console.log(courseData);
-
   return (
-    <main className="pt-5">
+    <main style={{ paddingTop: 35 }}>
       {/* Top Section */}
       {/* <section className="py-5 bg-white">
         <div className="container">

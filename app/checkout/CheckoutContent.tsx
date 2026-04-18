@@ -469,7 +469,7 @@ export default function CheckoutContent() {
     mode === "subscription" ? "Subscription Checkout" : "Checkout";
   const pageSub =
     mode === "subscription"
-      ? "Your subscription will renew automatically based on your plan."
+      ? "Your subscription will renew automatically after 30 days."
       : "One-time payment for your selected package.";
 
   const TermsCheckbox = () => (
@@ -505,23 +505,23 @@ export default function CheckoutContent() {
     emailChecking || emailExists || !looksLikeEmail(user.email);
 
   return (
-    <div className="container py-5" style={{ maxWidth: 1100 }}>
-      <div className="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
-        <div>
-          <h1 className="fw-bold mb-1">{pageTitle}</h1>
-          <p className="text-muted mb-0">{pageSub}</p>
+    <div className="container pb-5" style={{ maxWidth: 1100, paddingTop: 33 }}>
+      <div className="row flex-column align-items-center mb-4">
+        <div className="col-12 col-lg-6">
+          <h1 className="fw-bold mb-2 text-center">{pageTitle}</h1>
+          <div className="fw-bold mb-2" style={{ fontSize: 24 }}>
+            <span className="text-muted fw-normal" style={{ fontSize: 24 }}>
+              Total:
+            </span>{" "}
+            ${amountDollarsForUI.toFixed(2)}
+          </div>
           {mode === "subscription" && (
-            <p className="text-muted small mb-0 mt-2">
+            <p className="text-muted small mb-1">
               Plan: <span className="fw-semibold">{product}</span> •{" "}
               <span className="fw-semibold">{cadenceLabel(cadence)}</span>
             </p>
           )}
-        </div>
-        <div className="text-end total-amount">
-          <div className="text-muted small">Total</div>
-          <div className="fw-bold" style={{ fontSize: 28 }}>
-            ${amountDollarsForUI.toFixed(2)}
-          </div>
+          <p className="text-muted mb-0 small">{pageSub}</p>
         </div>
       </div>
 
@@ -561,7 +561,7 @@ export default function CheckoutContent() {
                       </li>
                     </ul>
                   ) : (
-                    <div className="small text-muted">Card Payment</div>
+                    <div className="small text-muted py-2">Card Payment</div>
                   )}
                 </div>
               </div>
