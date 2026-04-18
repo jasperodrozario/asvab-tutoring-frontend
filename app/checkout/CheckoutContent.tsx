@@ -517,7 +517,7 @@ export default function CheckoutContent() {
             </p>
           )}
         </div>
-        <div className="text-end">
+        <div className="text-end total-amount">
           <div className="text-muted small">Total</div>
           <div className="fw-bold" style={{ fontSize: 28 }}>
             ${amountDollarsForUI.toFixed(2)}

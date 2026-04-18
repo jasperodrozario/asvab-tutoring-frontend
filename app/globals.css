@@ -724,6 +724,13 @@ input[type="radio"]:checked::before {
 
 /* End: Course detail page specific tab container styling */
 
+/* Start: Checkout Page Styling */
+@media (max-width: 449px) {
+  .total-amount {
+    text-align: start !important;
+  }
+}
+
 /* Start: Payment Method Tabs for Checkout Page */
 .checkout-tabs-container {
   display: flex !important;
