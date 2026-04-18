@@ -138,9 +138,9 @@ export default function PricingPackages({
   console.log(courseData);
 
   return (
-    <main>
+    <main className="pt-5">
       {/* Top Section */}
-      <section className="py-5 bg-white">
+      {/* <section className="py-5 bg-white">
         <div className="container">
           <div className="row align-items-center g-4">
             <div className="col-lg-6 text-center">
@@ -174,10 +174,10 @@ export default function PricingPackages({
 
               {renderTextWithLineBreaks(
                 cleanQuestionText(courseData.course_intro ?? ""),
-              )}
+              )} */}
 
-              {/* ✅ show ONLY for one-time payments */}
-              {showPaymentImage && (
+      {/* ✅ show ONLY for one-time payments */}
+      {/* {showPaymentImage && (
                 <div className="mt-4">
                   <img
                     src="/images/how_to_send_payment_20260204.png"
@@ -192,11 +192,11 @@ export default function PricingPackages({
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Pricing Packages */}
       {courseData.data?.map((pkg: any) => (
-        <section key={pkg.package_id} className="pb-5">
+        <section key={pkg.package_id}>
           <div className="container text-center">
             <h1 className={styles.heroTitle}>
               {decodeHtmlEntitiesDeep(pkg.title ?? "")}
@@ -251,13 +251,11 @@ export default function PricingPackages({
                           {decodeHtmlEntitiesDeep(session.title ?? "")}
                         </h4>
                       </div>
-
                       <div className={styles.priceWrap}>
                         <div className={styles.price}>
                           ${decodeHtmlEntitiesDeep(String(session.price ?? ""))}
                         </div>
                       </div>
-
                       <div className={styles.featureWrap}>
                         <div className={styles.featureBox}>
                           {renderTextWithLineBreaks(
@@ -320,21 +318,18 @@ export default function PricingPackages({
       </div>
 
       {/* Related Courses */}
-      <section className="pb-5 bg-white">
+      <section className="bg-white">
         <div className="container">
           <h5 className="mb-4 text-uppercase fs-3 fw-bold text-center">
             Related Packages
           </h5>
 
-          <div className="row g-4">
+          <div className={styles.relatedGrid}>
             {courseData.related_courses?.length > 0 ? (
               courseData.related_courses.map((rel: any) => (
-                <div
-                  key={rel.course_id}
-                  className="col-12 col-sm-6 col-md-4 col-lg-3 text-center"
-                >
+                <div key={rel.course_id} className={styles.relatedCardWrapper}>
                   <div
-                    className="card h-100 shadow-sm border-0 cursor-pointer related-course-card"
+                    className="card h-100 shadow-sm border-0 cursor-pointer related-course-card text-center"
                     style={{ borderRadius: "10px" }}
                     onClick={() =>
                       router.push(
