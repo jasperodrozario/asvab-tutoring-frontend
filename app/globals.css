@@ -485,6 +485,28 @@ td {
   text-decoration: none !important;
 }
 
+@media (max-width: 991px) {
+  .related-course-card {
+    width: 100%;
+  }
+  .related-courses-sidebar {
+    margin-top: 35px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .related-courses-sidebar > a {
+    width: 100%;
+    max-width: 500px;
+    text-decoration: none !important;
+  }
+  .related-courses-sidebar > h4 {
+    width: 100%;
+    max-width: 500px;
+    text-align: left;
+  }
+}
+
 .form-control {
   border-radius: 0.5rem;
 }

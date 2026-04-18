@@ -42,11 +42,8 @@ export default function NextStepCard({ service }: { service: string }) {
               flexShrink: 0,
             }}
           />
-          <h5
-            className="fw-bold"
-            style={{ marginTop: 5, color: "#f2a155" }}
-          >
-            Next Step
+          <h5 className="fw-bold" style={{ marginTop: 5, color: "#f2a155" }}>
+            Next Step After Payment
           </h5>
         </div>
         <div className="text-muted">

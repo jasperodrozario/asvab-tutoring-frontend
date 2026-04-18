@@ -30,7 +30,7 @@ export default function Home() {
       {/* Self Study Pricing */}
       <PricingPackages
         fixedSubmenu="subscribe"
-        sectionTitle="Self Study Pricing"
+        sectionTitle="Self-Study Pricing"
         homepageDescription="ASVAB Tutoring’s Self-Study Course offers expertly crafted study materials developed by highly experienced instructors. This program helps you strengthen core skills, improve your scores, understand key concepts clearly, and prepare with confidence for test day."
       />
 

@@ -69,6 +69,8 @@ export default function ServiceDetailContent({
     load();
   }, [serviceId]);
 
+  console.log(data);
+
   if (loading) {
     return (
       <div className="container py-5 text-center">

@@ -85,7 +85,7 @@ const PricingPackages: React.FC<Props> = ({
   const defaultTitleMap: Record<Submenu, string> = {
     one: "1-on-1 Tutoring Packages",
     group: "Group Tutoring Packages",
-    subscribe: "Self Study Packages",
+    subscribe: "Self-Study Packages",
   };
 
   const subTextMap: Record<Submenu, string> = {
@@ -178,12 +178,14 @@ const PricingPackages: React.FC<Props> = ({
                       </h5>
 
                       <p className="card-text fw-semibold">
-                        {(pkg.price_range ?? "").split(" (").map((part: string, i: number) => (
-                          <React.Fragment key={i}>
-                            {i > 0 && <br />}
-                            {i > 0 ? `(${part}` : part}
-                          </React.Fragment>
-                        ))}
+                        {(pkg.price_range ?? "")
+                          .split(" (")
+                          .map((part: string, i: number) => (
+                            <React.Fragment key={i}>
+                              {i > 0 && <br />}
+                              {i > 0 ? `(${part}` : part}
+                            </React.Fragment>
+                          ))}
                       </p>
 
                       <div className="text-center">
