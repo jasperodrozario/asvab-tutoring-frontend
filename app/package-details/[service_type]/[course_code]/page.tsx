@@ -318,8 +318,8 @@ export default function PricingPackages({
       {/* Related Courses */}
       <section className="bg-white">
         <div className="container">
-          <h5 className="mb-4 text-uppercase fs-3 fw-bold text-center">
-            Related Packages
+          <h5 className="fs-3 fw-bold text-center" style={{ color: "#e58a34" }}>
+            Other Packages
           </h5>
 
           <div className={styles.relatedGrid}>

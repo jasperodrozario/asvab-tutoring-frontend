@@ -286,7 +286,7 @@ const CourseDetailPage: React.FC = () => {
                   border: "1px solid #cfd4d8",
                   borderRadius: "8px",
                   padding: "10px 18px 0px 18px",
-                  marginBottom: "24px",
+                  marginBottom: "10px",
                   minHeight: "740px",
                 }}
               >
@@ -451,15 +451,19 @@ const CourseDetailPage: React.FC = () => {
                     className="related-courses-sidebar sticky-top p-lg-0 mt-lg-0"
                     style={{ top: "120px" }}
                   >
-                    <h4 className="fw-bold" style={{ color: "#e58a34" }}>
-                      Related Courses
+                    <h4 className="fs-3 fw-bold" style={{ color: "#e58a34" }}>
+                      Other Courses
                       {location && ` ${location.replace(/-/g, " ")}`}
                     </h4>
                     {courseData.related_courses.map((course, i) => (
                       <Link
                         href={`/courses/${encodeURIComponent(course.course_code)}`}
                       >
-                        <div key={i} className="card mb-3 related-course-card">
+                        <div
+                          key={i}
+                          className="card related-course-card"
+                          style={{ marginTop: "10px" }}
+                        >
                           <img
                             src={course.image || "/img/default-course.jpg"}
                             alt={course.name}
