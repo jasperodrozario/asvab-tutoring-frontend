@@ -2,7 +2,13 @@
 
 import React, { useState } from "react";
 
-export default function NextStepCard({ service }: { service: string }) {
+export default function NextStepCard({
+  service,
+  className,
+}: {
+  service: string;
+  className?: string;
+}) {
   const [emailCopied, setEmailCopied] = useState(false);
 
   const handleCopyEmail = async () => {
@@ -19,7 +25,7 @@ export default function NextStepCard({ service }: { service: string }) {
 
   return (
     <div
-      className="rounded-3 p-4 mt-4 text-start"
+      className={`rounded-3 p-4 mt-4 text-start ${className}`}
       style={{
         backgroundColor: "#fff9e7",
         borderLeft: "4px solid #f2a155",

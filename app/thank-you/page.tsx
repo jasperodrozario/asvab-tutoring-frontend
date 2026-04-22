@@ -101,7 +101,7 @@ export default async function ThankYouPage({
               <div className="card-body p-4 p-md-5">
                 <div className="mb-4">{messageBlocks}</div>
 
-                <NextStepCard service={service} />
+                <NextStepCard service={service} className={"mb-4"} />
 
                 <div className="d-flex flex-column flex-sm-row gap-2">
                   <Link
