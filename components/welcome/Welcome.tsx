@@ -5,6 +5,7 @@ import Image from "next/image";
 import IntroText from "../intro-text/IntroText";
 import Link from "next/link";
 import NoticeContent from "@/components/notice-content/NoticeContent";
+import TutorRequestSuccessModal from "../tutor-request-success-modal/TutorRequestSuccessModal";
 
 interface State {
   id: string;
@@ -25,6 +26,7 @@ export default function Welcome() {
     message: "",
   });
   const [submitting, setSubmitting] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // ✅ Inline status message (no alerts)
   const [status, setStatus] = useState<{
@@ -146,11 +148,7 @@ export default function Welcome() {
       const data = parsed.data;
 
       if (data?.isSuccess) {
-        setStatus({
-          type: "success",
-          text: "Tutor request submitted successfully! We’ll contact you soon.",
-        });
-
+        setShowSuccessModal(true);
         setForm({ name: "", email: "", phone: "", state_id: "", message: "" });
       } else {
         setStatus({
@@ -338,6 +336,11 @@ export default function Welcome() {
 
       {/* Welcome Section */}
       <IntroText />
+
+      <TutorRequestSuccessModal
+        show={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+      />
     </>
   );
 }
