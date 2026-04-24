@@ -16,7 +16,6 @@ type PackageItem = {
   is_most_popular?: boolean;
   ord?: number;
 
-  // If you later add it in PHP, this will start working automatically
   plan_variation_id?: string;
 
   // optional
@@ -293,6 +292,7 @@ export default function SubscribeAgainClient() {
                         borderRadius: 14,
                         border: isSel ? "2px solid #111" : "1px solid #ddd",
                         background: "#fff",
+                        color: "#111",
                         cursor: "pointer",
                       }}
                     >

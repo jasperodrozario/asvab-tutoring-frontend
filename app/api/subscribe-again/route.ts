@@ -25,14 +25,20 @@ function safeJsonParse(text: string) {
 }
 
 function squareBaseUrl() {
-  const env = safeStr(process.env.SQUARE_ENVIRONMENT || "sandbox", 20).toLowerCase();
+  const env = safeStr(
+    process.env.SQUARE_ENVIRONMENT || "sandbox",
+    20,
+  ).toLowerCase();
   return env === "production"
     ? "https://connect.squareup.com"
     : "https://connect.squareupsandbox.com";
 }
 
 function currentSquareEnvironment() {
-  const env = safeStr(process.env.SQUARE_ENVIRONMENT || "sandbox", 20).toLowerCase();
+  const env = safeStr(
+    process.env.SQUARE_ENVIRONMENT || "sandbox",
+    20,
+  ).toLowerCase();
   return env === "production" ? "production" : "sandbox";
 }
 
@@ -76,7 +82,7 @@ function parsePhpJson(raw: string) {
 async function fetchWithTimeout(
   input: RequestInfo | URL,
   init: RequestInit,
-  timeoutMs: number
+  timeoutMs: number,
 ) {
   const controller = new AbortController();
   const t = setTimeout(() => controller.abort(), timeoutMs);
@@ -90,7 +96,7 @@ async function fetchWithTimeout(
 
 const PHP_API_URL = safeStr(
   process.env.NEXT_PUBLIC_PHP_API_URL || process.env.PHP_API_URL || "",
-  800
+  800,
 );
 
 type PhpResult = {
@@ -125,7 +131,7 @@ async function callPhp(payload: Record<string, any>): Promise<PhpResult> {
         body: form.toString(),
         cache: "no-store",
       },
-      20_000
+      20_000,
     );
 
     const raw = await resp.text().catch(() => "");
@@ -156,7 +162,12 @@ async function callPhp(payload: Record<string, any>): Promise<PhpResult> {
   }
 }
 
-type SquareResp = { ok: boolean; status: number; data: any; configError?: boolean };
+type SquareResp = {
+  ok: boolean;
+  status: number;
+  data: any;
+  configError?: boolean;
+};
 
 function squareConfig() {
   const accessToken = safeStr(process.env.SQUARE_ACCESS_TOKEN || "", 1200);
@@ -201,7 +212,7 @@ async function squarePost(path: string, body: any): Promise<SquareResp> {
         body: JSON.stringify(body),
         cache: "no-store",
       },
-      20_000
+      20_000,
     );
 
     const text = await resp.text().catch(() => "");
@@ -228,7 +239,9 @@ type ResolvedPlanVariation = {
   raw: any;
 };
 
-async function getPlanVariationBySessionId(sessionId: string | number): Promise<ResolvedPlanVariation> {
+async function getPlanVariationBySessionId(
+  sessionId: string | number,
+): Promise<ResolvedPlanVariation> {
   const session_id = safeStr(sessionId, 60);
 
   if (!session_id) {
@@ -328,7 +341,7 @@ async function enrichPackagesWithPlanVariationIds(packages: any[]) {
           pkg?.sandbox_plan_variation_id ??
           "",
       };
-    })
+    }),
   );
 
   return enriched;
@@ -402,7 +415,7 @@ function pickSubscriptionFields(sub: any) {
   const start_date = safeStr(sub?.start_date || "", 20);
   const next_billing_date = safeStr(
     sub?.charged_through_date || sub?.next_billing_date || "",
-    20
+    20,
   );
 
   return { subscription_id, status, start_date, next_billing_date };
@@ -438,14 +451,17 @@ export async function GET(req: NextRequest) {
     if (!php.parse_ok || !php.http_ok) {
       return json(502, {
         ok: false,
-        message: "We couldn't load your subscription options right now. Please try again shortly.",
+        message:
+          "We couldn't load your subscription options right now. Please try again shortly.",
       });
     }
 
     if (!php.data?.ok) {
       return json(400, {
         ok: false,
-        message: php.data?.message || "We couldn't load your subscription options. Please try again.",
+        message:
+          php.data?.message ||
+          "We couldn't load your subscription options. Please try again.",
       });
     }
 
@@ -476,7 +492,7 @@ export async function GET(req: NextRequest) {
  * ------------------------------------------------------ */
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json().catch(() => ({} as any));
+    const body = await req.json().catch(() => ({}) as any);
 
     const auth_token = safeStr(body?.auth_token || "", 400);
     const user_id_from_client = safeStr(body?.user_id || "", 60);
@@ -486,7 +502,10 @@ export async function POST(req: NextRequest) {
     // Prefer session_id from client.
     // Keep plan_variation_id only for backward compatibility in validation response.
     const session_id = safeStr(body?.session_id || "", 60);
-    const incoming_plan_variation_id = safeStr(body?.plan_variation_id || "", 120);
+    const incoming_plan_variation_id = safeStr(
+      body?.plan_variation_id || "",
+      120,
+    );
 
     if (!auth_token || !user_id_from_client) {
       return json(400, {
@@ -512,7 +531,8 @@ export async function POST(req: NextRequest) {
     if (!PHP_API_URL) {
       return json(500, {
         ok: false,
-        message: "Subscription service is not configured properly. Please contact support.",
+        message:
+          "Subscription service is not configured properly. Please contact support.",
       });
     }
 
@@ -527,7 +547,8 @@ export async function POST(req: NextRequest) {
     if (!ctx.parse_ok || !ctx.http_ok || !ctx.data?.ok) {
       return json(502, {
         ok: false,
-        message: "We couldn't verify your subscription options right now. Please try again shortly.",
+        message:
+          "We couldn't verify your subscription options right now. Please try again shortly.",
       });
     }
 
@@ -539,26 +560,31 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const pkgs: any[] = Array.isArray(ctx.data?.packages) ? ctx.data.packages : [];
+    const pkgs: any[] = Array.isArray(ctx.data?.packages)
+      ? ctx.data.packages
+      : [];
 
     let picked: any = null;
 
     if (session_id) {
       picked =
-        pkgs.find((p) => safeStr(p?.session_id || "", 60) === session_id) || null;
+        pkgs.find((p) => safeStr(p?.session_id || "", 60) === session_id) ||
+        null;
     } else if (incoming_plan_variation_id) {
       const enrichedPkgs = await enrichPackagesWithPlanVariationIds(pkgs);
       picked =
         enrichedPkgs.find(
           (p) =>
-            safeStr(p?.plan_variation_id || "", 120) === incoming_plan_variation_id
+            safeStr(p?.plan_variation_id || "", 120) ===
+            incoming_plan_variation_id,
         ) || null;
     }
 
     if (!picked) {
       return json(400, {
         ok: false,
-        message: "That subscription option is not available. Please select another plan.",
+        message:
+          "That subscription option is not available. Please select another plan.",
       });
     }
 
@@ -576,17 +602,20 @@ export async function POST(req: NextRequest) {
     if (!planLookup.ok || !planLookup.plan_variation_id) {
       return json(400, {
         ok: false,
-        message: "We couldn't find the plan variation for the selected package. Please try again.",
+        message:
+          "We couldn't find the plan variation for the selected package. Please try again.",
       });
     }
 
     const plan_variation_id = planLookup.plan_variation_id;
 
-    const amountRaw = picked?.amount_cents ?? picked?.price ?? planLookup.price ?? 0;
+    const amountRaw =
+      picked?.amount_cents ?? picked?.price ?? planLookup.price ?? 0;
     let amount_cents = 0;
 
     if (typeof amountRaw === "number" && Number.isFinite(amountRaw)) {
-      amount_cents = amountRaw > 999 ? Math.round(amountRaw) : Math.round(amountRaw * 100);
+      amount_cents =
+        amountRaw > 999 ? Math.round(amountRaw) : Math.round(amountRaw * 100);
     } else {
       const parsed = Number(String(amountRaw).replace(/[^0-9.]/g, ""));
       amount_cents = Number.isFinite(parsed)
@@ -606,12 +635,18 @@ export async function POST(req: NextRequest) {
     const currency =
       safeStr(picked?.currency || planLookup.currency || "USD", 10) || "USD";
     const title =
-      safeStr(picked?.title || planLookup.title || "Subscription", 120) || "Subscription";
+      safeStr(picked?.title || planLookup.title || "Subscription", 120) ||
+      "Subscription";
 
     // 3) Validate auth token and get Square customer id
     const who = await callPhp({ action: "auth-token-lookup", auth_token });
 
-    if (!who.parse_ok || !who.http_ok || !who.data?.ok || !who.data?.user?.user_id) {
+    if (
+      !who.parse_ok ||
+      !who.http_ok ||
+      !who.data?.ok ||
+      !who.data?.user?.user_id
+    ) {
       return json(401, {
         ok: false,
         message: "Your session has expired. Please sign in again.",
@@ -626,11 +661,15 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const square_customer_id = safeStr(who.data.user.square_customer_id || "", 140);
+    const square_customer_id = safeStr(
+      who.data.user.square_customer_id || "",
+      140,
+    );
     if (!square_customer_id) {
       return json(400, {
         ok: false,
-        message: "We couldn't find a payment profile for this account. Please contact support.",
+        message:
+          "We couldn't find a payment profile for this account. Please contact support.",
       });
     }
 
@@ -643,7 +682,8 @@ export async function POST(req: NextRequest) {
     if (cardRes.configError) {
       return json(500, {
         ok: false,
-        message: "Payment service is not configured properly. Please contact support.",
+        message:
+          "Payment service is not configured properly. Please contact support.",
       });
     }
 
@@ -668,7 +708,8 @@ export async function POST(req: NextRequest) {
     if (!cfg.ok || !cfg.locationId) {
       return json(500, {
         ok: false,
-        message: "Payment service is not configured properly. Please contact support.",
+        message:
+          "Payment service is not configured properly. Please contact support.",
       });
     }
 
@@ -684,7 +725,8 @@ export async function POST(req: NextRequest) {
     if (orderRes.configError) {
       return json(500, {
         ok: false,
-        message: "Payment service is not configured properly. Please contact support.",
+        message:
+          "Payment service is not configured properly. Please contact support.",
       });
     }
 
@@ -717,7 +759,8 @@ export async function POST(req: NextRequest) {
     if (subRes.configError) {
       return json(500, {
         ok: false,
-        message: "Payment service is not configured properly. Please contact support.",
+        message:
+          "Payment service is not configured properly. Please contact support.",
       });
     }
 
@@ -736,7 +779,8 @@ export async function POST(req: NextRequest) {
     if (!subscription_id) {
       return json(500, {
         ok: false,
-        message: "We couldn't finalize your subscription. Please contact support.",
+        message:
+          "We couldn't finalize your subscription. Please contact support.",
       });
     }
 
@@ -751,7 +795,9 @@ export async function POST(req: NextRequest) {
       selected: {
         session_id: picked_session_id,
         course_id,
-        package_id: safeStr(picked?.package_id || planLookup.package_id || "", 60) || null,
+        package_id:
+          safeStr(picked?.package_id || planLookup.package_id || "", 60) ||
+          null,
         title,
         price:
           safeStr(picked?.price || planLookup.price || "", 40) ||
@@ -769,7 +815,8 @@ export async function POST(req: NextRequest) {
   } catch {
     return json(500, {
       ok: false,
-      message: "We couldn't create your subscription right now. Please try again.",
+      message:
+        "We couldn't create your subscription right now. Please try again.",
     });
   }
 }
