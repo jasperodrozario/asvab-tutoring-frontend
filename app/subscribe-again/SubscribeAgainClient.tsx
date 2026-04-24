@@ -326,7 +326,7 @@ export default function SubscribeAgainClient() {
                         ${dollarsFromCents(cents)}
                       </div>
 
-                      {feature ? (
+                      {feature && feature !== "none" ? (
                         <div style={{ marginTop: 6, opacity: 0.85 }}>
                           {feature}
                         </div>
