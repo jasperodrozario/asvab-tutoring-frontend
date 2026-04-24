@@ -330,7 +330,9 @@ export default function SubscribeAgainClient() {
                         <div style={{ marginTop: 6, opacity: 0.85 }}>
                           {feature}
                         </div>
-                      ) : null}
+                      ) : (
+                        ""
+                      )}
 
                       {!String(p.plan_variation_id || "").trim() ? (
                         <div
