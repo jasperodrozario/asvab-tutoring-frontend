@@ -1,5 +1,6 @@
 // app/api/payment/route.ts
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 
 export const runtime = "nodejs";
 
@@ -122,6 +123,11 @@ export async function POST(req: NextRequest) {
     const package_id = body?.package_id;
     const user = body?.user || {};
 
+    // Get Referral Data from Cookies
+    const cookieStore = await cookies();
+    const ref_code = cookieStore.get("ref_code")?.value || "";
+    const ref_type = cookieStore.get("ref_type")?.value || "";
+
     if (!sourceId) {
       return json(400, {
         success: false,
@@ -193,6 +199,18 @@ export async function POST(req: NextRequest) {
 
     if (user?.email) {
       squarePayload.buyer_email_address = safeStr(user.email, 120);
+    }
+
+    if (user?.first_name || user?.last_name) {
+      squarePayload.note = safeStr(
+        `Payment from ${user?.first_name || ""} ${user?.last_name || ""}`.trim(),
+        500,
+      );
+
+      squarePayload.billing_address = {
+        first_name: safeStr(user?.first_name, 100),
+        last_name: safeStr(user?.last_name, 100),
+      };
     }
 
     const squareRes = await fetch(squareUrl, {
@@ -274,6 +292,10 @@ export async function POST(req: NextRequest) {
         email: safeStr(user?.email ?? "", 120),
         mobile: safeStr(user?.mobile ?? "", 40),
         password: safeStr(user?.password ?? "", 200),
+
+        // Referral Data
+        ref_code: safeStr(ref_code, 50),
+        ref_type: safeStr(ref_type, 50),
       });
 
       try {

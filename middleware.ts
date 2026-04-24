@@ -15,11 +15,12 @@ export function middleware(request: NextRequest) {
 
   let response = NextResponse.next();
 
+  // Handle Referral Logic
   response = handleReferral(request, response);
 
   return response;
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };
