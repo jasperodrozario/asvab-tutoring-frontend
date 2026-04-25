@@ -133,15 +133,24 @@ export default function Welcome() {
 
     if (name === "phone") {
       const cleaned = value.replace(/\D/g, "");
-      setForm((prev) => ({ ...prev, [name]: cleaned }));
-
-      // Active validation for phone
       if (cleaned.length > 10) {
         setFieldErrors((prev) => ({
           ...prev,
           phone: "Only 10 digits are allowed for US numbers.",
         }));
-      } else if (cleaned.length > 0 && cleaned.length < 10) {
+        // Revert to previous validation state after 2 seconds
+        setTimeout(() => {
+          setFieldErrors((prev) => ({
+            ...prev,
+            phone: validatePhone(form.phone),
+          }));
+        }, 2000);
+        return;
+      }
+      setForm((prev) => ({ ...prev, [name]: cleaned }));
+
+      // Active validation for phone
+      if (cleaned.length > 0 && cleaned.length < 10) {
         const err = validatePhone(cleaned);
         setFieldErrors((prev) => ({ ...prev, phone: err }));
       } else {
@@ -317,7 +326,6 @@ export default function Welcome() {
                       value={form.phone}
                       onChange={handleChange}
                       required
-                      maxLength={10}
                     />
                     {fieldErrors.phone && (
                       <div className="invalid-feedback">
