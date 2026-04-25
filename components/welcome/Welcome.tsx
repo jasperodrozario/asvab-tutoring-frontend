@@ -105,7 +105,14 @@ export default function Welcome() {
     >,
   ) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+
+    if (name === "phone") {
+      // Only allow numbers and max 10 digits
+      const cleaned = value.replace(/\D/g, "").slice(0, 10);
+      setForm((prev) => ({ ...prev, [name]: cleaned }));
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }));
+    }
 
     // ✅ remove old error as user edits
     if (status?.type === "error") setStatus(null);
@@ -245,15 +252,32 @@ export default function Welcome() {
 
                   <div className="mb-3">
                     <label className="form-label">Phone (US Only)</label>
-                    <input
-                      type="tel"
-                      className="form-control"
-                      placeholder="Phone"
-                      name="phone"
-                      value={form.phone}
-                      onChange={handleChange}
-                      required
-                    />
+                    <div className="input-group">
+                      <span
+                        className="input-group-text border-end-0"
+                        style={{
+                          borderRadius: "0.5rem 0 0 0.5rem",
+                          backgroundColor: "#ecececff",
+                          color: "#6c757d",
+                          fontWeight: "600",
+                        }}
+                      >
+                        US +1
+                      </span>
+                      <input
+                        type="tel"
+                        className="form-control border-start-0"
+                        style={{ borderRadius: "0 0.5rem 0.5rem 0" }}
+                        placeholder="10-digit number"
+                        name="phone"
+                        value={form.phone}
+                        onChange={handleChange}
+                        required
+                        maxLength={10}
+                        pattern="[0-9]{10}"
+                        title="Please enter a valid 10-digit US phone number"
+                      />
+                    </div>
                   </div>
 
                   <div className="mb-3">
