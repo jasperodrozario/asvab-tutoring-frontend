@@ -1,5 +1,6 @@
 // app/api/payment/route.ts
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 
 export const runtime = "nodejs";
 
@@ -19,9 +20,12 @@ function getEnv() {
       process.env.SQUARE_LOCATION_ID ||
         process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID ||
         "",
-      100
+      100,
     ),
-    environment: safeStr(process.env.SQUARE_ENVIRONMENT || "sandbox", 30).toLowerCase(),
+    environment: safeStr(
+      process.env.SQUARE_ENVIRONMENT || "sandbox",
+      30,
+    ).toLowerCase(),
     squareVersion: safeStr(process.env.SQUARE_VERSION || "2026-01-22", 50),
     phpApiUrl: safeStr(process.env.NEXT_PUBLIC_PHP_API_URL || "", 500),
     internalApiSecret: safeStr(process.env.INTERNAL_API_SECRET || "", 200),
@@ -48,9 +52,7 @@ function getSourceId(raw: any): string {
 
 function getUserSafeSquareMessage(squareData: any): string {
   const detail =
-    squareData?.errors?.[0]?.detail ||
-    squareData?.errors?.[0]?.message ||
-    "";
+    squareData?.errors?.[0]?.detail || squareData?.errors?.[0]?.message || "";
 
   const d = String(detail).toLowerCase();
 
@@ -94,8 +96,10 @@ export async function POST(req: NextRequest) {
 
       return json(500, {
         success: false,
-        error: "Payment service is not configured properly. Please contact support.",
-        message: "Payment service is not configured properly. Please contact support.",
+        error:
+          "Payment service is not configured properly. Please contact support.",
+        message:
+          "Payment service is not configured properly. Please contact support.",
       });
     }
 
@@ -119,6 +123,11 @@ export async function POST(req: NextRequest) {
     const package_id = body?.package_id;
     const user = body?.user || {};
 
+    // Get Referral Data from Cookies
+    const cookieStore = await cookies();
+    const ref_code = cookieStore.get("ref_code")?.value || "";
+    const ref_type = cookieStore.get("ref_type")?.value || "";
+
     if (!sourceId) {
       return json(400, {
         success: false,
@@ -131,16 +140,50 @@ export async function POST(req: NextRequest) {
     if (!Number.isFinite(amountCents) || amountCents <= 0) {
       return json(400, {
         success: false,
-        error: "The payment amount looks incorrect. Please reload the page and try again.",
-        message: "The payment amount looks incorrect. Please reload the page and try again.",
+        error:
+          "The payment amount looks incorrect. Please reload the page and try again.",
+        message:
+          "The payment amount looks incorrect. Please reload the page and try again.",
       });
     }
 
     const amountCentsInt = Math.round(amountCents);
 
+    // 1) Create Customer permanently in Square
+    let customerId: string | undefined = undefined;
+    try {
+      const customerUrl = `${getSquareBaseUrl(environment)}/v2/customers`;
+      const customerPayload = {
+        idempotency_key: crypto.randomUUID(),
+        given_name: safeStr(user?.first_name, 100),
+        family_name: safeStr(user?.last_name, 100),
+        email_address: safeStr(user?.email, 120),
+        reference_id: safeStr(user?.id || "", 100), // Optional link to system's ID
+      };
+
+      const customerRes = await fetch(customerUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+          "Square-Version": squareVersion,
+        },
+        body: JSON.stringify(customerPayload),
+      });
+
+      if (customerRes.ok) {
+        const customerData = await customerRes.json();
+        customerId = customerData?.customer?.id;
+      }
+    } catch (err) {
+      console.error("[/api/payment] Failed to create Square customer", err);
+      // We continue with the payment even if customer creation fails
+    }
+
+    // 2) Process Payment and link to Customer
     const squareUrl = `${getSquareBaseUrl(environment)}/v2/payments`;
 
-    const squarePayload = {
+    const squarePayload: any = {
       source_id: sourceId,
       idempotency_key: crypto.randomUUID(),
       amount_money: {
@@ -149,6 +192,26 @@ export async function POST(req: NextRequest) {
       },
       location_id: locationId,
     };
+
+    if (customerId) {
+      squarePayload.customer_id = customerId;
+    }
+
+    if (user?.email) {
+      squarePayload.buyer_email_address = safeStr(user.email, 120);
+    }
+
+    if (user?.first_name || user?.last_name) {
+      squarePayload.note = safeStr(
+        `Payment from ${user?.first_name || ""} ${user?.last_name || ""}`.trim(),
+        500,
+      );
+
+      squarePayload.billing_address = {
+        first_name: safeStr(user?.first_name, 100),
+        last_name: safeStr(user?.last_name, 100),
+      };
+    }
 
     const squareRes = await fetch(squareUrl, {
       method: "POST",
@@ -196,8 +259,10 @@ export async function POST(req: NextRequest) {
 
       return json(400, {
         success: false,
-        error: "Your payment was not approved. Please try again or use a different card.",
-        message: "Your payment was not approved. Please try again or use a different card.",
+        error:
+          "Your payment was not approved. Please try again or use a different card.",
+        message:
+          "Your payment was not approved. Please try again or use a different card.",
       });
     }
 
@@ -227,6 +292,10 @@ export async function POST(req: NextRequest) {
         email: safeStr(user?.email ?? "", 120),
         mobile: safeStr(user?.mobile ?? "", 40),
         password: safeStr(user?.password ?? "", 200),
+
+        // Referral Data
+        ref_code: safeStr(ref_code, 50),
+        ref_type: safeStr(ref_type, 50),
       });
 
       try {
@@ -291,8 +360,10 @@ export async function POST(req: NextRequest) {
 
     return json(500, {
       success: false,
-      error: "We couldn't process your payment right now. Please try again in a moment.",
-      message: "We couldn't process your payment right now. Please try again in a moment.",
+      error:
+        "We couldn't process your payment right now. Please try again in a moment.",
+      message:
+        "We couldn't process your payment right now. Please try again in a moment.",
     });
   }
 }

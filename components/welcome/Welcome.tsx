@@ -5,6 +5,7 @@ import Image from "next/image";
 import IntroText from "../intro-text/IntroText";
 import Link from "next/link";
 import NoticeContent from "@/components/notice-content/NoticeContent";
+import TutorRequestSuccessModal from "../tutor-request-success-modal/TutorRequestSuccessModal";
 
 interface State {
   id: string;
@@ -25,12 +26,38 @@ export default function Welcome() {
     message: "",
   });
   const [submitting, setSubmitting] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  // ✅ Inline status message (no alerts)
   const [status, setStatus] = useState<{
     type: StatusType;
     text: string;
   } | null>(null);
+
+  const [fieldErrors, setFieldErrors] = useState({
+    phone: "",
+    email: "",
+  });
+
+  const validatePhone = (phone: string) => {
+    const digits = phone.replace(/\D/g, "");
+    if (digits.length === 0) return "Phone number is required.";
+    if (digits.length !== 10) return "Enter a valid 10-digit US number.";
+    if (/^(\d)\1{9}$/.test(digits)) return "Enter a valid US number."; // All same digits
+    if (digits[0] === "0" || digits[0] === "1")
+      return "Area code cannot start with 0 or 1.";
+    if (digits[3] === "0" || digits[3] === "1")
+      return "Exchange code cannot start with 0 or 1.";
+    return "";
+  };
+
+  const validateEmail = (email: string) => {
+    const re =
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    if (!email) return "Email is required.";
+    if (!re.test(String(email).toLowerCase()))
+      return "Please enter a valid email address.";
+    return "";
+  };
 
   // ✅ Safe JSON parser: avoids "unexpected character" crash
   const safeJson = async (res: Response) => {
@@ -103,7 +130,30 @@ export default function Welcome() {
     >,
   ) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+
+    if (name === "phone") {
+      const cleaned = value.replace(/\D/g, "");
+      setForm((prev) => ({ ...prev, [name]: cleaned }));
+
+      // Active validation for phone
+      if (cleaned.length > 10) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          phone: "Only 10 digits are allowed for US numbers.",
+        }));
+      } else if (cleaned.length > 0 && cleaned.length < 10) {
+        const err = validatePhone(cleaned);
+        setFieldErrors((prev) => ({ ...prev, phone: err }));
+      } else {
+        setFieldErrors((prev) => ({ ...prev, phone: validatePhone(cleaned) }));
+      }
+    } else if (name === "email") {
+      setForm((prev) => ({ ...prev, [name]: value }));
+      // Active validation for email
+      setFieldErrors((prev) => ({ ...prev, email: validateEmail(value) }));
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }));
+    }
 
     // ✅ remove old error as user edits
     if (status?.type === "error") setStatus(null);
@@ -114,6 +164,19 @@ export default function Welcome() {
 
     // ✅ clear previous message
     setStatus(null);
+
+    const phoneErr = validatePhone(form.phone);
+    const emailErr = validateEmail(form.email);
+
+    if (phoneErr || emailErr) {
+      setFieldErrors({ phone: phoneErr, email: emailErr });
+      setStatus({
+        type: "error",
+        text: "Please fix all the errors in the form before submitting.",
+      });
+      return;
+    }
+
     setSubmitting(true);
 
     try {
@@ -146,11 +209,7 @@ export default function Welcome() {
       const data = parsed.data;
 
       if (data?.isSuccess) {
-        setStatus({
-          type: "success",
-          text: "Tutor request submitted successfully! We’ll contact you soon.",
-        });
-
+        setShowSuccessModal(true);
         setForm({ name: "", email: "", phone: "", state_id: "", message: "" });
       } else {
         setStatus({
@@ -231,31 +290,40 @@ export default function Welcome() {
                   </div>
 
                   <div className="mb-3">
-                    <label className="form-label">
-                      Email (Use your valid email address)
-                    </label>
+                    <label className="form-label">Email</label>
                     <input
                       type="email"
-                      className="form-control"
-                      placeholder="Email"
+                      className={`form-control ${fieldErrors.email ? "is-invalid" : ""}`}
+                      placeholder="Enter a valid email address"
                       name="email"
                       value={form.email}
                       onChange={handleChange}
                       required
                     />
+                    {fieldErrors.email && (
+                      <div className="invalid-feedback">
+                        {fieldErrors.email}
+                      </div>
+                    )}
                   </div>
 
                   <div className="mb-3">
                     <label className="form-label">Phone (US Only)</label>
                     <input
                       type="tel"
-                      className="form-control"
-                      placeholder="Phone"
+                      className={`form-control ${fieldErrors.phone ? "is-invalid" : ""}`}
+                      placeholder="Enter a valid phone number"
                       name="phone"
                       value={form.phone}
                       onChange={handleChange}
                       required
+                      maxLength={10}
                     />
+                    {fieldErrors.phone && (
+                      <div className="invalid-feedback">
+                        {fieldErrors.phone}
+                      </div>
+                    )}
                   </div>
 
                   <div className="mb-3">
@@ -338,6 +406,11 @@ export default function Welcome() {
 
       {/* Welcome Section */}
       <IntroText />
+
+      <TutorRequestSuccessModal
+        show={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+      />
     </>
   );
 }
