@@ -85,8 +85,7 @@ export default function TutorRequestSuccessModal({
               className="text-center mb-3 text-muted"
               style={{ fontSize: "0.95rem", lineHeight: "1.5" }}
             >
-              Thanks for your request! We have successfully received your
-              request.{" "}
+              Thanks for your request.{" "}
               <span className="fw-bold text-dark">
                 Someone will contact you soon.
               </span>
