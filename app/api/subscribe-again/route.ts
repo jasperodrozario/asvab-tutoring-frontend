@@ -661,16 +661,43 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const square_customer_id = safeStr(
+    let square_customer_id = safeStr(
       who.data.user.square_customer_id || "",
       140,
     );
-    if (!square_customer_id) {
-      return json(400, {
-        ok: false,
-        message:
-          "We couldn't find a payment profile for this account. Please contact support.",
+
+    // 1) Check if user doesn't have a Square Customer Profile
+    if (square_customer_id === "" || !square_customer_id) {
+      // 2) We need an email and name to create a Square Customer Profile
+      const email = safeStr(who.data.user.email || "", 255);
+      const firstName = safeStr(who.data.user.first_name || "Student", 100);
+      const lastName = safeStr(who.data.user.last_name || "", 100);
+
+      if (!email) {
+        return json(400, {
+          ok: false,
+          message:
+            "An email address is required to create a new payment profile.",
+        });
+      }
+
+      // 3) Create the new Square Customer Profile
+      const customerRes = await squarePost("/v2/customers", {
+        idempotency_key: crypto.randomUUID(),
+        given_name: firstName,
+        family_name: lastName,
+        email_address: email,
       });
+
+      if (!customerRes.ok || !customerRes.data?.customer?.id) {
+        return json(400, {
+          ok: false,
+          message:
+            "We couldn't set up your payment profile. Please try again or contact support.",
+        });
+      }
+
+      square_customer_id = customerRes.data.customer.id;
     }
 
     // 4) Create card-on-file
@@ -781,6 +808,33 @@ export async function POST(req: NextRequest) {
         ok: false,
         message:
           "We couldn't finalize your subscription. Please contact support.",
+      });
+    }
+
+    // If the user didn't previously have a square_customer_id in the DB (old web user)
+    if (
+      !who.data.user.square_customer_id ||
+      who.data.user.square_customer_id === ""
+    ) {
+      const package_id = safeStr(
+        picked?.package_id || planLookup.package_id || "",
+        60,
+      );
+
+      await callPhp({
+        action: "web-user-registration-subscription",
+        course_id: course_id,
+        user_id: user_id_from_client,
+        subscription_date: start_date,
+        package_id: package_id,
+        session_id: picked_session_id,
+        raw_amount: amount_cents,
+        currency: currency,
+        status: status,
+        square_subscription_id: subscription_id,
+        square_customer_id: square_customer_id,
+        plan_variation_id: plan_variation_id,
+        auth_token: auth_token,
       });
     }
 
