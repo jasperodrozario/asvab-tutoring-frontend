@@ -68,6 +68,31 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState<Status>(null);
+  const [fieldErrors, setFieldErrors] = useState({
+    mobile: "",
+    email: "",
+  });
+
+  const validateMobile = (mobile: string) => {
+    const digits = mobile.replace(/\D/g, "");
+    if (digits.length === 0) return "Mobile number is required.";
+    if (digits.length !== 10) return "Enter a valid 10-digit US number.";
+    if (/^(\d)\1{9}$/.test(digits)) return "Enter a valid US number."; // All same digits
+    if (digits[0] === "0" || digits[0] === "1")
+      return "Area code cannot start with 0 or 1.";
+    if (digits[3] === "0" || digits[3] === "1")
+      return "Exchange code cannot start with 0 or 1.";
+    return "";
+  };
+
+  const validateEmail = (email: string) => {
+    const re =
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    if (!email) return "Email is required.";
+    if (!re.test(String(email).toLowerCase()))
+      return "Please enter a valid email address.";
+    return "";
+  };
 
   const servicesOptions = useMemo(() => {
     return Object.entries(servicesMap)
@@ -193,7 +218,43 @@ export default function RegisterPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setForm((p) => ({ ...p, [name]: value }));
+
+    if (name === "mobile") {
+      const cleaned = value.replace(/\D/g, "");
+      if (cleaned.length > 10) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          mobile: "Only 10 digits are allowed for US numbers.",
+        }));
+        // Revert to previous validation state after 2 seconds
+        setTimeout(() => {
+          setFieldErrors((prev) => ({
+            ...prev,
+            mobile: validateMobile(form.mobile),
+          }));
+        }, 2000);
+        return;
+      }
+      setForm((prev) => ({ ...prev, [name]: cleaned }));
+
+      // Active validation for mobile
+      if (cleaned.length > 0 && cleaned.length < 10) {
+        const err = validateMobile(cleaned);
+        setFieldErrors((prev) => ({ ...prev, mobile: err }));
+      } else {
+        setFieldErrors((prev) => ({
+          ...prev,
+          mobile: validateMobile(cleaned),
+        }));
+      }
+    } else if (name === "email") {
+      setForm((prev) => ({ ...prev, [name]: value }));
+      // Active validation for email
+      setFieldErrors((prev) => ({ ...prev, email: validateEmail(value) }));
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }));
+    }
+
     if (status?.type === "error") setStatus(null);
   };
 
@@ -214,7 +275,17 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStatus(null);
+    const mobileErr = validateMobile(form.mobile);
+    const emailErr = validateEmail(form.email);
+
+    if (mobileErr || emailErr) {
+      setFieldErrors({ mobile: mobileErr, email: emailErr });
+      setStatus({
+        type: "error",
+        text: "Please fix all the errors in the form before submitting.",
+      });
+      return;
+    }
 
     if (!courseId)
       return setStatus({ type: "error", text: "Please select a course." });
@@ -470,7 +541,7 @@ export default function RegisterPage() {
                   <div className="mb-3">
                     <input
                       type="email"
-                      className="form-control"
+                      className={`form-control ${fieldErrors.email ? "is-invalid" : ""}`}
                       name="email"
                       placeholder="Email address"
                       value={form.email}
@@ -478,17 +549,27 @@ export default function RegisterPage() {
                       required
                       style={{
                         borderRadius: 10,
-                        borderColor: "rgba(0,35,65,0.20)",
+                        borderColor: fieldErrors.email
+                          ? "#dc3545"
+                          : "rgba(0,35,65,0.20)",
                         padding: "12px 12px",
                       }}
                     />
+                    {fieldErrors.email && (
+                      <div
+                        className="invalid-feedback"
+                        style={{ fontSize: 13, fontWeight: 600 }}
+                      >
+                        {fieldErrors.email}
+                      </div>
+                    )}
                   </div>
 
                   {/* Mobile */}
                   <div className="mb-3">
                     <input
                       type="text"
-                      className="form-control"
+                      className={`form-control ${fieldErrors.mobile ? "is-invalid" : ""}`}
                       name="mobile"
                       placeholder="Mobile number"
                       value={form.mobile}
@@ -496,10 +577,20 @@ export default function RegisterPage() {
                       required
                       style={{
                         borderRadius: 10,
-                        borderColor: "rgba(0,35,65,0.20)",
+                        borderColor: fieldErrors.mobile
+                          ? "#dc3545"
+                          : "rgba(0,35,65,0.20)",
                         padding: "12px 12px",
                       }}
                     />
+                    {fieldErrors.mobile && (
+                      <div
+                        className="invalid-feedback"
+                        style={{ fontSize: 13, fontWeight: 600 }}
+                      >
+                        {fieldErrors.mobile}
+                      </div>
+                    )}
                   </div>
 
                   {/* Password */}
