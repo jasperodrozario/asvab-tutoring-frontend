@@ -77,7 +77,7 @@ export default function TutorRequestSuccessModal({
                 style={{ fontSize: "1.8rem", color: "#f2a155" }}
               ></i>
             </div>
-            <h5 className="fw-bold mb-0">Request Received!</h5>
+            <h5 className="fw-bold mb-0">Tutoring Request Received!</h5>
           </div>
 
           <div className="modal-body p-3 p-md-4">
