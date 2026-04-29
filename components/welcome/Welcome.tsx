@@ -263,7 +263,7 @@ export default function Welcome() {
                 ASTB, OAR, AFOQT, and SIFT
               </p>
 
-              <div className="mt-4 bg-white p-3 rounded shadow">
+              <div className="mt-4 bg-white rounded shadow pt-2 px-2">
                 <video
                   controls
                   poster="/images/asvab-video-poster.jpg"
