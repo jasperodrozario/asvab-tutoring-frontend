@@ -51,6 +51,7 @@ export default function RegisterPage() {
     email: "",
     mobile: "",
     password: "",
+    confirm_password: "",
   });
 
   const [courses, setCourses] = useState<Course[]>([]);
@@ -71,6 +72,7 @@ export default function RegisterPage() {
   const [fieldErrors, setFieldErrors] = useState({
     mobile: "",
     email: "",
+    confirm_password: "",
   });
 
   const validateMobile = (mobile: string) => {
@@ -91,6 +93,12 @@ export default function RegisterPage() {
     if (!email) return "Email is required.";
     if (!re.test(String(email).toLowerCase()))
       return "Please enter a valid email address.";
+    return "";
+  };
+
+  const validateConfirmPassword = (confirm: string, pass: string) => {
+    if (!confirm) return "Please confirm your password.";
+    if (confirm !== pass) return "Passwords do not match.";
     return "";
   };
 
@@ -251,6 +259,25 @@ export default function RegisterPage() {
       setForm((prev) => ({ ...prev, [name]: value }));
       // Active validation for email
       setFieldErrors((prev) => ({ ...prev, email: validateEmail(value) }));
+    } else if (name === "confirm_password") {
+      setForm((prev) => ({ ...prev, [name]: value }));
+      // Active validation for password match
+      setFieldErrors((prev) => ({
+        ...prev,
+        confirm_password: validateConfirmPassword(value, form.password),
+      }));
+    } else if (name === "password") {
+      setForm((prev) => ({ ...prev, [name]: value }));
+      // If user is typing in password field, also re-validate confirm_password if it's not empty
+      if (form.confirm_password) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          confirm_password: validateConfirmPassword(
+            form.confirm_password,
+            value,
+          ),
+        }));
+      }
     } else {
       setForm((prev) => ({ ...prev, [name]: value }));
     }
@@ -265,6 +292,8 @@ export default function RegisterPage() {
       !!form.email.trim() &&
       !!form.mobile.trim() &&
       !!form.password.trim() &&
+      !!form.confirm_password.trim() &&
+      form.password === form.confirm_password &&
       !!courseId &&
       serviceType !== "" &&
       !!sessionId &&
@@ -277,9 +306,17 @@ export default function RegisterPage() {
     e.preventDefault();
     const mobileErr = validateMobile(form.mobile);
     const emailErr = validateEmail(form.email);
+    const confirmErr = validateConfirmPassword(
+      form.confirm_password,
+      form.password,
+    );
 
-    if (mobileErr || emailErr) {
-      setFieldErrors({ mobile: mobileErr, email: emailErr });
+    if (mobileErr || emailErr || confirmErr) {
+      setFieldErrors({
+        mobile: mobileErr,
+        email: emailErr,
+        confirm_password: confirmErr,
+      });
       setStatus({
         type: "error",
         text: "Please fix all the errors in the form before submitting.",
@@ -631,6 +668,34 @@ export default function RegisterPage() {
                         <BsEye size={18} />
                       )}
                     </button>
+                  </div>
+
+                  {/* Confirm Password */}
+                  <div className="mb-3 position-relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      className={`form-control pe-5 ${fieldErrors.confirm_password ? "is-invalid" : ""}`}
+                      name="confirm_password"
+                      placeholder="Confirm password"
+                      value={form.confirm_password}
+                      onChange={handleChange}
+                      required
+                      style={{
+                        borderRadius: 10,
+                        borderColor: fieldErrors.confirm_password
+                          ? "#dc3545"
+                          : "rgba(0,35,65,0.20)",
+                        padding: "12px 12px",
+                      }}
+                    />
+                    {fieldErrors.confirm_password && (
+                      <div
+                        className="invalid-feedback"
+                        style={{ fontSize: 13, fontWeight: 600 }}
+                      >
+                        {fieldErrors.confirm_password}
+                      </div>
+                    )}
                   </div>
 
                   {/* ✅ Terms checkbox stays in your desired position (before Register), but more visible */}
