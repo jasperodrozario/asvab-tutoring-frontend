@@ -4,8 +4,9 @@ import Link from "next/link";
 
 interface SitemapItem {
   course_id: string;
-  course_name: string;
+  course_code: string;
   name: string;
+  city: string;
 }
 
 export default function SitemapPage() {
@@ -35,6 +36,8 @@ export default function SitemapPage() {
     fetchSitemap();
   }, []);
 
+  console.log(items);
+
   if (loading) return <p className="text-center mt-4">Loading sitemap...</p>;
 
   return (
@@ -52,7 +55,7 @@ export default function SitemapPage() {
         {items.map((item, index) => (
           <div key={index} className="col-12 col-md-6 col-lg-4">
             <Link
-              href={`/courses/${item.course_id}`}
+              href={`/online-courses/${item.city.toLowerCase().replace(/\s+/g, "-")}/${item.course_code}-tutor`}
               className="d-block text-decoration-none p-3 h-100 shadow-sm rounded bg-light text-dark hover-link"
             >
               {item.name}

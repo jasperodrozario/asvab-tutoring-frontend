@@ -457,10 +457,11 @@ const CourseDetailPage: React.FC = () => {
                     </h4>
                     {courseData.related_courses.map((course, i) => (
                       <Link
+                        key={course.course_id || i}
                         href={`/courses/${encodeURIComponent(course.course_code)}`}
+                        className="text-decoration-none"
                       >
                         <div
-                          key={i}
                           className="card related-course-card"
                           style={{ marginTop: "10px" }}
                         >
@@ -472,27 +473,22 @@ const CourseDetailPage: React.FC = () => {
                           />
 
                           <div className="card-body">
-                            <Link
-                              href={`/courses/${encodeURIComponent(course.course_code)}`}
-                              className="text-decoration-none"
+                            <h6
+                              className="card-title mb-1 related-course-card-title text-center"
+                              style={{
+                                color: "#002341",
+                                fontWeight: "600",
+                                width: "100%",
+                              }}
                             >
-                              <h6
-                                className="card-title mb-1 related-course-card-title text-center"
-                                style={{
-                                  color: "#002341",
-                                  fontWeight: "600",
-                                  width: "100%",
-                                }}
-                              >
-                                <span className="course-name">
-                                  {course.name}
-                                </span>
-                                <br />
-                                <span className="course-full-form">
-                                  {course.full_form}
-                                </span>
-                              </h6>
-                            </Link>
+                              <span className="course-name">
+                                {course.name}
+                              </span>
+                              <br />
+                              <span className="course-full-form">
+                                {course.full_form}
+                              </span>
+                            </h6>
                             <p className="card-text small">
                               {cleanQuestionText(
                                 course.details || "",
