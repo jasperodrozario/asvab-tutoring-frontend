@@ -453,7 +453,6 @@ const CourseDetailPage: React.FC = () => {
                   >
                     <h4 className="fs-3 fw-bold" style={{ color: "#e58a34" }}>
                       Other Courses
-                      {location && ` ${location.replace(/-/g, " ")}`}
                     </h4>
                     {courseData.related_courses.map((course, i) => (
                       <Link
@@ -481,9 +480,7 @@ const CourseDetailPage: React.FC = () => {
                                 width: "100%",
                               }}
                             >
-                              <span className="course-name">
-                                {course.name}
-                              </span>
+                              <span className="course-name">{course.name}</span>
                               <br />
                               <span className="course-full-form">
                                 {course.full_form}
