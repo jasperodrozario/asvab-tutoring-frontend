@@ -133,10 +133,10 @@ export default function ContactPage() {
 
       {/* ✅ Contact Section */}
       <div className="container py-5">
-        <div className="row g-5 justify-content-center">
+        <div className="row g-5 justify-content-center align-items-start">
           {/* Left Side */}
           <div className="col-lg-4">
-            <div className="p-4 bg-light rounded shadow-sm h-100">
+            <div className="p-4 bg-light rounded shadow-sm">
               <h3 className="fw-bold mb-3 text-primary">Get in Touch</h3>
 
               <p className="mb-2">
@@ -246,13 +246,15 @@ export default function ContactPage() {
                   />
                 </div>
 
-                <button
-                  type="submit"
-                  className="btn btn-primary-custom mt-4 px-5 py-2"
-                  disabled={submitting}
-                >
-                  {submitting ? "Submitting..." : "Submit"}
-                </button>
+                <div className="text-center">
+                  <button
+                    type="submit"
+                    className="btn btn-primary-custom mt-4 px-5 py-2"
+                    disabled={submitting}
+                  >
+                    {submitting ? "Submitting..." : "Submit"}
+                  </button>
+                </div>
               </form>
             </div>
           </div>

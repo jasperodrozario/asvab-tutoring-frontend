@@ -51,6 +51,18 @@ function makeExcerpt(html: string, max = 120): string {
   return text.slice(0, max).trim() + "...";
 }
 
+function slugify(text: string): string {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-") // Replace spaces with -
+    .replace(/[^\w\-]+/g, "") // Remove all non-word chars
+    .replace(/\-\-+/g, "-") // Replace multiple - with single -
+    .replace(/^-+/, "") // Trim - from start of text
+    .replace(/-+$/, ""); // Trim - from end of text
+}
+
 export default function BlogListPage() {
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -137,7 +149,9 @@ export default function BlogListPage() {
           ) : blogs.length > 0 ? (
             blogs.map((blog) => (
               <div key={blog.blog_id} className="col-md-6 col-lg-4">
-                <Link href={`/blog-detail/${blog.blog_id}`}>
+                <Link
+                  href={`/blog-detail/${blog.blog_id}/${slugify(blog.blog_title)}`}
+                >
                   <div className="card hover-lift shadow cursor-pointer h-100 border-0">
                     <div className="card-body d-flex flex-column">
                       <h5 className="card-title mb-2 py-4 px-4">
@@ -155,9 +169,9 @@ export default function BlogListPage() {
                                 : "/images/author_blog.png"
                             }
                             className="rounded-circle me-2"
-                            alt="Author"
                             width="30"
                             height="30"
+                            alt={blog.written_by || "Author"}
                           />
                           <small>{blog.written_by || "Unknown Author"}</small>
                         </div>
@@ -181,9 +195,9 @@ export default function BlogListPage() {
 
                       {/* Read More – FIXED POSITION */}
                       <div className="text-center mt-auto">
-                        <button className="btn btn-primary-custom my-3 px-3 py-2 text-nowrap">
+                        <div className="btn btn-primary-custom my-3 px-3 py-2 text-nowrap">
                           Continue Reading
-                        </button>
+                        </div>
                       </div>
                     </div>
                   </div>
