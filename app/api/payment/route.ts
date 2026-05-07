@@ -158,7 +158,7 @@ export async function POST(req: NextRequest) {
         given_name: safeStr(user?.first_name, 100),
         family_name: safeStr(user?.last_name, 100),
         email_address: safeStr(user?.email, 120),
-        reference_id: safeStr(user?.id || "", 100), // Optional link to system's ID
+        reference_id: safeStr(user?.id || "", 100),
       };
 
       const customerRes = await fetch(customerUrl, {
