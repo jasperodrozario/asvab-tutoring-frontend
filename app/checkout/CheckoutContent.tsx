@@ -125,7 +125,6 @@ export default function CheckoutContent() {
 
   const [fieldErrors, setFieldErrors] = useState({
     mobile: "",
-    email: "",
     confirm_password: "",
   });
 
@@ -140,15 +139,6 @@ export default function CheckoutContent() {
       return "Area code cannot start with 0 or 1.";
     if (digits[3] === "0" || digits[3] === "1")
       return "Exchange code cannot start with 0 or 1.";
-    return "";
-  };
-
-  const validateEmail = (email: string) => {
-    const re =
-      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    if (!email) return "Email is required.";
-    if (!re.test(String(email).toLowerCase()))
-      return "Please enter a valid email address.";
     return "";
   };
 
@@ -177,9 +167,7 @@ export default function CheckoutContent() {
 
   const looksLikeEmail = (email: string) => {
     const e = normalizeEmail(email);
-    const re =
-      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    return re.test(e);
+    return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
   };
 
   const parseEmailExistsFromResponse = (raw: string): EmailCheckResult => {
@@ -350,8 +338,6 @@ export default function CheckoutContent() {
       setUser((prev) => ({ ...prev, [name]: value }));
       setEmailExists(false);
       setEmailCheckMsg("");
-      // Active validation for email
-      setFieldErrors((prev) => ({ ...prev, email: validateEmail(value) }));
     } else if (name === "confirm_password") {
       setUser((prev) => ({ ...prev, [name]: value }));
       // Active validation for password match
@@ -438,7 +424,6 @@ export default function CheckoutContent() {
       !!user.password.trim() &&
       !!user.confirm_password.trim() &&
       user.password === user.confirm_password &&
-      !fieldErrors.email &&
       !fieldErrors.mobile &&
       !fieldErrors.confirm_password &&
       !emailChecking &&
@@ -459,16 +444,14 @@ export default function CheckoutContent() {
     }
 
     const mobileErr = validateMobile(user.mobile);
-    const emailErr = validateEmail(user.email);
     const confirmErr = validateConfirmPassword(
       user.confirm_password,
       user.password,
     );
 
-    if (mobileErr || emailErr || confirmErr) {
+    if (mobileErr || confirmErr) {
       setFieldErrors({
         mobile: mobileErr,
-        email: emailErr,
         confirm_password: confirmErr,
       });
       setMobileResult({
@@ -610,7 +593,7 @@ export default function CheckoutContent() {
   const showMobileUI = showPaymentMethodChooser && paymentMethod === "mobile";
   const showCardUI = mode === "subscription" || paymentMethod === "card";
   const cardBlockedByEmail =
-    emailChecking || emailExists || !!fieldErrors.email || !user.email.trim();
+    emailChecking || emailExists || !looksLikeEmail(user.email);
 
   return (
     <div className="container pb-5" style={{ maxWidth: 1100, paddingTop: 33 }}>
@@ -832,7 +815,7 @@ export default function CheckoutContent() {
 
               <div className="mb-2">
                 <input
-                  className={`form-control ${fieldErrors.email ? "is-invalid" : ""}`}
+                  className="form-control"
                   type="email"
                   name="email"
                   placeholder="Email"
@@ -845,11 +828,6 @@ export default function CheckoutContent() {
                   onFocus={() => setEmailTouched(true)}
                   required
                 />
-                {fieldErrors.email && (
-                  <div className="invalid-feedback" style={{ fontSize: 13, fontWeight: 600 }}>
-                    {fieldErrors.email}
-                  </div>
-                )}
               </div>
 
               {(emailTouched || !!user.email.trim()) && emailCheckMsg && (
