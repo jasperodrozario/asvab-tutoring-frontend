@@ -9,6 +9,7 @@ import SquarePaymentForm, {
 } from "@/components/square-payment-form/SquarePaymentForm";
 import Image from "next/image";
 import NextStepCard from "@/components/next-step-card/NextStepCard";
+import { BsEye, BsEyeSlash } from "react-icons/bs";
 
 type PaymentMode = "one_time" | "subscription";
 type Product = "ASVAB" | "AFOQT" | "ASTB" | "SIFT" | "OAR";
@@ -119,7 +120,33 @@ export default function CheckoutContent() {
     email: "",
     mobile: "",
     password: "",
+    confirm_password: "",
   });
+
+  const [fieldErrors, setFieldErrors] = useState({
+    mobile: "",
+    confirm_password: "",
+  });
+
+  const [showPassword, setShowPassword] = useState(false);
+
+  const validateMobile = (mobile: string) => {
+    const digits = mobile.replace(/\D/g, "");
+    if (digits.length === 0) return "Mobile number is required.";
+    if (digits.length !== 10) return "Enter a valid 10-digit US number.";
+    if (/^(\d)\1{9}$/.test(digits)) return "Enter a valid US number."; // All same digits
+    if (digits[0] === "0" || digits[0] === "1")
+      return "Area code cannot start with 0 or 1.";
+    if (digits[3] === "0" || digits[3] === "1")
+      return "Exchange code cannot start with 0 or 1.";
+    return "";
+  };
+
+  const validateConfirmPassword = (confirm: string, pass: string) => {
+    if (!confirm) return "Please confirm your password.";
+    if (confirm !== pass) return "Passwords do not match.";
+    return "";
+  };
 
   const [emailChecking, setEmailChecking] = useState(false);
   const [emailExists, setEmailExists] = useState(false);
@@ -278,11 +305,60 @@ export default function CheckoutContent() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setUser((prev) => ({ ...prev, [name]: value }));
 
-    if (name === "email") {
+    if (name === "mobile") {
+      const cleaned = value.replace(/\D/g, "");
+      if (cleaned.length > 10) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          mobile: "Only 10 digits are allowed for US numbers.",
+        }));
+        // Revert to previous validation state after 2 seconds
+        setTimeout(() => {
+          setFieldErrors((prev) => ({
+            ...prev,
+            mobile: validateMobile(user.mobile),
+          }));
+        }, 2000);
+        return;
+      }
+      setUser((prev) => ({ ...prev, [name]: cleaned }));
+
+      // Active validation for mobile
+      if (cleaned.length > 0 && cleaned.length < 10) {
+        const err = validateMobile(cleaned);
+        setFieldErrors((prev) => ({ ...prev, mobile: err }));
+      } else {
+        setFieldErrors((prev) => ({
+          ...prev,
+          mobile: validateMobile(cleaned),
+        }));
+      }
+    } else if (name === "email") {
+      setUser((prev) => ({ ...prev, [name]: value }));
       setEmailExists(false);
       setEmailCheckMsg("");
+    } else if (name === "confirm_password") {
+      setUser((prev) => ({ ...prev, [name]: value }));
+      // Active validation for password match
+      setFieldErrors((prev) => ({
+        ...prev,
+        confirm_password: validateConfirmPassword(value, user.password),
+      }));
+    } else if (name === "password") {
+      setUser((prev) => ({ ...prev, [name]: value }));
+      // If user is typing in password field, also re-validate confirm_password if it's not empty
+      if (user.confirm_password) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          confirm_password: validateConfirmPassword(
+            user.confirm_password,
+            value,
+          ),
+        }));
+      }
+    } else {
+      setUser((prev) => ({ ...prev, [name]: value }));
     }
   };
 
@@ -338,18 +414,23 @@ export default function CheckoutContent() {
 
   const [agreeTerms, setAgreeTerms] = useState(false);
 
-  const canSubmit =
-    agreeTerms &&
-    looksLikeEmail(user.email) &&
-    // !!mobilePay.mobile.trim() &&
-    // !!mobilePay.ref_code.trim() &&
-    !!user.first_name.trim() &&
-    !!user.last_name.trim() &&
-    !!user.password.trim() &&
-    !!user.mobile.trim() &&
-    !emailChecking &&
-    !emailExists &&
-    !invalidBase;
+  const canSubmit = useMemo(() => {
+    return (
+      agreeTerms &&
+      !!user.first_name.trim() &&
+      !!user.last_name.trim() &&
+      !!user.email.trim() &&
+      !!user.mobile.trim() &&
+      !!user.password.trim() &&
+      !!user.confirm_password.trim() &&
+      user.password === user.confirm_password &&
+      !fieldErrors.mobile &&
+      !fieldErrors.confirm_password &&
+      !emailChecking &&
+      !emailExists &&
+      !invalidBase
+    );
+  }, [agreeTerms, user, fieldErrors, emailChecking, emailExists, invalidBase]);
 
   const submitMobilePayment = async () => {
     setMobileResult(null);
@@ -362,10 +443,20 @@ export default function CheckoutContent() {
       return;
     }
 
-    if (!looksLikeEmail(user.email)) {
+    const mobileErr = validateMobile(user.mobile);
+    const confirmErr = validateConfirmPassword(
+      user.confirm_password,
+      user.password,
+    );
+
+    if (mobileErr || confirmErr) {
+      setFieldErrors({
+        mobile: mobileErr,
+        confirm_password: confirmErr,
+      });
       setMobileResult({
         type: "danger",
-        text: "Please enter a valid email address.",
+        text: "Please fix all the errors in the form before submitting.",
       });
       return;
     }
@@ -373,7 +464,7 @@ export default function CheckoutContent() {
     if (!canSubmit) {
       setMobileResult({
         type: "danger",
-        text: "Please complete all required registration and mobile payment fields.",
+        text: "Please complete all required registration and mobile payment fields correctly.",
       });
       return;
     }
@@ -710,6 +801,7 @@ export default function CheckoutContent() {
                 placeholder="First Name"
                 value={user.first_name}
                 onChange={handleChange}
+                required
               />
 
               <input
@@ -718,21 +810,25 @@ export default function CheckoutContent() {
                 placeholder="Last Name"
                 value={user.last_name}
                 onChange={handleChange}
+                required
               />
 
-              <input
-                className="form-control mb-2"
-                type="email"
-                name="email"
-                placeholder="Email"
-                value={user.email}
-                onChange={handleChange}
-                onBlur={() => {
-                  setEmailTouched(true);
-                  runEmailCheck(user.email);
-                }}
-                onFocus={() => setEmailTouched(true)}
-              />
+              <div className="mb-2">
+                <input
+                  className="form-control"
+                  type="email"
+                  name="email"
+                  placeholder="Email"
+                  value={user.email}
+                  onChange={handleChange}
+                  onBlur={() => {
+                    setEmailTouched(true);
+                    runEmailCheck(user.email);
+                  }}
+                  onFocus={() => setEmailTouched(true)}
+                  required
+                />
+              </div>
 
               {(emailTouched || !!user.email.trim()) && emailCheckMsg && (
                 <div
@@ -746,27 +842,72 @@ export default function CheckoutContent() {
                       ? "alert"
                       : undefined
                   }
+                  style={{ fontWeight: emailExists ? 600 : 400 }}
                 >
                   {emailCheckMsg}
                 </div>
               )}
 
-              <input
-                className="form-control mb-2"
-                name="mobile"
-                placeholder="Mobile"
-                value={user.mobile}
-                onChange={handleChange}
-              />
+              <div className="mb-2">
+                <input
+                  className={`form-control ${fieldErrors.mobile ? "is-invalid" : ""}`}
+                  name="mobile"
+                  placeholder="Mobile"
+                  value={user.mobile}
+                  onChange={handleChange}
+                  required
+                />
+                {fieldErrors.mobile && (
+                  <div className="invalid-feedback" style={{ fontSize: 13, fontWeight: 600 }}>
+                    {fieldErrors.mobile}
+                  </div>
+                )}
+              </div>
 
-              <input
-                className="form-control mb-0"
-                type="password"
-                name="password"
-                placeholder="Password"
-                value={user.password}
-                onChange={handleChange}
-              />
+              <div className="mb-2 position-relative">
+                <input
+                  className="form-control pe-5"
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Password"
+                  value={user.password}
+                  onChange={handleChange}
+                  required
+                />
+                <button
+                  type="button"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  onClick={() => setShowPassword((s) => !s)}
+                  className="btn btn-link p-0"
+                  style={{
+                    position: "absolute",
+                    right: 12,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    color: "#002341",
+                    textDecoration: "none",
+                  }}
+                >
+                  {showPassword ? <BsEyeSlash size={18} /> : <BsEye size={18} />}
+                </button>
+              </div>
+
+              <div className="mb-0 position-relative">
+                <input
+                  className={`form-control pe-5 ${fieldErrors.confirm_password ? "is-invalid" : ""}`}
+                  type={showPassword ? "text" : "password"}
+                  name="confirm_password"
+                  placeholder="Confirm password"
+                  value={user.confirm_password}
+                  onChange={handleChange}
+                  required
+                />
+                {fieldErrors.confirm_password && (
+                  <div className="invalid-feedback" style={{ fontSize: 13, fontWeight: 600 }}>
+                    {fieldErrors.confirm_password}
+                  </div>
+                )}
+              </div>
 
               {mode === "subscription" && subscriptionInvalid && (
                 <div className="alert alert-danger mt-3 mb-0 py-2">
