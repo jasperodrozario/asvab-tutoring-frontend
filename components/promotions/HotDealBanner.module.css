@@ -48,7 +48,7 @@
 .badge {
   display: inline-block;
   background: var(--primary-color);
-  color: #1a1a1a;
+  color: #282828;
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -73,7 +73,6 @@
     0 8px 40px rgba(0, 0, 0, 0.45),
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
-
 
 .copyCol {
   flex: 1;
@@ -162,7 +161,7 @@
 .ctaBtn {
   display: inline-block;
   background: var(--primary-color);
-  color: #1a1a1a;
+  color: #282828;
   font-weight: 700;
   font-size: 0.95rem;
   padding: 0.7rem 1.6rem;
@@ -177,7 +176,7 @@
 .ctaBtn:hover {
   transform: translateY(-2px) scale(1.03);
   background: var(--primary-color-dark);
-  color: #1a1a1a;
+  color: #ffffff;
 }
 
 /* ── Decorative column ─────────────────────────────────────── */

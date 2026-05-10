@@ -72,7 +72,7 @@ export default function HotDealBanner({
                 <span className={styles.price}>$250</span>
               </div>
               <Link href="/pricing/group-tutoring" className={styles.ctaBtn}>
-                Claim This Deal →
+                Sign up for The Deal!
               </Link>
             </div>
           </div>

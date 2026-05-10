@@ -50,7 +50,7 @@ export default function HotDealPopup() {
             className={styles.ctaBtn}
             onClick={handleClose}
           >
-            Sign up for The Deal →
+            Sign up for The Deal!
           </Link>
         </div>
       </div>
