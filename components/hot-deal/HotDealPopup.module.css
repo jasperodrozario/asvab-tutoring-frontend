@@ -1,0 +1,149 @@
+@keyframes slide-in {
+  0% {
+    transform: translateX(100%) translateY(20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0) translateY(0);
+    opacity: 1;
+  }
+}
+
+.popupOverlay {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 9999;
+  animation: slide-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.popupCard {
+  position: relative;
+  width: 340px;
+  background: var(--secondary-color);
+  border: 1px solid var(--primary-color);
+  border-radius: 16px;
+  padding: 1.75rem 1.5rem 1.5rem;
+  box-shadow:
+    0 8px 40px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.closeBtn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.75rem;
+  background: transparent;
+  border: none;
+  font-size: 1.6rem;
+  line-height: 1;
+  color: #8ba5c0;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.closeBtn:hover {
+  color: #ffffff;
+}
+
+.badge {
+  display: inline-block;
+  background: var(--primary-color);
+  color: #1a1a1a;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 0.75rem;
+}
+
+.title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 0.5rem;
+  line-height: 1.3;
+}
+
+.accent {
+  color: var(--primary-color);
+}
+
+.description {
+  font-size: 0.93rem;
+  color: #c8d8e8;
+  margin: 0 0 1.25rem;
+  line-height: 1.45;
+}
+
+.description strong {
+  color: #ffffff;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.ctaBtn {
+  display: inline-block;
+  background: var(--primary-color);
+  color: #1a1a1a;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  text-decoration: none;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease;
+  white-space: nowrap;
+}
+
+.ctaBtn:hover {
+  transform: translateY(-1px);
+  background: var(--primary-color-dark);
+  color: #1a1a1a;
+}
+
+@keyframes fade-in-backdrop {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes fade-in-center {
+  0% {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 500px) {
+  .popupOverlay {
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fade-in-backdrop 0.3s ease-out forwards;
+  }
+
+  .popupCard {
+    width: calc(100% - 2.5rem);
+    margin: 0 auto;
+    animation: fade-in-center 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+}
