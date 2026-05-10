@@ -18,7 +18,6 @@ export default function HotDealPopup() {
   const handleClose = () => {
     setIsVisible(false);
   };
-  z;
 
   if (!isVisible) return null;
 
