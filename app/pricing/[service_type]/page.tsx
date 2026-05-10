@@ -3,6 +3,7 @@ import { Metadata } from "next";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
 import PricingPackages from "@/components/pricing-packages/PricingPackages";
 import PricingContent from "@/components/pricing-content/PricingContent";
+import HotDealBanner from "@/components/hot-deal/HotDealBanner";
 import { ServiceType } from "@/types/Services";
 
 type Submenu = "one" | "group" | "subscribe";
@@ -94,6 +95,8 @@ export default async function PricingPage({
     }
   })(serviceType);
 
+  const isFeaturedDeal = serviceType === "group-tutoring";
+
   return (
     <section>
       {/* Banner */}
@@ -104,6 +107,10 @@ export default async function PricingPage({
           dynamicTitle={title}
           className="text-white text-base mt-1"
         />
+      </div>
+
+      <div className="container mt-5">
+        <HotDealBanner featured={isFeaturedDeal} />
       </div>
 
       {/* Already working client fetch */}

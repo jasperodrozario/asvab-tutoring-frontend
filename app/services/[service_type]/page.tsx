@@ -27,6 +27,7 @@ import { Metadata } from "next";
 // }
 
 import ServiceDetailContent from "@/components/services/ServiceDetailContent";
+import HotDealBanner from "@/components/hot-deal/HotDealBanner";
 
 export const dynamic = "force-dynamic";
 
@@ -94,10 +95,17 @@ export default async function ServiceDetailPage({
 
   const service_id = getServiceId(service_type);
 
+  const isFeaturedDeal = service_type === "group-tutoring";
+
   return (
     <section className="pb-4">
       {/* Banner (title will come from client component) */}
       <ServiceDetailContent serviceId={service_id} serviceType={service_type} />
+
+      {/* ── Summer Hot Deal Banner ── */}
+      <div className="container">
+        <HotDealBanner featured={isFeaturedDeal} />
+      </div>
     </section>
   );
 }
