@@ -35,7 +35,7 @@ export default function HotDealPopup() {
         <span className={styles.badge}>🔥 Limited-Time Offer</span>
 
         <h3 className={styles.title}>
-          Summer ASVAB <span className={styles.accent}>Math &amp; English</span>
+          <span className={styles.accent}>Summer ASVAB Test Prep</span> Deal!
         </h3>
 
         <p className={styles.description}>
@@ -50,7 +50,7 @@ export default function HotDealPopup() {
             className={styles.ctaBtn}
             onClick={handleClose}
           >
-            Claim This Deal →
+            Sign up for The Deal →
           </Link>
         </div>
       </div>

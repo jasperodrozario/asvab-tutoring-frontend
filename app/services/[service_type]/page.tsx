@@ -27,7 +27,7 @@ import { Metadata } from "next";
 // }
 
 import ServiceDetailContent from "@/components/services/ServiceDetailContent";
-import HotDealBanner from "@/components/hot-deal/HotDealBanner";
+import HotDealBanner from "@/components/promotions/HotDealBanner";
 
 export const dynamic = "force-dynamic";
 

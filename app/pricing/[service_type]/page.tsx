@@ -3,7 +3,7 @@ import { Metadata } from "next";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
 import PricingPackages from "@/components/pricing-packages/PricingPackages";
 import PricingContent from "@/components/pricing-content/PricingContent";
-import HotDealBanner from "@/components/hot-deal/HotDealBanner";
+import HotDealBanner from "@/components/promotions/HotDealBanner";
 import { ServiceType } from "@/types/Services";
 
 type Submenu = "one" | "group" | "subscribe";

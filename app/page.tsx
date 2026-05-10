@@ -5,7 +5,7 @@ import Faq from "@/components/faq/Faq";
 import Review from "@/components/review/Review";
 import Packages from "@/components/packages/Packages";
 import PricingPackages from "@/components/pricing-packages/PricingPackages";
-import HotDealPopup from "@/components/hot-deal/HotDealPopup";
+import HotDealPopup from "@/components/promotions/HotDealPopup";
 
 export default function Home() {
   return (
@@ -38,7 +38,7 @@ export default function Home() {
       <Teachers />
       <Faq />
       <Review />
-      
+
       {/* ── Pop-in Notification ── */}
       <HotDealPopup />
     </div>
