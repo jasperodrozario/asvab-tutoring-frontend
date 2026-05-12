@@ -1,13 +1,7 @@
 // app/checkout/[[...offer]]/OfferCheckout.tsx
 "use client";
 
-import React, {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  useCallback,
-} from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import SquarePaymentForm, {
   SquarePaymentFormHandle,
@@ -102,6 +96,11 @@ export default function OfferCheckout() {
   const [lastCheckedEmail, setLastCheckedEmail] = useState<string>("");
   const emailCheckNonceRef = useRef<number>(0);
 
+  const [mobilePay, setMobilePay] = useState({
+    mobile: "",
+    ref_code: "",
+  });
+
   const [cardState, setCardState] = useState<CardState>({
     initializing: true,
     paying: false,
@@ -114,6 +113,13 @@ export default function OfferCheckout() {
   const handleCardStateChange = (state: CardState) => {
     setCardState(state);
   };
+
+  const invalidBase =
+    !course_id ||
+    !session_id ||
+    !package_id ||
+    !Number.isFinite(amountCents) ||
+    amountCents <= 0;
 
   const validateMobile = (mobile: string) => {
     const digits = mobile.replace(/\D/g, "");
@@ -178,88 +184,83 @@ export default function OfferCheckout() {
     }
   };
 
-  const checkEmailExists = useCallback(
-    async (emailRaw: string): Promise<EmailCheckResult> => {
-      const email = normalizeEmail(emailRaw);
-      if (!looksLikeEmail(email)) return { exists: null, message: "" };
+  const checkEmailExists = async (
+    emailRaw: string,
+  ): Promise<EmailCheckResult> => {
+    const email = normalizeEmail(emailRaw);
+    if (!looksLikeEmail(email)) return { exists: null, message: "" };
 
-      const body = new URLSearchParams();
-      body.append("action", EMAIL_CHECK_ACTION);
-      body.append("email", email);
-      if (course_id) body.append("course_id", String(course_id));
-      if (session_id) body.append("session_id", String(session_id));
+    const body = new URLSearchParams();
+    body.append("action", EMAIL_CHECK_ACTION);
+    body.append("email", email);
+    if (course_id) body.append("course_id", String(course_id));
+    if (session_id) body.append("session_id", String(session_id));
 
-      try {
-        const res = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body,
-        });
-        const raw = await res.text();
-        return parseEmailExistsFromResponse(raw);
-      } catch {
-        return {
-          exists: null,
-          message: "Unable to check email right now. Please try again.",
-        };
-      }
-    },
-    [API_URL, course_id, session_id, looksLikeEmail],
-  );
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body,
+      });
+      const raw = await res.text();
+      return parseEmailExistsFromResponse(raw);
+    } catch {
+      return {
+        exists: null,
+        message: "Unable to check email right now. Please try again.",
+      };
+    }
+  };
 
-  const runEmailCheck = useCallback(
-    async (emailRaw: string) => {
-      const email = normalizeEmail(emailRaw);
+  const runEmailCheck = async (emailRaw: string) => {
+    const email = normalizeEmail(emailRaw);
 
-      if (!looksLikeEmail(email)) {
-        setEmailChecking(false);
-        setEmailExists(false);
-        setEmailCheckMsg("Please enter a valid email address.");
-        setLastCheckedEmail("");
+    if (!looksLikeEmail(email)) {
+      setEmailChecking(false);
+      setEmailExists(false);
+      setEmailCheckMsg("Please enter a valid email address.");
+      setLastCheckedEmail("");
+      return;
+    }
+
+    const nonce = Date.now();
+    emailCheckNonceRef.current = nonce;
+
+    setEmailChecking(true);
+    setEmailCheckMsg("Checking email...");
+
+    try {
+      const result = await checkEmailExists(email);
+
+      if (emailCheckNonceRef.current !== nonce) return;
+
+      setLastCheckedEmail(email);
+
+      if (result.exists === true) {
+        setEmailExists(true);
+        setEmailCheckMsg(
+          result.message || "This email address is already registered.",
+        );
         return;
       }
 
-      const nonce = Date.now();
-      emailCheckNonceRef.current = nonce;
-
-      setEmailChecking(true);
-      setEmailCheckMsg("Checking email...");
-
-      try {
-        const result = await checkEmailExists(email);
-
-        if (emailCheckNonceRef.current !== nonce) return;
-
-        setLastCheckedEmail(email);
-
-        if (result.exists === true) {
-          setEmailExists(true);
-          setEmailCheckMsg(
-            result.message || "This email address is already registered.",
-          );
-          return;
-        }
-
-        if (result.exists === false) {
-          setEmailExists(false);
-          setEmailCheckMsg("");
-          return;
-        }
-
+      if (result.exists === false) {
         setEmailExists(false);
-        setEmailCheckMsg(
-          result.message ||
-            "Unable to verify email right now. Please try again.",
-        );
-      } catch {
-        setEmailExists(false);
-        setEmailCheckMsg("Unable to verify email right now. Please try again.");
-      } finally {
-        setEmailChecking(false);
+        setEmailCheckMsg("");
+        return;
       }
-    },
-    [checkEmailExists, looksLikeEmail],
-  );
+
+      setEmailExists(false);
+      setEmailCheckMsg(
+        result.message || "Unable to verify email right now. Please try again.",
+      );
+    } catch {
+      setEmailExists(false);
+      setEmailCheckMsg("Unable to verify email right now. Please try again.");
+    } finally {
+      setEmailChecking(false);
+    }
+  };
 
   useEffect(() => {
     const email = normalizeEmail(user.email);
@@ -276,7 +277,12 @@ export default function OfferCheckout() {
     }, 650);
 
     return () => window.clearTimeout(t);
-  }, [user.email, emailTouched, runEmailCheck]);
+  }, [user.email, emailTouched]);
+
+  const handleMobilePayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setMobilePay((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -354,9 +360,10 @@ export default function OfferCheckout() {
       !fieldErrors.mobile &&
       !fieldErrors.confirm_password &&
       !emailChecking &&
-      !emailExists
+      !emailExists &&
+      !invalidBase
     );
-  }, [agreeTerms, user, fieldErrors, emailChecking, emailExists]);
+  }, [agreeTerms, user, fieldErrors, emailChecking, emailExists, invalidBase]);
 
   const [mobileSubmitting, setMobileSubmitting] = useState(false);
   const [mobileResult, setMobileResult] = useState<{
@@ -434,6 +441,7 @@ export default function OfferCheckout() {
       body.append("email", user.email);
       body.append("password", user.password);
       body.append("mobile", user.mobile);
+      body.append("ref_code", mobilePay.ref_code);
       body.append("amount", String(amountCents));
       body.append("currency", "USD");
       body.append("created_at", todayYYYYMMDD());
@@ -482,6 +490,11 @@ export default function OfferCheckout() {
       setMobileSubmitting(false);
     }
   };
+
+  if (invalidBase) {
+    return <p className="text-danger">Invalid checkout link.</p>;
+  }
+
   return (
     <div className="container pb-5" style={{ maxWidth: 1100, paddingTop: 33 }}>
       <div className="row flex-column align-items-center mb-4 text-center">
@@ -490,9 +503,115 @@ export default function OfferCheckout() {
         </div>
       </div>
 
+      {/* Banner / Limited-Time Offer Area */}
+      <div className="row mb-4">
+        <div className="col-12">
+          <div
+            className="card shadow-sm border-0"
+            style={{
+              background: "linear-gradient(135deg, #fff 0%, #f8faff 100%)",
+              borderRadius: "20px",
+            }}
+          >
+            <div className="card-body p-4">
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <span
+                  className="badge rounded-pill px-3 py-2 text-dark fw-bold"
+                  style={{
+                    background: "linear-gradient(90deg, #f59e0b, #fbbf24)",
+                    fontSize: "0.7rem",
+                    letterSpacing: "1px",
+                  }}
+                >
+                  🔥 LIMITED-TIME OFFER
+                </span>
+                <div className="text-primary fw-bold h4 mb-0">
+                  ${amountDollarsForUI}
+                </div>
+              </div>
+
+              <div>
+                <div className="d-flex align-items-center gap-2 small">
+                  <BsCalendar3 className="text-primary" />
+                  <span>4-week program — 3 live sessions/week</span>
+                </div>
+                <div className="d-flex align-items-center gap-2 small">
+                  <BsLightningFill className="text-primary" />
+                  <span>Every session recorded</span>
+                </div>
+                <div className="d-flex align-items-center gap-2 small">
+                  <BsFillPeopleFill className="text-primary" />
+                  <span>Small-group setting</span>
+                </div>
+                <div className="d-flex align-items-center gap-2 small">
+                  <BsBookFill className="text-primary" />
+                  <span>Mathematics & English focused</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="row g-4">
-        {/* Checkout Form Column */}
-        <div className="col-12 col-lg-7">
+        {/* Sidebar / Summary Column - FIRST in HTML to show on TOP for Mobile */}
+        <div className="col-12 col-lg-5 order-0 order-lg-1">
+          <div className="card shadow-sm border-0 w-100">
+            <div className="card-body p-4">
+              <h5 className="fw-bold mb-4 text-muted">Order Summary</h5>
+              <div className="mb-3">
+                <div className="d-flex justify-content-between gap-3 mb-2">
+                  <span className="text-muted small fw-semibold">Offer:</span>
+                  <span className="text-dark small fw-bold">{offerTitle}</span>
+                </div>
+                <div className="d-flex justify-content-between align-items-center gap-3 mb-2">
+                  <span className="text-muted small fw-semibold">Course:</span>
+                  <span className="text-dark small fw-bold">{service}</span>
+                </div>
+              </div>
+              <div className="border-top my-3"></div>
+              <div className="d-flex justify-content-between align-items-center">
+                <span className="h5 fw-bold mb-0 text-muted">Total</span>
+                <span className="h4 fw-bold mb-0 text-primary">
+                  ${amountDollarsForUI}
+                </span>
+              </div>
+
+              <div className="mt-5">
+                <div className="d-flex gap-3 align-items-start mb-4">
+                  <BsCheckCircleFill className="text-success mt-1 flex-shrink-0" />
+                  <div>
+                    <div className="fw-bold">Secure Checkout</div>
+                    <div className="small text-muted">
+                      Your data is encrypted and secure.
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex gap-3 align-items-start mb-4">
+                  <BsCheckCircleFill className="text-success mt-1 flex-shrink-0" />
+                  <div>
+                    <div className="fw-bold">Instant Access</div>
+                    <div className="small text-muted">
+                      Get access to materials immediately after payment.
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex gap-3 align-items-start">
+                  <BsCheckCircleFill className="text-success mt-1 flex-shrink-0" />
+                  <div>
+                    <div className="fw-bold">Expert Support</div>
+                    <div className="small text-muted">
+                      Dedicated tutors to help you pass.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Form Column - SECOND in HTML but FIRST (Left) for Desktop */}
+        <div className="col-12 col-lg-7 order-1 order-lg-0">
           <div className="d-flex flex-column gap-4">
             {/* CARD 1: Payment Method & Details */}
             <div className="card shadow-sm border-0 w-100">
@@ -534,7 +653,7 @@ export default function OfferCheckout() {
                   {paymentMethod === "mobile" ? (
                     <div className="text-center">
                       <div className="d-flex justify-content-center">
-                        <Image
+                        <img
                           src="/images/mobile_payment_app_20260204.png"
                           alt="Payment Apps"
                           className="img-fluid"
@@ -542,6 +661,28 @@ export default function OfferCheckout() {
                           height={220}
                           style={{ maxWidth: 560, height: "auto" }}
                         />
+                      </div>
+
+                      <div className="mt-4">
+                        {/* <div className="col-12">
+                        <input
+                          className="form-control"
+                          name="mobile"
+                          placeholder="Payment account number"
+                          value={mobilePay.mobile}
+                          onChange={handleMobilePayChange}
+                        />
+                      </div>
+
+                      <div className="col-12">
+                        <input
+                          className="form-control"
+                          name="ref_code"
+                          placeholder="Reference Code"
+                          value={mobilePay.ref_code}
+                          onChange={handleMobilePayChange}
+                        />
+                      </div> */}
                       </div>
                       <div className="mt-3">
                         <div className="fw-bold" style={{ fontSize: 18 }}>
@@ -774,7 +915,6 @@ export default function OfferCheckout() {
                         {mobileResult.text}
                       </div>
                     )}
-                    <NextStepCard service={service} />
                   </div>
                 ) : (
                   <div className="mt-3">
@@ -815,117 +955,26 @@ export default function OfferCheckout() {
                         {cardState.message}
                       </p>
                     )}
-                    <NextStepCard service={service} />
                   </div>
                 )}
               </div>
             </div>
-          </div>
-        </div>
+            <NextStepCard service={service} />
 
-        {/* Sidebar / Summary */}
-        <div className="col-12 col-lg-5">
-          <div
-            className="card shadow-sm border-0 mb-4"
-            style={{
-              background: "linear-gradient(135deg, #fff 0%, #f8faff 100%)",
-              borderRadius: "20px",
-            }}
-          >
-            <div className="card-body p-4">
-              <div className="d-flex justify-content-between align-items-center mb-3">
-                <span
-                  className="badge rounded-pill px-3 py-2 text-dark fw-bold"
-                  style={{
-                    background: "linear-gradient(90deg, #f59e0b, #fbbf24)",
-                    fontSize: "0.7rem",
-                    letterSpacing: "1px",
-                  }}
+            <div
+              className="p-4 text-center rounded-4"
+              style={{ border: "1px dashed rgba(0,0,0,0.1)" }}
+            >
+              <p className="small text-muted mb-0">
+                Questions? Email us at:{" "}
+                <a
+                  href="mailto: info.asvab-tutoring.com"
+                  className="fw-bold text-primary"
                 >
-                  🔥 LIMITED-TIME OFFER
-                </span>
-                <div className="text-primary fw-bold h4 mb-0">
-                  ${amountDollarsForUI}
-                </div>
-              </div>
-
-              <div className="d-flex flex-column gap-2 mb-0">
-                <div className="d-flex align-items-center gap-2 small">
-                  <BsCalendar3 className="text-primary" />
-                  <span>4-week program — 3 live sessions/week</span>
-                </div>
-                <div className="d-flex align-items-center gap-2 small">
-                  <BsLightningFill className="text-primary" />
-                  <span>Every session recorded</span>
-                </div>
-                <div className="d-flex align-items-center gap-2 small">
-                  <BsFillPeopleFill className="text-primary" />
-                  <span>Small-group setting</span>
-                </div>
-                <div className="d-flex align-items-center gap-2 small">
-                  <BsBookFill className="text-primary" />
-                  <span>Mathematics & English focused</span>
-                </div>
-              </div>
+                  info.asvab-tutoring.com
+                </a>
+              </p>
             </div>
-          </div>
-
-          <div className="card shadow-sm border-0 w-100">
-            <div className="card-body p-4">
-              <h5 className="fw-bold mb-4 text-muted">Order Summary</h5>
-              <div className="border-top my-3"></div>
-              <div className="d-flex justify-content-between align-items-center">
-                <span className="h5 fw-bold mb-0 text-muted">Total</span>
-                <span className="h4 fw-bold mb-0 text-primary">
-                  ${amountDollarsForUI}
-                </span>
-              </div>
-
-              <div className="mt-5">
-                <div className="d-flex gap-3 align-items-start mb-4">
-                  <BsCheckCircleFill className="text-success mt-1 flex-shrink-0" />
-                  <div>
-                    <div className="fw-bold">Secure Checkout</div>
-                    <div className="small text-muted">
-                      Your data is encrypted and secure.
-                    </div>
-                  </div>
-                </div>
-                <div className="d-flex gap-3 align-items-start mb-4">
-                  <BsCheckCircleFill className="text-success mt-1 flex-shrink-0" />
-                  <div>
-                    <div className="fw-bold">Instant Access</div>
-                    <div className="small text-muted">
-                      Get access to materials immediately after payment.
-                    </div>
-                  </div>
-                </div>
-                <div className="d-flex gap-3 align-items-start">
-                  <BsCheckCircleFill className="text-success mt-1 flex-shrink-0" />
-                  <div>
-                    <div className="fw-bold">Expert Support</div>
-                    <div className="small text-muted">
-                      Dedicated tutors to help you pass.
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div
-            className="mt-4 p-4 text-center rounded-4"
-            style={{ border: "1px dashed rgba(0,0,0,0.1)" }}
-          >
-            <p className="small text-muted mb-0">
-              Questions? Email us at:{" "}
-              <a
-                href="mailto: info.asvab-tutoring.com"
-                className="fw- text-primary"
-              >
-                info.asvab-tutoring.com
-              </a>
-            </p>
           </div>
         </div>
         <style jsx>{`
