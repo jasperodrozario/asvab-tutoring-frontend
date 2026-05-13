@@ -187,8 +187,12 @@ export default function BuyMoreSessionsClient() {
           </p>
           {user && (
             <div style={userInfoStyle}>
-              User ID: <strong>{user_id}</strong>{" "}
-              {user && `• ${user.first_name} ${user.last_name}`}
+              {user && (
+                <>
+                  Email: <strong>{user.email}</strong> • {user.first_name}{" "}
+                  {user.last_name}
+                </>
+              )}
             </div>
           )}
         </div>
