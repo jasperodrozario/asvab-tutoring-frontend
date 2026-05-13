@@ -109,10 +109,6 @@ export default async function PricingPage({
         />
       </div>
 
-      <div className="container mt-5">
-        <HotDealBanner featured={isFeaturedDeal} />
-      </div>
-
       {/* Already working client fetch */}
       <PricingPackages submenu={submenu} />
 

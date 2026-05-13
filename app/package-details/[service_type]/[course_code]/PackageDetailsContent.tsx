@@ -6,6 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import styles from "../../packageDetails.module.css";
 import Link from "next/link";
 import Button from "@/components/button/Button";
+import HotDealBanner from "@/components/promotions/HotDealBanner";
 
 function decodeHtmlEntitiesOnce(input: string): string {
   if (!input) return "";
@@ -145,73 +146,130 @@ export default function PackageDetailsContent({
               {decodeHtmlEntitiesDeep(pkg.title ?? "")}
             </h1>
 
-            <div
-              className={styles.ckContent}
-              dangerouslySetInnerHTML={{
-                __html: decodeHtmlEntitiesDeep(pkg.description ?? ""),
-              }}
-            ></div>
+            {pkg.limited_time === "1" ? (
+              <div className="mt-3" style={{ textAlign: "left" }}>
+                {/* ── Summer Hot Deal Banner ── */}
+                {(() => {
+                  const firstSession = pkg.sessions?.[0];
+                  const isSub = firstSession
+                    ? isSubscriptionSession(firstSession)
+                    : false;
 
-            <div className={styles.pricingGrid}>
-              {pkg.sessions.map((session: any) => {
-                const isSub = isSubscriptionSession(session);
-                const buttonLabel = isSub ? "Subscribe" : "Enroll Now";
-                const query = {
-                  course_id: convertCourseCodeToId(course_code),
-                  package_id: String(pkg.package_id),
-                  session_id: String(session.session_id),
-                  amount: String(Math.round(Number(session.price) * 100)),
-                  mode: isSub ? "subscription" : "one_time",
-                  product: String(session.product ?? ""),
-                  cadence: String(session.cadence ?? ""),
-                };
-                return (
-                  <div
-                    key={session.session_id}
-                    className={`${styles.pricingCard} ${
-                      session.is_most_popular === "1"
-                        ? styles.mostPopularWrap
-                        : ""
-                    }`}
-                  >
-                    {session.is_most_popular === "1" && (
-                      <div className={styles.mostPopularBadge}>
-                        Most Popular
-                      </div>
-                    )}
+                  const getFriendlyCourseName = (code: string) => {
+                    const c = code.toLowerCase();
+                    if (c.includes("asvab")) return "ASVAB";
+                    if (c.includes("afoqt")) return "AFOQT";
+                    if (c.includes("astb")) return "ASTB";
+                    if (c.includes("sift")) return "SIFT";
+                    if (c.includes("oar")) return "OAR";
+                    return "Military Prep";
+                  };
 
-                    <div className={styles.cardInner}>
-                      <div className={styles.cardTitleWrap}>
-                        <h4 className={styles.cardTitle}>
-                          {decodeHtmlEntitiesDeep(session.title ?? "")}
-                        </h4>
-                      </div>
-                      <div className={styles.priceWrap}>
-                        <div className={styles.price}>
-                          ${decodeHtmlEntitiesDeep(String(session.price ?? ""))}
+                  const getFriendlyPackageType = (type: string) => {
+                    if (type === "group-tutoring") return "Group Tutoring";
+                    if (type === "1-on-1-tutoring") return "1-on-1 Tutoring";
+                    if (type === "self-study") return "Subscription";
+                    return "Tutoring";
+                  };
+
+                  const checkoutLink = firstSession
+                    ? `/checkout/limited-time-offer?${new URLSearchParams({
+                        course_id: convertCourseCodeToId(course_code),
+                        package_id: String(pkg.package_id),
+                        session_id: String(firstSession.session_id),
+                        amount: String(
+                          Math.round(Number(firstSession.price) * 100),
+                        ),
+                        mode: isSub ? "subscription" : "one_time",
+                        title: `Summer ${getFriendlyCourseName(course_code)} Test Prep Deal!`,
+                        tutoring_type: getFriendlyPackageType(service_type),
+                      }).toString()}`
+                    : "#";
+
+                  return (
+                    <HotDealBanner
+                      featured={true}
+                      courseName={getFriendlyCourseName(course_code)}
+                      packageType={getFriendlyPackageType(service_type)}
+                      amount={String(firstSession?.price ?? "0")}
+                      link={checkoutLink}
+                    />
+                  );
+                })()}
+              </div>
+            ) : (
+              <>
+                <div
+                  className={styles.ckContent}
+                  dangerouslySetInnerHTML={{
+                    __html: decodeHtmlEntitiesDeep(pkg.description ?? ""),
+                  }}
+                />
+                <div className={styles.pricingGrid}>
+                  {pkg.sessions.map((session: any) => {
+                    const isSub = isSubscriptionSession(session);
+                    const buttonLabel = isSub ? "Subscribe" : "Enroll Now";
+                    const query = {
+                      course_id: convertCourseCodeToId(course_code),
+                      package_id: String(pkg.package_id),
+                      session_id: String(session.session_id),
+                      amount: String(Math.round(Number(session.price) * 100)),
+                      mode: isSub ? "subscription" : "one_time",
+                      product: String(session.product ?? ""),
+                      cadence: String(session.cadence ?? ""),
+                    };
+                    return (
+                      <div
+                        key={session.session_id}
+                        className={`${styles.pricingCard} ${
+                          session.is_most_popular === "1"
+                            ? styles.mostPopularWrap
+                            : ""
+                        }`}
+                      >
+                        {session.is_most_popular === "1" && (
+                          <div className={styles.mostPopularBadge}>
+                            Most Popular
+                          </div>
+                        )}
+
+                        <div className={styles.cardInner}>
+                          <div className={styles.cardTitleWrap}>
+                            <h4 className={styles.cardTitle}>
+                              {decodeHtmlEntitiesDeep(session.title ?? "")}
+                            </h4>
+                          </div>
+                          <div className={styles.priceWrap}>
+                            <div className={styles.price}>
+                              $
+                              {decodeHtmlEntitiesDeep(
+                                String(session.price ?? ""),
+                              )}
+                            </div>
+                          </div>
+                          <div className={styles.featureWrap}>
+                            <div className={styles.featureBox}>
+                              {renderTextWithLineBreaks(
+                                cleanQuestionText(session.feature ?? ""),
+                              )}
+                            </div>
+                          </div>
+                          <div className={styles.cardFooter}>
+                            <Button
+                              pathname={"/checkout"}
+                              queryObj={query}
+                              className={`btn btn-primary-custom ${styles.cardBtn}`}
+                            >
+                              {buttonLabel}
+                            </Button>
+                          </div>
                         </div>
                       </div>
-                      <div className={styles.featureWrap}>
-                        <div className={styles.featureBox}>
-                          {renderTextWithLineBreaks(
-                            cleanQuestionText(session.feature ?? ""),
-                          )}
-                        </div>
-                      </div>
-                      <div className={styles.cardFooter}>
-                        <Button
-                          pathname={"/checkout"}
-                          queryObj={query}
-                          className={`btn btn-primary-custom ${styles.cardBtn}`}
-                        >
-                          {buttonLabel}
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
           </div>
         </section>
       ))}

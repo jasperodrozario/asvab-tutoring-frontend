@@ -15,7 +15,7 @@ export default function CheckoutPage() {
     : params.offer;
 
   // If there is an offer slug, show the special offer checkout
-  if (offerSlug) {
+  if (offerSlug === "limited-time-offer") {
     return (
       <Suspense
         fallback={

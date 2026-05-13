@@ -46,11 +46,11 @@ export default function HotDealPopup() {
 
         <div className={styles.actions}>
           <Link
-            href="/pricing/group-tutoring"
+            href="/package-details/group-tutoring/asvab"
             className={styles.ctaBtn}
             onClick={handleClose}
           >
-            Sign up for The Deal!
+            View Deal!
           </Link>
         </div>
       </div>

@@ -58,6 +58,8 @@ export default function OfferCheckout() {
   const session_id = searchParams.get("session_id") || "";
   const package_id = searchParams.get("package_id") || "";
   const offerTitle = searchParams.get("title") || "Special Offer";
+  const tutoringType =
+    searchParams.get("tutoring_type") || searchParams.get("package_type") || "";
 
   const amountCents = useMemo(() => {
     const raw = searchParams.get("amount") ?? "25000"; // Default $250 for the deal
@@ -568,6 +570,16 @@ export default function OfferCheckout() {
                   <span className="text-muted small fw-semibold">Course:</span>
                   <span className="text-dark small fw-bold">{service}</span>
                 </div>
+                {tutoringType && (
+                  <div className="d-flex justify-content-between align-items-center gap-3 mb-2">
+                    <span className="text-muted small fw-semibold">
+                      Tutoring Type:
+                    </span>
+                    <span className="text-dark small fw-bold">
+                      {tutoringType}
+                    </span>
+                  </div>
+                )}
               </div>
               <div className="border-top my-3"></div>
               <div className="d-flex justify-content-between align-items-center">
@@ -959,7 +971,6 @@ export default function OfferCheckout() {
                 )}
               </div>
             </div>
-            <NextStepCard service={service} />
 
             <div
               className="p-4 text-center rounded-4"
