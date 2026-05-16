@@ -82,6 +82,15 @@
   color: #ffffff;
 }
 
+.date {
+  display: block;
+  color: white;
+  font-style: italic;
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+}
+
 .actions {
   display: flex;
   justify-content: flex-start;
@@ -109,8 +118,12 @@
 }
 
 @keyframes fade-in-backdrop {
-  0% { opacity: 0; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 @keyframes fade-in-center {

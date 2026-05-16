@@ -532,14 +532,30 @@ export default function OfferCheckout() {
                 </div>
               </div>
 
-              <div>
-                <div className="d-flex align-items-center gap-2 small">
-                  <BsCalendar3 className="text-primary" />
-                  <span>4-week program — 3 live sessions/week</span>
+              <div
+                className="mb-3 fw-bold text-primary"
+                style={{ fontSize: "0.95rem" }}
+              >
+                (June 15 – July 15)
+              </div>
+
+              <div className="d-flex flex-column gap-2">
+                <div className="d-flex align-items-start gap-2 small">
+                  <BsCalendar3 className="text-primary mt-1" />
+                  <div>
+                    <span className="fw-bold">4-Week Program</span> – 3 Live
+                    Sessions per Week
+                    <br />
+                    <span className="text-muted" style={{ fontSize: "0.8rem" }}>
+                      (Monday, Wednesday, Friday | 4:00–5:30 PM EST)
+                    </span>
+                  </div>
                 </div>
                 <div className="d-flex align-items-center gap-2 small">
                   <BsLightningFill className="text-primary" />
-                  <span>Every session recorded</span>
+                  <span>
+                    Every session will be recorded if you miss a class
+                  </span>
                 </div>
                 <div className="d-flex align-items-center gap-2 small">
                   <BsFillPeopleFill className="text-primary" />
@@ -547,7 +563,7 @@ export default function OfferCheckout() {
                 </div>
                 <div className="d-flex align-items-center gap-2 small">
                   <BsBookFill className="text-primary" />
-                  <span>Mathematics & English focused</span>
+                  <span>Focused on AFQT (Math & English)</span>
                 </div>
               </div>
             </div>

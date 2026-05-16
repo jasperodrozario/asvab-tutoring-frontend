@@ -39,9 +39,10 @@ export default function HotDealPopup() {
         </h3>
 
         <p className={styles.description}>
-          <strong>4-week</strong> structured group tutoring program. 3 live and
-          recorded sessions per week. Full web access for just{" "}
-          <strong>$250</strong>!
+          <span className={styles.date}>(June 15 – July 15)</span>
+          <strong>4-week</strong> structured <strong>Group Tutoring</strong>{" "}
+          program. 3 live and recorded sessions per week. Full web access for
+          just <strong>$250</strong>!
         </p>
 
         <div className={styles.actions}>

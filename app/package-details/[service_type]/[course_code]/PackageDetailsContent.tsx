@@ -181,7 +181,7 @@ export default function PackageDetailsContent({
                           Math.round(Number(firstSession.price) * 100),
                         ),
                         mode: isSub ? "subscription" : "one_time",
-                        title: `Summer ${getFriendlyCourseName(course_code)} Test Prep Deal!`,
+                        title: `Summer ${getFriendlyCourseName(course_code)} ${getFriendlyPackageType(service_type)}`,
                         tutoring_type: getFriendlyPackageType(service_type),
                       }).toString()}`
                     : "#";

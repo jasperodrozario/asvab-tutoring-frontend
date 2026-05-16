@@ -30,10 +30,11 @@ export default function HotDealBanner({
           {/* Left: copy */}
           <div className={styles.copyCol}>
             <p className={styles.eyebrow}>
-              Summer {courseName} {packageType} Deal
+              Summer {courseName} {packageType} Course
+              <span className={styles.date}>(June 15 – July 15)</span>
             </p>
             <h2 className={styles.headline}>
-              Master Math &amp; English —{" "}
+              Master your {courseName} Math &amp; English —{" "}
               <span className={styles.accent}>Together</span>
             </h2>
 
@@ -41,44 +42,48 @@ export default function HotDealBanner({
               <li>
                 <span className={styles.icon}>📅</span>
                 <span>
-                  <strong>4-week</strong> structured program — 3 live sessions
-                  per week
+                  <strong>4-Week Program</strong> – 3 Live Sessions per Week
+                  <br />
+                  <small>(Monday, Wednesday, Friday | 4:00–5:30 PM EST)</small>
                 </span>
               </li>
               <li>
                 <span className={styles.icon}>🎥</span>
                 <span>
-                  Every session <strong>recorded</strong> — rewatch anytime,
-                  anywhere
+                  <strong>Missed a class?</strong> – Every session will be
+                  recorded for you.
                 </span>
               </li>
               <li>
                 <span className={styles.icon}>👥</span>
                 <span>
-                  Small-group setting — collaborative learning with expert
-                  guidance
+                  <strong>Small-group setting</strong> – Collaborative learning
+                  with an expert ASVAB tutor
                 </span>
               </li>
               <li>
                 <span className={styles.icon}>📚</span>
                 <span>
-                  Focused on <strong>Mathematics</strong> &amp;{" "}
-                  <strong>English</strong> — the two highest-impact {courseName}{" "}
-                  sections
+                  <strong>Focused on</strong> – AFQT (Math and English)
                 </span>
               </li>
               <li>
                 <span className={styles.icon}>🌐</span>
                 <span>
-                  Full web platform access — study materials, practice tests
-                  &amp; more
+                  <strong>Full web platform access</strong> – Lesson videos,
+                  homework, practice tests, AFQT prediction tests, progress
+                  tracker, and more
                 </span>
               </li>
             </ul>
 
             <div className={styles.ctaRow}>
               <div className={styles.priceBlock}>
-                <span className={styles.priceLabel}>Full Package</span>
+                <span className={styles.priceLabel}>
+                  Full Package —
+                  <br />
+                  <br /> <span style={{ color: "white" }}>for just</span>
+                </span>
                 <span className={styles.price}>${amount}</span>
               </div>
               <Link href={link} className={styles.ctaBtn}>
@@ -107,9 +112,10 @@ export default function HotDealBanner({
       <span className={styles.stripBadge}>🔥 Hot Deal</span>
       <p className={styles.stripText}>
         <strong>
-          Summer {packageType} — ${amount}
+          Summer {packageType} ({courseName}) — ${amount}
         </strong>{" "}
-        for 4 weeks of live &amp; recorded sessions covering Math &amp; English.
+        for 4 weeks of live &amp; recorded sessions focusing on AFQT (Math and
+        English).
       </p>
       <Link href={link} className={styles.stripBtn}>
         See Deal
