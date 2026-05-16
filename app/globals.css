@@ -314,19 +314,31 @@ a {
 
 /* Footer Section Start*/
 .footer-link,
-.footer-icon {
+.footer-icon,
+.footer-contact-link {
   transition: color 0.3s ease-in-out;
 }
 
 .footer-link:hover,
-.footer-icon:hover {
+.footer-icon:hover,
+.footer-contact-link:hover {
   color: var(--primary-color) !important;
+}
+
+.footer-text {
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.859);
+}
+
+.footer-contact-link {
+  text-decoration: none;
 }
 
 /* Featured Links */
 .footer-link {
-  color: white;
-  text-decoration: none;
+  color: rgba(255, 255, 255, 0.859);
+  /* font-weight: bold; */
+  font-size: 16px;
   display: flex;
   align-items: center;
   gap: 8px;

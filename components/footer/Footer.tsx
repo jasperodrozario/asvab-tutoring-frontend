@@ -33,77 +33,125 @@ export default function Footer() {
     >
       <div
         className="container-xxl"
-        style={{ paddingTop: "40px", paddingBottom: "25px" }}
+        style={{
+          paddingTop: "40px",
+          paddingBottom: "25px",
+        }}
       >
-        <div className="row gy-4">
+        <div className="row gy-5 justify-content-lg-between">
           {/* About Us */}
-          <div className="col-12 col-md-6 col-lg-3">
-            <h5 className="fw-semibold mb-3">ABOUT US</h5>
-            <p className="small">
+          <div className="col-12 col-md-4 col-lg-3">
+            <h5 className="fw-semibold mb-4">ABOUT US</h5>
+            <p className="footer-text">
               At ASVAB Tutoring, we’re dedicated to helping future service
               members achieve their dreams of joining the United States Armed
               Forces.
             </p>
             <Link
               href="/about-us"
-              className="read-more-link mt-3 d-inline-block"
+              className="read-more-link d-inline-block"
+              style={{ fontSize: "14px" }}
             >
               READ MORE &gt;&gt;
             </Link>
           </div>
 
-          {/* Featured Links */}
-          <div className="col-12 col-md-6 col-lg-3">
-            <h5 className="fw-semibold mb-3">FEATURED LINKS</h5>
-            <div className="row">
-              <ul className="list-unstyled col-6">
-                {/* <li className="mb-3">
-                  <Link href="/pricing-page" className="footer-link">
-                    <span>&gt;&gt;</span> Pricing
-                  </Link>
-                </li> */}
-                {/* <li className="mb-3">
-                  <Link href="/services" className="footer-link">
-                    <span>&gt;&gt;</span> Services
-                  </Link>
-                </li> */}
-                <li className="mb-3">
-                  <Link href="/about-us" className="footer-link">
-                    <span>&gt;&gt;</span> About Us
-                  </Link>
-                </li>
-                <li className="mt-3">
-                  <Link href="/blog" className="footer-link">
-                    <span>&gt;&gt;</span> Blog
-                  </Link>
-                </li>
-              </ul>
-              <ul className="list-unstyled col-6">
-                <li className="mb-3">
-                  <Link href="/faq" className="footer-link">
-                    <span>&gt;&gt;</span> FAQs
-                  </Link>
-                </li>
-                <li className="mb-3">
-                  <Link href="/sitemap" className="footer-link">
-                    <span>&gt;&gt;</span> Sitemap
-                  </Link>
-                </li>
-              </ul>
+          {/* Quick Links */}
+          <div className="col-12 col-md-4 col-lg-auto">
+            <h5 className="fw-semibold mb-4">QUICK LINKS</h5>
+            <ul className="list-unstyled p-0 m-0">
+              <li className="mb-2">
+                <Link href="/about-us" className="footer-link">
+                  About Us
+                </Link>
+              </li>
+              <li className="mb-2">
+                <Link href="/blog" className="footer-link">
+                  Blog
+                </Link>
+              </li>
+              <li className="mb-2">
+                <Link href="/faq" className="footer-link">
+                  FAQs
+                </Link>
+              </li>
+              <li className="mb-2">
+                <Link href="/sitemap" className="footer-link">
+                  Sitemap
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Affiliate links */}
+          <div className="col-12 col-md-4 col-lg-auto">
+            <h5 className="fw-semibold mb-4">AFFILIATE</h5>
+            <ul className="list-unstyled p-0 m-0">
+              <li className="mb-2">
+                <Link
+                  href="https://test-prep.asvab-tutoring.com/affiliate-login"
+                  className="footer-link"
+                >
+                  Affiliate Login
+                </Link>
+              </li>
+              <li className="mb-2">
+                <Link
+                  href="https://test-prep.asvab-tutoring.com/become-an-affiliate"
+                  className="footer-link"
+                >
+                  Become an Affiliate
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Our Mobile Apps */}
+          <div className="col-12 col-md-4 col-lg-auto">
+            <h5 className="fw-semibold mb-4">OUR MOBILE APPS</h5>
+            <div className="d-flex flex-column gap-2">
+              <a
+                href="/our-mobile-apps"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="app-link-btn"
+              >
+                <Image
+                  src="/images/download-on-the-app-store.svg"
+                  alt="App Store"
+                  width={0}
+                  height={0}
+                  sizes="100vw"
+                  style={{ width: "auto", height: "40px" }}
+                />
+              </a>
+              <a
+                href="/our-mobile-apps"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="app-link-btn"
+              >
+                <Image
+                  src="/images/Google_Play_Store_badge_EN.svg"
+                  alt="Google Play"
+                  width={0}
+                  height={0}
+                  sizes="100vw"
+                  style={{ width: "auto", height: "40px" }}
+                />
+              </a>
             </div>
           </div>
 
-          {/* Keep in Touch */}
-          <div className="col-12 col-md-6 col-lg-3">
-            <h5 className="fw-semibold mb-3">KEEP IN TOUCH</h5>
-
-            {/* Social Icons */}
-            <div className="d-flex gap-3 mb-3">
+          {/* Social Icons */}
+          <div className="col-12 col-md-4 col-lg-auto">
+            <h5 className="fw-semibold mb-4">KEEP IN TOUCH</h5>
+            <div className="d-flex flex-wrap gap-3">
               <a
                 href="https://x.com/asvabtutoring18"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-white text-decoration-none fs-5 footer-icon"
+                className="text-decoration-none fs-5 footer-icon"
               >
                 <i className="bi bi-twitter-x"></i>
               </a>
@@ -111,7 +159,7 @@ export default function Footer() {
                 href="https://www.facebook.com/asvabtutoring"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-white text-decoration-none fs-5 footer-icon"
+                className="text-decoration-none fs-5 footer-icon"
               >
                 <i className="bi bi-facebook"></i>
               </a>
@@ -119,7 +167,7 @@ export default function Footer() {
                 href="https://www.youtube.com/channel/UCCVP6UtL3O2-gQJa9KwRMXw"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-white text-decoration-none fs-5 footer-icon"
+                className="text-decoration-none fs-5 footer-icon"
               >
                 <i className="bi bi-youtube"></i>
               </a>
@@ -127,44 +175,15 @@ export default function Footer() {
                 href="https://www.instagram.com/asvabtutoring/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-white text-decoration-none fs-5 footer-icon"
+                className="text-decoration-none fs-5 footer-icon"
               >
                 <i className="bi bi-instagram"></i>
-              </a>
-            </div>
-
-            {/* App Store Badges */}
-            <div className="d-flex flex-xxl-row flex-column gap-2 mt-2">
-              <a
-                href="/our-mobile-apps"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Image
-                  src="/images/Google_Play_Store_badge_EN.svg"
-                  alt="Google Play"
-                  width={120}
-                  height={40}
-                />
-              </a>
-
-              <a
-                href="/our-mobile-apps"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Image
-                  src="/images/download-on-the-app-store.svg"
-                  alt="App Store"
-                  width={120}
-                  height={40}
-                />
               </a>
             </div>
           </div>
 
           {/* Contact */}
-          <div className="col-12 col-md-6 col-lg-3">
+          <div className="col-12 col-md-4 col-lg-auto">
             <h5 className="fw-semibold mb-3">
               <Link
                 href="/contact-us"
@@ -174,26 +193,23 @@ export default function Footer() {
                 CONTACT US
               </Link>
             </h5>
-            <p className="small mb-2">
+            <p className="small mb-2 footer-text">
               <i className="bi bi-geo-alt-fill me-2 primary-color-custom"></i>
               United States
             </p>
-            <p className="small mb-2">
+            <p className="small mb-2 footer-text">
               <i className="bi bi-envelope-fill me-2 primary-color-custom"></i>
               <a
                 href="mailto:info@asvab-tutoring.com"
-                className="text-decoration-none text-white"
+                className="footer-contact-link"
               >
                 info@asvab-tutoring.com
               </a>
             </p>
 
-            <p className="small mb-2">
+            <p className="small mb-2 footer-text">
               <i className="bi bi-telephone-fill me-2 primary-color-custom"></i>
-              <a
-                href="tel:(718)-200-6396"
-                className="text-decoration-none text-white"
-              >
+              <a href="tel:(718)-200-6396" className="footer-contact-link">
                 (718)-200-6396
               </a>
             </p>
@@ -205,14 +221,16 @@ export default function Footer() {
           <p className="mb-1">© 2026 ASVAB TUTORING LLC All Rights Reserved</p>
           <Link
             href="/privacy-policy"
-            className="text-warning text-decoration-none"
+            className="text-decoration-none"
+            style={{ color: "var(--primary-color)" }}
           >
             Privacy Policy
           </Link>{" "}
           |{" "}
           <Link
             href="/terms-of-service"
-            className="text-warning text-decoration-none"
+            className="text-decoration-none"
+            style={{ color: "var(--primary-color)" }}
           >
             Terms of Service
           </Link>
