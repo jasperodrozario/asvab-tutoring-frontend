@@ -21,7 +21,7 @@ interface TutoringPackage {
   price: string;
   feature: string;
   is_most_popular: string | number;
-  prev_pkg?: boolean;
+  prev_session?: boolean;
 }
 
 interface UserData {
@@ -115,23 +115,28 @@ export default function BuyMoreSessionsClient() {
         setPackagesMap(grouped);
 
         // Unique course names for the dropdown
-        const courseNames = Object.keys(grouped).map((name) => ({
-          course_id: name,
-          name,
-        }));
+        const courseNames = Object.values(grouped)
+          .flat()
+          .reduce((acc: Course[], pkg: any) => {
+            if (!acc.find((c) => c.course_id === pkg.course_id)) {
+              acc.push({ course_id: pkg.course_id, name: pkg.course_name });
+            }
+            return acc;
+          }, []);
         setCourses(courseNames);
 
         // Auto-select based on prev_pkg flag in any of the packages
         let autoSelectedCourse = "";
         let autoSelectedPkg: TutoringPackage | null = null;
 
-        Object.entries(grouped).forEach(([courseName, pkgs]) => {
-          const prev = (pkgs as TutoringPackage[]).find((p) => p.prev_pkg);
-          if (prev) {
-            autoSelectedCourse = courseName;
-            autoSelectedPkg = prev;
-          }
-        });
+        Object.values(grouped)
+          .flat()
+          .forEach((pkg: any) => {
+            if (pkg.prev_session) {
+              autoSelectedCourse = pkg.course_id;
+              autoSelectedPkg = pkg;
+            }
+          });
 
         if (autoSelectedCourse) {
           setSelectedCourseId(autoSelectedCourse);
@@ -148,8 +153,12 @@ export default function BuyMoreSessionsClient() {
     fetchContext();
   }, [user_id, auth_token]);
 
+  console.log(packagesMap);
+
   const packages = useMemo(() => {
-    return packagesMap[selectedCourseId] || [];
+    return Object.values(packagesMap)
+      .flat()
+      .filter((p) => p.course_id === selectedCourseId);
   }, [packagesMap, selectedCourseId]);
 
   const canShowPayment = useMemo(() => {
@@ -210,7 +219,10 @@ export default function BuyMoreSessionsClient() {
           <div style={selectWrapperStyle}>
             <select
               value={selectedCourseId}
-              onChange={(e) => setSelectedCourseId(e.target.value)}
+              onChange={(e) => {
+                setSelectedCourseId(e.target.value);
+                setSelectedPackage(null);
+              }}
               style={selectStyle}
               disabled={!auth_token}
             >
@@ -285,7 +297,7 @@ export default function BuyMoreSessionsClient() {
                 <SquarePaymentForm
                   ref={paymentRef}
                   amount={Math.round(parseFloat(selectedPackage!.price) * 100)}
-                  course_id={selectedCourseId}
+                  course_id={selectedPackage!.course_id}
                   session_id={selectedPackage!.session_id}
                   package_id={selectedPackage!.package_id}
                   user={user as any}
