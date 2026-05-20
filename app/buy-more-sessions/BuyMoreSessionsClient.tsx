@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import SquarePaymentForm from "@/components/square-payment-form/SquarePaymentForm";
+import SquarePaymentForm, { CardState } from "@/components/square-payment-form/SquarePaymentForm";
 import { useRef } from "react";
 
 interface Course {
@@ -49,6 +49,14 @@ export default function BuyMoreSessionsClient() {
   const [error, setError] = useState<string | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
   const [isPaying, setIsPaying] = useState(false);
+  const [cardState, setCardState] = useState<CardState>({
+    initializing: true,
+    paying: false,
+    completed: false,
+    message: null,
+    paymentId: "",
+    isCardValid: false,
+  });
   const paymentRef = useRef<any>(null);
 
   const handlePaymentSubmit = async () => {
@@ -280,23 +288,41 @@ export default function BuyMoreSessionsClient() {
                   package_id={selectedPackage!.package_id}
                   user={user as any}
                   mode="one_time"
+                  isExistingUser={true}
                   onPaymentSuccess={(pid) => {
                     window.location.href = `/checkout/success?payment_id=${pid}`;
                   }}
+                  onStateChange={setCardState}
                 />
+                {cardState.message && (
+                  <div
+                    style={{
+                      ...errorStyle,
+                      backgroundColor: cardState.completed ? "#e6fffa" : "#fff5f5",
+                      borderColor: cardState.completed ? "#319795" : "#feb2b2",
+                      color: cardState.completed ? "#234e52" : "#9b2c2c",
+                      marginTop: "15px",
+                      marginBottom: "0px",
+                    }}
+                  >
+                    {cardState.message}
+                  </div>
+                )}
                 <div style={{ marginTop: "20px", textAlign: "center" }}>
                   <button
                     onClick={handlePaymentSubmit}
-                    disabled={isPaying}
+                    disabled={isPaying || cardState.initializing || cardState.paying || cardState.completed || !cardState.isCardValid}
                     style={{
                       ...submitButtonStyle,
-                      opacity: isPaying ? 0.7 : 1,
-                      cursor: isPaying ? "not-allowed" : "pointer",
+                      opacity: (isPaying || cardState.initializing || cardState.paying || cardState.completed || !cardState.isCardValid) ? 0.7 : 1,
+                      cursor: (isPaying || cardState.initializing || cardState.paying || cardState.completed || !cardState.isCardValid) ? "not-allowed" : "pointer",
                     }}
                   >
-                    {isPaying
+                    {cardState.paying || isPaying
                       ? "Processing..."
-                      : `Pay $${parseFloat(selectedPackage!.price).toFixed(2)} Now`}
+                      : cardState.completed
+                        ? "Payment Completed"
+                        : `Pay $${parseFloat(selectedPackage!.price).toFixed(2)} Now`}
                   </button>
                 </div>
               </>

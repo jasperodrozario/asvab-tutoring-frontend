@@ -13,8 +13,8 @@ type User = {
   first_name: string;
   last_name: string;
   email: string;
-  mobile: string;
-  password: string;
+  mobile?: string;
+  password?: string;
 };
 
 type PaymentMode = "one_time" | "subscription";
@@ -44,6 +44,7 @@ type Props = {
   mode?: PaymentMode;
   product?: Product;
   cadence?: Cadence;
+  isExistingUser?: boolean;
 
   onPaymentSuccess?: (paymentId?: string) => void;
   onStateChange?: (state: CardState) => void;
@@ -176,6 +177,7 @@ const SquarePaymentForm = forwardRef<SquarePaymentFormHandle, Props>(function Sq
   mode = "one_time",
   product,
   cadence,
+  isExistingUser = false,
   onPaymentSuccess,
   onStateChange,
 }: Props, ref) {
@@ -237,9 +239,10 @@ const SquarePaymentForm = forwardRef<SquarePaymentFormHandle, Props>(function Sq
       "first_name",
       "last_name",
       "email",
-      "mobile",
-      "password",
     ];
+    if (!isExistingUser) {
+      required.push("mobile", "password");
+    }
     for (const k of required) {
       if (!user?.[k] || String(user[k]).trim().length === 0) return false;
     }
