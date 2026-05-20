@@ -153,7 +153,7 @@ export default function BuyMoreSessionsClient() {
     fetchContext();
   }, [user_id, auth_token]);
 
-  console.log(packagesMap);
+  // console.log(packagesMap);
 
   const packages = useMemo(() => {
     return Object.values(packagesMap)

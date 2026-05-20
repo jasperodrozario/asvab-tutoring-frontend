@@ -36,7 +36,7 @@ export default function SitemapPage() {
     fetchSitemap();
   }, []);
 
-  console.log(items);
+  // console.log(items);
 
   if (loading) return <p className="text-center mt-4">Loading sitemap...</p>;
 

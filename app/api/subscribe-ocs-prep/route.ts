@@ -26,8 +26,12 @@ type Payload = {
 };
 
 function getSquareEnvironment(): SquareEnvironment {
-  const env = String(process.env.SQUARE_ENVIRONMENT || "sandbox").trim().toLowerCase();
-  return env === "production" ? SquareEnvironment.Production : SquareEnvironment.Sandbox;
+  const env = String(process.env.SQUARE_ENVIRONMENT || "sandbox")
+    .trim()
+    .toLowerCase();
+  return env === "production"
+    ? SquareEnvironment.Production
+    : SquareEnvironment.Sandbox;
 }
 
 function assertRequiredEnv(): void {
@@ -65,28 +69,28 @@ async function saveSubscriptionToPhp(args: any) {
   form.append("subscription_id", args.squareSubscriptionId);
   form.append("square_customer_id", args.squareCustomerId);
   form.append("plan_variation_id", args.planVariationId);
-  
+
   form.append("email", args.userEmail);
   form.append("password", args.password || "");
   form.append("first_name", args.first_name);
   form.append("last_name", args.last_name);
   form.append("mobile", args.mobile || "");
-  
+
   form.append("course_id", args.course_id || "0");
   form.append("session_id", args.session_id || "0");
   form.append("package_id", args.package_id || "0");
-  
+
   form.append("amount", String(args.amountInCents));
   form.append("currency", "USD");
 
   // ✅ DEBUG LOGS (IMPORTANT)
-  console.log("===== SENDING DATA TO PHP =====");
-  console.log("ARGS:", args);
-  console.log("course_id:", args.course_id);
-  console.log("session_id:", args.session_id);
-  console.log("package_id:", args.package_id);
-  console.log("FORM BODY:", form.toString());
-  console.log("================================");
+  // console.log("===== SENDING DATA TO PHP =====");
+  // console.log("ARGS:", args);
+  // console.log("course_id:", args.course_id);
+  // console.log("session_id:", args.session_id);
+  // console.log("package_id:", args.package_id);
+  // console.log("FORM BODY:", form.toString());
+  // console.log("================================");
 
   const res = await fetch(phpUrl, {
     method: "POST",
@@ -100,13 +104,14 @@ async function saveSubscriptionToPhp(args: any) {
   const raw = await res.text();
 
   // ✅ DEBUG RESPONSE FROM PHP
-  console.log("===== PHP RESPONSE =====");
-  console.log(raw);
-  console.log("========================");
+  // console.log("===== PHP RESPONSE =====");
+  // console.log(raw);
+  // console.log("========================");
 
   try {
     const parsed = JSON.parse(raw);
-    if (!res.ok || !parsed.isSuccess) throw new Error(parsed.message || "PHP Sync Failed");
+    if (!res.ok || !parsed.isSuccess)
+      throw new Error(parsed.message || "PHP Sync Failed");
     return parsed;
   } catch (e) {
     throw new Error("Failed to finalize account on our system.");
@@ -123,22 +128,23 @@ export async function POST(req: NextRequest) {
     assertRequiredEnv();
 
     const rawText = await req.clone().text();
-    console.log("RAW BODY:", rawText);
-    console.log("HEADERS:", Object.fromEntries(req.headers.entries()));
+    // console.log("RAW BODY:", rawText);
+    // console.log("HEADERS:", Object.fromEntries(req.headers.entries()));
 
     const body: Payload = await req.json();
 
-    console.log("PARSED BODY:", body);
-    console.log("BODY.course_id:", body.course_id);
+    // console.log("PARSED BODY:", body);
+    // console.log("BODY.course_id:", body.course_id);
 
     validateProductAvailability(body.product);
-    
+
     if (!body.planVariationId) throw new Error("Missing planVariationId.");
     if (!body.sourceId) throw new Error("Payment method not verified.");
 
     const amountInCents = parseAmountToCents(body.amount);
     const firstName = body.first_name || body.userName?.split(" ")[0] || "";
-    const lastName = body.last_name || body.userName?.split(" ").slice(1).join(" ") || "";
+    const lastName =
+      body.last_name || body.userName?.split(" ").slice(1).join(" ") || "";
 
     const { customer } = await squareClient.customers.create({
       idempotencyKey: randomUUID(),
@@ -171,11 +177,13 @@ export async function POST(req: NextRequest) {
       order: {
         locationId: process.env.SQUARE_LOCATION_ID!,
         state: "DRAFT",
-        lineItems: [{
-          name: `${body.product} Subscription`,
-          quantity: "1",
-          basePriceMoney: { amount: BigInt(amountInCents), currency: "USD" },
-        }],
+        lineItems: [
+          {
+            name: `${body.product} Subscription`,
+            quantity: "1",
+            basePriceMoney: { amount: BigInt(amountInCents), currency: "USD" },
+          },
+        ],
       },
     });
 
@@ -197,19 +205,19 @@ export async function POST(req: NextRequest) {
       amountInCents,
       squareSubscriptionId: subscription.id,
       squareCustomerId: customer.id,
-      planVariationId: body.planVariationId
+      planVariationId: body.planVariationId,
     });
 
     return NextResponse.json({
       success: true,
       message: "Subscription created successfully!",
       subscriptionId: subscription.id,
-      php: phpResponse
+      php: phpResponse,
     });
-
   } catch (error: any) {
     console.error("ROUTE ERROR:", error);
-    const message = error instanceof SquareError ? error.errors?.[0].detail : error.message;
+    const message =
+      error instanceof SquareError ? error.errors?.[0].detail : error.message;
     return NextResponse.json({ success: false, message }, { status: 400 });
   }
 }

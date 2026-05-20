@@ -545,9 +545,9 @@ const SquarePaymentForm = forwardRef<SquarePaymentFormHandle, Props>(
           return;
         }
 
-        console.log(course_id);
-        console.log(session_id);
-        console.log(package_id);
+        // console.log(course_id);
+        // console.log(session_id);
+        // console.log(package_id);
 
         const res = await fetch("/api/payment", {
           method: "POST",

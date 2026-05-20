@@ -69,7 +69,7 @@ export default function ServiceDetailContent({
     load();
   }, [serviceId]);
 
-  console.log(data);
+  // console.log(data);
 
   if (loading) {
     return (
