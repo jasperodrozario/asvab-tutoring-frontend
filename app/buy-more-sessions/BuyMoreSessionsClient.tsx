@@ -2,7 +2,9 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import SquarePaymentForm, { CardState } from "@/components/square-payment-form/SquarePaymentForm";
+import SquarePaymentForm, {
+  CardState,
+} from "@/components/square-payment-form/SquarePaymentForm";
 import { useRef } from "react";
 
 interface Course {
@@ -290,7 +292,15 @@ export default function BuyMoreSessionsClient() {
                   mode="one_time"
                   isExistingUser={true}
                   onPaymentSuccess={(pid) => {
-                    window.location.href = `/checkout/success?payment_id=${pid}`;
+                    const pkgId = selectedPackage?.package_id || "";
+                    let q = pid
+                      ? `?method=card&id=${encodeURIComponent(pid)}`
+                      : `?method=card`;
+                    if (pkgId) {
+                      q += `&package_id=${pkgId}`;
+                    }
+                    q += `&buy_more=1`;
+                    window.location.href = `/thank-you${q}`;
                   }}
                   onStateChange={setCardState}
                 />
@@ -298,7 +308,9 @@ export default function BuyMoreSessionsClient() {
                   <div
                     style={{
                       ...errorStyle,
-                      backgroundColor: cardState.completed ? "#e6fffa" : "#fff5f5",
+                      backgroundColor: cardState.completed
+                        ? "#e6fffa"
+                        : "#fff5f5",
                       borderColor: cardState.completed ? "#319795" : "#feb2b2",
                       color: cardState.completed ? "#234e52" : "#9b2c2c",
                       marginTop: "15px",
@@ -311,11 +323,31 @@ export default function BuyMoreSessionsClient() {
                 <div style={{ marginTop: "20px", textAlign: "center" }}>
                   <button
                     onClick={handlePaymentSubmit}
-                    disabled={isPaying || cardState.initializing || cardState.paying || cardState.completed || !cardState.isCardValid}
+                    disabled={
+                      isPaying ||
+                      cardState.initializing ||
+                      cardState.paying ||
+                      cardState.completed ||
+                      !cardState.isCardValid
+                    }
                     style={{
                       ...submitButtonStyle,
-                      opacity: (isPaying || cardState.initializing || cardState.paying || cardState.completed || !cardState.isCardValid) ? 0.7 : 1,
-                      cursor: (isPaying || cardState.initializing || cardState.paying || cardState.completed || !cardState.isCardValid) ? "not-allowed" : "pointer",
+                      opacity:
+                        isPaying ||
+                        cardState.initializing ||
+                        cardState.paying ||
+                        cardState.completed ||
+                        !cardState.isCardValid
+                          ? 0.7
+                          : 1,
+                      cursor:
+                        isPaying ||
+                        cardState.initializing ||
+                        cardState.paying ||
+                        cardState.completed ||
+                        !cardState.isCardValid
+                          ? "not-allowed"
+                          : "pointer",
                     }}
                   >
                     {cardState.paying || isPaying

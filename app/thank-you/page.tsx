@@ -7,7 +7,12 @@ export default async function ThankYouPage({
   searchParams,
 }: {
   // Next.js 16: searchParams can be a Promise in Server Components
-  searchParams?: Promise<{ method?: string; id?: string; package_id?: string }>;
+  searchParams?: Promise<{
+    method?: string;
+    id?: string;
+    package_id?: string;
+    buy_more?: string;
+  }>;
 }) {
   const params = (await searchParams) ?? {};
 
@@ -23,15 +28,32 @@ export default async function ThankYouPage({
       ? "Group Tutoring"
       : "";
 
-  const title =
-    method === "mobile" ? "Registration Completed" : "Payment Successful";
+  const buyMore = params.buy_more === "1";
 
-  const subtitle =
-    method === "mobile"
+  const title = buyMore
+    ? "Payment Successful"
+    : method === "mobile"
+      ? "Registration Completed"
+      : "Payment Successful";
+
+  const subtitle = buyMore
+    ? "Thanks! Your package purchase has been completed."
+    : method === "mobile"
       ? "Thanks! Your registration is complete."
       : "Thanks! Your payment has been completed.";
 
-  const messageBlocks = (
+  const messageBlocks = buyMore ? (
+    <>
+      <p className="mb-3" style={{ fontSize: 16, lineHeight: 1.6 }}>
+        Congratulations, your purchase has been completed successfully. The new
+        session plan has been added to your account.
+      </p>
+
+      <p className="mb-0" style={{ fontSize: 16, lineHeight: 1.6 }}>
+        You can now return to the portal and continue your learning.
+      </p>
+    </>
+  ) : (
     <>
       <p className="mb-3" style={{ fontSize: 16, lineHeight: 1.6 }}>
         Congratulations, your registration has been done successfully. Your
@@ -104,17 +126,30 @@ export default async function ThankYouPage({
                 <NextStepCard service={service} className={"mb-4"} />
 
                 <div className="d-flex flex-column flex-sm-row gap-2">
-                  <Link
-                    href="/user-login"
-                    className="btn btn-primary-custom flex-fill"
-                    style={{ padding: "12px 14px" }}
-                  >
-                    Go to Login
-                  </Link>
+                  {buyMore ? (
+                    <a
+                      href={
+                        process.env.NEXT_PUBLIC_RESOURCES_URL ||
+                        "https://test-prep.asvab-tutoring.com/"
+                      }
+                      className="btn btn-primary-custom flex-fill text-center"
+                      style={{ padding: "12px 14px" }}
+                    >
+                      Go to Study Portal
+                    </a>
+                  ) : (
+                    <Link
+                      href="/user-login"
+                      className="btn btn-primary-custom flex-fill text-center"
+                      style={{ padding: "12px 14px" }}
+                    >
+                      Go to Login
+                    </Link>
+                  )}
 
                   <Link
                     href="/"
-                    className="btn btn-outline-secondary flex-fill"
+                    className="btn btn-outline-secondary flex-fill text-center"
                     style={{ padding: "12px 14px" }}
                   >
                     Back to Home
