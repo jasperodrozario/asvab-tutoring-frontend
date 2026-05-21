@@ -463,7 +463,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "All set! Your subscription has been created successfully.",
+      message:
+        "Your subscription has been created. Access will activate once your first payment is confirmed.",
       subscriptionId: subscription.id,
       php: phpSave,
       plan_data: {

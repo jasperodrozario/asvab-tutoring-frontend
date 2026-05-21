@@ -541,7 +541,9 @@ const SquarePaymentForm = forwardRef<SquarePaymentFormHandle, Props>(
           if (id) setPaymentId(id);
           onPaymentSuccess?.(id);
 
-          setMessage("Subscription created successfully.");
+          setMessage(
+            "Subscription created. Your access will activate once payment is confirmed.",
+          );
           return;
         }
 

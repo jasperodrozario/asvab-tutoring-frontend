@@ -37,7 +37,9 @@ function getSquareEnvironment(): SquareEnvironment {
 function assertRequiredEnv(): void {
   const missing: string[] = [];
   if (!process.env.SQUARE_ACCESS_TOKEN) missing.push("SQUARE_ACCESS_TOKEN");
-  if (!process.env.PHP_API_URL) missing.push("PHP_API_URL");
+  if (!process.env.PHP_API_URL && !process.env.NEXT_PUBLIC_PHP_API_URL) {
+    missing.push("PHP_API_URL or NEXT_PUBLIC_PHP_API_URL");
+  }
   if (missing.length) throw new Error("Server configuration missing.");
 }
 
@@ -60,7 +62,8 @@ function parseAmountToCents(amount: number | string): number {
 }
 
 async function saveSubscriptionToPhp(args: any) {
-  const phpUrl = process.env.PHP_API_URL!;
+  const phpUrl =
+    process.env.PHP_API_URL || process.env.NEXT_PUBLIC_PHP_API_URL!;
   const phpSecret = cleanString(process.env.INTERNAL_API_SECRET || "");
   const form = new URLSearchParams();
 
@@ -82,6 +85,7 @@ async function saveSubscriptionToPhp(args: any) {
 
   form.append("amount", String(args.amountInCents));
   form.append("currency", "USD");
+  form.append("payment_status", "PENDING");
 
   // ✅ DEBUG LOGS (IMPORTANT)
   // console.log("===== SENDING DATA TO PHP =====");
@@ -210,7 +214,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "Subscription created successfully!",
+      message:
+        "Your subscription has been created. Access will activate once your first payment is confirmed.",
       subscriptionId: subscription.id,
       php: phpResponse,
     });
