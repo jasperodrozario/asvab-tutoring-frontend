@@ -155,6 +155,116 @@ async function fetchSubscription(subscriptionId: string) {
   return r.ok ? (r.json as { subscription?: any }) : null;
 }
 
+const ALLOWED_PAID_PAYMENT_STATUSES = new Set(["COMPLETED", "APPROVED"]);
+
+function paymentStatusRank(status: string) {
+  const s = status.toUpperCase();
+  if (s === "COMPLETED") return 4;
+  if (s === "APPROVED") return 3;
+  if (s === "PENDING") return 2;
+  if (s === "FAILED" || s === "CANCELED") return 1;
+  return 0;
+}
+
+function extractPaymentIdsFromInvoice(invoice: any): string[] {
+  const ids: string[] = [];
+  const requests = invoice?.payment_requests;
+  if (!Array.isArray(requests)) return ids;
+
+  for (const pr of requests) {
+    const tenders = pr?.tenders;
+    if (!Array.isArray(tenders)) continue;
+    for (const t of tenders) {
+      const pid = safeTrim(t?.payment_id);
+      if (pid) ids.push(pid);
+    }
+  }
+
+  return [...new Set(ids)];
+}
+
+async function searchPaymentsByOrderId(orderId: string) {
+  const headers = getSquareHeadersOrNull();
+  if (!headers) return [];
+
+  const url = `${squareBaseUrl()}/v2/payments/search`;
+  const r = await safeFetchJson(url, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      query: {
+        filter: {
+          order_filter: {
+            order_ids: [orderId],
+          },
+        },
+      },
+      limit: 25,
+    }),
+  });
+
+  if (!r.ok || !r.json) return [];
+  const payments = r.json?.payments;
+  return Array.isArray(payments) ? payments : [];
+}
+
+/**
+ * Square can emit invoice.payment_made while the underlying card payment is still
+ * FAILED/PENDING. Verify via Payments API before granting portal access.
+ */
+async function resolveVerifiedSubscriptionPayment(params: {
+  fetchedInvoice: any | null;
+}): Promise<
+  | { ok: true; paymentId: string; paymentStatus: string }
+  | { ok: false; reason: string; paymentStatus?: string }
+> {
+  const inv = params.fetchedInvoice;
+  if (!inv) return { ok: false, reason: "invoice_not_found" };
+
+  const tenderPaymentIds = extractPaymentIdsFromInvoice(inv);
+
+  for (const pid of tenderPaymentIds) {
+    const payRes = await fetchPayment(pid);
+    const status = safeTrim(payRes?.payment?.status).toUpperCase();
+    if (ALLOWED_PAID_PAYMENT_STATUSES.has(status)) {
+      return { ok: true, paymentId: pid, paymentStatus: status };
+    }
+    if (status) {
+      return { ok: false, reason: "payment_not_completed", paymentStatus: status };
+    }
+  }
+
+  const orderId = safeTrim(inv.order_id);
+  if (orderId) {
+    const payments = await searchPaymentsByOrderId(orderId);
+    let best: { id: string; status: string; rank: number } | null = null;
+
+    for (const p of payments) {
+      const id = safeTrim(p?.id);
+      const status = safeTrim(p?.status).toUpperCase();
+      if (!id || !status) continue;
+      const rank = paymentStatusRank(status);
+      if (!best || rank > best.rank) {
+        best = { id, status, rank };
+      }
+    }
+
+    if (best && ALLOWED_PAID_PAYMENT_STATUSES.has(best.status)) {
+      return { ok: true, paymentId: best.id, paymentStatus: best.status };
+    }
+
+    if (best) {
+      return {
+        ok: false,
+        reason: "payment_not_completed",
+        paymentStatus: best.status,
+      };
+    }
+  }
+
+  return { ok: false, reason: "no_payment_found" };
+}
+
 async function searchInvoiceByOrderId(params: {
   locationId: string;
   orderId: string;
@@ -421,6 +531,20 @@ export async function POST(req: NextRequest) {
           }
         }
 
+        const verified = await resolveVerifiedSubscriptionPayment({
+          fetchedInvoice,
+        });
+
+        if (!verified.ok) {
+          console.error("[subscription-webhook] invoice.payment_made skipped", {
+            invoiceId,
+            subscriptionId,
+            reason: verified.reason,
+            payment_status: verified.paymentStatus ?? null,
+          });
+          return json200({ ok: true, skipped: "payment_not_verified" });
+        }
+
         const amountToSend =
           amountCents == null ? "0" : (Number(amountCents) / 100).toFixed(2);
 
@@ -434,7 +558,8 @@ export async function POST(req: NextRequest) {
           amount: amountToSend,
           currency,
           paid_at: paidAt,
-          payment_id: "",
+          payment_id: verified.paymentId,
+          payment_status: verified.paymentStatus,
           charged_through_date: chargedThroughDate,
           next_billing_date: nextBillingDate,
           subscription_status: subscriptionStatus,
@@ -444,8 +569,45 @@ export async function POST(req: NextRequest) {
         return json200({ ok: true });
       }
 
-      // Optional future handling
       case "invoice.scheduled_charge_failed": {
+        const invoiceFromEvent = getInvoiceFromEvent(event);
+        const invoiceId = getInvoiceId(event);
+
+        let subscriptionId =
+          safeTrim(invoiceFromEvent?.subscription_id) ||
+          safeTrim(event?.data?.object?.subscription_id) ||
+          "";
+
+        let squareCustomerId =
+          safeTrim(invoiceFromEvent?.primary_recipient?.customer_id) || "";
+        let email =
+          safeTrim(invoiceFromEvent?.primary_recipient?.email_address) || "";
+
+        if (invoiceId) {
+          const inv = await fetchInvoice(invoiceId);
+          if (inv?.invoice) {
+            if (!subscriptionId) {
+              subscriptionId = safeTrim(inv.invoice.subscription_id);
+            }
+            squareCustomerId =
+              squareCustomerId ||
+              safeTrim(inv.invoice.primary_recipient?.customer_id);
+            email =
+              email || safeTrim(inv.invoice.primary_recipient?.email_address);
+          }
+        }
+
+        if (subscriptionId) {
+          await postToPhp("subscription-updated", {
+            event_type: type,
+            event_created_at: eventCreatedAt,
+            subscription_id: subscriptionId,
+            square_customer_id: squareCustomerId,
+            email,
+            status: "PAYMENT_FAILED",
+          });
+        }
+
         return json200({ ok: true });
       }
 
@@ -460,40 +622,40 @@ export async function POST(req: NextRequest) {
         const disputeState = safeTrim(dispute?.state) || "UNKNOWN";
         const paymentId = safeTrim(dispute?.disputed_payment?.payment_id);
 
-        const locationId = safeTrim(event?.location_id ?? dispute?.location_id);
-
         if (!disputeId || !paymentId) return json200({ ok: true });
 
-        let subscriptionId = "";
+        const amountMinor = dispute?.amount_money?.amount;
+        const amount =
+          amountMinor === undefined || amountMinor === null
+            ? "0.00"
+            : (Number(amountMinor) / 100).toFixed(2);
+        const currency =
+          safeTrim(dispute?.amount_money?.currency || "USD") || "USD";
 
-        // Try to infer subscriptionId from payment -> order_id -> invoice search
-        const pay = await fetchPayment(paymentId);
-        const payment = pay?.payment ?? null;
+        const fmtDt = (s: string) => {
+          const t = safeTrim(s);
+          if (!t) return "";
+          const ts = Date.parse(t);
+          return Number.isFinite(ts)
+            ? new Date(ts).toISOString().slice(0, 19).replace("T", " ")
+            : t;
+        };
 
-        const orderId = safeTrim(payment?.order_id);
-        const paymentLocationId = safeTrim(payment?.location_id);
-        const effectiveLocationId = paymentLocationId || locationId;
-
-        if (orderId && effectiveLocationId) {
-          const found = await searchInvoiceByOrderId({
-            locationId: effectiveLocationId,
-            orderId,
-          });
-          const inv = found?.invoices?.[0] ?? null;
-          subscriptionId = safeTrim(inv?.subscription_id);
-        }
-
-        const disputeScope: "PAYMENT" | "SUBSCRIPTION" = subscriptionId
-          ? "SUBSCRIPTION"
-          : "PAYMENT";
-
-        await postToPhp("upsert-dispute", {
-          payment_id: paymentId,
-          subscription_id: subscriptionId,
+        await postToPhp("square-dispute", {
           dispute_id: disputeId,
-          dispute_scope: disputeScope,
-          dispute_state: disputeState,
+          payment_id: paymentId,
+          amount,
+          currency,
+          card_brand: safeTrim(dispute?.card_brand),
+          reason: safeTrim(dispute?.reason),
+          state: disputeState,
+          due_at: fmtDt(safeTrim(dispute?.due_at)),
+          square_created_at: fmtDt(
+            safeTrim(dispute?.created_at || eventCreatedAt),
+          ),
+          square_updated_at: fmtDt(safeTrim(dispute?.updated_at)),
           event_type: type,
+          event_id: getEventId(event),
           event_created_at: eventCreatedAt,
         });
 

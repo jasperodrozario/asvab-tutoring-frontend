@@ -335,7 +335,9 @@ export default function SubscribeAgainPaymentForm({
         onSuccess?.(id);
       }
 
-      setMessage("✅ Subscription created successfully!");
+      setMessage(
+        "✅ Subscription created. Your access will activate once payment is confirmed.",
+      );
 
       // Redirect
       const back =
