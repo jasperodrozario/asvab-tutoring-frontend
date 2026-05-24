@@ -531,21 +531,6 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        const invoiceStatus = safeTrim(
-          fetchedInvoice?.status || invoiceFromEvent?.status,
-        ).toUpperCase();
-
-        // Square invoice must be fully paid (not PAYMENT_PENDING / PARTIALLY_PAID)
-        if (invoiceStatus && invoiceStatus !== "PAID") {
-          console.error("[subscription-webhook] invoice.payment_made skipped", {
-            invoiceId,
-            subscriptionId,
-            reason: "invoice_status_not_paid",
-            invoice_status: invoiceStatus,
-          });
-          return json200({ ok: true, skipped: "invoice_not_paid" });
-        }
-
         const verified = await resolveVerifiedSubscriptionPayment({
           fetchedInvoice,
         });
@@ -556,7 +541,6 @@ export async function POST(req: NextRequest) {
             subscriptionId,
             reason: verified.reason,
             payment_status: verified.paymentStatus ?? null,
-            invoice_status: invoiceStatus || null,
           });
           return json200({ ok: true, skipped: "payment_not_verified" });
         }
@@ -564,7 +548,7 @@ export async function POST(req: NextRequest) {
         const amountToSend =
           amountCents == null ? "0" : (Number(amountCents) / 100).toFixed(2);
 
-        const phpResult = await postToPhp("invoice-payment-made", {
+        await postToPhp("invoice-payment-made", {
           event_type: type,
           event_created_at: eventCreatedAt,
           invoice_id: invoiceId,
@@ -574,7 +558,6 @@ export async function POST(req: NextRequest) {
           amount: amountToSend,
           currency,
           paid_at: paidAt,
-          invoice_status: invoiceStatus || "PAID",
           payment_id: verified.paymentId,
           payment_status: verified.paymentStatus,
           charged_through_date: chargedThroughDate,
@@ -582,32 +565,6 @@ export async function POST(req: NextRequest) {
           subscription_status: subscriptionStatus,
           plan_variation_id: planVariationId,
         });
-
-        if (phpResult.skipped) {
-          console.error(
-            "[subscription-webhook] invoice-payment-made skipped: PHP URL missing",
-            { invoiceId, subscriptionId },
-          );
-          return json200({ ok: true, warning: "php_skipped" });
-        }
-
-        if (!phpResult.ok) {
-          console.error(
-            "[subscription-webhook] invoice-payment-made PHP failed",
-            {
-              invoiceId,
-              subscriptionId,
-              http_status: phpResult.status,
-            },
-          );
-          // 5xx to Square → retry (e.g. user row not created yet, transient DB error)
-          if (phpResult.status === 404 || phpResult.status >= 500) {
-            return NextResponse.json(
-              { ok: false, message: "Activation pending retry" },
-              { status: 500 },
-            );
-          }
-        }
 
         return json200({ ok: true });
       }
