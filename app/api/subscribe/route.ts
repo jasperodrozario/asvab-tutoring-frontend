@@ -61,7 +61,9 @@ function getSquareEnvironment(): SquareEnvironment {
 }
 
 function isProductionEnvironment(): boolean {
-  return (process.env.SQUARE_ENVIRONMENT || "sandbox").toLowerCase() === "production";
+  return (
+    (process.env.SQUARE_ENVIRONMENT || "sandbox").toLowerCase() === "production"
+  );
 }
 
 function assertRequiredEnv(): void {
@@ -69,11 +71,12 @@ function assertRequiredEnv(): void {
 
   if (!process.env.SQUARE_ACCESS_TOKEN) missing.push("SQUARE_ACCESS_TOKEN");
   if (!process.env.SQUARE_LOCATION_ID) missing.push("SQUARE_LOCATION_ID");
-  if (!process.env.NEXT_PUBLIC_PHP_API_URL) missing.push("NEXT_PUBLIC_PHP_API_URL");
+  if (!process.env.NEXT_PUBLIC_PHP_API_URL)
+    missing.push("NEXT_PUBLIC_PHP_API_URL");
 
   if (missing.length) {
     throw new Error(
-      "The server is missing required configuration. Please contact support."
+      "The server is missing required configuration. Please contact support.",
     );
   }
 }
@@ -143,14 +146,19 @@ async function getPlanSessionData(sessionId: string): Promise<{
 
   if (!res.ok) {
     throw new Error(
-      "We couldn't load the subscription details right now. Please try again in a moment."
+      "We couldn't load the subscription details right now. Please try again in a moment.",
     );
   }
 
-  if (!parsed || parsed.isSuccess !== true || !Array.isArray(parsed.data) || parsed.data.length === 0) {
+  if (
+    !parsed ||
+    parsed.isSuccess !== true ||
+    !Array.isArray(parsed.data) ||
+    parsed.data.length === 0
+  ) {
     throw new Error(
       parsed?.message ||
-        "This subscription option is not available right now. Please try a different plan or contact support."
+        "This subscription option is not available right now. Please try a different plan or contact support.",
     );
   }
 
@@ -158,7 +166,7 @@ async function getPlanSessionData(sessionId: string): Promise<{
 
   if (!row || String(row.is_active) !== "1") {
     throw new Error(
-      "This subscription option is not available right now. Please try a different plan or contact support."
+      "This subscription option is not available right now. Please try a different plan or contact support.",
     );
   }
 
@@ -168,7 +176,7 @@ async function getPlanSessionData(sessionId: string): Promise<{
 
   if (!planVariationId) {
     throw new Error(
-      "This subscription option is not available right now. Please try a different plan or contact support."
+      "This subscription option is not available right now. Please try a different plan or contact support.",
     );
   }
 
@@ -206,7 +214,9 @@ async function saveSubscriptionToPhp(args: {
   form.append("password", args.password || "");
   form.append("mobile", args.mobile || "");
 
-  const nameParts = String(args.userName || "").trim().split(/\s+/);
+  const nameParts = String(args.userName || "")
+    .trim()
+    .split(/\s+/);
   form.append("first_name", nameParts[0] || "");
   form.append("last_name", nameParts.slice(1).join(" ") || "");
 
@@ -243,7 +253,7 @@ async function saveSubscriptionToPhp(args: {
 
   if (!res.ok) {
     throw new Error(
-      "We couldn't finish setting up your account on our system. Please try again in a moment."
+      "We couldn't finish setting up your account on our system. Please try again in a moment.",
     );
   }
 
@@ -251,7 +261,7 @@ async function saveSubscriptionToPhp(args: {
     const ok = Boolean(parsed?.isSuccess ?? parsed?.ok);
     if (!ok) {
       throw new Error(
-        "Your subscription was created, but we couldn't finish saving it on our system. Please contact support so we can help right away."
+        "Your subscription was created, but we couldn't finish saving it on our system. Please contact support so we can help right away.",
       );
     }
   }
@@ -267,7 +277,8 @@ const squareClient = new SquareClient({
 function friendlySquareError(err: unknown): string {
   if (err instanceof SquareError) {
     const first = err.errors?.[0];
-    const detail = first?.detail || first?.code || "A payment service error occurred.";
+    const detail =
+      first?.detail || first?.code || "A payment service error occurred.";
     return `We couldn't complete the request with our payment provider. ${detail}`;
   }
 
@@ -288,7 +299,7 @@ export async function POST(req: NextRequest) {
     } catch {
       return NextResponse.json(
         { success: false, message: "Please send a valid request." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -299,7 +310,7 @@ export async function POST(req: NextRequest) {
           message:
             "We couldn't verify your payment method. Please refresh the page and try again.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -310,21 +321,21 @@ export async function POST(req: NextRequest) {
           message:
             "Please choose a valid product and subscription length, then try again.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!body.userEmail || !String(body.userEmail).includes("@")) {
       return NextResponse.json(
         { success: false, message: "Please enter a valid email address." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!body.userName || !String(body.userName).trim()) {
       return NextResponse.json(
         { success: false, message: "Please enter your full name." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -334,7 +345,7 @@ export async function POST(req: NextRequest) {
           success: false,
           message: "Session ID is required.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -342,24 +353,26 @@ export async function POST(req: NextRequest) {
     if (!Number.isFinite(amountInCents) || amountInCents <= 0) {
       return NextResponse.json(
         { success: false, message: "Please enter a valid amount." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // 1) Get session/package/plan data from PHP API
     const { row: planRow, planVariationId } = await getPlanSessionData(
-      String(body.session_id)
+      String(body.session_id),
     );
 
     // Optional consistency check: cadence sent from frontend should match DB
-    if (String(planRow.package_duration).trim() !== String(body.cadence).trim()) {
+    if (
+      String(planRow.package_duration).trim() !== String(body.cadence).trim()
+    ) {
       return NextResponse.json(
         {
           success: false,
           message:
             "The selected subscription length does not match the package configuration.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -372,7 +385,7 @@ export async function POST(req: NextRequest) {
 
     if (!customer?.id) {
       throw new Error(
-        "We couldn't create your customer profile with the payment provider. Please try again."
+        "We couldn't create your customer profile with the payment provider. Please try again.",
       );
     }
 
@@ -387,7 +400,7 @@ export async function POST(req: NextRequest) {
 
     if (!card?.id) {
       throw new Error(
-        "We couldn't securely save your payment method. Please try again."
+        "We couldn't securely save your payment method. Please try again.",
       );
     }
 
@@ -412,7 +425,7 @@ export async function POST(req: NextRequest) {
 
     if (!order?.id) {
       throw new Error(
-        "We couldn't prepare your subscription details. Please try again."
+        "We couldn't prepare your subscription details. Please try again.",
       );
     }
 
@@ -433,14 +446,20 @@ export async function POST(req: NextRequest) {
 
     if (!subscription?.id) {
       throw new Error(
-        "We couldn't create your subscription. Please try again."
+        "We couldn't create your subscription. Please try again.",
       );
     }
 
     // Use DB values from PHP as source of truth when available
-    const resolvedCourseId = String(body.course_id || planRow.course_id || "").trim();
-    const resolvedPackageId = String(body.package_id || planRow.package_id || "").trim();
-    const resolvedSessionId = String(body.session_id || planRow.session_id || "").trim();
+    const resolvedCourseId = String(
+      body.course_id || planRow.course_id || "",
+    ).trim();
+    const resolvedPackageId = String(
+      body.package_id || planRow.package_id || "",
+    ).trim();
+    const resolvedSessionId = String(
+      body.session_id || planRow.session_id || "",
+    ).trim();
 
     // 6) Save to PHP
     const phpSave = await saveSubscriptionToPhp({
@@ -463,7 +482,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "All set! Your subscription has been created successfully.",
+      message:
+        "Your subscription has been created. Access will activate once your first payment is confirmed.",
       subscriptionId: subscription.id,
       php: phpSave,
       plan_data: {
@@ -487,7 +507,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(
       { success: false, message },
-      { status: isClientStyle ? 400 : 500 }
+      { status: isClientStyle ? 400 : 500 },
     );
   }
 }

@@ -811,51 +811,30 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const package_id = safeStr(
-      picked?.package_id || planLookup.package_id || "",
-      60,
-    );
-
-    const userEmail = safeStr(who.data?.user?.email || "", 120);
-
-    // Link Square subscription to portal user (PENDING until invoice payment is verified via webhook).
-    await callPhp({
-      action: "subscription-updated",
-      subscription_id,
-      square_customer_id,
-      plan_variation_id,
-      status: "PENDING",
-      start_date,
-      next_billing_date,
-      user_id: user_id_from_client,
-      course_id,
-      package_id,
-      session_id: picked_session_id,
-      amount: (amount_cents / 100).toFixed(2),
-      currency,
-      payment_mode: "square_subscription",
-    });
-
-    // Existing web users without a stored Square customer: persist subscription metadata only.
-    // Access activates in PHP invoice-payment-made after payment_status is COMPLETED/APPROVED.
+    // If the user didn't previously have a square_customer_id in the DB (old web user)
     if (
       !who.data.user.square_customer_id ||
       who.data.user.square_customer_id === ""
     ) {
+      const package_id = safeStr(
+        picked?.package_id || planLookup.package_id || "",
+        60,
+      );
+
       await callPhp({
         action: "web-user-registration-subscription",
-        course_id,
+        course_id: course_id,
         user_id: user_id_from_client,
-        subscription_date: start_date || new Date().toISOString().slice(0, 10),
-        package_id,
+        subscription_date: start_date,
+        package_id: package_id,
         session_id: picked_session_id,
-        amount: String(amount_cents),
-        currency,
-        status: "PENDING",
+        raw_amount: amount_cents,
+        currency: currency,
+        status: status,
         square_subscription_id: subscription_id,
-        square_customer_id,
-        plan_variation_id,
-        email: userEmail,
+        square_customer_id: square_customer_id,
+        plan_variation_id: plan_variation_id,
+        auth_token: auth_token,
       });
     }
 
