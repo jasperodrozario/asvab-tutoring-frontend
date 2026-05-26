@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "ASVAB Tutoring: ASVAB Tutor, ASTB, OAR, AFOQT, SIFT",
   description:
-    "ASVAB Tutoring.com is a one-on-one online tutoring program. We provide high-quality tutoring services for ASVAB, ASTB, OAR, and AFOQT tests",
+    "ASVAB Tutoring provides best one-on-one online tutoring for ASVAB, ASTB, OAR & AFOQT exams. Expert tutors, personalized lessons, and proven strategies to boost your test scores.",
   authors: [{ name: "ASVAB Tutoring" }],
   verification: {
     google: "tjKoBlCs6zhgP7CiS7k0C2U86ENYzEWPPsErD0ffpSU",
