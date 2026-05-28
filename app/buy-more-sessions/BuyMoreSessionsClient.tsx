@@ -7,11 +7,6 @@ import SquarePaymentForm, {
 } from "@/components/square-payment-form/SquarePaymentForm";
 import { useRef } from "react";
 
-interface Course {
-  course_id: string;
-  name: string;
-}
-
 interface TutoringPackage {
   package_id: string;
   session_id: string;
@@ -22,6 +17,7 @@ interface TutoringPackage {
   feature: string;
   is_most_popular: string | number;
   prev_session?: boolean;
+  ord?: number;
 }
 
 interface UserData {
@@ -33,21 +29,25 @@ interface UserData {
   password?: string;
 }
 
+interface CourseData {
+  course_id: string;
+  course_name: string;
+}
+
 export default function BuyMoreSessionsClient() {
   const searchParams = useSearchParams();
   const user_id = searchParams.get("user_id") || "";
   const auth_token = searchParams.get("auth_token") || "";
 
   const [user, setUser] = useState<UserData | null>(null);
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [course, setCourse] = useState<CourseData | null>(null);
+  const [courses, setCourses] = useState<CourseData[]>([]);
+  const [packages, setPackages] = useState<TutoringPackage[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState<string>("");
-  const [packagesMap, setPackagesMap] = useState<
-    Record<string, TutoringPackage[]>
-  >({});
+  const [isFallbackAllCourses, setIsFallbackAllCourses] = useState(false);
   const [selectedPackage, setSelectedPackage] =
     useState<TutoringPackage | null>(null);
   const [loading, setLoading] = useState(true);
-  const [loadingPackages, setLoadingPackages] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
   const [isPaying, setIsPaying] = useState(false);
@@ -110,38 +110,67 @@ export default function BuyMoreSessionsClient() {
           setUser({ ...data.user, user_id });
         }
 
-        // Use data.package_details as per API response
-        const grouped = data.package_details || {};
-        setPackagesMap(grouped);
+        const fallbackAllCourses = !!data.fallback_all_courses;
 
-        // Unique course names for the dropdown
-        const courseNames = Object.values(grouped)
-          .flat()
-          .reduce((acc: Course[], pkg: any) => {
-            if (!acc.find((c) => c.course_id === pkg.course_id)) {
-              acc.push({ course_id: pkg.course_id, name: pkg.course_name });
-            }
-            return acc;
-          }, []);
-        setCourses(courseNames);
-
-        // Auto-select based on prev_pkg flag in any of the packages
-        let autoSelectedCourse = "";
-        let autoSelectedPkg: TutoringPackage | null = null;
-
-        Object.values(grouped)
-          .flat()
-          .forEach((pkg: any) => {
-            if (pkg.prev_session) {
-              autoSelectedCourse = pkg.course_id;
-              autoSelectedPkg = pkg;
-            }
+        if (data.course?.course_id) {
+          setCourse({
+            course_id: String(data.course.course_id),
+            course_name: String(data.course.course_name || ""),
           });
-
-        if (autoSelectedCourse) {
-          setSelectedCourseId(autoSelectedCourse);
-          setSelectedPackage(autoSelectedPkg);
+          setSelectedCourseId(String(data.course.course_id));
+        } else {
+          setCourse(null);
+          setSelectedCourseId("");
         }
+        setIsFallbackAllCourses(fallbackAllCourses);
+
+        const rawPackages = Array.isArray(data.packages)
+          ? data.packages
+          : Object.values(data.package_details || {}).flat();
+
+        const normalized = rawPackages
+          .map((pkg: any) => ({
+            package_id: String(pkg.package_id || ""),
+            session_id: String(pkg.session_id || ""),
+            course_id: String(pkg.course_id || ""),
+            course_name: String(pkg.course_name || data.course?.course_name || ""),
+            title: String(pkg.title || ""),
+            price: String(pkg.price || "0"),
+            feature: String(pkg.feature || ""),
+            is_most_popular: String(pkg.is_most_popular || "0"),
+            prev_session: !!pkg.prev_session,
+            ord: Number(pkg.ord || 0),
+          }))
+          .filter((pkg: TutoringPackage) => !!pkg.package_id && !!pkg.course_id)
+          .sort((a: TutoringPackage, b: TutoringPackage) => (a.ord || 0) - (b.ord || 0));
+
+        const courseMap = new Map<string, CourseData>();
+        normalized.forEach((pkg: TutoringPackage) => {
+          if (!courseMap.has(pkg.course_id)) {
+            courseMap.set(pkg.course_id, {
+              course_id: pkg.course_id,
+              course_name: pkg.course_name,
+            });
+          }
+        });
+        const discoveredCourses = Array.from(courseMap.values());
+        setCourses(discoveredCourses);
+
+        setPackages(normalized);
+        const effectiveCourseId =
+          String(data.course?.course_id || "") ||
+          discoveredCourses[0]?.course_id ||
+          "";
+        if (effectiveCourseId) setSelectedCourseId(effectiveCourseId);
+
+        const courseFiltered = (list: TutoringPackage[]) =>
+          fallbackAllCourses && effectiveCourseId
+            ? list.filter((pkg: TutoringPackage) => pkg.course_id === effectiveCourseId)
+            : list;
+
+        const scopedPackages = courseFiltered(normalized);
+        const previous = scopedPackages.find((pkg: TutoringPackage) => pkg.prev_session);
+        setSelectedPackage(previous || scopedPackages[0] || null);
       } catch (err) {
         setApiError(
           "A network error occurred. Please ensure you are connected and logged in.",
@@ -153,16 +182,14 @@ export default function BuyMoreSessionsClient() {
     fetchContext();
   }, [user_id, auth_token]);
 
-  // console.log(packagesMap);
-
-  const packages = useMemo(() => {
-    return Object.values(packagesMap)
-      .flat()
-      .filter((p) => p.course_id === selectedCourseId);
-  }, [packagesMap, selectedCourseId]);
+  const visiblePackages = useMemo(() => {
+    if (!isFallbackAllCourses) return packages;
+    if (!selectedCourseId) return packages;
+    return packages.filter((pkg) => pkg.course_id === selectedCourseId);
+  }, [isFallbackAllCourses, packages, selectedCourseId]);
 
   const canShowPayment = useMemo(() => {
-    return selectedPackage && selectedCourseId && user_id && auth_token && user;
+    return !!(selectedPackage && selectedCourseId && user_id && auth_token && user);
   }, [selectedPackage, selectedCourseId, user_id, auth_token, user]);
 
   if (loading) {
@@ -183,14 +210,24 @@ export default function BuyMoreSessionsClient() {
           <div style={badgeStyle}>1-on-1 Tutoring</div>
           <h1 style={titleStyle}>Buy More Sessions</h1>
           <p style={subtitleStyle}>
-            Choose your tutoring course and session bundle to proceed.
+            Choose your session bundle to proceed.
           </p>
           {user && (
             <div style={userInfoStyle}>
               {user && (
                 <>
-                  Email: <strong>{user.email}</strong> • {user.first_name}{" "}
-                  {user.last_name}
+                  Course:{" "}
+                  <strong>
+                    {isFallbackAllCourses
+                      ? courses.find((c) => c.course_id === selectedCourseId)?.course_name ||
+                        selectedPackage?.course_name ||
+                        "N/A"
+                      : course?.course_name || selectedPackage?.course_name || "N/A"}
+                  </strong>{" "} • User:{" "}
+                  <strong>
+                    {user.first_name} {user.last_name}
+                  </strong>{" "}
+                  • Email: <strong>{user.email}</strong>
                 </>
               )}
             </div>
@@ -217,43 +254,47 @@ export default function BuyMoreSessionsClient() {
           </div>
         )}
 
-        {/* Step 1: Course */}
-        <div style={formGroupStyle}>
-          <label style={labelStyle}>1. Select Tutoring Course</label>
-          <div style={selectWrapperStyle}>
-            <select
-              value={selectedCourseId}
-              onChange={(e) => {
-                setSelectedCourseId(e.target.value);
-                setSelectedPackage(null);
-              }}
-              style={selectStyle}
-              disabled={!auth_token}
-            >
-              <option value="" disabled>
-                Choose a course...
-              </option>
-              {courses.map((c) => (
-                <option key={c.course_id} value={c.course_id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-            <div style={selectArrowStyle}>▼</div>
+        {/* Course selector only in fallback (no subscription course_id) */}
+        {isFallbackAllCourses ? (
+          <div style={formGroupStyle}>
+            <label style={labelStyle}>1. Course</label>
+            <div style={selectWrapperStyle}>
+              <select
+                value={selectedCourseId}
+                onChange={(e) => {
+                  const nextCourseId = e.target.value;
+                  setSelectedCourseId(nextCourseId);
+                  const nextPackages = packages.filter(
+                    (pkg) => pkg.course_id === nextCourseId,
+                  );
+                  const previous = nextPackages.find((pkg) => pkg.prev_session);
+                  setSelectedPackage(previous || nextPackages[0] || null);
+                }}
+                style={selectStyle}
+                disabled={!auth_token}
+              >
+                {courses.map((c) => (
+                  <option key={c.course_id} value={c.course_id}>
+                    {c.course_name || c.course_id}
+                  </option>
+                ))}
+              </select>
+              <div style={selectArrowStyle}>▼</div>
+            </div>
           </div>
-        </div>
+        ) : null}
 
-        {/* Step 2: Package (Always visible, disabled if no course) */}
+        {/* Step 2: Package */}
         <div
           style={{
             ...formGroupStyle,
-            opacity: selectedCourseId ? 1 : 0.5,
-            pointerEvents: selectedCourseId ? "auto" : "none",
+            opacity: visiblePackages.length ? 1 : 0.5,
+            pointerEvents: visiblePackages.length ? "auto" : "none",
           }}
         >
-          <label style={labelStyle}>2. Choose a package</label>
+          <label style={labelStyle}>Choose a package</label>
           <div style={packageGridStyle}>
-            {packages.map((p) => {
+            {visiblePackages.map((p) => {
               const isSelected =
                 selectedPackage?.package_id === p.package_id &&
                 selectedPackage?.session_id === p.session_id;
@@ -384,7 +425,7 @@ export default function BuyMoreSessionsClient() {
                   borderRadius: "8px",
                 }}
               >
-                Please select a course and bundle to enable payment.
+                Please select a bundle to enable payment.
               </div>
             )}
           </div>
