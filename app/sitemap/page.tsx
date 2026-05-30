@@ -1,6 +1,20 @@
-"use client";
-import React, { useEffect, useState } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Sitemap | ASVAB Tutoring",
+  description:
+    "Browse all ASVAB Tutoring online course and tutor pages organized by city and exam type.",
+  openGraph: {
+    title: "Sitemap | ASVAB Tutoring",
+    description:
+      "Browse all ASVAB Tutoring online course and tutor pages organized by city and exam type.",
+    type: "website",
+  },
+};
+
+/** Revalidate cached sitemap HTML periodically (ISR). */
+export const revalidate = 3600;
 
 interface SitemapItem {
   course_id: string;
@@ -9,40 +23,51 @@ interface SitemapItem {
   city: string;
 }
 
-export default function SitemapPage() {
-  const [items, setItems] = useState<SitemapItem[]>([]);
-  const [loading, setLoading] = useState(true);
+function getPhpApiUrl(): string | undefined {
+  return process.env.PHP_API_URL || process.env.NEXT_PUBLIC_PHP_API_URL;
+}
 
-  useEffect(() => {
-    const fetchSitemap = async () => {
-      try {
-        const response = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({ action: "get-sitemap" }),
-        });
+async function fetchSitemapItems(): Promise<SitemapItem[]> {
+  const apiUrl = getPhpApiUrl();
+  if (!apiUrl) {
+    console.error("Sitemap: PHP API URL is not configured");
+    return [];
+  }
 
-        const result = await response.json();
-        if (result.isSuccess && result.data) {
-          setItems(result.data);
-        }
-      } catch (error) {
-        console.error("Error fetching sitemap:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  try {
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ action: "get-sitemap" }),
+      next: { revalidate },
+    });
 
-    fetchSitemap();
-  }, []);
+    if (!response.ok) {
+      console.error("Sitemap: API returned", response.status);
+      return [];
+    }
 
-  // console.log(items);
+    const result = await response.json();
+    if (result?.isSuccess && Array.isArray(result.data)) {
+      return result.data as SitemapItem[];
+    }
+  } catch (error) {
+    console.error("Error fetching sitemap:", error);
+  }
 
-  if (loading) return <p className="text-center mt-4">Loading sitemap...</p>;
+  return [];
+}
+
+function getSitemapHref(item: SitemapItem): string {
+  const citySlug = item.city.toLowerCase().replace(/\s+/g, "-");
+  return `/online-courses/${citySlug}/${item.course_code}-tutor`;
+}
+
+export default async function SitemapPage() {
+  const items = await fetchSitemapItems();
 
   return (
-    <div className="container py-5">
-      {/* Header */}
+    <main className="container py-5">
       <h1
         className="text-center text-white py-3 mb-5"
         style={{ backgroundColor: "#f2a155", borderRadius: "6px" }}
@@ -50,28 +75,29 @@ export default function SitemapPage() {
         Sitemap
       </h1>
 
-      {/* 3-column grid */}
-      <div className="row g-3">
-        {items.map((item, index) => (
-          <div key={index} className="col-12 col-md-6 col-lg-4">
-            <Link
-              href={`/online-courses/${item.city.toLowerCase().replace(/\s+/g, "-")}/${item.course_code}-tutor`}
-              className="d-block text-decoration-none p-3 h-100 shadow-sm rounded bg-light text-dark hover-link"
-            >
-              {item.name}
-              {/* <div className="  small">{item.course_name}</div> */}
-            </Link>
-          </div>
-        ))}
-      </div>
-
-      {/* Extra CSS for hover effect */}
-      <style jsx>{`
-        .hover-link:hover {
-          background-color: #e7f1ff;
-          color: #0d6efd;
-        }
-      `}</style>
-    </div>
+      {items.length === 0 ? (
+        <p className="text-center text-muted">
+          Sitemap links are temporarily unavailable. Please try again later.
+        </p>
+      ) : (
+        <nav aria-label="Sitemap">
+          <ul className="row g-3 list-unstyled mb-0">
+            {items.map((item) => (
+              <li
+                key={`${item.course_id}-${item.city}-${item.course_code}`}
+                className="col-12 col-md-6 col-lg-4"
+              >
+                <Link
+                  href={getSitemapHref(item)}
+                  className="sitemap-link d-block text-decoration-none p-3 h-100 shadow-sm rounded bg-light text-dark"
+                >
+                  {item.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
+    </main>
   );
 }
