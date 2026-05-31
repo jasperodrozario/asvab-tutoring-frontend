@@ -1,4 +1,14 @@
 <?php
+// Canonical host redirect — runs before Next.js proxy (required on Lightning Stack; .htaccess is ignored).
+$requestHost = strtolower(explode(':', $_SERVER['HTTP_HOST'] ?? '')[0]);
+$canonicalHost = 'www.asvab-tutoring.com';
+
+if ($requestHost === 'asvab-tutoring.com') {
+    $uri = $_SERVER['REQUEST_URI'] ?? '/';
+    header('Location: https://' . $canonicalHost . $uri, true, 301);
+    exit;
+}
+
 // Reverse proxy from Cloudways PHP -> Next.js on localhost:3000
 $upstream = "http://127.0.0.1:3000";
 $uri = $_SERVER['REQUEST_URI'] ?? "/";
@@ -64,7 +74,7 @@ foreach ($_SERVER as $k => $v) {
         $name = str_replace('_', '-', substr($k, 5));
         $lower = strtolower($name);
 
-        if (in_array($lower, ['host', 'connection', 'content-length'])) {
+        if (in_array($lower, ['host', 'connection', 'content-length', 'x-forwarded-host'])) {
             continue;
         }
 

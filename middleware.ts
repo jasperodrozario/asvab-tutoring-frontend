@@ -11,7 +11,8 @@ function getRequestHost(request: NextRequest): string {
   // PHP proxy (index.php) forwards the original host via X-Forwarded-Host.
   const forwarded = request.headers.get("x-forwarded-host");
   const raw = forwarded ?? request.headers.get("host") ?? "";
-  return raw.split(":")[0].toLowerCase();
+  // Use the left-most host when proxies append multiple values.
+  return raw.split(",")[0].split(":")[0].trim().toLowerCase();
 }
 
 function redirectToCanonicalHost(request: NextRequest): NextResponse {
