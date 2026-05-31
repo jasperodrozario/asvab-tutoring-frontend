@@ -11,14 +11,22 @@ const ALTERNATE_HOSTS = new Set([
   "www.new.asvab-tutoring.com",
 ]);
 
-export function middleware(request: NextRequest) {
-  const host = request.headers.get("host")?.split(":")[0] ?? "";
+function getRequestHost(request: NextRequest): string {
+  return (request.headers.get("host") ?? "").split(":")[0].toLowerCase();
+}
 
-  if (ALTERNATE_HOSTS.has(host)) {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.protocol = "https:";
-    redirectUrl.host = CANONICAL_HOST;
-    return NextResponse.redirect(redirectUrl, 301);
+function redirectToCanonicalHost(request: NextRequest): NextResponse {
+  const destination = new URL(
+    `${request.nextUrl.pathname}${request.nextUrl.search}`,
+    `https://${CANONICAL_HOST}`,
+  );
+
+  return NextResponse.redirect(destination, 301);
+}
+
+export function middleware(request: NextRequest) {
+  if (ALTERNATE_HOSTS.has(getRequestHost(request))) {
+    return redirectToCanonicalHost(request);
   }
 
   const isAdminPage = request.nextUrl.pathname.startsWith("/admin");
@@ -38,5 +46,6 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  // Run on all routes so alternate hosts always redirect, including /favicon.ico etc.
+  matcher: ["/((?!_next/static|_next/image).*)"],
 };
