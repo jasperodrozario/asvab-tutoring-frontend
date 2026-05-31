@@ -21,21 +21,43 @@ const legacyCourseRedirects = [
   'astb',
 ] as const;
 
+const CANONICAL_HOST = 'www.asvab-tutoring.com';
+const NAKED_HOST = 'asvab-tutoring.com';
+
+/** Naked domain → www (production uses x-forwarded-host from index.php proxy). */
+const nakedToWwwRedirects = [
+  {
+    source: '/:path*',
+    has: [{ type: 'header' as const, key: 'x-forwarded-host', value: NAKED_HOST }],
+    destination: `https://${CANONICAL_HOST}/:path*`,
+    permanent: true,
+  },
+  {
+    source: '/:path*',
+    has: [{ type: 'header' as const, key: 'host', value: NAKED_HOST }],
+    destination: `https://${CANONICAL_HOST}/:path*`,
+    permanent: true,
+  },
+];
+
 const nextConfig: NextConfig = {
   output: 'standalone',
   async redirects() {
-    return legacyCourseRedirects.flatMap((course) => [
-      {
-        source: `/${course}`,
-        destination: `/courses/${course}`,
-        permanent: true,
-      },
-      {
-        source: `/${course}/`,
-        destination: `/courses/${course}`,
-        permanent: true,
-      },
-    ]);
+    return [
+      ...nakedToWwwRedirects,
+      ...legacyCourseRedirects.flatMap((course) => [
+        {
+          source: `/${course}`,
+          destination: `/courses/${course}`,
+          permanent: true,
+        },
+        {
+          source: `/${course}/`,
+          destination: `/courses/${course}`,
+          permanent: true,
+        },
+      ]),
+    ];
   },
   images: {
     unoptimized: true,

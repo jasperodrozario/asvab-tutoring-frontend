@@ -4,15 +4,14 @@ import type { NextRequest } from "next/server";
 
 import { handleReferral } from "./middleware/referralTracker";
 
-const CANONICAL_HOST = "asvab-tutoring.com";
-const ALTERNATE_HOSTS = new Set([
-  "www.asvab-tutoring.com",
-  "new.asvab-tutoring.com",
-  "www.new.asvab-tutoring.com",
-]);
+const CANONICAL_HOST = "www.asvab-tutoring.com";
+const NAKED_HOST = "asvab-tutoring.com";
 
 function getRequestHost(request: NextRequest): string {
-  return (request.headers.get("host") ?? "").split(":")[0].toLowerCase();
+  // PHP proxy (index.php) forwards the original host via X-Forwarded-Host.
+  const forwarded = request.headers.get("x-forwarded-host");
+  const raw = forwarded ?? request.headers.get("host") ?? "";
+  return raw.split(":")[0].toLowerCase();
 }
 
 function redirectToCanonicalHost(request: NextRequest): NextResponse {
@@ -25,7 +24,7 @@ function redirectToCanonicalHost(request: NextRequest): NextResponse {
 }
 
 export function middleware(request: NextRequest) {
-  if (ALTERNATE_HOSTS.has(getRequestHost(request))) {
+  if (getRequestHost(request) === NAKED_HOST) {
     return redirectToCanonicalHost(request);
   }
 
@@ -46,6 +45,6 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Run on all routes so alternate hosts always redirect, including /favicon.ico etc.
+  // Run on all routes so the naked domain always redirects, including /favicon.ico etc.
   matcher: ["/((?!_next/static|_next/image).*)"],
 };
