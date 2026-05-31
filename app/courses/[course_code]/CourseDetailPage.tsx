@@ -316,13 +316,13 @@ const CourseDetailPage: React.FC = () => {
                       </li>
                     )}
 
-                  {/* Lesson Plan */}
+                  {/* Session Plan */}
                   <li className="nav-item">
                     <button
                       className={`nav-link tab-btn ${activeTab === 4 ? "active" : ""}`}
                       onClick={() => setActiveTab(4)}
                     >
-                      Lesson Plan
+                      Session Plan
                     </button>
                   </li>
 
