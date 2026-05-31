@@ -4,7 +4,23 @@ import type { NextRequest } from "next/server";
 
 import { handleReferral } from "./middleware/referralTracker";
 
+const CANONICAL_HOST = "asvab-tutoring.com";
+const ALTERNATE_HOSTS = new Set([
+  "www.asvab-tutoring.com",
+  "new.asvab-tutoring.com",
+  "www.new.asvab-tutoring.com",
+]);
+
 export function middleware(request: NextRequest) {
+  const host = request.headers.get("host")?.split(":")[0] ?? "";
+
+  if (ALTERNATE_HOSTS.has(host)) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.protocol = "https:";
+    redirectUrl.host = CANONICAL_HOST;
+    return NextResponse.redirect(redirectUrl, 301);
+  }
+
   const isAdminPage = request.nextUrl.pathname.startsWith("/admin");
   const isLoginPage = request.nextUrl.pathname === "/login";
   const isAuthenticated = request.cookies.get("admin-auth")?.value === "true";

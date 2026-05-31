@@ -13,8 +13,30 @@ if (phpApiUrl) {
   }
 }
 
+const legacyCourseRedirects = [
+  'asvab',
+  'oar',
+  'afoqt',
+  'sift',
+  'astb',
+] as const;
+
 const nextConfig: NextConfig = {
   output: 'standalone',
+  async redirects() {
+    return legacyCourseRedirects.flatMap((course) => [
+      {
+        source: `/${course}`,
+        destination: `/courses/${course}`,
+        permanent: true,
+      },
+      {
+        source: `/${course}/`,
+        destination: `/courses/${course}`,
+        permanent: true,
+      },
+    ]);
+  },
   images: {
     unoptimized: true,
     remotePatterns: apiHostname
