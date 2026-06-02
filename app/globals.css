@@ -629,8 +629,8 @@ input[type="radio"]:checked::before {
 }
 
 .sitemap-link:hover {
-  background-color: #e7f1ff;
-  color: #0d6efd;
+  background-color: #fff6e7;
+  color: #e58a34;
 }
 
 .course-cta-section {

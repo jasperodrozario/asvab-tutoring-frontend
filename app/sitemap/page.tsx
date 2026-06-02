@@ -76,18 +76,13 @@ export default async function SitemapPage() {
                         <li key={link.path} className="col">
                           <Link
                             href={link.path}
-                            className={`sitemap-link d-block text-decoration-none p-3 h-100 shadow-sm rounded bg-white text-dark ${
+                            className={`sitemap-link d-block p-3 h-100 shadow-sm rounded ${
                               isBlogSection ? "small" : ""
                             }`}
                           >
                             <span className="d-block fw-semibold">
                               {link.label}
                             </span>
-                            {!isBlogSection && (
-                              <span className="d-block text-muted small mt-1 text-truncate">
-                                {link.path}
-                              </span>
-                            )}
                           </Link>
                         </li>
                       ))}
