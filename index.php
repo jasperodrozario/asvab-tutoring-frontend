@@ -35,8 +35,6 @@ $staticPrefixes = [
 
 $staticFiles = [
     '/favicon.ico',
-    '/robots.txt',
-    '/sitemap.xml',
     '/manifest.json',
 ];
 
