@@ -41,6 +41,71 @@ function getPhpApiUrl(): string | undefined {
   return process.env.PHP_API_URL || process.env.NEXT_PUBLIC_PHP_API_URL;
 }
 
+/** Legacy flat rows from PHP `get-sitemap` (course × city). */
+interface LegacySitemapEntry {
+  course_code: string;
+  city: string;
+  name?: string;
+}
+
+function isSitemapSection(item: unknown): item is SitemapSection {
+  if (!item || typeof item !== "object") return false;
+  const section = item as SitemapSection;
+  return (
+    typeof section.category === "string" && Array.isArray(section.links)
+  );
+}
+
+function isLegacySitemapEntry(item: unknown): item is LegacySitemapEntry {
+  if (!item || typeof item !== "object") return false;
+  const entry = item as LegacySitemapEntry;
+  return (
+    typeof entry.course_code === "string" &&
+    entry.course_code.length > 0 &&
+    typeof entry.city === "string" &&
+    entry.city.length > 0
+  );
+}
+
+function cityToSlug(city: string): string {
+  return city.trim().toLowerCase().replace(/\s+/g, "-");
+}
+
+function legacyEntryToLink(entry: LegacySitemapEntry): SitemapLink {
+  const path = `/online-courses/${cityToSlug(entry.city)}/${entry.course_code.toLowerCase()}-tutor`;
+  return {
+    url: path,
+    path,
+    label: entry.name ?? `${entry.course_code} Tutor in ${entry.city}`,
+  };
+}
+
+/** Normalize API payload: sectioned sitemap or legacy course×city list. */
+function normalizeSitemapData(data: unknown[]): SitemapSection[] {
+  if (data.length === 0) return [];
+
+  if (data.every(isSitemapSection)) {
+    return data.map((section) => ({
+      category: section.category,
+      links: section.links.filter((link) => Boolean(link?.path)),
+    }));
+  }
+
+  if (data.every(isLegacySitemapEntry)) {
+    return [
+      {
+        category: "Online Courses",
+        links: data.map(legacyEntryToLink),
+      },
+    ];
+  }
+
+  console.error(
+    "Sitemap: API data shape is unrecognized; expected sections with links or legacy course/city rows",
+  );
+  return [];
+}
+
 export async function fetchSitemapSections(): Promise<SitemapSection[]> {
   const apiUrl = getPhpApiUrl();
   if (!apiUrl) {
@@ -63,7 +128,7 @@ export async function fetchSitemapSections(): Promise<SitemapSection[]> {
 
     const result = await response.json();
     if (result?.isSuccess && Array.isArray(result.data)) {
-      return result.data as SitemapSection[];
+      return normalizeSitemapData(result.data);
     }
   } catch (error) {
     console.error("Error fetching sitemap:", error);
@@ -75,7 +140,7 @@ export async function fetchSitemapSections(): Promise<SitemapSection[]> {
 export async function fetchSitemapPaths(): Promise<string[]> {
   const sections = await fetchSitemapSections();
   const paths = sections.flatMap((section) =>
-    section.links.map((link) => link.path).filter(Boolean),
+    (section.links ?? []).map((link) => link.path).filter(Boolean),
   );
 
   if (paths.length === 0) {

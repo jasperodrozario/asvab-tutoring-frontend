@@ -14,7 +14,10 @@ export const metadata: Metadata = buildPageMetadata({
 export const revalidate = 3600;
 
 function getTotalLinks(sections: SitemapSection[]): number {
-  return sections.reduce((total, section) => total + section.links.length, 0);
+  return sections.reduce(
+    (total, section) => total + (section.links?.length ?? 0),
+    0,
+  );
 }
 
 export default async function SitemapPage() {
@@ -60,8 +63,8 @@ export default async function SitemapPage() {
                         {section.category}
                       </h2>
                       <span className="badge rounded-pill text-bg-secondary">
-                        {section.links.length}{" "}
-                        {section.links.length === 1 ? "link" : "links"}
+                        {section.links?.length ?? 0}{" "}
+                        {(section.links?.length ?? 0) === 1 ? "link" : "links"}
                       </span>
                     </div>
 
@@ -72,7 +75,7 @@ export default async function SitemapPage() {
                           : "row-cols-1 row-cols-md-2 row-cols-lg-3"
                       }`}
                     >
-                      {section.links.map((link) => (
+                      {(section.links ?? []).map((link) => (
                         <li key={link.path} className="col">
                           <Link
                             href={link.path}
