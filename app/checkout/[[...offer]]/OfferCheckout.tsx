@@ -536,7 +536,7 @@ export default function OfferCheckout() {
                 className="mb-3 fw-bold text-primary"
                 style={{ fontSize: "0.95rem" }}
               >
-                (June 15 – July 15)
+                (June 20 – July 20)
               </div>
 
               <div className="d-flex flex-column gap-2">

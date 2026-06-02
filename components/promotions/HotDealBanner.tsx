@@ -31,7 +31,7 @@ export default function HotDealBanner({
           <div className={styles.copyCol}>
             <p className={styles.eyebrow}>
               Summer {courseName} {packageType} Course
-              <span className={styles.date}>(June 15 – July 15)</span>
+              <span className={styles.date}>(June 20 – July 20)</span>
             </p>
             <h2 className={styles.headline}>
               Master your {courseName} Math &amp; English —{" "}
