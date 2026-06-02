@@ -4,16 +4,28 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import styles from "./HotDealPopup.module.css";
 
+const SHOW_DELAY_MS = 1500;
+const AUTO_DISMISS_MS = 12_000;
+
 export default function HotDealPopup() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Delay the popup slightly to catch attention after the page loads
     const timer = setTimeout(() => {
       setIsVisible(true);
-    }, 1500);
+    }, SHOW_DELAY_MS);
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (!isVisible) return;
+
+    const timer = setTimeout(() => {
+      setIsVisible(false);
+    }, AUTO_DISMISS_MS);
+
+    return () => clearTimeout(timer);
+  }, [isVisible]);
 
   const handleClose = () => {
     setIsVisible(false);
@@ -53,6 +65,13 @@ export default function HotDealPopup() {
           >
             View Deal!
           </Link>
+        </div>
+
+        <div className={styles.timerTrack} aria-hidden="true">
+          <div
+            className={styles.timerBar}
+            style={{ animationDuration: `${AUTO_DISMISS_MS}ms` }}
+          />
         </div>
       </div>
     </div>
