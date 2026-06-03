@@ -27,9 +27,7 @@ export default async function Page({
       courseCode={course_code}
       courseData={courseData}
       breadcrumbSegments={["courses", course_code]}
-      getRelatedCourseHref={(course) =>
-        `/courses/${encodeURIComponent(course.course_code)}`
-      }
+      relatedCourseLinkVariant="standard"
     />
   );
 }

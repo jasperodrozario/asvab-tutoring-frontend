@@ -36,9 +36,8 @@ export default async function Page({ params }: Props) {
       courseData={courseData}
       location={city}
       breadcrumbSegments={["online-courses", city, course_code]}
-      getRelatedCourseHref={(course) =>
-        `/online-courses/${city}/${encodeURIComponent(course.course_code)}-tutor`
-      }
+      relatedCourseLinkVariant="online"
+      onlineCourseCity={city}
     />
   );
 }

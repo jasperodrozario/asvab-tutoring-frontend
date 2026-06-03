@@ -21,8 +21,23 @@ export type CourseDetailClientProps = {
   courseData: CourseData | null;
   location?: string;
   breadcrumbSegments: string[];
-  getRelatedCourseHref: (course: RelatedCourse) => string;
+  /** How related-course sidebar links are built (serializable; no function props from RSC). */
+  relatedCourseLinkVariant?: "standard" | "online";
+  /** Required when relatedCourseLinkVariant is "online". */
+  onlineCourseCity?: string;
 };
+
+function getRelatedCourseHref(
+  course: RelatedCourse,
+  variant: "standard" | "online",
+  onlineCourseCity?: string,
+): string {
+  if (variant === "online" && onlineCourseCity) {
+    return `/online-courses/${onlineCourseCity}/${encodeURIComponent(course.course_code)}-tutor`;
+  }
+
+  return `/courses/${encodeURIComponent(course.course_code)}`;
+}
 
 function formatLocationLabel(location: string): string {
   return location.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -33,7 +48,8 @@ export function CourseDetailClient({
   courseData,
   location: locationProp = "",
   breadcrumbSegments,
-  getRelatedCourseHref,
+  relatedCourseLinkVariant = "standard",
+  onlineCourseCity,
 }: CourseDetailClientProps) {
   const searchParams = useSearchParams();
   const location =
@@ -132,8 +148,8 @@ export function CourseDetailClient({
     <>
       <div className="page-title-area text-white py-5">
         <div className="container text-center">
-          <h2>{courseData.course_header?.toUpperCase() || "Course Title"}</h2>
-          <h4>
+          <h1>{courseData.course_header?.toUpperCase() || "Course Title"}</h1>
+          <h2 className="h4">
             {courseData.course_tagline?.toUpperCase() || "Course Tagline"}
             {location && (
               <span>
@@ -141,7 +157,7 @@ export function CourseDetailClient({
                 in <b>{formatLocationLabel(location)}</b>
               </span>
             )}
-          </h4>
+          </h2>
           <Breadcrumb
             segments={breadcrumbSegments}
             dynamicTitle={courseData.course_name}
@@ -305,7 +321,11 @@ export function CourseDetailClient({
                     {courseData.related_courses.map((course, i) => (
                       <Link
                         key={course.course_id || i}
-                        href={getRelatedCourseHref(course)}
+                        href={getRelatedCourseHref(
+                          course,
+                          relatedCourseLinkVariant,
+                          onlineCourseCity,
+                        )}
                         className="text-decoration-none"
                       >
                         <div

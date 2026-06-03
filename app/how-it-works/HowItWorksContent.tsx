@@ -11,7 +11,7 @@ export default function HowItWorksContent({ items }: Props) {
   return (
     <section>
       <div className="banner bg-black bg-opacity-50 py-3 px-4 rounded-bottom flex flex-col items-center text-center">
-        <h1 className="text-white mb-2 text-3xl font-bold">How it works</h1>
+        <h1 className="text-white mb-2 text-3xl font-bold">How It Works</h1>
         <Breadcrumb
           segments={["how-it-works"]}
           className="text-white text-base"

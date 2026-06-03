@@ -58,7 +58,7 @@ export default async function OurAppsPage() {
   return (
     <section className="py-5 bg-light">
       <div className="container">
-        <h2 className="text-center fw-bold mb-5">Our Mobile Apps</h2>
+        <h1 className="text-center fw-bold mb-5">Our Mobile Apps</h1>
         {apps.length === 0 ? (
           <p className="text-center text-muted">
             App listings are temporarily unavailable. Please try again later.
