@@ -20,7 +20,7 @@ export default function CheckoutPage() {
       <Suspense
         fallback={
           <div className="container py-5 text-center text-muted">
-            Loading special offer...
+            Loading special offer checkout...
           </div>
         }
       >

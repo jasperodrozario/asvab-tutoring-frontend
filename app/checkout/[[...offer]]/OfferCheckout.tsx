@@ -1,7 +1,13 @@
 // app/checkout/[[...offer]]/OfferCheckout.tsx
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import SquarePaymentForm, {
   SquarePaymentFormHandle,
@@ -18,6 +24,7 @@ import {
   BsEyeSlash,
 } from "react-icons/bs";
 import { CardState } from "@/components/square-payment-form/SquarePaymentForm";
+import { sanitizeMobileInput } from "@/lib/sanitize-mobile-input";
 
 type PaymentMode = "one_time" | "subscription";
 type PaymentMethod = "mobile" | "card";
@@ -34,6 +41,15 @@ function isMode(x: any): x is PaymentMode {
 function todayYYYYMMDD() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function normalizeEmail(email: string) {
+  return email.trim().toLowerCase();
+}
+
+function looksLikeEmail(email: string) {
+  const e = normalizeEmail(email);
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
 }
 
 export default function OfferCheckout() {
@@ -86,6 +102,8 @@ export default function OfferCheckout() {
   });
 
   const [fieldErrors, setFieldErrors] = useState({
+    first_name: "",
+    last_name: "",
     mobile: "",
     confirm_password: "",
   });
@@ -95,8 +113,49 @@ export default function OfferCheckout() {
   const [emailExists, setEmailExists] = useState(false);
   const [emailCheckMsg, setEmailCheckMsg] = useState("");
   const [emailTouched, setEmailTouched] = useState(false);
+  const [emailBlurred, setEmailBlurred] = useState(false);
   const [lastCheckedEmail, setLastCheckedEmail] = useState<string>("");
   const emailCheckNonceRef = useRef<number>(0);
+  const lastCheckedEmailRef = useRef<string>("");
+  const emailDebounceRef = useRef<number | null>(null);
+  const emailCheckInFlightRef = useRef<string | null>(null);
+
+  const clearEmailDebounce = useCallback(() => {
+    if (emailDebounceRef.current) {
+      window.clearTimeout(emailDebounceRef.current);
+      emailDebounceRef.current = null;
+    }
+  }, []);
+
+  const mobileDebounceRef = useRef<number | null>(null);
+
+  const clearMobileDebounce = useCallback(() => {
+    if (mobileDebounceRef.current) {
+      window.clearTimeout(mobileDebounceRef.current);
+      mobileDebounceRef.current = null;
+    }
+  }, []);
+
+  const scheduleMobileValidation = useCallback(
+    (mobile: string, immediate = false) => {
+      clearMobileDebounce();
+      const run = () => {
+        setFieldErrors((prev) => ({
+          ...prev,
+          mobile: validateMobile(mobile),
+        }));
+      };
+      if (immediate) {
+        run();
+        return;
+      }
+      mobileDebounceRef.current = window.setTimeout(() => {
+        mobileDebounceRef.current = null;
+        run();
+      }, 400);
+    },
+    [clearMobileDebounce],
+  );
 
   const [mobilePay, setMobilePay] = useState({
     mobile: "",
@@ -123,6 +182,16 @@ export default function OfferCheckout() {
     !Number.isFinite(amountCents) ||
     amountCents <= 0;
 
+  const validateFirstName = (firstName: string) => {
+    if (!firstName.trim()) return "First name is required.";
+    return "";
+  };
+
+  const validateLastName = (lastName: string) => {
+    if (!lastName.trim()) return "Last name is required.";
+    return "";
+  };
+
   const validateMobile = (mobile: string) => {
     const digits = mobile.replace(/\D/g, "");
     if (digits.length === 0) return "Mobile number is required.";
@@ -139,13 +208,6 @@ export default function OfferCheckout() {
     if (!confirm) return "Please confirm your password.";
     if (confirm !== pass) return "Passwords do not match.";
     return "";
-  };
-
-  const normalizeEmail = (email: string) => email.trim().toLowerCase();
-
-  const looksLikeEmail = (email: string) => {
-    const e = normalizeEmail(email);
-    return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
   };
 
   const parseEmailExistsFromResponse = (raw: string): EmailCheckResult => {
@@ -186,100 +248,127 @@ export default function OfferCheckout() {
     }
   };
 
-  const checkEmailExists = async (
-    emailRaw: string,
-  ): Promise<EmailCheckResult> => {
-    const email = normalizeEmail(emailRaw);
-    if (!looksLikeEmail(email)) return { exists: null, message: "" };
+  const checkEmailExists = useCallback(
+    async (emailRaw: string): Promise<EmailCheckResult> => {
+      const email = normalizeEmail(emailRaw);
+      if (!looksLikeEmail(email)) return { exists: null, message: "" };
 
-    const body = new URLSearchParams();
-    body.append("action", EMAIL_CHECK_ACTION);
-    body.append("email", email);
-    if (course_id) body.append("course_id", String(course_id));
-    if (session_id) body.append("session_id", String(session_id));
+      const body = new URLSearchParams();
+      body.append("action", EMAIL_CHECK_ACTION);
+      body.append("email", email);
+      if (course_id) body.append("course_id", String(course_id));
+      if (session_id) body.append("session_id", String(session_id));
 
-    try {
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body,
-      });
-      const raw = await res.text();
-      return parseEmailExistsFromResponse(raw);
-    } catch {
-      return {
-        exists: null,
-        message: "Unable to check email right now. Please try again.",
-      };
-    }
-  };
-
-  const runEmailCheck = async (emailRaw: string) => {
-    const email = normalizeEmail(emailRaw);
-
-    if (!looksLikeEmail(email)) {
-      setEmailChecking(false);
-      setEmailExists(false);
-      setEmailCheckMsg("Please enter a valid email address.");
-      setLastCheckedEmail("");
-      return;
-    }
-
-    const nonce = Date.now();
-    emailCheckNonceRef.current = nonce;
-
-    setEmailChecking(true);
-    setEmailCheckMsg("Checking email...");
-
-    try {
-      const result = await checkEmailExists(email);
-
-      if (emailCheckNonceRef.current !== nonce) return;
-
-      setLastCheckedEmail(email);
-
-      if (result.exists === true) {
-        setEmailExists(true);
-        setEmailCheckMsg(
-          result.message || "This email address is already registered.",
-        );
-        return;
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body,
+        });
+        const raw = await res.text();
+        return parseEmailExistsFromResponse(raw);
+      } catch {
+        return {
+          exists: null,
+          message: "Unable to check email right now. Please try again.",
+        };
       }
+    },
+    [API_URL, course_id, session_id],
+  );
 
-      if (result.exists === false) {
+  const runEmailCheck = useCallback(
+    async (emailRaw: string) => {
+      const email = normalizeEmail(emailRaw);
+
+      if (!looksLikeEmail(email)) {
+        setEmailChecking(false);
         setEmailExists(false);
-        setEmailCheckMsg("");
+        setEmailCheckMsg("Please enter a valid email address.");
+        setLastCheckedEmail("");
+        lastCheckedEmailRef.current = "";
         return;
       }
 
-      setEmailExists(false);
-      setEmailCheckMsg(
-        result.message || "Unable to verify email right now. Please try again.",
-      );
-    } catch {
-      setEmailExists(false);
-      setEmailCheckMsg("Unable to verify email right now. Please try again.");
-    } finally {
-      setEmailChecking(false);
-    }
-  };
+      if (
+        email === lastCheckedEmailRef.current ||
+        email === emailCheckInFlightRef.current
+      ) {
+        return;
+      }
+
+      const nonce = Date.now();
+      emailCheckNonceRef.current = nonce;
+      emailCheckInFlightRef.current = email;
+
+      setEmailChecking(true);
+      setEmailCheckMsg("Checking email...");
+
+      try {
+        const result = await checkEmailExists(email);
+
+        if (emailCheckNonceRef.current !== nonce) return;
+
+        setLastCheckedEmail(email);
+        lastCheckedEmailRef.current = email;
+
+        if (result.exists === true) {
+          setEmailExists(true);
+          setEmailCheckMsg(
+            result.message || "This email address is already registered.",
+          );
+          return;
+        }
+
+        if (result.exists === false) {
+          setEmailExists(false);
+          setEmailCheckMsg("");
+          return;
+        }
+
+        setEmailExists(false);
+        setEmailCheckMsg(
+          result.message ||
+            "Unable to verify email right now. Please try again.",
+        );
+      } catch {
+        setEmailExists(false);
+        setEmailCheckMsg("Unable to verify email right now. Please try again.");
+      } finally {
+        if (emailCheckInFlightRef.current === email) {
+          emailCheckInFlightRef.current = null;
+        }
+        setEmailChecking(false);
+      }
+    },
+    [checkEmailExists],
+  );
 
   useEffect(() => {
     const email = normalizeEmail(user.email);
     if (!emailTouched) return;
 
     if (!email) {
-      setEmailCheckMsg("");
+      clearEmailDebounce();
+      setEmailCheckMsg(
+        emailBlurred ? "Email address is required." : "",
+      );
       setEmailExists(false);
       return;
     }
 
-    const t = window.setTimeout(() => {
-      runEmailCheck(email);
+    if (email === lastCheckedEmailRef.current) return;
+
+    clearEmailDebounce();
+    emailDebounceRef.current = window.setTimeout(() => {
+      emailDebounceRef.current = null;
+      void runEmailCheck(user.email);
     }, 650);
 
-    return () => window.clearTimeout(t);
-  }, [user.email, emailTouched]);
+    return clearEmailDebounce;
+  }, [user.email, emailTouched, emailBlurred, runEmailCheck, clearEmailDebounce]);
+
+  useEffect(() => () => clearMobileDebounce(), [clearMobileDebounce]);
 
   const handleMobilePayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -290,37 +379,24 @@ export default function OfferCheckout() {
     const { name, value } = e.target;
 
     if (name === "mobile") {
-      const cleaned = value.replace(/\D/g, "");
-      if (cleaned.length > 10) {
-        setFieldErrors((prev) => ({
-          ...prev,
-          mobile: "Only 10 digits are allowed for US numbers.",
-        }));
-        // Revert to previous validation state after 2 seconds
-        setTimeout(() => {
-          setFieldErrors((prev) => ({
-            ...prev,
-            mobile: validateMobile(user.mobile),
-          }));
-        }, 2000);
-        return;
-      }
+      const cleaned = sanitizeMobileInput(value, user.mobile);
+      if (cleaned === null) return;
       setUser((prev) => ({ ...prev, [name]: cleaned }));
-
-      // Active validation for mobile
-      if (cleaned.length > 0 && cleaned.length < 10) {
-        const err = validateMobile(cleaned);
-        setFieldErrors((prev) => ({ ...prev, mobile: err }));
-      } else {
-        setFieldErrors((prev) => ({
-          ...prev,
-          mobile: validateMobile(cleaned),
-        }));
-      }
+      setFieldErrors((prev) => ({ ...prev, mobile: "" }));
+      scheduleMobileValidation(cleaned);
+    } else if (name === "first_name") {
+      setUser((prev) => ({ ...prev, [name]: value }));
+      setFieldErrors((prev) => ({ ...prev, first_name: "" }));
+    } else if (name === "last_name") {
+      setUser((prev) => ({ ...prev, [name]: value }));
+      setFieldErrors((prev) => ({ ...prev, last_name: "" }));
     } else if (name === "email") {
       setUser((prev) => ({ ...prev, [name]: value }));
       setEmailExists(false);
       setEmailCheckMsg("");
+      setEmailBlurred(false);
+      setLastCheckedEmail("");
+      lastCheckedEmailRef.current = "";
     } else if (name === "confirm_password") {
       setUser((prev) => ({ ...prev, [name]: value }));
       // Active validation for password match
@@ -349,23 +425,40 @@ export default function OfferCheckout() {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const squareFormRef = useRef<SquarePaymentFormHandle>(null);
 
+  const emailReady = useMemo(() => {
+    const normalized = normalizeEmail(user.email);
+    if (!normalized || !looksLikeEmail(user.email)) return false;
+    if (emailChecking || emailExists) return false;
+    if (emailCheckMsg && emailCheckMsg !== "Checking email...") return false;
+    if (normalized !== lastCheckedEmail) return false;
+    return true;
+  }, [
+    user.email,
+    emailChecking,
+    emailExists,
+    emailCheckMsg,
+    lastCheckedEmail,
+  ]);
+
   const canSubmit = useMemo(() => {
     return (
       agreeTerms &&
       !!user.first_name.trim() &&
       !!user.last_name.trim() &&
-      !!user.email.trim() &&
+      emailReady &&
       !!user.mobile.trim() &&
       !!user.password.trim() &&
       !!user.confirm_password.trim() &&
       user.password === user.confirm_password &&
+      !fieldErrors.first_name &&
+      !fieldErrors.last_name &&
       !fieldErrors.mobile &&
       !fieldErrors.confirm_password &&
-      !emailChecking &&
-      !emailExists &&
       !invalidBase
     );
-  }, [agreeTerms, user, fieldErrors, emailChecking, emailExists, invalidBase]);
+  }, [agreeTerms, user, fieldErrors, emailReady, invalidBase]);
+
+  const cardBlockedByEmail = !emailReady;
 
   const [mobileSubmitting, setMobileSubmitting] = useState(false);
   const [mobileResult, setMobileResult] = useState<{
@@ -384,14 +477,31 @@ export default function OfferCheckout() {
       return;
     }
 
+    setEmailTouched(true);
+    setEmailBlurred(true);
+
+    const firstNameErr = validateFirstName(user.first_name);
+    const lastNameErr = validateLastName(user.last_name);
     const mobileErr = validateMobile(user.mobile);
     const confirmErr = validateConfirmPassword(
       user.confirm_password,
       user.password,
     );
 
-    if (mobileErr || confirmErr) {
+    if (!user.email.trim()) {
+      setEmailCheckMsg("Email address is required.");
+    }
+
+    if (
+      firstNameErr ||
+      lastNameErr ||
+      mobileErr ||
+      confirmErr ||
+      !user.email.trim()
+    ) {
       setFieldErrors({
+        first_name: firstNameErr,
+        last_name: lastNameErr,
         mobile: mobileErr,
         confirm_password: confirmErr,
       });
@@ -773,27 +883,67 @@ export default function OfferCheckout() {
                   Your Registration Information
                 </h5>
 
-                <input
-                  className="form-control mb-2"
-                  name="first_name"
-                  placeholder="First Name"
-                  value={user.first_name}
-                  onChange={handleChange}
-                  required
-                />
-
-                <input
-                  className="form-control mb-2"
-                  name="last_name"
-                  placeholder="Last Name"
-                  value={user.last_name}
-                  onChange={handleChange}
-                  required
-                />
+                <div className="mb-2">
+                  <input
+                    className={`form-control ${fieldErrors.first_name ? "is-invalid" : ""}`}
+                    name="first_name"
+                    placeholder="First Name"
+                    value={user.first_name}
+                    onChange={handleChange}
+                    onBlur={() =>
+                      setFieldErrors((prev) => ({
+                        ...prev,
+                        first_name: validateFirstName(user.first_name),
+                      }))
+                    }
+                    required
+                  />
+                  {fieldErrors.first_name && (
+                    <div
+                      className="invalid-feedback"
+                      style={{ fontSize: 13, fontWeight: 600 }}
+                    >
+                      {fieldErrors.first_name}
+                    </div>
+                  )}
+                </div>
 
                 <div className="mb-2">
                   <input
-                    className="form-control"
+                    className={`form-control ${fieldErrors.last_name ? "is-invalid" : ""}`}
+                    name="last_name"
+                    placeholder="Last Name"
+                    value={user.last_name}
+                    onChange={handleChange}
+                    onBlur={() =>
+                      setFieldErrors((prev) => ({
+                        ...prev,
+                        last_name: validateLastName(user.last_name),
+                      }))
+                    }
+                    required
+                  />
+                  {fieldErrors.last_name && (
+                    <div
+                      className="invalid-feedback"
+                      style={{ fontSize: 13, fontWeight: 600 }}
+                    >
+                      {fieldErrors.last_name}
+                    </div>
+                  )}
+                </div>
+
+                <div className="mb-2">
+                  <input
+                    className={`form-control ${
+                      emailExists ||
+                      (emailBlurred && !user.email.trim()) ||
+                      (emailTouched &&
+                        !!user.email.trim() &&
+                        !looksLikeEmail(user.email))
+                        ? "is-invalid"
+                        : ""
+                    }`}
                     type="email"
                     name="email"
                     placeholder="Email"
@@ -801,14 +951,32 @@ export default function OfferCheckout() {
                     onChange={handleChange}
                     onBlur={() => {
                       setEmailTouched(true);
-                      runEmailCheck(user.email);
+                      setEmailBlurred(true);
+                      const email = normalizeEmail(user.email);
+                      if (!email) return;
+                      if (
+                        email === lastCheckedEmailRef.current ||
+                        email === emailCheckInFlightRef.current
+                      ) {
+                        return;
+                      }
+                      if (emailDebounceRef.current) {
+                        clearEmailDebounce();
+                        void runEmailCheck(user.email);
+                      }
                     }}
-                    onFocus={() => setEmailTouched(true)}
+                    onFocus={() => {
+                      setEmailTouched(true);
+                      setEmailBlurred(false);
+                    }}
                     required
                   />
                 </div>
 
-                {(emailTouched || !!user.email.trim()) && emailCheckMsg && (
+                {emailCheckMsg &&
+                  (emailCheckMsg === "Email address is required."
+                    ? emailBlurred
+                    : emailTouched || !!user.email.trim()) && (
                   <div
                     className={`small mb-2 ${
                       emailExists || !looksLikeEmail(user.email)
@@ -820,7 +988,10 @@ export default function OfferCheckout() {
                         ? "alert"
                         : undefined
                     }
-                    style={{ fontWeight: emailExists ? 600 : 400 }}
+                    style={{
+                      fontWeight:
+                        emailExists || !looksLikeEmail(user.email) ? 600 : 400,
+                    }}
                   >
                     {emailCheckMsg}
                   </div>
@@ -833,6 +1004,7 @@ export default function OfferCheckout() {
                     placeholder="Mobile"
                     value={user.mobile}
                     onChange={handleChange}
+                    onBlur={() => scheduleMobileValidation(user.mobile, true)}
                     required
                   />
                   {fieldErrors.mobile && (
@@ -954,9 +1126,7 @@ export default function OfferCheckout() {
                         cardState.initializing ||
                         cardState.paying ||
                         cardState.completed ||
-                        emailChecking ||
-                        emailExists ||
-                        !looksLikeEmail(user.email) ||
+                        cardBlockedByEmail ||
                         !agreeTerms ||
                         !cardState.isCardValid ||
                         !canSubmit

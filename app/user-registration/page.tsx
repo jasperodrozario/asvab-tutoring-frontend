@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BsEye, BsEyeSlash } from "react-icons/bs";
+import { sanitizeMobileInput } from "@/lib/sanitize-mobile-input";
 
 type StatusType = "success" | "error" | "info";
 type Status = { type: StatusType; text: string } | null;
@@ -467,7 +468,8 @@ export default function RegisterPage() {
     const { name, value } = e.target;
 
     if (name === "mobile") {
-      const cleaned = value.replace(/\D/g, "").slice(0, 10);
+      const cleaned = sanitizeMobileInput(value, form.mobile);
+      if (cleaned === null) return;
       setForm((prev) => ({ ...prev, [name]: cleaned }));
       setFieldErrors((prev) => ({ ...prev, mobile: "" }));
       scheduleMobileValidation(cleaned);

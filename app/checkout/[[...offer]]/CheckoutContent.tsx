@@ -16,6 +16,7 @@ import SquarePaymentForm, {
 import Image from "next/image";
 import NextStepCard from "@/components/next-step-card/NextStepCard";
 import { BsEye, BsEyeSlash } from "react-icons/bs";
+import { sanitizeMobileInput } from "@/lib/sanitize-mobile-input";
 
 type PaymentMode = "one_time" | "subscription";
 type Product = "ASVAB" | "AFOQT" | "ASTB" | "SIFT" | "OAR";
@@ -395,7 +396,8 @@ export default function CheckoutContent() {
     const { name, value } = e.target;
 
     if (name === "mobile") {
-      const cleaned = value.replace(/\D/g, "").slice(0, 10);
+      const cleaned = sanitizeMobileInput(value, user.mobile);
+      if (cleaned === null) return;
       setUser((prev) => ({ ...prev, [name]: cleaned }));
       setFieldErrors((prev) => ({ ...prev, mobile: "" }));
       scheduleMobileValidation(cleaned);
