@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BsEye, BsEyeSlash } from "react-icons/bs";
@@ -42,6 +42,58 @@ function moneyUsd(price: string) {
   return Number.isFinite(n) ? n.toFixed(2) : price;
 }
 
+type EmailCheckResult = {
+  exists: boolean | null;
+  message: string;
+};
+
+function normalizeEmail(email: string) {
+  return email.trim().toLowerCase();
+}
+
+function looksLikeEmail(email: string) {
+  const e = normalizeEmail(email);
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
+}
+
+function parseEmailExistsFromResponse(raw: string): EmailCheckResult {
+  try {
+    const data = JSON.parse(raw);
+    const serverMsg = data?.message || "";
+
+    if (data?.code === "EMAIL_EXISTS") {
+      return {
+        exists: true,
+        message: serverMsg || "This email address is already registered.",
+      };
+    }
+
+    if (data?.isSuccess === true) {
+      return { exists: false, message: "" };
+    }
+
+    return {
+      exists: null,
+      message: serverMsg || "We could not verify this email right now.",
+    };
+  } catch {
+    const t = raw.trim().toLowerCase();
+    if (t.includes("exists")) {
+      return {
+        exists: true,
+        message: "This email address is already registered.",
+      };
+    }
+    if (t.includes("success") || t === "0") {
+      return { exists: false, message: "" };
+    }
+    return {
+      exists: null,
+      message: "We could not verify this email right now.",
+    };
+  }
+}
+
 export default function RegisterPage() {
   const router = useRouter();
 
@@ -71,9 +123,56 @@ export default function RegisterPage() {
   const [status, setStatus] = useState<Status>(null);
   const [fieldErrors, setFieldErrors] = useState({
     mobile: "",
-    email: "",
     confirm_password: "",
   });
+
+  const EMAIL_CHECK_ACTION = "check-email";
+  const [emailChecking, setEmailChecking] = useState(false);
+  const [emailExists, setEmailExists] = useState(false);
+  const [emailCheckMsg, setEmailCheckMsg] = useState<string>("");
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [lastCheckedEmail, setLastCheckedEmail] = useState<string>("");
+  const emailCheckNonceRef = useRef<number>(0);
+  const lastCheckedEmailRef = useRef<string>("");
+  const emailDebounceRef = useRef<number | null>(null);
+  const emailCheckInFlightRef = useRef<string | null>(null);
+
+  const clearEmailDebounce = useCallback(() => {
+    if (emailDebounceRef.current) {
+      window.clearTimeout(emailDebounceRef.current);
+      emailDebounceRef.current = null;
+    }
+  }, []);
+
+  const mobileDebounceRef = useRef<number | null>(null);
+
+  const clearMobileDebounce = useCallback(() => {
+    if (mobileDebounceRef.current) {
+      window.clearTimeout(mobileDebounceRef.current);
+      mobileDebounceRef.current = null;
+    }
+  }, []);
+
+  const scheduleMobileValidation = useCallback(
+    (mobile: string, immediate = false) => {
+      clearMobileDebounce();
+      const run = () => {
+        setFieldErrors((prev) => ({
+          ...prev,
+          mobile: validateMobile(mobile),
+        }));
+      };
+      if (immediate) {
+        run();
+        return;
+      }
+      mobileDebounceRef.current = window.setTimeout(() => {
+        mobileDebounceRef.current = null;
+        run();
+      }, 400);
+    },
+    [clearMobileDebounce],
+  );
 
   const validateMobile = (mobile: string) => {
     const digits = mobile.replace(/\D/g, "");
@@ -84,15 +183,6 @@ export default function RegisterPage() {
       return "Area code cannot start with 0 or 1.";
     if (digits[3] === "0" || digits[3] === "1")
       return "Exchange code cannot start with 0 or 1.";
-    return "";
-  };
-
-  const validateEmail = (email: string) => {
-    const re =
-      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    if (!email) return "Email is required.";
-    if (!re.test(String(email).toLowerCase()))
-      return "Please enter a valid email address.";
     return "";
   };
 
@@ -112,6 +202,140 @@ export default function RegisterPage() {
     () => sessions.find((s) => s.session_id === sessionId) || null,
     [sessions, sessionId],
   );
+
+  const checkEmailExists = useCallback(
+    async (emailRaw: string): Promise<EmailCheckResult> => {
+      const email = normalizeEmail(emailRaw);
+      if (!looksLikeEmail(email)) return { exists: null, message: "" };
+
+      const body = new URLSearchParams();
+      body.append("action", EMAIL_CHECK_ACTION);
+      body.append("email", email);
+      if (courseId) body.append("course_id", String(courseId));
+      if (sessionId) body.append("session_id", String(sessionId));
+
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body,
+        });
+        const raw = await res.text();
+        return parseEmailExistsFromResponse(raw);
+      } catch {
+        return {
+          exists: null,
+          message: "Unable to check email right now. Please try again.",
+        };
+      }
+    },
+    [courseId, sessionId],
+  );
+
+  const runEmailCheck = useCallback(
+    async (emailRaw: string) => {
+      const email = normalizeEmail(emailRaw);
+
+      if (!looksLikeEmail(email)) {
+        setEmailChecking(false);
+        setEmailExists(false);
+        setEmailCheckMsg("Please enter a valid email address.");
+        setLastCheckedEmail("");
+        lastCheckedEmailRef.current = "";
+        return;
+      }
+
+      if (
+        email === lastCheckedEmailRef.current ||
+        email === emailCheckInFlightRef.current
+      ) {
+        return;
+      }
+
+      const nonce = Date.now();
+      emailCheckNonceRef.current = nonce;
+      emailCheckInFlightRef.current = email;
+
+      setEmailChecking(true);
+      setEmailCheckMsg("Checking email...");
+
+      try {
+        const result = await checkEmailExists(email);
+
+        if (emailCheckNonceRef.current !== nonce) return;
+
+        setLastCheckedEmail(email);
+        lastCheckedEmailRef.current = email;
+
+        if (result.exists === true) {
+          setEmailExists(true);
+          setEmailCheckMsg(
+            result.message || "This email address is already registered.",
+          );
+          return;
+        }
+
+        if (result.exists === false) {
+          setEmailExists(false);
+          setEmailCheckMsg("");
+          return;
+        }
+
+        setEmailExists(false);
+        setEmailCheckMsg(
+          result.message ||
+            "Unable to verify email right now. Please try again.",
+        );
+      } catch {
+        setEmailExists(false);
+        setEmailCheckMsg("Unable to verify email right now. Please try again.");
+      } finally {
+        if (emailCheckInFlightRef.current === email) {
+          emailCheckInFlightRef.current = null;
+        }
+        setEmailChecking(false);
+      }
+    },
+    [checkEmailExists],
+  );
+
+  useEffect(() => {
+    const email = normalizeEmail(form.email);
+    if (!emailTouched) return;
+
+    if (!email) {
+      clearEmailDebounce();
+      setEmailCheckMsg("");
+      setEmailExists(false);
+      return;
+    }
+
+    if (email === lastCheckedEmailRef.current) return;
+
+    clearEmailDebounce();
+    emailDebounceRef.current = window.setTimeout(() => {
+      emailDebounceRef.current = null;
+      void runEmailCheck(form.email);
+    }, 650);
+
+    return clearEmailDebounce;
+  }, [form.email, emailTouched, runEmailCheck, clearEmailDebounce]);
+
+  useEffect(() => {
+    if (!lastCheckedEmailRef.current) return;
+    setLastCheckedEmail("");
+    lastCheckedEmailRef.current = "";
+    setEmailExists(false);
+    if (emailTouched && looksLikeEmail(form.email)) {
+      clearEmailDebounce();
+      emailDebounceRef.current = window.setTimeout(() => {
+        emailDebounceRef.current = null;
+        void runEmailCheck(form.email);
+      }, 650);
+    }
+  }, [courseId, sessionId, emailTouched, form.email, runEmailCheck, clearEmailDebounce]);
+
+  useEffect(() => () => clearMobileDebounce(), [clearMobileDebounce]);
 
   // Load courses + services
   useEffect(() => {
@@ -228,37 +452,16 @@ export default function RegisterPage() {
     const { name, value } = e.target;
 
     if (name === "mobile") {
-      const cleaned = value.replace(/\D/g, "");
-      if (cleaned.length > 10) {
-        setFieldErrors((prev) => ({
-          ...prev,
-          mobile: "Only 10 digits are allowed for US numbers.",
-        }));
-        // Revert to previous validation state after 2 seconds
-        setTimeout(() => {
-          setFieldErrors((prev) => ({
-            ...prev,
-            mobile: validateMobile(form.mobile),
-          }));
-        }, 2000);
-        return;
-      }
+      const cleaned = value.replace(/\D/g, "").slice(0, 10);
       setForm((prev) => ({ ...prev, [name]: cleaned }));
-
-      // Active validation for mobile
-      if (cleaned.length > 0 && cleaned.length < 10) {
-        const err = validateMobile(cleaned);
-        setFieldErrors((prev) => ({ ...prev, mobile: err }));
-      } else {
-        setFieldErrors((prev) => ({
-          ...prev,
-          mobile: validateMobile(cleaned),
-        }));
-      }
+      setFieldErrors((prev) => ({ ...prev, mobile: "" }));
+      scheduleMobileValidation(cleaned);
     } else if (name === "email") {
       setForm((prev) => ({ ...prev, [name]: value }));
-      // Active validation for email
-      setFieldErrors((prev) => ({ ...prev, email: validateEmail(value) }));
+      setEmailExists(false);
+      setEmailCheckMsg("");
+      setLastCheckedEmail("");
+      lastCheckedEmailRef.current = "";
     } else if (name === "confirm_password") {
       setForm((prev) => ({ ...prev, [name]: value }));
       // Active validation for password match
@@ -290,36 +493,92 @@ export default function RegisterPage() {
       !!form.first_name.trim() &&
       !!form.last_name.trim() &&
       !!form.email.trim() &&
+      looksLikeEmail(form.email) &&
       !!form.mobile.trim() &&
       !!form.password.trim() &&
       !!form.confirm_password.trim() &&
       form.password === form.confirm_password &&
+      !fieldErrors.mobile &&
+      !fieldErrors.confirm_password &&
       !!courseId &&
       serviceType !== "" &&
       !!sessionId &&
       agree &&
-      !submitting
+      !submitting &&
+      !emailChecking &&
+      !emailExists
     );
-  }, [form, courseId, serviceType, sessionId, agree, submitting]);
+  }, [
+    form,
+    fieldErrors,
+    courseId,
+    serviceType,
+    sessionId,
+    agree,
+    submitting,
+    emailChecking,
+    emailExists,
+  ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setEmailTouched(true);
+
     const mobileErr = validateMobile(form.mobile);
-    const emailErr = validateEmail(form.email);
     const confirmErr = validateConfirmPassword(
       form.confirm_password,
       form.password,
     );
 
-    if (mobileErr || emailErr || confirmErr) {
+    if (mobileErr || confirmErr) {
       setFieldErrors({
         mobile: mobileErr,
-        email: emailErr,
         confirm_password: confirmErr,
       });
       setStatus({
         type: "error",
         text: "Please fix all the errors in the form before submitting.",
+      });
+      return;
+    }
+
+    if (!form.email.trim() || !looksLikeEmail(form.email)) {
+      if (!form.email.trim()) {
+        setEmailCheckMsg("Email is required.");
+      } else {
+        void runEmailCheck(form.email);
+      }
+      setStatus({
+        type: "error",
+        text: "Please fix all the errors in the form before submitting.",
+      });
+      return;
+    }
+
+    if (normalizeEmail(form.email) !== lastCheckedEmail) {
+      await runEmailCheck(form.email);
+    }
+
+    if (emailChecking) {
+      setStatus({
+        type: "info",
+        text: "We are checking your email. Please wait a moment and try again.",
+      });
+      return;
+    }
+
+    if (emailExists) {
+      setStatus({
+        type: "error",
+        text: emailCheckMsg || "This email address is already registered.",
+      });
+      return;
+    }
+
+    if (!canSubmit) {
+      setStatus({
+        type: "error",
+        text: "Please complete all required fields correctly before submitting.",
       });
       return;
     }
@@ -578,26 +837,64 @@ export default function RegisterPage() {
                   <div className="mb-3">
                     <input
                       type="email"
-                      className={`form-control ${fieldErrors.email ? "is-invalid" : ""}`}
+                      className={`form-control ${
+                        emailExists ||
+                        (emailTouched && form.email && !looksLikeEmail(form.email))
+                          ? "is-invalid"
+                          : ""
+                      }`}
                       name="email"
                       placeholder="Email address"
                       value={form.email}
                       onChange={handleChange}
+                      onBlur={() => {
+                        setEmailTouched(true);
+                        const email = normalizeEmail(form.email);
+                        if (
+                          !email ||
+                          email === lastCheckedEmailRef.current ||
+                          email === emailCheckInFlightRef.current
+                        ) {
+                          return;
+                        }
+                        if (emailDebounceRef.current) {
+                          clearEmailDebounce();
+                          void runEmailCheck(form.email);
+                        }
+                      }}
+                      onFocus={() => setEmailTouched(true)}
                       required
                       style={{
                         borderRadius: 10,
-                        borderColor: fieldErrors.email
-                          ? "#dc3545"
-                          : "rgba(0,35,65,0.20)",
+                        borderColor:
+                          emailExists ||
+                          (emailTouched &&
+                            form.email &&
+                            !looksLikeEmail(form.email))
+                            ? "#dc3545"
+                            : "rgba(0,35,65,0.20)",
                         padding: "12px 12px",
                       }}
                     />
-                    {fieldErrors.email && (
+                    {(emailTouched || !!form.email.trim()) && emailCheckMsg && (
                       <div
-                        className="invalid-feedback"
-                        style={{ fontSize: 13, fontWeight: 600 }}
+                        className={`small mt-1 ${
+                          emailExists || !looksLikeEmail(form.email)
+                            ? "text-danger"
+                            : "text-muted"
+                        }`}
+                        role={
+                          emailExists || !looksLikeEmail(form.email)
+                            ? "alert"
+                            : undefined
+                        }
+                        style={{
+                          fontSize: 13,
+                          fontWeight:
+                            emailExists || !looksLikeEmail(form.email) ? 600 : 400,
+                        }}
                       >
-                        {fieldErrors.email}
+                        {emailCheckMsg}
                       </div>
                     )}
                   </div>
@@ -611,6 +908,7 @@ export default function RegisterPage() {
                       placeholder="Mobile number"
                       value={form.mobile}
                       onChange={handleChange}
+                      onBlur={() => scheduleMobileValidation(form.mobile, true)}
                       required
                       style={{
                         borderRadius: 10,

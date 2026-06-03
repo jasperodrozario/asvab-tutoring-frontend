@@ -79,6 +79,15 @@ function todayYYYYMMDD() {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+function normalizeEmail(email: string) {
+  return email.trim().toLowerCase();
+}
+
+function looksLikeEmail(email: string) {
+  const e = normalizeEmail(email);
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
+}
+
 export default function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -160,6 +169,46 @@ export default function CheckoutContent() {
   const [emailTouched, setEmailTouched] = useState(false);
   const [lastCheckedEmail, setLastCheckedEmail] = useState<string>("");
   const emailCheckNonceRef = useRef<number>(0);
+  const lastCheckedEmailRef = useRef<string>("");
+  const emailDebounceRef = useRef<number | null>(null);
+  const emailCheckInFlightRef = useRef<string | null>(null);
+
+  const clearEmailDebounce = useCallback(() => {
+    if (emailDebounceRef.current) {
+      window.clearTimeout(emailDebounceRef.current);
+      emailDebounceRef.current = null;
+    }
+  }, []);
+
+  const mobileDebounceRef = useRef<number | null>(null);
+
+  const clearMobileDebounce = useCallback(() => {
+    if (mobileDebounceRef.current) {
+      window.clearTimeout(mobileDebounceRef.current);
+      mobileDebounceRef.current = null;
+    }
+  }, []);
+
+  const scheduleMobileValidation = useCallback(
+    (mobile: string, immediate = false) => {
+      clearMobileDebounce();
+      const run = () => {
+        setFieldErrors((prev) => ({
+          ...prev,
+          mobile: validateMobile(mobile),
+        }));
+      };
+      if (immediate) {
+        run();
+        return;
+      }
+      mobileDebounceRef.current = window.setTimeout(() => {
+        mobileDebounceRef.current = null;
+        run();
+      }, 400);
+    },
+    [clearMobileDebounce],
+  );
 
   const oneOnOneArray: string[] = ["12", "14", "16", "18", "23", "28", "30"];
   const groupArray: string[] = ["15", "19", "29", "31"];
@@ -168,13 +217,6 @@ export default function CheckoutContent() {
     : groupArray.includes(package_id)
       ? "Group Tutoring"
       : "";
-
-  const normalizeEmail = (email: string) => email.trim().toLowerCase();
-
-  const looksLikeEmail = (email: string) => {
-    const e = normalizeEmail(email);
-    return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
-  };
 
   const parseEmailExistsFromResponse = (raw: string): EmailCheckResult => {
     try {
@@ -240,7 +282,7 @@ export default function CheckoutContent() {
         };
       }
     },
-    [API_URL, course_id, session_id, looksLikeEmail],
+    [API_URL, course_id, session_id],
   );
 
   const runEmailCheck = useCallback(
@@ -252,11 +294,20 @@ export default function CheckoutContent() {
         setEmailExists(false);
         setEmailCheckMsg("Please enter a valid email address.");
         setLastCheckedEmail("");
+        lastCheckedEmailRef.current = "";
+        return;
+      }
+
+      if (
+        email === lastCheckedEmailRef.current ||
+        email === emailCheckInFlightRef.current
+      ) {
         return;
       }
 
       const nonce = Date.now();
       emailCheckNonceRef.current = nonce;
+      emailCheckInFlightRef.current = email;
 
       setEmailChecking(true);
       setEmailCheckMsg("Checking email...");
@@ -267,6 +318,7 @@ export default function CheckoutContent() {
         if (emailCheckNonceRef.current !== nonce) return;
 
         setLastCheckedEmail(email);
+        lastCheckedEmailRef.current = email;
 
         if (result.exists === true) {
           setEmailExists(true);
@@ -291,10 +343,13 @@ export default function CheckoutContent() {
         setEmailExists(false);
         setEmailCheckMsg("Unable to verify email right now. Please try again.");
       } finally {
+        if (emailCheckInFlightRef.current === email) {
+          emailCheckInFlightRef.current = null;
+        }
         setEmailChecking(false);
       }
     },
-    [checkEmailExists, looksLikeEmail],
+    [checkEmailExists],
   );
 
   useEffect(() => {
@@ -302,53 +357,39 @@ export default function CheckoutContent() {
     if (!emailTouched) return;
 
     if (!email) {
+      clearEmailDebounce();
       setEmailCheckMsg("");
       setEmailExists(false);
       return;
     }
 
-    const t = window.setTimeout(() => {
-      runEmailCheck(email);
+    if (email === lastCheckedEmailRef.current) return;
+
+    clearEmailDebounce();
+    emailDebounceRef.current = window.setTimeout(() => {
+      emailDebounceRef.current = null;
+      void runEmailCheck(user.email);
     }, 650);
 
-    return () => window.clearTimeout(t);
-  }, [user.email, emailTouched, runEmailCheck]);
+    return clearEmailDebounce;
+  }, [user.email, emailTouched, runEmailCheck, clearEmailDebounce]);
+
+  useEffect(() => () => clearMobileDebounce(), [clearMobileDebounce]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
     if (name === "mobile") {
-      const cleaned = value.replace(/\D/g, "");
-      if (cleaned.length > 10) {
-        setFieldErrors((prev) => ({
-          ...prev,
-          mobile: "Only 10 digits are allowed for US numbers.",
-        }));
-        // Revert to previous validation state after 2 seconds
-        setTimeout(() => {
-          setFieldErrors((prev) => ({
-            ...prev,
-            mobile: validateMobile(user.mobile),
-          }));
-        }, 2000);
-        return;
-      }
+      const cleaned = value.replace(/\D/g, "").slice(0, 10);
       setUser((prev) => ({ ...prev, [name]: cleaned }));
-
-      // Active validation for mobile
-      if (cleaned.length > 0 && cleaned.length < 10) {
-        const err = validateMobile(cleaned);
-        setFieldErrors((prev) => ({ ...prev, mobile: err }));
-      } else {
-        setFieldErrors((prev) => ({
-          ...prev,
-          mobile: validateMobile(cleaned),
-        }));
-      }
+      setFieldErrors((prev) => ({ ...prev, mobile: "" }));
+      scheduleMobileValidation(cleaned);
     } else if (name === "email") {
       setUser((prev) => ({ ...prev, [name]: value }));
       setEmailExists(false);
       setEmailCheckMsg("");
+      setLastCheckedEmail("");
+      lastCheckedEmailRef.current = "";
     } else if (name === "confirm_password") {
       setUser((prev) => ({ ...prev, [name]: value }));
       // Active validation for password match
@@ -833,7 +874,18 @@ export default function CheckoutContent() {
                   onChange={handleChange}
                   onBlur={() => {
                     setEmailTouched(true);
-                    runEmailCheck(user.email);
+                    const email = normalizeEmail(user.email);
+                    if (
+                      !email ||
+                      email === lastCheckedEmailRef.current ||
+                      email === emailCheckInFlightRef.current
+                    ) {
+                      return;
+                    }
+                    if (emailDebounceRef.current) {
+                      clearEmailDebounce();
+                      void runEmailCheck(user.email);
+                    }
                   }}
                   onFocus={() => setEmailTouched(true)}
                   required
@@ -852,7 +904,10 @@ export default function CheckoutContent() {
                       ? "alert"
                       : undefined
                   }
-                  style={{ fontWeight: emailExists ? 600 : 400 }}
+                  style={{
+                    fontWeight:
+                      emailExists || !looksLikeEmail(user.email) ? 600 : 400,
+                  }}
                 >
                   {emailCheckMsg}
                 </div>
@@ -865,6 +920,7 @@ export default function CheckoutContent() {
                   placeholder="Mobile"
                   value={user.mobile}
                   onChange={handleChange}
+                  onBlur={() => scheduleMobileValidation(user.mobile, true)}
                   required
                 />
                 {fieldErrors.mobile && (
