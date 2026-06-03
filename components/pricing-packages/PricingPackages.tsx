@@ -1,30 +1,21 @@
-// components/specific-packages/specificPackages.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ServiceType } from "@/types/Services";
+import type { PricingPackageItem } from "@/lib/php-api";
 
 type Submenu = "one" | "group" | "subscribe";
 
-interface CourseItem {
-  course_id: string;
-  course_code: string;
-  name: string;
-  image_src: string;
-  price_range: string;
-  full_form: string;
-}
-
 type Props = {
-  submenu?: Submenu; // pricing page
-  fixedSubmenu?: Submenu; // homepage static
+  submenu?: Submenu;
+  fixedSubmenu?: Submenu;
   homepageDescription?: string;
-
-  // ✅ NEW: per-section heading control (for homepage 2 sections)
   sectionTitle?: string;
   sectionSubtitle?: string;
+  /** Server-fetched packages (pricing pages). Homepage omits this and client-fetches. */
+  initialPackages?: PricingPackageItem[];
 };
 
 const PricingPackages: React.FC<Props> = ({
@@ -33,9 +24,12 @@ const PricingPackages: React.FC<Props> = ({
   homepageDescription,
   sectionTitle,
   sectionSubtitle,
+  initialPackages,
 }) => {
-  const [packages, setPackages] = useState<CourseItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [packages, setPackages] = useState<PricingPackageItem[]>(
+    initialPackages ?? [],
+  );
+  const [loading, setLoading] = useState(initialPackages === undefined);
 
   const activeSubmenu: Submenu = submenu ?? fixedSubmenu;
 
@@ -48,6 +42,10 @@ const PricingPackages: React.FC<Props> = ({
   const serviceType = serviceTypeMap[activeSubmenu] ?? null;
 
   useEffect(() => {
+    if (initialPackages !== undefined) {
+      return;
+    }
+
     setLoading(true);
 
     const fetchPackages = async () => {
@@ -77,7 +75,7 @@ const PricingPackages: React.FC<Props> = ({
     };
 
     fetchPackages();
-  }, [activeSubmenu]);
+  }, [activeSubmenu, initialPackages]);
 
   // ---------------- TITLES ----------------
 

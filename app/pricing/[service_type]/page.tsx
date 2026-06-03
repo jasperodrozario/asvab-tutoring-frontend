@@ -4,8 +4,13 @@ import PricingPackages from "@/components/pricing-packages/PricingPackages";
 import PricingContent from "@/components/pricing-content/PricingContent";
 import { ServiceType } from "@/types/Services";
 import { pricingMetadata } from "@/lib/page-metadata";
+import {
+  fetchPricingPackages,
+  fetchPricingPageContent,
+} from "@/lib/php-api";
+import { serviceTypeToSubmenu, type PricingSubmenu } from "@/lib/package-utils";
 
-type Submenu = "one" | "group" | "subscribe";
+export const revalidate = 3600;
 
 export async function generateMetadata({
   params,
@@ -16,13 +21,11 @@ export async function generateMetadata({
   return pricingMetadata(service_type);
 }
 
-// export const dynamic = "force-dynamic";
 export default async function PricingPage({
   params,
 }: {
   params: Promise<{ service_type?: string }>;
 }) {
-  // ✅ MUST await searchParams in new Next.js
   const { service_type } = await params;
 
   const serviceType: ServiceType | null =
@@ -41,8 +44,8 @@ export default async function PricingPage({
     );
   }
 
-  const title = ((serviceType: ServiceType) => {
-    switch (serviceType) {
+  const title = ((type: ServiceType) => {
+    switch (type) {
       case "1-on-1-tutoring":
         return "1-on-1 Tutoring";
       case "group-tutoring":
@@ -54,24 +57,15 @@ export default async function PricingPage({
     }
   })(serviceType);
 
-  const submenu: Submenu = ((serviceType) => {
-    switch (serviceType) {
-      case "1-on-1-tutoring":
-        return "one";
-      case "group-tutoring":
-        return "group";
-      case "self-study":
-        return "subscribe";
-      default:
-        return "one";
-    }
-  })(serviceType);
+  const submenu: PricingSubmenu = serviceTypeToSubmenu(serviceType);
 
-  const isFeaturedDeal = serviceType === "group-tutoring";
+  const [packages, pricingItems] = await Promise.all([
+    fetchPricingPackages(submenu),
+    fetchPricingPageContent(submenu),
+  ]);
 
   return (
     <section>
-      {/* Banner */}
       <div className="banner bg-black bg-opacity-50 py-3 px-4 rounded-bottom flex flex-col items-center text-center">
         <h1 className="text-white mb-2 text-3xl fw-bold">{title}</h1>
         <Breadcrumb
@@ -81,11 +75,8 @@ export default async function PricingPage({
         />
       </div>
 
-      {/* Already working client fetch */}
-      <PricingPackages submenu={submenu} />
-
-      {/* ✅ FIXED pricing content (client-side fetch) */}
-      <PricingContent submenu={submenu} />
+      <PricingPackages submenu={submenu} initialPackages={packages} />
+      <PricingContent submenu={submenu} initialItems={pricingItems} />
     </section>
   );
 }

@@ -1,25 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { decodeHtml } from "@/lib/decode-html";
+import type { PricingPageItem } from "@/lib/php-api";
 
-type PricingPageItem = {
-  pricing_id: string;
-  title: string;
-  description: string;
-  closing_content: string;
-};
-
-function decodeHtml(html: string): string {
-  const textarea = document.createElement("textarea");
-  textarea.innerHTML = html;
-  return textarea.value;
-}
-
-export default function PricingContent({ submenu }: { submenu: string }) {
-  const [items, setItems] = useState<PricingPageItem[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function PricingContent({
+  submenu,
+  initialItems,
+}: {
+  submenu: string;
+  initialItems?: PricingPageItem[];
+}) {
+  const [items, setItems] = useState<PricingPageItem[]>(initialItems ?? []);
+  const [loading, setLoading] = useState(initialItems === undefined);
 
   useEffect(() => {
+    if (initialItems !== undefined) {
+      return;
+    }
+
     async function load() {
       try {
         const res = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
@@ -49,7 +48,7 @@ export default function PricingContent({ submenu }: { submenu: string }) {
     }
 
     load();
-  }, [submenu]);
+  }, [submenu, initialItems]);
 
   if (loading) {
     return <p className="text-center py-5">Loading pricing content…</p>;

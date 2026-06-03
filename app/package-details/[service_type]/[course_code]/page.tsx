@@ -1,6 +1,9 @@
 import { Metadata } from "next";
 import PackageDetailsContent from "./PackageDetailsContent";
 import { packageDetailsMetadata } from "@/lib/page-metadata";
+import { fetchPackageDetails } from "@/lib/php-api";
+
+export const revalidate = 3600;
 
 export async function generateMetadata({
   params,
@@ -11,10 +14,19 @@ export async function generateMetadata({
   return packageDetailsMetadata(service_type, course_code);
 }
 
-export default function Page({
+export default async function Page({
   params,
 }: {
   params: Promise<{ service_type: string; course_code: string }>;
 }) {
-  return <PackageDetailsContent params={params} />;
+  const { service_type, course_code } = await params;
+  const initialCourseData = await fetchPackageDetails(service_type, course_code);
+
+  return (
+    <PackageDetailsContent
+      service_type={service_type}
+      course_code={course_code}
+      initialCourseData={initialCourseData}
+    />
+  );
 }

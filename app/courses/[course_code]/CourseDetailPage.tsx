@@ -1,161 +1,75 @@
 "use client";
 
 import Link from "next/link";
-// import Image from "next/image";
-import { Suspense, useState, useEffect } from "react";
-import { useParams, useSearchParams } from "next/navigation";
-import "bootstrap/dist/css/bootstrap.min.css";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { cleanQuestionText } from "@/utils/textUtils";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
 import Button from "@/components/button/Button";
-import LessonPlanTab, { Session } from "@/components/tabs/LessonPlanTab";
+import LessonPlanTab from "@/components/tabs/LessonPlanTab";
 import CourseVideoTab, { VideoObject } from "@/components/tabs/CourseVideoTab";
 import FreeTestTab, {
-  Question,
   TestResult,
   TestResults,
   UserAnswers,
 } from "@/components/tabs/FreeTestTab";
+import { processHtmlContent } from "@/lib/decode-html";
+import type { CourseData, RelatedCourse } from "@/lib/course-types";
 
-// Type definitions
-
-interface CourseData {
-  status: number;
-  isSuccess: boolean;
-  message: string;
-  course_name?: string;
-  full_form: string;
-  course_header?: string;
-  course_tagline?: string;
-  overview?: string;
-  curriculum?: string;
-  sessions?: Session[];
-  picture?: string;
-  video?: VideoObject;
-  ft_cat_list?: string[];
-  ft_ques_list?: { [key: string]: Question[] };
-  courses?: Course[];
-  faqs?: FAQ[];
-  related_courses?: RelatedCourse[];
-  total_ques?: number;
-  image_src?: string;
-}
-
-interface Course {
-  course_id: string;
-  name: string;
-}
-
-interface FAQ {
-  question: string;
-  answers: string;
-}
-
-interface RelatedCourse {
-  course_id: string;
-  course_code: string;
-  full_form: string;
-  subscribe_button_url?: string;
-  image?: string;
-  name: string;
-  details?: string;
-}
-
-const processHtmlContent = (htmlString: string): string => {
-  if (!htmlString) return "";
-  if (typeof window !== "undefined") {
-    try {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(
-        `<!DOCTYPE html><html><body>${htmlString}</body></html>`,
-        "text/html",
-      );
-      return doc.body.innerHTML || "";
-    } catch {
-      return htmlString;
-    }
-  }
-  return htmlString;
+export type CourseDetailClientProps = {
+  courseCode: string;
+  courseData: CourseData | null;
+  location?: string;
+  breadcrumbSegments: string[];
+  getRelatedCourseHref: (course: RelatedCourse) => string;
 };
 
-// Main Component
-const CourseDetailPage: React.FC = () => {
-  const params = useParams();
+function formatLocationLabel(location: string): string {
+  return location.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+export function CourseDetailClient({
+  courseCode,
+  courseData,
+  location: locationProp = "",
+  breadcrumbSegments,
+  getRelatedCourseHref,
+}: CourseDetailClientProps) {
   const searchParams = useSearchParams();
-  const [courseData, setCourseData] = useState<CourseData | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const location =
+    locationProp || searchParams?.get("location") || "";
+
   const [activeTab, setActiveTab] = useState<number>(0);
   const [activeCategory, setActiveCategory] = useState<number>(0);
   const [testSubmitted, setTestSubmitted] = useState<boolean>(false);
   const [testResults, setTestResults] = useState<TestResults | null>(null);
   const [userAnswers, setUserAnswers] = useState<UserAnswers>({});
-  const [mounted, setMounted] = useState<boolean>(false);
 
-  const courseCode =
-    typeof params?.course_code === "string" ? params.course_code : "asvab";
-  const location = searchParams?.get("location") || "";
-
-  useEffect(() => setMounted(true), []);
-
-  // Fetch course data function logic
-  const fetchCourseData = async (): Promise<void> => {
-    try {
-      const formData = new FormData();
-      formData.append("action", "get-course-details-by-code");
-      formData.append("course_code", courseCode);
-
-      const response = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
-        method: "POST",
-        body: formData,
-      });
-      const data = await response.json();
-
-      if (data && data.status === 200) {
-        setCourseData({
-          ...data,
-          ft_cat_list: data.online_free_test_data?.categories || [],
-          ft_ques_list: data.online_free_test_data?.questions || {},
-        });
-      } else setCourseData(null);
-    } catch (error) {
-      console.error("Error fetching course data:", error);
-      setCourseData(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Fetch course data on component mount
-  useEffect(() => {
-    fetchCourseData();
-  }, [courseCode]);
+  if (!courseData) {
+    return (
+      <div className="container py-5">
+        <div className="alert alert-danger">
+          <h4>Failed to load course data</h4>
+          <p>Please check the console or refresh the page.</p>
+        </div>
+      </div>
+    );
+  }
 
   const hasVideo = (() => {
-    if (!courseData) return false;
     const v = courseData.video;
-
     if (!v) return false;
-
-    // object case from API
     if (typeof v === "object" && "video_link" in v) {
       const link = (v as VideoObject).video_link;
-      if (typeof link === "string") {
-        return link.trim().length > 0;
-      }
-      if (Array.isArray(link)) {
-        return link.length > 0;
-      }
+      if (typeof link === "string") return link.trim().length > 0;
+      if (Array.isArray(link)) return link.length > 0;
     }
     return false;
   })();
 
-  // Check if there are any questions available in ft_ques_list
   const hasFreeTestQuestions = (() => {
-    if (!courseData?.ft_cat_list || courseData.ft_cat_list.length === 0)
-      return false;
-    if (!courseData?.ft_ques_list) return false;
-
-    // Check if at least one category has questions
+    if (!courseData.ft_cat_list?.length) return false;
+    if (!courseData.ft_ques_list) return false;
     return courseData.ft_cat_list.some((cat) => {
       const questions = courseData.ft_ques_list?.[cat];
       return Array.isArray(questions) && questions.length > 0;
@@ -174,7 +88,7 @@ const CourseDetailPage: React.FC = () => {
   };
 
   const submitTest = (): void => {
-    if (!courseData?.ft_cat_list || !courseData?.ft_ques_list) return;
+    if (!courseData.ft_cat_list || !courseData.ft_ques_list) return;
     const activeCategoryName = courseData.ft_cat_list[activeCategory];
     const questions = courseData.ft_ques_list[activeCategoryName] || [];
     let score = 0;
@@ -214,34 +128,8 @@ const CourseDetailPage: React.FC = () => {
     setUserAnswers({});
   };
 
-  // Loading or hydration states
-  if (!mounted || loading) {
-    return (
-      <div
-        className="d-flex justify-content-center align-items-center"
-        style={{ minHeight: "400px" }}
-      >
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (!courseData) {
-    return (
-      <div className="container py-5">
-        <div className="alert alert-danger">
-          <h4>Failed to load course data</h4>
-          <p>Please check the console or refresh the page.</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <>
-      {/* Page Title */}
       <div className="page-title-area text-white py-5">
         <div className="container text-center">
           <h2>{courseData.course_header?.toUpperCase() || "Course Title"}</h2>
@@ -250,36 +138,33 @@ const CourseDetailPage: React.FC = () => {
             {location && (
               <span>
                 {" "}
-                in <b>{location.replace(/-/g, " ")}</b>
+                in <b>{formatLocationLabel(location)}</b>
               </span>
             )}
           </h4>
           <Breadcrumb
-            segments={["courses", courseCode]} // path segments
-            dynamicTitle={courseData?.course_name} // pass course_name here
+            segments={breadcrumbSegments}
+            dynamicTitle={courseData.course_name}
           />
         </div>
       </div>
 
-      {/* Main Course Section */}
       <section className="single-course-area py-5">
         <div className="container">
           <div className="row">
             <div className="col-lg-8">
-              {/* Course Image */}
               {courseData.image_src && (
                 <div className="mb-4 text-center">
                   <img
                     src={courseData.image_src}
                     alt={courseData.course_name || "Course Image"}
-                    width={800} // Adjust width as needed
-                    height={350} // Adjust height as needed
+                    width={800}
+                    height={350}
                     className="img-fluid rounded shadow-sm"
                   />
                 </div>
               )}
 
-              {/* Tabs */}
               <div
                 className="single-course-tab"
                 style={{
@@ -291,7 +176,6 @@ const CourseDetailPage: React.FC = () => {
                 }}
               >
                 <ul className="nav nav-tabs mb-4 responsive-tabs">
-                  {/* Overview */}
                   {courseData.overview && courseData.overview.trim() !== "" && (
                     <li className="nav-item">
                       <button
@@ -302,8 +186,6 @@ const CourseDetailPage: React.FC = () => {
                       </button>
                     </li>
                   )}
-
-                  {/* Curriculum */}
                   {courseData.curriculum &&
                     courseData.curriculum.trim() !== "" && (
                       <li className="nav-item">
@@ -315,8 +197,6 @@ const CourseDetailPage: React.FC = () => {
                         </button>
                       </li>
                     )}
-
-                  {/* Session Plan */}
                   <li className="nav-item">
                     <button
                       className={`nav-link tab-btn ${activeTab === 4 ? "active" : ""}`}
@@ -325,8 +205,6 @@ const CourseDetailPage: React.FC = () => {
                       Session Plan
                     </button>
                   </li>
-
-                  {/* Course Video */}
                   {hasVideo && (
                     <li className="nav-item">
                       <button
@@ -337,8 +215,6 @@ const CourseDetailPage: React.FC = () => {
                       </button>
                     </li>
                   )}
-
-                  {/* Online Free Test */}
                   {hasFreeTestQuestions && (
                     <li className="nav-item">
                       <button
@@ -356,10 +232,7 @@ const CourseDetailPage: React.FC = () => {
                   )}
                 </ul>
 
-                {/* Tab Content */}
-
                 <div className="tab-content">
-                  {/* Overview Tab */}
                   {activeTab === 0 && (
                     <div className="overview-tab">
                       <div
@@ -371,7 +244,6 @@ const CourseDetailPage: React.FC = () => {
                       />
                     </div>
                   )}
-                  {/* Curriculum Tab */}
                   {activeTab === 1 && (
                     <div
                       dangerouslySetInnerHTML={{
@@ -382,20 +254,14 @@ const CourseDetailPage: React.FC = () => {
                       className="curriculum-table"
                     />
                   )}
-
-                  {/* Lesson Plan Tab */}
                   {activeTab === 4 && (
                     <div className="sessions-tab transition-fade">
                       <LessonPlanTab sessions={courseData.sessions} />
                     </div>
                   )}
-
-                  {/* Course Video Tab */}
                   {activeTab === 2 && (
                     <CourseVideoTab video={courseData.video} />
                   )}
-
-                  {/* Online Free Test */}
                   {activeTab === 3 && (
                     <FreeTestTab
                       courseName={courseData.course_name}
@@ -416,7 +282,7 @@ const CourseDetailPage: React.FC = () => {
                   )}
                 </div>
               </div>
-              <div className={"text-center"}>
+              <div className="text-center">
                 <Button
                   pathname={`/package-details/1-on-1-tutoring/${encodeURIComponent(courseCode)}`}
                   className="btn-primary-custom2"
@@ -425,8 +291,6 @@ const CourseDetailPage: React.FC = () => {
                 </Button>
               </div>
             </div>
-
-            {/* Sidebar: Related Courses */}
 
             <div className="col-lg-4">
               {courseData.related_courses &&
@@ -441,7 +305,7 @@ const CourseDetailPage: React.FC = () => {
                     {courseData.related_courses.map((course, i) => (
                       <Link
                         key={course.course_id || i}
-                        href={`/courses/${encodeURIComponent(course.course_code)}`}
+                        href={getRelatedCourseHref(course)}
                         className="text-decoration-none"
                       >
                         <div
@@ -454,7 +318,6 @@ const CourseDetailPage: React.FC = () => {
                             className="card-img-top"
                             style={{ height: "200px", objectFit: "cover" }}
                           />
-
                           <div className="card-body">
                             <h6
                               className="card-title mb-1 related-course-card-title text-center"
@@ -471,9 +334,10 @@ const CourseDetailPage: React.FC = () => {
                               </span>
                             </h6>
                             <p className="card-text small">
-                              {cleanQuestionText(
-                                course.details || "",
-                              ).substring(0, 100) +
+                              {cleanQuestionText(course.details || "").substring(
+                                0,
+                                100,
+                              ) +
                                 (course.details && course.details.length > 100
                                   ? "..."
                                   : "")}
@@ -490,9 +354,9 @@ const CourseDetailPage: React.FC = () => {
       </section>
     </>
   );
-};
+}
 
-export default function CourseDetailPageWrapper() {
+export default function CourseDetailPageWrapper(props: CourseDetailClientProps) {
   return (
     <Suspense
       fallback={
@@ -506,7 +370,7 @@ export default function CourseDetailPageWrapper() {
         </div>
       }
     >
-      <CourseDetailPage />
+      <CourseDetailClient {...props} />
     </Suspense>
   );
 }

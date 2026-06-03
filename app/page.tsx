@@ -1,8 +1,5 @@
 import type { Metadata } from "next";
 import Welcome from "@/components/welcome/Welcome";
-import { homeMetadata } from "@/lib/page-metadata";
-
-export const metadata: Metadata = homeMetadata();
 import TopCourses from "@/components/topcourses/Topcourses";
 import Teachers from "@/components/teachers/Teachers";
 import Faq from "@/components/faq/Faq";
@@ -10,6 +7,9 @@ import Review from "@/components/review/Review";
 import Packages from "@/components/packages/Packages";
 import PricingPackages from "@/components/pricing-packages/PricingPackages";
 import HotDealPopup from "@/components/promotions/HotDealPopup";
+import { homeMetadata } from "@/lib/page-metadata";
+
+export const metadata: Metadata = homeMetadata();
 
 export default function Home() {
   return (
