@@ -1,4 +1,8 @@
+import type { Metadata } from "next";
 import Welcome from "@/components/welcome/Welcome";
+import { homeMetadata } from "@/lib/page-metadata";
+
+export const metadata: Metadata = homeMetadata();
 import TopCourses from "@/components/topcourses/Topcourses";
 import Teachers from "@/components/teachers/Teachers";
 import Faq from "@/components/faq/Faq";

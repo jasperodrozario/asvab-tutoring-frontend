@@ -2,14 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
 import { fetchSitemapSections, type SitemapSection } from "@/lib/sitemap-data";
-import { buildPageMetadata } from "@/lib/seo";
+import { sitemapMetadata } from "@/lib/page-metadata";
 
-export const metadata: Metadata = buildPageMetadata({
-  title: "Sitemap | ASVAB Tutoring",
-  description:
-    "Browse all ASVAB Tutoring pages including courses, services, pricing, packages, and blog articles.",
-  path: "/sitemap",
-});
+export const metadata: Metadata = sitemapMetadata();
 
 export const revalidate = 3600;
 

@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import CourseDetailPageClient from "./CourseDetailPageClient";
+import { onlineCourseMetadata } from "@/lib/page-metadata";
 
 type Props = {
   params: Promise<{ city: string; course_code: string }>;
@@ -18,15 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const title = `${formattedCourse} Tutor in ${formattedCity} | ASVAB Tutoring`;
   const description = `Looking for ${formattedCourse} Tutor in ${formattedCity}? ASVAB Tutoring provides the best ${formattedCourse} classes and tutoring in ${formattedCity}. Enroll now for expert guidance.`;
 
-  return {
-    title,
-    description,
-    openGraph: {
-      title,
-      description,
-      type: "website",
-    },
-  };
+  return onlineCourseMetadata(city, course_code, title, description);
 }
 
 export default async function Page({ params }: Props) {

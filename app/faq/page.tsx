@@ -1,12 +1,10 @@
 import React from "react";
+import type { Metadata } from "next";
 import Faq from "@/components/faq/Faq";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
+import { faqMetadata } from "@/lib/page-metadata";
 
-export const metadata = {
-  title: "FAQ | ASVAB Tutoring",
-  description:
-    "Find answers to frequently asked questions about ASVAB Tutoring’s services, pricing, and features.",
-};
+export const metadata: Metadata = faqMetadata();
 
 export default function FaqPage() {
   return (

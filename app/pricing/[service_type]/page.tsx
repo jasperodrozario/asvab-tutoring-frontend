@@ -1,26 +1,11 @@
-// app/pricing-page/page.tsx
 import { Metadata } from "next";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
 import PricingPackages from "@/components/pricing-packages/PricingPackages";
 import PricingContent from "@/components/pricing-content/PricingContent";
-import HotDealBanner from "@/components/promotions/HotDealBanner";
 import { ServiceType } from "@/types/Services";
+import { pricingMetadata } from "@/lib/page-metadata";
 
 type Submenu = "one" | "group" | "subscribe";
-
-// ── Per-service pricing SEO metadata ─────────────────────────────────────────
-const pricingMeta: Record<string, { title: string; description: string }> = {
-  "1-on-1-tutoring": {
-    title: "1-on-1 Tutoring Services Price for Military Entrance Test Prep",
-    description:
-      "Get the best value for 1-on-1 tutoring preparation for military entrance exam. Our expert tutors are here to help you succeed at competitive prices. Start your journey today!",
-  },
-  "group-tutoring": {
-    title: "Group Tutoring Services Price for Military Entrance Test Prep",
-    description:
-      "Join our group tutoring sessions for Military Entrance Test prep. Achieve your military goals with experienced instructors and a supportive learning environment.",
-  },
-};
 
 export async function generateMetadata({
   params,
@@ -28,20 +13,7 @@ export async function generateMetadata({
   params: Promise<{ service_type?: string }>;
 }): Promise<Metadata> {
   const { service_type } = await params;
-  const meta = service_type ? pricingMeta[service_type] : undefined;
-
-  if (!meta) {
-    return {
-      title: "Pricing | ASVAB Tutoring",
-      description:
-        "View our competitive pricing for ASVAB Tutoring services. Find the right plan to help you succeed on your military entrance exam.",
-    };
-  }
-
-  return {
-    title: meta.title,
-    description: meta.description,
-  };
+  return pricingMetadata(service_type);
 }
 
 // export const dynamic = "force-dynamic";
