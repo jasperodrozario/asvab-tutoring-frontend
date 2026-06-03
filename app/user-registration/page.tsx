@@ -122,6 +122,8 @@ export default function RegisterPage() {
   const [submitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState<Status>(null);
   const [fieldErrors, setFieldErrors] = useState({
+    first_name: "",
+    last_name: "",
     mobile: "",
     confirm_password: "",
   });
@@ -131,6 +133,7 @@ export default function RegisterPage() {
   const [emailExists, setEmailExists] = useState(false);
   const [emailCheckMsg, setEmailCheckMsg] = useState<string>("");
   const [emailTouched, setEmailTouched] = useState(false);
+  const [emailBlurred, setEmailBlurred] = useState(false);
   const [lastCheckedEmail, setLastCheckedEmail] = useState<string>("");
   const emailCheckNonceRef = useRef<number>(0);
   const lastCheckedEmailRef = useRef<string>("");
@@ -173,6 +176,16 @@ export default function RegisterPage() {
     },
     [clearMobileDebounce],
   );
+
+  const validateFirstName = (firstName: string) => {
+    if (!firstName.trim()) return "First name is required.";
+    return "";
+  };
+
+  const validateLastName = (lastName: string) => {
+    if (!lastName.trim()) return "Last name is required.";
+    return "";
+  };
 
   const validateMobile = (mobile: string) => {
     const digits = mobile.replace(/\D/g, "");
@@ -305,7 +318,9 @@ export default function RegisterPage() {
 
     if (!email) {
       clearEmailDebounce();
-      setEmailCheckMsg("");
+      setEmailCheckMsg(
+        emailBlurred ? "Email address is required." : "",
+      );
       setEmailExists(false);
       return;
     }
@@ -319,7 +334,7 @@ export default function RegisterPage() {
     }, 650);
 
     return clearEmailDebounce;
-  }, [form.email, emailTouched, runEmailCheck, clearEmailDebounce]);
+  }, [form.email, emailTouched, emailBlurred, runEmailCheck, clearEmailDebounce]);
 
   useEffect(() => {
     if (!lastCheckedEmailRef.current) return;
@@ -456,10 +471,17 @@ export default function RegisterPage() {
       setForm((prev) => ({ ...prev, [name]: cleaned }));
       setFieldErrors((prev) => ({ ...prev, mobile: "" }));
       scheduleMobileValidation(cleaned);
+    } else if (name === "first_name") {
+      setForm((prev) => ({ ...prev, [name]: value }));
+      setFieldErrors((prev) => ({ ...prev, first_name: "" }));
+    } else if (name === "last_name") {
+      setForm((prev) => ({ ...prev, [name]: value }));
+      setFieldErrors((prev) => ({ ...prev, last_name: "" }));
     } else if (name === "email") {
       setForm((prev) => ({ ...prev, [name]: value }));
       setEmailExists(false);
       setEmailCheckMsg("");
+      setEmailBlurred(false);
       setLastCheckedEmail("");
       lastCheckedEmailRef.current = "";
     } else if (name === "confirm_password") {
@@ -488,25 +510,39 @@ export default function RegisterPage() {
     if (status?.type === "error") setStatus(null);
   };
 
+  const emailReady = useMemo(() => {
+    const normalized = normalizeEmail(form.email);
+    if (!normalized || !looksLikeEmail(form.email)) return false;
+    if (emailChecking || emailExists) return false;
+    if (emailCheckMsg && emailCheckMsg !== "Checking email...") return false;
+    if (normalized !== lastCheckedEmail) return false;
+    return true;
+  }, [
+    form.email,
+    emailChecking,
+    emailExists,
+    emailCheckMsg,
+    lastCheckedEmail,
+  ]);
+
   const canSubmit = useMemo(() => {
     return (
       !!form.first_name.trim() &&
       !!form.last_name.trim() &&
-      !!form.email.trim() &&
-      looksLikeEmail(form.email) &&
+      emailReady &&
       !!form.mobile.trim() &&
       !!form.password.trim() &&
       !!form.confirm_password.trim() &&
       form.password === form.confirm_password &&
+      !fieldErrors.first_name &&
+      !fieldErrors.last_name &&
       !fieldErrors.mobile &&
       !fieldErrors.confirm_password &&
       !!courseId &&
       serviceType !== "" &&
       !!sessionId &&
       agree &&
-      !submitting &&
-      !emailChecking &&
-      !emailExists
+      !submitting
     );
   }, [
     form,
@@ -516,22 +552,26 @@ export default function RegisterPage() {
     sessionId,
     agree,
     submitting,
-    emailChecking,
-    emailExists,
+    emailReady,
   ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setEmailTouched(true);
+    setEmailBlurred(true);
 
+    const firstNameErr = validateFirstName(form.first_name);
+    const lastNameErr = validateLastName(form.last_name);
     const mobileErr = validateMobile(form.mobile);
     const confirmErr = validateConfirmPassword(
       form.confirm_password,
       form.password,
     );
 
-    if (mobileErr || confirmErr) {
+    if (firstNameErr || lastNameErr || mobileErr || confirmErr) {
       setFieldErrors({
+        first_name: firstNameErr,
+        last_name: lastNameErr,
         mobile: mobileErr,
         confirm_password: confirmErr,
       });
@@ -544,7 +584,7 @@ export default function RegisterPage() {
 
     if (!form.email.trim() || !looksLikeEmail(form.email)) {
       if (!form.email.trim()) {
-        setEmailCheckMsg("Email is required.");
+        setEmailCheckMsg("Email address is required.");
       } else {
         void runEmailCheck(form.email);
       }
@@ -802,34 +842,66 @@ export default function RegisterPage() {
                     <div className="col-12 col-sm-6">
                       <input
                         type="text"
-                        className="form-control"
+                        className={`form-control ${fieldErrors.first_name ? "is-invalid" : ""}`}
                         name="first_name"
                         placeholder="First name"
                         value={form.first_name}
                         onChange={handleChange}
+                        onBlur={() =>
+                          setFieldErrors((prev) => ({
+                            ...prev,
+                            first_name: validateFirstName(form.first_name),
+                          }))
+                        }
                         required
                         style={{
                           borderRadius: 10,
-                          borderColor: "rgba(0,35,65,0.20)",
+                          borderColor: fieldErrors.first_name
+                            ? "#dc3545"
+                            : "rgba(0,35,65,0.20)",
                           padding: "12px 12px",
                         }}
                       />
+                      {fieldErrors.first_name && (
+                        <div
+                          className="invalid-feedback"
+                          style={{ fontSize: 13, fontWeight: 600 }}
+                        >
+                          {fieldErrors.first_name}
+                        </div>
+                      )}
                     </div>
                     <div className="col-12 col-sm-6">
                       <input
                         type="text"
-                        className="form-control"
+                        className={`form-control ${fieldErrors.last_name ? "is-invalid" : ""}`}
                         name="last_name"
                         placeholder="Last name"
                         value={form.last_name}
                         onChange={handleChange}
+                        onBlur={() =>
+                          setFieldErrors((prev) => ({
+                            ...prev,
+                            last_name: validateLastName(form.last_name),
+                          }))
+                        }
                         required
                         style={{
                           borderRadius: 10,
-                          borderColor: "rgba(0,35,65,0.20)",
+                          borderColor: fieldErrors.last_name
+                            ? "#dc3545"
+                            : "rgba(0,35,65,0.20)",
                           padding: "12px 12px",
                         }}
                       />
+                      {fieldErrors.last_name && (
+                        <div
+                          className="invalid-feedback"
+                          style={{ fontSize: 13, fontWeight: 600 }}
+                        >
+                          {fieldErrors.last_name}
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -839,7 +911,10 @@ export default function RegisterPage() {
                       type="email"
                       className={`form-control ${
                         emailExists ||
-                        (emailTouched && form.email && !looksLikeEmail(form.email))
+                        (emailBlurred && !form.email.trim()) ||
+                        (emailTouched &&
+                          !!form.email.trim() &&
+                          !looksLikeEmail(form.email))
                           ? "is-invalid"
                           : ""
                       }`}
@@ -849,9 +924,10 @@ export default function RegisterPage() {
                       onChange={handleChange}
                       onBlur={() => {
                         setEmailTouched(true);
+                        setEmailBlurred(true);
                         const email = normalizeEmail(form.email);
+                        if (!email) return;
                         if (
-                          !email ||
                           email === lastCheckedEmailRef.current ||
                           email === emailCheckInFlightRef.current
                         ) {
@@ -862,21 +938,28 @@ export default function RegisterPage() {
                           void runEmailCheck(form.email);
                         }
                       }}
-                      onFocus={() => setEmailTouched(true)}
+                      onFocus={() => {
+                        setEmailTouched(true);
+                        setEmailBlurred(false);
+                      }}
                       required
                       style={{
                         borderRadius: 10,
                         borderColor:
                           emailExists ||
+                          (emailBlurred && !form.email.trim()) ||
                           (emailTouched &&
-                            form.email &&
+                            !!form.email.trim() &&
                             !looksLikeEmail(form.email))
                             ? "#dc3545"
                             : "rgba(0,35,65,0.20)",
                         padding: "12px 12px",
                       }}
                     />
-                    {(emailTouched || !!form.email.trim()) && emailCheckMsg && (
+                    {emailCheckMsg &&
+                      (emailCheckMsg === "Email address is required."
+                        ? emailBlurred
+                        : emailTouched || !!form.email.trim()) && (
                       <div
                         className={`small mt-1 ${
                           emailExists || !looksLikeEmail(form.email)

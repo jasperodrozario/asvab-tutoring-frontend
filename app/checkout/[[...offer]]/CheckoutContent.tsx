@@ -139,11 +139,23 @@ export default function CheckoutContent() {
   });
 
   const [fieldErrors, setFieldErrors] = useState({
+    first_name: "",
+    last_name: "",
     mobile: "",
     confirm_password: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);
+
+  const validateFirstName = (firstName: string) => {
+    if (!firstName.trim()) return "First name is required.";
+    return "";
+  };
+
+  const validateLastName = (lastName: string) => {
+    if (!lastName.trim()) return "Last name is required.";
+    return "";
+  };
 
   const validateMobile = (mobile: string) => {
     const digits = mobile.replace(/\D/g, "");
@@ -167,6 +179,7 @@ export default function CheckoutContent() {
   const [emailExists, setEmailExists] = useState(false);
   const [emailCheckMsg, setEmailCheckMsg] = useState<string>("");
   const [emailTouched, setEmailTouched] = useState(false);
+  const [emailBlurred, setEmailBlurred] = useState(false);
   const [lastCheckedEmail, setLastCheckedEmail] = useState<string>("");
   const emailCheckNonceRef = useRef<number>(0);
   const lastCheckedEmailRef = useRef<string>("");
@@ -358,7 +371,9 @@ export default function CheckoutContent() {
 
     if (!email) {
       clearEmailDebounce();
-      setEmailCheckMsg("");
+      setEmailCheckMsg(
+        emailBlurred ? "Email address is required." : "",
+      );
       setEmailExists(false);
       return;
     }
@@ -372,7 +387,7 @@ export default function CheckoutContent() {
     }, 650);
 
     return clearEmailDebounce;
-  }, [user.email, emailTouched, runEmailCheck, clearEmailDebounce]);
+  }, [user.email, emailTouched, emailBlurred, runEmailCheck, clearEmailDebounce]);
 
   useEffect(() => () => clearMobileDebounce(), [clearMobileDebounce]);
 
@@ -384,10 +399,17 @@ export default function CheckoutContent() {
       setUser((prev) => ({ ...prev, [name]: cleaned }));
       setFieldErrors((prev) => ({ ...prev, mobile: "" }));
       scheduleMobileValidation(cleaned);
+    } else if (name === "first_name") {
+      setUser((prev) => ({ ...prev, [name]: value }));
+      setFieldErrors((prev) => ({ ...prev, first_name: "" }));
+    } else if (name === "last_name") {
+      setUser((prev) => ({ ...prev, [name]: value }));
+      setFieldErrors((prev) => ({ ...prev, last_name: "" }));
     } else if (name === "email") {
       setUser((prev) => ({ ...prev, [name]: value }));
       setEmailExists(false);
       setEmailCheckMsg("");
+      setEmailBlurred(false);
       setLastCheckedEmail("");
       lastCheckedEmailRef.current = "";
     } else if (name === "confirm_password") {
@@ -466,23 +488,38 @@ export default function CheckoutContent() {
 
   const [agreeTerms, setAgreeTerms] = useState(false);
 
+  const emailReady = useMemo(() => {
+    const normalized = normalizeEmail(user.email);
+    if (!normalized || !looksLikeEmail(user.email)) return false;
+    if (emailChecking || emailExists) return false;
+    if (emailCheckMsg && emailCheckMsg !== "Checking email...") return false;
+    if (normalized !== lastCheckedEmail) return false;
+    return true;
+  }, [
+    user.email,
+    emailChecking,
+    emailExists,
+    emailCheckMsg,
+    lastCheckedEmail,
+  ]);
+
   const canSubmit = useMemo(() => {
     return (
       agreeTerms &&
       !!user.first_name.trim() &&
       !!user.last_name.trim() &&
-      !!user.email.trim() &&
+      emailReady &&
       !!user.mobile.trim() &&
       !!user.password.trim() &&
       !!user.confirm_password.trim() &&
       user.password === user.confirm_password &&
+      !fieldErrors.first_name &&
+      !fieldErrors.last_name &&
       !fieldErrors.mobile &&
       !fieldErrors.confirm_password &&
-      !emailChecking &&
-      !emailExists &&
       !invalidBase
     );
-  }, [agreeTerms, user, fieldErrors, emailChecking, emailExists, invalidBase]);
+  }, [agreeTerms, user, fieldErrors, emailReady, invalidBase]);
 
   const submitMobilePayment = async () => {
     setMobileResult(null);
@@ -495,14 +532,25 @@ export default function CheckoutContent() {
       return;
     }
 
+    setEmailTouched(true);
+    setEmailBlurred(true);
+
+    const firstNameErr = validateFirstName(user.first_name);
+    const lastNameErr = validateLastName(user.last_name);
     const mobileErr = validateMobile(user.mobile);
     const confirmErr = validateConfirmPassword(
       user.confirm_password,
       user.password,
     );
 
-    if (mobileErr || confirmErr) {
+    if (!user.email.trim()) {
+      setEmailCheckMsg("Email address is required.");
+    }
+
+    if (firstNameErr || lastNameErr || mobileErr || confirmErr || !user.email.trim()) {
       setFieldErrors({
+        first_name: firstNameErr,
+        last_name: lastNameErr,
         mobile: mobileErr,
         confirm_password: confirmErr,
       });
@@ -643,8 +691,7 @@ export default function CheckoutContent() {
   const showPaymentMethodChooser = mode !== "subscription";
   const showMobileUI = showPaymentMethodChooser && paymentMethod === "mobile";
   const showCardUI = mode === "subscription" || paymentMethod === "card";
-  const cardBlockedByEmail =
-    emailChecking || emailExists || !looksLikeEmail(user.email);
+  const cardBlockedByEmail = !emailReady;
 
   return (
     <div className="container pb-5" style={{ maxWidth: 1100, paddingTop: 33 }}>
@@ -846,27 +893,67 @@ export default function CheckoutContent() {
                 Your Registration Information
               </h5>
 
-              <input
-                className="form-control mb-2"
-                name="first_name"
-                placeholder="First Name"
-                value={user.first_name}
-                onChange={handleChange}
-                required
-              />
-
-              <input
-                className="form-control mb-2"
-                name="last_name"
-                placeholder="Last Name"
-                value={user.last_name}
-                onChange={handleChange}
-                required
-              />
+              <div className="mb-2">
+                <input
+                  className={`form-control ${fieldErrors.first_name ? "is-invalid" : ""}`}
+                  name="first_name"
+                  placeholder="First Name"
+                  value={user.first_name}
+                  onChange={handleChange}
+                  onBlur={() =>
+                    setFieldErrors((prev) => ({
+                      ...prev,
+                      first_name: validateFirstName(user.first_name),
+                    }))
+                  }
+                  required
+                />
+                {fieldErrors.first_name && (
+                  <div
+                    className="invalid-feedback"
+                    style={{ fontSize: 13, fontWeight: 600 }}
+                  >
+                    {fieldErrors.first_name}
+                  </div>
+                )}
+              </div>
 
               <div className="mb-2">
                 <input
-                  className="form-control"
+                  className={`form-control ${fieldErrors.last_name ? "is-invalid" : ""}`}
+                  name="last_name"
+                  placeholder="Last Name"
+                  value={user.last_name}
+                  onChange={handleChange}
+                  onBlur={() =>
+                    setFieldErrors((prev) => ({
+                      ...prev,
+                      last_name: validateLastName(user.last_name),
+                    }))
+                  }
+                  required
+                />
+                {fieldErrors.last_name && (
+                  <div
+                    className="invalid-feedback"
+                    style={{ fontSize: 13, fontWeight: 600 }}
+                  >
+                    {fieldErrors.last_name}
+                  </div>
+                )}
+              </div>
+
+              <div className="mb-2">
+                <input
+                  className={`form-control ${
+                    emailExists ||
+                    (emailBlurred && !user.email.trim()) ||
+                    (emailTouched &&
+                      !!user.email.trim() &&
+                      !looksLikeEmail(user.email))
+                      ? "is-invalid"
+                      : ""
+                  }`}
                   type="email"
                   name="email"
                   placeholder="Email"
@@ -874,9 +961,10 @@ export default function CheckoutContent() {
                   onChange={handleChange}
                   onBlur={() => {
                     setEmailTouched(true);
+                    setEmailBlurred(true);
                     const email = normalizeEmail(user.email);
+                    if (!email) return;
                     if (
-                      !email ||
                       email === lastCheckedEmailRef.current ||
                       email === emailCheckInFlightRef.current
                     ) {
@@ -887,12 +975,18 @@ export default function CheckoutContent() {
                       void runEmailCheck(user.email);
                     }
                   }}
-                  onFocus={() => setEmailTouched(true)}
+                  onFocus={() => {
+                    setEmailTouched(true);
+                    setEmailBlurred(false);
+                  }}
                   required
                 />
               </div>
 
-              {(emailTouched || !!user.email.trim()) && emailCheckMsg && (
+              {emailCheckMsg &&
+                (emailCheckMsg === "Email address is required."
+                  ? emailBlurred
+                  : emailTouched || !!user.email.trim()) && (
                 <div
                   className={`small mb-2 ${
                     emailExists || !looksLikeEmail(user.email)
