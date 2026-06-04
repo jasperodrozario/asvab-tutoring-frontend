@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getHomeKeywords } from "@/lib/keywords";
 
 export const SITE_URL = "https://www.asvab-tutoring.com";
 export const SITE_NAME = "ASVAB Tutoring";
@@ -10,20 +11,8 @@ export const DEFAULT_DESCRIPTION =
 export const DEFAULT_TITLE =
   "ASVAB Tutoring: ASVAB Tutor, ASTB, OAR, AFOQT, SIFT Tutoring";
 
-export const DEFAULT_KEYWORDS = [
-  "ASVAB tutoring",
-  "ASVAB tutor",
-  "ASVAB test prep",
-  "ASVAB math help",
-  "AFOQT tutor",
-  "AFOQT tutoring",
-  "ASTB tutor",
-  "OAR tutor",
-  "SIFT tutoring",
-  "AFQT tutoring",
-  "online ASVAB tutor",
-  "military test prep",
-];
+/** Homepage main-keyword groups (see lib/keywords.ts). */
+export const DEFAULT_KEYWORDS = getHomeKeywords();
 
 export const NOINDEX_ROBOTS: Metadata["robots"] = {
   index: false,
@@ -43,14 +32,19 @@ type BuildMetadataOptions = {
   title: string;
   description: string;
   path: string;
+  keywords?: readonly string[];
   openGraph?: Metadata["openGraph"];
   robots?: Metadata["robots"];
-} & Omit<Metadata, "title" | "description" | "alternates" | "openGraph" | "robots">;
+} & Omit<
+  Metadata,
+  "title" | "description" | "alternates" | "openGraph" | "robots" | "keywords"
+>;
 
 export function buildPageMetadata({
   title,
   description,
   path,
+  keywords,
   openGraph,
   robots,
   ...rest
@@ -60,6 +54,7 @@ export function buildPageMetadata({
   return {
     title,
     description,
+    ...(keywords?.length ? { keywords: [...keywords] } : {}),
     alternates: { canonical },
     robots: robots ?? { index: true, follow: true },
     openGraph: {

@@ -1,4 +1,14 @@
 import type { Metadata } from "next";
+import {
+  getBlogKeywords,
+  getCourseKeywords,
+  getFaqKeywords,
+  getHomeKeywords,
+  getMobileAppsKeywords,
+  getPricingKeywords,
+  getServiceKeywords,
+  packagePageTarget,
+} from "@/lib/keywords";
 import { buildPageMetadata } from "@/lib/seo";
 
 export type PageSeo = {
@@ -214,7 +224,11 @@ export const BLOG_DETAIL_FALLBACK_SEO: PageSeo = {
 };
 
 export function homeMetadata(): Metadata {
-  return buildPageMetadata({ ...HOME_SEO, path: "/" });
+  return buildPageMetadata({
+    ...HOME_SEO,
+    path: "/",
+    keywords: getHomeKeywords(),
+  });
 }
 
 export function aboutUsMetadata(): Metadata {
@@ -222,7 +236,11 @@ export function aboutUsMetadata(): Metadata {
 }
 
 export function faqMetadata(): Metadata {
-  return buildPageMetadata({ ...FAQ_SEO, path: "/faq" });
+  return buildPageMetadata({
+    ...FAQ_SEO,
+    path: "/faq",
+    keywords: getFaqKeywords(),
+  });
 }
 
 export function sitemapMetadata(): Metadata {
@@ -230,13 +248,18 @@ export function sitemapMetadata(): Metadata {
 }
 
 export function ourMobileAppsMetadata(): Metadata {
-  return buildPageMetadata({ ...OUR_MOBILE_APPS_SEO, path: "/our-mobile-apps" });
+  return buildPageMetadata({
+    ...OUR_MOBILE_APPS_SEO,
+    path: "/our-mobile-apps",
+    keywords: getMobileAppsKeywords(),
+  });
 }
 
 export function blogMetadata(): Metadata {
   return buildPageMetadata({
     ...BLOG_SEO,
     path: "/blog",
+    keywords: getBlogKeywords(),
     openGraph: {
       title: "ASVAB Tutoring Blog",
       description:
@@ -269,13 +292,21 @@ export function courseMetadata(courseCode: string): Metadata {
   const meta = COURSE_SEO[courseCode.toLowerCase()] ?? COURSE_FALLBACK_SEO;
   const path = `/courses/${courseCode.toLowerCase()}`;
 
-  return buildPageMetadata({ ...meta, path });
+  return buildPageMetadata({
+    ...meta,
+    path,
+    keywords: getCourseKeywords(courseCode, "course"),
+  });
 }
 
 export function serviceMetadata(serviceType: string): Metadata {
   const meta = SERVICE_SEO[serviceType] ?? SERVICE_FALLBACK_SEO;
 
-  return buildPageMetadata({ ...meta, path: `/services/${serviceType}` });
+  return buildPageMetadata({
+    ...meta,
+    path: `/services/${serviceType}`,
+    keywords: getServiceKeywords(serviceType),
+  });
 }
 
 export function pricingMetadata(serviceType?: string): Metadata {
@@ -285,7 +316,11 @@ export function pricingMetadata(serviceType?: string): Metadata {
       : PRICING_FALLBACK_SEO;
   const path = serviceType ? `/pricing/${serviceType}` : "/pricing";
 
-  return buildPageMetadata({ ...meta, path });
+  return buildPageMetadata({
+    ...meta,
+    path,
+    keywords: getPricingKeywords(),
+  });
 }
 
 export function packageDetailsMetadata(
@@ -297,7 +332,16 @@ export function packageDetailsMetadata(
     PACKAGE_FALLBACK_SEO;
   const path = `/package-details/${serviceType}/${courseCode.toLowerCase()}`;
 
-  return buildPageMetadata({ ...meta, path });
+  const normalizedCode = courseCode.replace(/-tutor$/, "");
+
+  return buildPageMetadata({
+    ...meta,
+    path,
+    keywords: getCourseKeywords(
+      normalizedCode,
+      packagePageTarget(serviceType),
+    ),
+  });
 }
 
 export function onlineCourseMetadata(
@@ -307,8 +351,14 @@ export function onlineCourseMetadata(
   description: string,
 ): Metadata {
   const path = `/online-courses/${city}/${courseCode}`;
+  const normalizedCode = courseCode.replace(/-tutor$/, "");
 
-  return buildPageMetadata({ title, description, path });
+  return buildPageMetadata({
+    title,
+    description,
+    path,
+    keywords: getCourseKeywords(normalizedCode, "online-course", city),
+  });
 }
 
 export function blogDetailMetadata(
