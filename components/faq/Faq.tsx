@@ -2,18 +2,22 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import type { FaqItem } from "@/lib/php-api";
 
-interface FAQ {
-  id: string;
-  question: string;
-  answers: string;
-}
+type Props = {
+  /** When provided (e.g. from /faq server page), skip client-side fetch. */
+  initialFaqs?: FaqItem[];
+};
 
-export default function Faq() {
-  const [faqs, setFaqs] = useState<FAQ[]>([]);
+export default function Faq({ initialFaqs }: Props) {
+  const [faqs, setFaqs] = useState<FaqItem[]>(initialFaqs ?? []);
 
   useEffect(() => {
-    import("bootstrap/dist/js/bootstrap.bundle.min.js"); // Enable accordion
+    import("bootstrap/dist/js/bootstrap.bundle.min.js");
+
+    if (initialFaqs !== undefined) {
+      return;
+    }
 
     const fetchFaqs = async () => {
       const formData = new FormData();
@@ -28,6 +32,8 @@ export default function Faq() {
         const data = await res.json();
         if (data?.status === 200 && Array.isArray(data.data)) {
           setFaqs(data.data);
+        } else if (data?.isSuccess && Array.isArray(data.data)) {
+          setFaqs(data.data);
         } else {
           console.error(data?.message || "Failed to fetch FAQs");
         }
@@ -37,12 +43,11 @@ export default function Faq() {
     };
 
     fetchFaqs();
-  }, []);
+  }, [initialFaqs]);
 
   return (
     <section id="faqs" className="mb-4 px-3 bg-[#f8f9fa] ">
       <div className="container">
-        {/* Title */}
         <div className="text-center mb-4 position-relative">
           <h2
             className="fw-bold display-6 d-inline-block pb-3 position-relative text-dark"
@@ -60,7 +65,6 @@ export default function Faq() {
           </h2>
         </div>
 
-        {/* FAQ Accordion */}
         <div className="accordion" id="faqAccordion">
           {faqs.length === 0 ? (
             <p className="text-center  ">No FAQs available.</p>
@@ -91,7 +95,6 @@ export default function Faq() {
                   aria-labelledby={`heading${faq.id}`}
                   data-bs-parent="#faqAccordion"
                 >
-                  {/* ✅ Render HTML content from API */}
                   <div
                     className="accordion-body small  "
                     dangerouslySetInnerHTML={{

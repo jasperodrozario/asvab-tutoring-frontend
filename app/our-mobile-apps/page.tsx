@@ -1,18 +1,9 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { ourMobileAppsMetadata } from "@/lib/page-metadata";
 
-export const metadata: Metadata = {
-  title: "Best Study Apps for ASVAB , AFOQT , SIFT , ASTB , OAR",
-  description:
-    "Best study apps for ASVAB, AFOQT, SIFT, ASTB, and OAR prep. Practice tests, flashcards, video lessons, score predictors, and expert tutoring.",
-  openGraph: {
-    title: "Best Study Apps for ASVAB , AFOQT , SIFT , ASTB , OAR",
-    description:
-      "Best study apps for ASVAB, AFOQT, SIFT, ASTB, and OAR prep. Practice tests, flashcards, video lessons, score predictors, and expert tutoring.",
-    type: "website",
-  },
-};
+export const metadata: Metadata = ourMobileAppsMetadata();
 
 /** Revalidate cached app listings periodically (ISR). */
 export const revalidate = 3600;
@@ -67,7 +58,7 @@ export default async function OurAppsPage() {
   return (
     <section className="py-5 bg-light">
       <div className="container">
-        <h2 className="text-center fw-bold mb-5">Our Mobile Apps</h2>
+        <h1 className="text-center fw-bold mb-5">Our Mobile Apps</h1>
         {apps.length === 0 ? (
           <p className="text-center text-muted">
             App listings are temporarily unavailable. Please try again later.

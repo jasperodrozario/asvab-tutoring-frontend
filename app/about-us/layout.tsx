@@ -1,10 +1,7 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
+import { aboutUsMetadata } from "@/lib/page-metadata";
 
-export const metadata: Metadata = {
-  title: "About Us - ASVAB Tutoring",
-  description:
-    "ASVAB Tutoring helps students prepare for the ASVAB, AFOQT, SIFT, and OAR exams with expert guidance, personalized lessons, and proven test strategies.",
-};
+export const metadata: Metadata = aboutUsMetadata();
 
 export default function AboutUsLayout({
   children,

@@ -1,30 +1,15 @@
 "use client";
 
-import React, { use, useEffect, useState } from "react";
-import Image from "next/image";
+import React from "react";
 import { useRouter, usePathname } from "next/navigation";
 import styles from "../../packageDetails.module.css";
-import Link from "next/link";
 import Button from "@/components/button/Button";
 import HotDealBanner from "@/components/promotions/HotDealBanner";
-
-function decodeHtmlEntitiesOnce(input: string): string {
-  if (!input) return "";
-  const txt = document.createElement("textarea");
-  txt.innerHTML = input;
-  return txt.value;
-}
-
-function decodeHtmlEntitiesDeep(input: string, maxPasses = 4): string {
-  if (!input) return "";
-  let prev = input;
-  for (let i = 0; i < maxPasses; i++) {
-    const next = decodeHtmlEntitiesOnce(prev);
-    if (next === prev) break;
-    prev = next;
-  }
-  return prev;
-}
+import { decodeHtmlEntitiesDeep } from "@/lib/decode-html";
+import {
+  convertCourseCodeToId,
+} from "@/lib/package-utils";
+import type { PackageDetailsResponse } from "@/lib/php-api";
 
 function cleanQuestionText(input: string): string {
   if (!input) return "";
@@ -60,70 +45,23 @@ function renderTextWithLineBreaks(text: string) {
     ));
 }
 
-function isSubscriptionSession(session: any): boolean {
+function isSubscriptionSession(session: { mode?: string }): boolean {
   return String(session?.mode ?? "").toLowerCase() === "subscription";
 }
 
-const serviceTypeToSubmenuMap: Record<string, string> = {
-  "one-on-1-tutoring": "one",
-  "one-on-one-tutoring": "one",
-  "group-tutoring": "group",
-  "self-study": "subscribe",
-};
-
-const courseCodeToIdMap: Record<string, string> = {
-  asvab: "40",
-  afoqt: "49",
-  sift: "50",
-  astb: "51",
-  oar: "52",
-};
-
-function convertServiceTypeToSubmenu(serviceType: string): string {
-  return serviceTypeToSubmenuMap[serviceType] ?? serviceType;
-}
-
-function convertCourseCodeToId(courseCode: string): string {
-  return courseCodeToIdMap[courseCode] ?? courseCode;
-}
-
 export default function PackageDetailsContent({
-  params,
+  service_type,
+  course_code,
+  initialCourseData,
 }: {
-  params: Promise<{ service_type: string; course_code: string }>;
+  service_type: string;
+  course_code: string;
+  initialCourseData: PackageDetailsResponse | null;
 }) {
-  const { service_type, course_code } = use(params);
   const router = useRouter();
-  const pathname = usePathname(); // ✅ added
-  const isSubscribePage = pathname?.includes("self-study"); // ✅ added
-
-  const [courseData, setCourseData] = useState<any>(null);
-
-  useEffect(() => {
-    async function fetchCourseData() {
-      try {
-        const apiSubmenu = convertServiceTypeToSubmenu(service_type);
-        const apiCourseId = convertCourseCodeToId(course_code);
-
-        const res = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({
-            action: "specific-tutoring-package-details-page",
-            course_id: apiCourseId,
-            submenu: apiSubmenu,
-          }),
-        });
-
-        const data = await res.json();
-        setCourseData(data);
-      } catch (err) {
-        console.error("API error:", err);
-      }
-    }
-
-    fetchCourseData();
-  }, [service_type, course_code]);
+  const pathname = usePathname();
+  const isSubscribePage = pathname?.includes("self-study");
+  const courseData = initialCourseData;
 
   // ✅ safe boolean compute (works even when courseData is null)
   const showPaymentImage = (() => {
@@ -133,7 +71,11 @@ export default function PackageDetailsContent({
   })();
 
   if (!courseData) {
-    return <p className="text-center py-5">Loading...</p>;
+    return (
+      <p className="text-center py-5">
+        Package details are not available at the moment.
+      </p>
+    );
   }
 
   return (
@@ -318,8 +260,8 @@ export default function PackageDetailsContent({
           </h5>
 
           <div className={styles.relatedGrid}>
-            {courseData.related_courses?.length > 0 ? (
-              courseData.related_courses.map((rel: any) => (
+            {(courseData.related_courses?.length ?? 0) > 0 ? (
+              courseData.related_courses!.map((rel: any) => (
                 <div key={rel.course_id} className={styles.relatedCardWrapper}>
                   <div
                     className="card h-100 shadow-sm border-0 cursor-pointer related-course-card text-center"

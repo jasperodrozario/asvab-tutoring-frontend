@@ -8,6 +8,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "./globals.css";
 import { SITE_URL } from "@/lib/seo";
+import { HOME_SEO } from "@/lib/page-metadata";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,9 +22,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: "ASVAB Tutoring: ASVAB Tutor, ASTB, OAR, AFOQT, SIFT",
-  description:
-    "ASVAB Tutoring provides best one-on-one online tutoring for ASVAB, ASTB, OAR & AFOQT exams. Expert tutors, personalized lessons, and proven strategies to boost your test scores.",
+  title: HOME_SEO.title,
+  description: HOME_SEO.description,
   authors: [{ name: "ASVAB Tutoring" }],
   verification: {
     google: "tjKoBlCs6zhgP7CiS7k0C2U86ENYzEWPPsErD0ffpSU",
