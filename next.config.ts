@@ -45,6 +45,11 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       ...nakedToWwwRedirects,
+      {
+        source: '/course/:code',
+        destination: '/courses/:code',
+        permanent: true,
+      },
       ...legacyCourseRedirects.flatMap((course) => [
         {
           source: `/${course}`,

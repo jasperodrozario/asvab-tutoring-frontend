@@ -1,4 +1,6 @@
 import { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { isKnownCourseCode } from "@/lib/known-route-validation";
 import CourseDetailPageClient from "./CourseDetailPageClient";
 
 type Props = {
@@ -31,5 +33,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function Page({ params }: Props) {
   const resolvedParams = await params;
+
+  if (!isKnownCourseCode(resolvedParams.course_code)) {
+    notFound();
+  }
+
   return <CourseDetailPageClient params={resolvedParams} />;
 }

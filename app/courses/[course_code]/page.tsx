@@ -1,7 +1,8 @@
 import { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { isKnownCourseCode } from "@/lib/known-route-validation";
 import CourseDetailPageWrapper from "./CourseDetailPage";
 
-// ── Per-course SEO metadata ───────────────────────────────────────────────────
 const courseMeta: Record<string, { title: string; description: string }> = {
   asvab: {
     title: "ASVAB Test Prep Classes | ASVAB Courses | ASVAB Practice Test",
@@ -52,6 +53,16 @@ export async function generateMetadata({
   };
 }
 
-export default function Page() {
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ course_code: string }>;
+}) {
+  const { course_code } = await params;
+
+  if (!isKnownCourseCode(course_code)) {
+    notFound();
+  }
+
   return <CourseDetailPageWrapper />;
 }

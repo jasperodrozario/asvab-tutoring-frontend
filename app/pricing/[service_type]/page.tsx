@@ -1,5 +1,6 @@
 // app/pricing-page/page.tsx
 import { Metadata } from "next";
+import { notFound } from "next/navigation";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
 import PricingPackages from "@/components/pricing-packages/PricingPackages";
 import PricingContent from "@/components/pricing-content/PricingContent";
@@ -61,12 +62,7 @@ export default async function PricingPage({
       : null;
 
   if (!serviceType) {
-    return (
-      <p className="text-center mt-5">
-        Please select a pricing section (1-on-1-tutoring / group-tutoring /
-        self-study).
-      </p>
-    );
+    notFound();
   }
 
   const title = ((serviceType: ServiceType) => {

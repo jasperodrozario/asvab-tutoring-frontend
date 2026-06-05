@@ -7,7 +7,6 @@ import { useParams, useSearchParams } from "next/navigation";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { cleanQuestionText } from "@/utils/textUtils";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
-import Button from "@/components/button/Button";
 import LessonPlanTab, { Session } from "@/components/tabs/LessonPlanTab";
 import CourseVideoTab, { VideoObject } from "@/components/tabs/CourseVideoTab";
 import FreeTestTab, {
@@ -60,6 +59,46 @@ interface RelatedCourse {
   name: string;
   details?: string;
 }
+
+// Teams deep link configuration
+const TEAMS_CONSULTATION_URL = "https://teams.microsoft.com/";
+
+const TeamsLogo = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    fill="currentColor"
+    className="bi bi-microsoft-teams"
+    viewBox="0 0 16 16"
+  >
+    <path d="M9.186 4.797a2.42 2.42 0 1 0-2.86-2.448h1.178c.929 0 1.682.753 1.682 1.682zm-4.295 7.738h2.613c.929 0 1.682-.753 1.682-1.682V5.58h2.783a.7.7 0 0 1 .682.716v4.294a4.197 4.197 0 0 1-4.093 4.293c-1.618-.04-3-.99-3.667-2.35Zm10.737-9.372a1.674 1.674 0 1 1-3.349 0 1.674 1.674 0 0 1 3.349 0m-2.238 9.488-.12-.002a5.2 5.2 0 0 0 .381-2.07V6.306a1.7 1.7 0 0 0-.15-.725h1.792c.39 0 .707.317.707.707v3.765a2.6 2.6 0 0 1-2.598 2.598z" />
+    <path d="M.682 3.349h6.822c.377 0 .682.305.682.682v6.822a.68.68 0 0 1-.682.682H.682A.68.68 0 0 1 0 10.853V4.03c0-.377.305-.682.682-.682Zm5.206 2.596v-.72h-3.59v.72h1.357V9.66h.87V5.945z" />
+  </svg>
+);
+
+function startTeamsChat(userEmail: string, messageTemplate: string) {
+  const teamsDeepLink = `https://teams.microsoft.com/l/chat/0/0?users=${userEmail}&message=${encodeURIComponent(messageTemplate)}`;
+  const teamsWebFallback = `https://teams.microsoft.com/chat/0/0?users=${userEmail}&message=${encodeURIComponent(messageTemplate)}`; // Fallback to Teams web
+
+  // Attempt to open the deep link
+  window.location.href = teamsDeepLink;
+
+  // Set a timeout (e.g., 2500 milliseconds) to trigger the fallback
+  // If the Teams app opens, the browser tab loses focus and the timer is less likely to matter.
+  // If the deep link fails, the fallback will open a new tab.
+  let fallbackTimer = setTimeout(function () {
+    window.open(teamsWebFallback, "_blank");
+  }, 2500);
+
+  // Optional: Add an event listener for when the page regains focus.
+  // If the user switches back quickly, the fallback might not be needed.
+  window.addEventListener("blur", function onBlur() {
+    clearTimeout(fallbackTimer);
+    window.removeEventListener("blur", onBlur);
+  });
+}
+/** End of Teams deep link configuration */
 
 const processHtmlContent = (htmlString: string): string => {
   if (!htmlString) return "";
@@ -416,13 +455,46 @@ const CourseDetailPage: React.FC = () => {
                   )}
                 </div>
               </div>
-              <div className={"text-center"}>
-                <Button
-                  pathname={`/package-details/1-on-1-tutoring/${encodeURIComponent(courseCode)}`}
-                  className="btn-primary-custom2"
-                >
-                  Enroll Now
-                </Button>
+              <div className="course-cta-section">
+                <p className="course-cta-hint">
+                  Choose how you&apos;d like to get started — message us on
+                  Microsoft Teams for a free consultation, or enroll in tutoring
+                  directly.
+                </p>
+                <div className="course-cta-actions">
+                  <button
+                    onClick={() =>
+                      startTeamsChat(
+                        "somdtutoring@gmail.com",
+                        `Hello, I am interested in the ASVAB tutoring - ${courseData.course_name} course. I would like to get a free consultation.`,
+                      )
+                    }
+                    rel="noopener noreferrer"
+                    className="course-cta-btn course-cta-btn--teams"
+                    aria-label="Get a free consultation on Microsoft Teams"
+                  >
+                    <TeamsLogo />
+                    <span className="course-cta-btn-text">
+                      <span className="course-cta-btn-title">
+                        Free Consultation
+                      </span>
+                      <span className="course-cta-btn-subtitle">
+                        Opens in Microsoft Teams
+                      </span>
+                    </span>
+                  </button>
+                  <Link
+                    href={`/package-details/1-on-1-tutoring/${encodeURIComponent(courseCode)}`}
+                    className="course-cta-btn course-cta-btn--enroll"
+                  >
+                    <span className="course-cta-btn-text">
+                      <span className="course-cta-btn-title">Enroll Now</span>
+                      <span className="course-cta-btn-subtitle">
+                        View packages &amp; pricing
+                      </span>
+                    </span>
+                  </Link>
+                </div>
               </div>
             </div>
 

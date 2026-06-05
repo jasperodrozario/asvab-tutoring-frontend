@@ -1,37 +1,10 @@
-// import React from "react";
-// import TopCourses from "@/components/topcourses/Topcourses";
-// import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
 import { Metadata } from "next";
-
-// export const metadata = {
-//   title: "Services | ASVAB Tutoring",
-//   description:
-//     "Explore the wide range of ASVAB Tutoring services and courses we offer to help you prepare effectively.",
-// };
-
-// export default function ServicesPage() {
-//   return (
-//     <section className="bg-light pb-5 min-h-screen">
-//       {/* ✅ Banner with title + breadcrumb */}
-//       <div className="banner bg-black bg-opacity-50 py-3 px-4 rounded flex flex-col items-center text-center mb-5">
-//         <h1 className="text-white mb-2 text-3xl font-bold">Our Services</h1>
-//         <Breadcrumb segments={["services"]} className="text-white text-base mt-1" />
-//       </div>
-
-//       {/* ✅ Reuse TopCourses component */}
-//       <main>
-//         <TopCourses />
-//       </main>
-//     </section>
-//   );
-// }
-
+import { notFound } from "next/navigation";
 import ServiceDetailContent from "@/components/services/ServiceDetailContent";
-import HotDealBanner from "@/components/promotions/HotDealBanner";
+import { isKnownServiceType } from "@/lib/known-route-validation";
 
 export const dynamic = "force-dynamic";
 
-// ── Per-service SEO metadata ───────────────────────────────────────────────────
 const serviceMeta: Record<string, { title: string; description: string }> = {
   "1-on-1-tutoring": {
     title: "1-on-1 Tutoring Services for ASVAB, AFOQT, OAR, SIFT, ASTB",
@@ -72,32 +45,34 @@ export async function generateMetadata({
   };
 }
 
+function getServiceId(serviceType: string) {
+  switch (serviceType) {
+    case "1-on-1-tutoring":
+      return "2";
+    case "group-tutoring":
+      return "3";
+    case "self-study":
+      return "4";
+    default:
+      return "1";
+  }
+}
+
 export default async function ServiceDetailPage({
   params,
 }: {
   params: Promise<{ service_type: string }>;
 }) {
-  // ✅ Next.js new requirement
   const { service_type } = await params;
 
-  const getServiceId = (serviceType: string) => {
-    switch (serviceType) {
-      case "1-on-1-tutoring":
-        return "2";
-      case "group-tutoring":
-        return "3";
-      case "self-study":
-        return "4";
-      default:
-        return "1";
-    }
-  };
+  if (!isKnownServiceType(service_type)) {
+    notFound();
+  }
 
   const service_id = getServiceId(service_type);
 
   return (
     <section className="pb-4">
-      {/* Banner (title will come from client component) */}
       <ServiceDetailContent serviceId={service_id} serviceType={service_type} />
     </section>
   );

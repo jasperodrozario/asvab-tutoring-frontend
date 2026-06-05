@@ -1,7 +1,11 @@
 import { Metadata } from "next";
+import { notFound } from "next/navigation";
+import {
+  isKnownCourseCode,
+  isKnownServiceType,
+} from "@/lib/known-route-validation";
 import PackageDetailsContent from "./PackageDetailsContent";
 
-// ── SEO metadata lookup: [service_type][course_code] ─────────────────────────
 const packageMeta: Record<
   string,
   Record<string, { title: string; description: string }>
@@ -84,10 +88,16 @@ export async function generateMetadata({
   };
 }
 
-export default function Page({
+export default async function Page({
   params,
 }: {
   params: Promise<{ service_type: string; course_code: string }>;
 }) {
+  const { service_type, course_code } = await params;
+
+  if (!isKnownServiceType(service_type) || !isKnownCourseCode(course_code)) {
+    notFound();
+  }
+
   return <PackageDetailsContent params={params} />;
 }
