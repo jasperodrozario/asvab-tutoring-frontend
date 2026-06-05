@@ -1,4 +1,6 @@
 import { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { isKnownServiceType } from "@/lib/known-route-validation";
 import ServiceDetailView from "./ServiceDetailView";
 import { serviceMetadata } from "@/lib/page-metadata";
 import { fetchServiceDetail } from "@/lib/php-api";
@@ -33,17 +35,16 @@ export default async function ServiceDetailPage({
   params: Promise<{ service_type: string }>;
 }) {
   const { service_type } = await params;
+
+  if (!isKnownServiceType(service_type)) {
+    notFound();
+  }
+
   const service_id = getServiceId(service_type);
   const data = await fetchServiceDetail(service_id);
 
   if (!data) {
-    return (
-      <section className="pb-4">
-        <div className="container py-5 text-center">
-          <h3>Service details not found.</h3>
-        </div>
-      </section>
-    );
+    notFound();
   }
 
   return (

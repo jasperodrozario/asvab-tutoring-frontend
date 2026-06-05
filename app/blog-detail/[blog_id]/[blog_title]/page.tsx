@@ -1,4 +1,6 @@
 import { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { isKnownBlogId } from "@/lib/known-route-validation";
 import BlogDetailClient from "./BlogDetailClient";
 import {
   blogDetailMetadata,
@@ -50,7 +52,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function Page({ params }: Props) {
   const { blog_id } = await params;
+
+  if (!isKnownBlogId(blog_id)) {
+    notFound();
+  }
+
   const blog = await fetchBlogDetails(blog_id);
+
+  if (!blog) {
+    notFound();
+  }
 
   return <BlogDetailClient blog={blog} />;
 }

@@ -1,4 +1,9 @@
 import { Metadata } from "next";
+import { notFound } from "next/navigation";
+import {
+  isKnownCourseCode,
+  isKnownServiceType,
+} from "@/lib/known-route-validation";
 import PackageDetailsContent from "./PackageDetailsContent";
 import { packageDetailsMetadata } from "@/lib/page-metadata";
 import { fetchPackageDetails } from "@/lib/php-api";
@@ -20,7 +25,16 @@ export default async function Page({
   params: Promise<{ service_type: string; course_code: string }>;
 }) {
   const { service_type, course_code } = await params;
+
+  if (!isKnownServiceType(service_type) || !isKnownCourseCode(course_code)) {
+    notFound();
+  }
+
   const initialCourseData = await fetchPackageDetails(service_type, course_code);
+
+  if (!initialCourseData) {
+    notFound();
+  }
 
   return (
     <PackageDetailsContent

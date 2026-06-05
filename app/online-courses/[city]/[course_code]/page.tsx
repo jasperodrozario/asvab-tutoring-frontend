@@ -1,4 +1,6 @@
 import { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { isKnownCourseCode } from "@/lib/known-route-validation";
 import CourseDetailPageWrapper from "@/app/courses/[course_code]/CourseDetailPage";
 import { onlineCourseMetadata } from "@/lib/page-metadata";
 import { fetchCourseDetailsByCode } from "@/lib/php-api";
@@ -28,7 +30,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function Page({ params }: Props) {
   const { city, course_code } = await params;
   const normalizedCode = course_code.replace(/-tutor$/, "");
+
+  if (!isKnownCourseCode(normalizedCode)) {
+    notFound();
+  }
+
   const courseData = await fetchCourseDetailsByCode(normalizedCode);
+
+  if (!courseData) {
+    notFound();
+  }
 
   return (
     <CourseDetailPageWrapper
