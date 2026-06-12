@@ -1,7 +1,7 @@
 /**
  * Cleans HTML and special characters from question text.
  */
-export function cleanQuestionText(input: string): string {
+export function cleanQuestionText(input: string, keepMathDelimiters = false): string {
   if (!input) return "";
   if (typeof window === "undefined") return input; // SSR fallback
 
@@ -15,7 +15,9 @@ export function cleanQuestionText(input: string): string {
   } while (decoded !== prev);
 
   decoded = decoded.replace(/<[^>]*>/g, "");
-  decoded = decoded.replace(/\\\(|\\\)/g, "");
+  if (!keepMathDelimiters) {
+    decoded = decoded.replace(/\\\(|\\\)/g, "");
+  }
   decoded = decoded.replace(/\^(\d+)\/_({?)(\d+)(}?)/g, "$1/$3");
   return decoded.trim();
 }
