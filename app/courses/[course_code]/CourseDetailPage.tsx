@@ -237,16 +237,6 @@ export function CourseDetailClient({
                       </button>
                     </li>
                   )}
-                  {hasFreeTestQuestions && (
-                    <li className="nav-item">
-                      <Link
-                        className="nav-link tab-btn"
-                        href={`/courses/${encodeURIComponent(courseCode)}/free-test`}
-                      >
-                        Online Free Test
-                      </Link>
-                    </li>
-                  )}
                 </ul>
 
                 <div className="tab-content">

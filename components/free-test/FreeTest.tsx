@@ -228,7 +228,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
         strategy="afterInteractive"
         onLoad={() => void runTypeset()}
       />
-      <div className="container py-5" style={{ minHeight: "80vh" }}>
+      <div className="container py-5">
         {/* Navigation Header */}
         <div className="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
           <div>
@@ -271,7 +271,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
                 </h5>
               </div>
               <div className="card-body p-3">
-                <ul className="nav nav-pills gap-2 justify-content-center justify-content-lg-start">
+                <ul className="nav nav-pills gap-2 justify-content-start">
                   {ft_cat_list.map((cat, idx) => (
                     <li key={idx} className="nav-item">
                       <button
@@ -282,7 +282,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
                         style={{
                           backgroundColor:
                             activeCategory === idx ? "#e58a34" : "#f8f9fa",
-                          color: activeCategory === idx ? "#white" : "#495057",
+                          color: activeCategory === idx ? "#fff" : "#495057",
                           border: "1px solid",
                           borderColor:
                             activeCategory === idx ? "#e58a34" : "#e9ecef",
@@ -301,7 +301,10 @@ const FreeTest: React.FC<FreeTestProps> = ({
             <div
               ref={mathContentRef}
               className="position-relative"
-              style={{ visibility: mathJaxReady ? "visible" : "hidden" }}
+              style={{
+                visibility: mathJaxReady ? "visible" : "hidden",
+                overflow: mathJaxReady ? undefined : "hidden",
+              }}
             >
               {ft_cat_list.map((catName, catIdx) => {
                 const catQuestions = ft_ques_list[catName] || [];
@@ -327,7 +330,12 @@ const FreeTest: React.FC<FreeTestProps> = ({
                 return (
                   <div
                     key={catIdx}
-                    style={isActive ? undefined : INACTIVE_CATEGORY_STYLE}
+                    className={!isActive && mathJaxReady ? "d-none" : undefined}
+                    style={
+                      !isActive && !mathJaxReady
+                        ? INACTIVE_CATEGORY_STYLE
+                        : undefined
+                    }
                     aria-hidden={!isActive}
                   >
                     {/* Questions stay mounted (hidden when submitted) so MathJax isn't re-run on retake */}
@@ -416,14 +424,15 @@ const FreeTest: React.FC<FreeTestProps> = ({
                                           return (
                                             <div key={oIdx} className="col-12">
                                               <label
-                                                className="d-flex align-items-center p-3 rounded-3 border transition-all cursor-pointer w-100 mb-0"
+                                                htmlFor={`q-${catIdx}-${qIdx}-o-${oIdx}`}
+                                                className="d-flex align-items-center p-3 rounded-3 border cursor-pointer w-100 mb-0"
                                                 style={{
                                                   borderColor: isSelected
                                                     ? "#e58a34"
                                                     : "#dee2e6",
                                                   backgroundColor: isSelected
                                                     ? "#fffaf5"
-                                                    : "#white",
+                                                    : "#fff",
                                                   cursor: "pointer",
                                                   boxShadow: isSelected
                                                     ? "0 2px 4px rgba(229,138,52,0.1)"
@@ -431,7 +440,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
                                                 }}
                                               >
                                                 <input
-                                                  className="form-check-input flex-shrink-0"
+                                                  className="visually-hidden"
                                                   type="radio"
                                                   name={`q-${catIdx}-${qIdx}`}
                                                   id={`q-${catIdx}-${qIdx}-o-${oIdx}`}
@@ -443,14 +452,21 @@ const FreeTest: React.FC<FreeTestProps> = ({
                                                       oIdx,
                                                     )
                                                   }
+                                                />
+                                                <span
+                                                  className="flex-shrink-0"
+                                                  aria-hidden="true"
                                                   style={{
                                                     width: "1.25rem",
                                                     height: "1.25rem",
-                                                    borderColor: isSelected
+                                                    borderRadius: "50%",
+                                                    border: `2px solid ${isSelected ? "#e58a34" : "#adb5bd"}`,
+                                                    backgroundColor: isSelected
                                                       ? "#e58a34"
-                                                      : "#adb5bd",
-                                                    accentColor: "#e58a34",
-                                                    cursor: "pointer",
+                                                      : "#fff",
+                                                    boxShadow: isSelected
+                                                      ? "0 0 0 3px rgba(229, 138, 52, 0.2)"
+                                                      : "none",
                                                   }}
                                                 />
                                                 <span className="ms-3 text-dark fw-medium">
@@ -554,7 +570,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
                                 </h5>
                                 <div className="row g-2">
                                   {res.options.map((opt, oIdx) => {
-                                    let cardBg = "#white";
+                                    let cardBg = "#fff";
                                     let borderCol = "#dee2e6";
                                     let textCol = "text-dark";
                                     let icon = null;
@@ -648,7 +664,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
             </div>
           </div>
 
-          <div className="col-lg-4">
+          <div className="col-lg-4 align-self-start">
             <FreeTestSidebar
               courseCode={courseCode}
               courseName={courseName}
