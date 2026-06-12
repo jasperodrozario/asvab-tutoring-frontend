@@ -52,8 +52,7 @@ export function CourseDetailClient({
   onlineCourseCity,
 }: CourseDetailClientProps) {
   const searchParams = useSearchParams();
-  const location =
-    locationProp || searchParams?.get("location") || "";
+  const location = locationProp || searchParams?.get("location") || "";
 
   const [activeTab, setActiveTab] = useState<number>(0);
   const [activeCategory, setActiveCategory] = useState<number>(0);
@@ -354,10 +353,9 @@ export function CourseDetailClient({
                               </span>
                             </h6>
                             <p className="card-text small">
-                              {cleanQuestionText(course.details || "").substring(
-                                0,
-                                100,
-                              ) +
+                              {cleanQuestionText(
+                                course.details || "",
+                              ).substring(0, 100) +
                                 (course.details && course.details.length > 100
                                   ? "..."
                                   : "")}
@@ -376,7 +374,9 @@ export function CourseDetailClient({
   );
 }
 
-export default function CourseDetailPageWrapper(props: CourseDetailClientProps) {
+export default function CourseDetailPageWrapper(
+  props: CourseDetailClientProps,
+) {
   return (
     <Suspense
       fallback={

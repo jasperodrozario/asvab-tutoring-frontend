@@ -11,7 +11,7 @@ type Submenu = "one" | "group" | "subscribe";
 type Props = {
   submenu?: Submenu;
   fixedSubmenu?: Submenu;
-  homepageDescription?: string;
+  homepageDescription?: React.ReactNode;
   sectionTitle?: string;
   sectionSubtitle?: string;
   /** Server-fetched packages (pricing pages). Homepage omits this and client-fetches. */
