@@ -3,7 +3,10 @@ import { notFound } from "next/navigation";
 import { isKnownCourseCode } from "@/lib/known-route-validation";
 import CourseDetailPageWrapper from "@/app/courses/[course_code]/CourseDetailPage";
 import { onlineCourseMetadata } from "@/lib/page-metadata";
-import { fetchCourseDetailsByCode } from "@/lib/php-api";
+import {
+  fetchCourseDetailsByCode,
+  fetchCourseOverviewVideoByCode,
+} from "@/lib/php-api";
 
 type Props = {
   params: Promise<{ city: string; course_code: string }>;
@@ -36,6 +39,8 @@ export default async function Page({ params }: Props) {
   }
 
   const courseData = await fetchCourseDetailsByCode(normalizedCode);
+  const courseOverviewVideoData =
+    await fetchCourseOverviewVideoByCode(normalizedCode);
 
   if (!courseData) {
     notFound();
@@ -45,6 +50,7 @@ export default async function Page({ params }: Props) {
     <CourseDetailPageWrapper
       courseCode={normalizedCode}
       courseData={courseData}
+      courseOverviewVideoData={courseOverviewVideoData}
       location={city}
       breadcrumbSegments={["online-courses", city, course_code]}
       relatedCourseLinkVariant="online"

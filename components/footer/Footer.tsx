@@ -75,11 +75,6 @@ export default function Footer() {
                   FAQs
                 </Link>
               </li>
-              <li className="mb-2">
-                <Link href="/sitemap" className="footer-link">
-                  Sitemap
-                </Link>
-              </li>
             </ul>
           </div>
 
@@ -233,6 +228,14 @@ export default function Footer() {
             style={{ color: "var(--primary-color)" }}
           >
             Terms of Service
+          </Link>{" "}
+          |{" "}
+          <Link
+            href="/sitemap"
+            className="text-decoration-none"
+            style={{ color: "var(--primary-color)" }}
+          >
+            Sitemap
           </Link>
         </div>
       </div>

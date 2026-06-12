@@ -1,24 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { cleanQuestionText } from "@/utils/textUtils";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
 import Button from "@/components/button/Button";
 import LessonPlanTab from "@/components/tabs/LessonPlanTab";
 import CourseVideoTab, { VideoObject } from "@/components/tabs/CourseVideoTab";
-import FreeTestTab, {
-  TestResult,
-  TestResults,
-  UserAnswers,
-} from "@/components/tabs/FreeTestTab";
 import { processHtmlContent } from "@/lib/decode-html";
 import type { CourseData, RelatedCourse } from "@/lib/course-types";
+import type { CourseOverviewVideo } from "@/lib/php-api";
 
 export type CourseDetailClientProps = {
   courseCode: string;
   courseData: CourseData | null;
+  courseOverviewVideoData?: CourseOverviewVideo | null;
   location?: string;
   breadcrumbSegments: string[];
   /** How related-course sidebar links are built (serializable; no function props from RSC). */
@@ -43,6 +40,20 @@ function formatLocationLabel(location: string): string {
   return location.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+function getEmbedUrl(url: string): string {
+  if (!url) return "";
+  if (url.includes("/embed/")) return url;
+
+  let videoId = "";
+  const regExp =
+    /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  if (match && match[2].length === 11) {
+    videoId = match[2];
+  }
+  return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+}
+
 export function CourseDetailClient({
   courseCode,
   courseData,
@@ -50,16 +61,22 @@ export function CourseDetailClient({
   breadcrumbSegments,
   relatedCourseLinkVariant = "standard",
   onlineCourseCity,
+  courseOverviewVideoData,
 }: CourseDetailClientProps) {
   const searchParams = useSearchParams();
-  const location =
-    locationProp || searchParams?.get("location") || "";
+  const location = locationProp || searchParams?.get("location") || "";
 
   const [activeTab, setActiveTab] = useState<number>(0);
-  const [activeCategory, setActiveCategory] = useState<number>(0);
-  const [testSubmitted, setTestSubmitted] = useState<boolean>(false);
-  const [testResults, setTestResults] = useState<TestResults | null>(null);
-  const [userAnswers, setUserAnswers] = useState<UserAnswers>({});
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   if (!courseData) {
     return (
@@ -92,57 +109,7 @@ export function CourseDetailClient({
     });
   })();
 
-  const handleAnswerChange = (
-    categoryIndex: number,
-    questionIndex: number,
-    optionIndex: number,
-  ): void => {
-    setUserAnswers((prev) => ({
-      ...prev,
-      [`${categoryIndex}-${questionIndex}`]: optionIndex,
-    }));
-  };
-
-  const submitTest = (): void => {
-    if (!courseData.ft_cat_list || !courseData.ft_ques_list) return;
-    const activeCategoryName = courseData.ft_cat_list[activeCategory];
-    const questions = courseData.ft_ques_list[activeCategoryName] || [];
-    let score = 0;
-
-    const results: TestResult[] = questions.map((question, qIndex) => {
-      const userAnswer = userAnswers[`${activeCategory}-${qIndex}`];
-      const correctAnswer = question.answer - 1;
-      const isCorrect = userAnswer === correctAnswer;
-      if (isCorrect) score++;
-      const options = [
-        question.option_a,
-        question.option_b,
-        question.option_c,
-        question.option_d,
-      ].filter((opt): opt is string => opt != null);
-      return {
-        question: question.question,
-        options,
-        userAnswer: userAnswer ?? null,
-        correctAnswer,
-        isCorrect,
-      };
-    });
-
-    setTestResults({
-      score,
-      totalQuestions: questions.length,
-      percentage: Math.round((score / questions.length) * 100),
-      results,
-    });
-    setTestSubmitted(true);
-  };
-
-  const retakeTest = (): void => {
-    setTestSubmitted(false);
-    setTestResults(null);
-    setUserAnswers({});
-  };
+  console.log(courseOverviewVideoData);
 
   return (
     <>
@@ -169,16 +136,55 @@ export function CourseDetailClient({
         <div className="container">
           <div className="row">
             <div className="col-lg-8">
-              {courseData.image_src && (
+              {courseOverviewVideoData &&
+              (isMobile
+                ? courseOverviewVideoData.mobile_youtube_link
+                : courseOverviewVideoData.desktop_youtube_link) ? (
                 <div className="mb-4 text-center">
-                  <img
-                    src={courseData.image_src}
-                    alt={courseData.course_name || "Course Image"}
-                    width={800}
-                    height={350}
-                    className="img-fluid rounded shadow-sm"
-                  />
+                  <div
+                    style={{
+                      position: "relative",
+                      paddingBottom: "56.25%",
+                      height: 0,
+                      overflow: "hidden",
+                      borderRadius: "12px",
+                      boxShadow:
+                        "0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08)",
+                      border: "1px solid #e0e0e0",
+                    }}
+                  >
+                    <iframe
+                      src={getEmbedUrl(
+                        isMobile
+                          ? courseOverviewVideoData.mobile_youtube_link
+                          : courseOverviewVideoData.desktop_youtube_link,
+                      )}
+                      title="Course Overview Video"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                        border: "none",
+                      }}
+                    />
+                  </div>
                 </div>
+              ) : (
+                courseData.image_src && (
+                  <div className="mb-4 text-center">
+                    <img
+                      src={courseData.image_src}
+                      alt={courseData.course_name || "Course Image"}
+                      width={800}
+                      height={350}
+                      className="img-fluid rounded shadow-sm"
+                    />
+                  </div>
+                )
               )}
 
               <div
@@ -233,17 +239,12 @@ export function CourseDetailClient({
                   )}
                   {hasFreeTestQuestions && (
                     <li className="nav-item">
-                      <button
-                        className={`nav-link tab-btn ${activeTab === 3 ? "active" : ""}`}
-                        onClick={() => {
-                          setActiveTab(3);
-                          setTestSubmitted(false);
-                          setTestResults(null);
-                          setUserAnswers({});
-                        }}
+                      <Link
+                        className="nav-link tab-btn"
+                        href={`/courses/${encodeURIComponent(courseCode)}/free-test`}
                       >
                         Online Free Test
-                      </button>
+                      </Link>
                     </li>
                   )}
                 </ul>
@@ -258,6 +259,22 @@ export function CourseDetailClient({
                           ),
                         }}
                       />
+                      {hasFreeTestQuestions && (
+                        <div className="text-center mt-4">
+                          <Button
+                            pathname={`/courses/${encodeURIComponent(courseCode)}/free-test`}
+                            className="btn-primary-custom"
+                            style={{
+                              padding: "10px 15px",
+                              borderRadius: "5px",
+                              marginBottom: "20px",
+                              border: "none",
+                            }}
+                          >
+                            Take a Free Practice Test
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   )}
                   {activeTab === 1 && (
@@ -277,24 +294,6 @@ export function CourseDetailClient({
                   )}
                   {activeTab === 2 && (
                     <CourseVideoTab video={courseData.video} />
-                  )}
-                  {activeTab === 3 && (
-                    <FreeTestTab
-                      courseName={courseData.course_name}
-                      ft_cat_list={courseData.ft_cat_list}
-                      ft_ques_list={courseData.ft_ques_list}
-                      activeCategory={activeCategory}
-                      setActiveCategory={setActiveCategory}
-                      testSubmitted={testSubmitted}
-                      setTestSubmitted={setTestSubmitted}
-                      testResults={testResults}
-                      setTestResults={setTestResults}
-                      userAnswers={userAnswers}
-                      setUserAnswers={setUserAnswers}
-                      handleAnswerChange={handleAnswerChange}
-                      submitTest={submitTest}
-                      retakeTest={retakeTest}
-                    />
                   )}
                 </div>
               </div>
@@ -354,10 +353,9 @@ export function CourseDetailClient({
                               </span>
                             </h6>
                             <p className="card-text small">
-                              {cleanQuestionText(course.details || "").substring(
-                                0,
-                                100,
-                              ) +
+                              {cleanQuestionText(
+                                course.details || "",
+                              ).substring(0, 100) +
                                 (course.details && course.details.length > 100
                                   ? "..."
                                   : "")}
@@ -376,7 +374,9 @@ export function CourseDetailClient({
   );
 }
 
-export default function CourseDetailPageWrapper(props: CourseDetailClientProps) {
+export default function CourseDetailPageWrapper(
+  props: CourseDetailClientProps,
+) {
   return (
     <Suspense
       fallback={

@@ -3,7 +3,10 @@ import { notFound } from "next/navigation";
 import { isKnownCourseCode } from "@/lib/known-route-validation";
 import CourseDetailPageWrapper from "./CourseDetailPage";
 import { courseMetadata } from "@/lib/page-metadata";
-import { fetchCourseDetailsByCode } from "@/lib/php-api";
+import {
+  fetchCourseDetailsByCode,
+  fetchCourseOverviewVideoByCode,
+} from "@/lib/php-api";
 
 export const revalidate = 3600;
 
@@ -29,6 +32,9 @@ export default async function Page({
 
   const courseData = await fetchCourseDetailsByCode(course_code);
 
+  const courseOverviewVideoData =
+    await fetchCourseOverviewVideoByCode(course_code);
+
   if (!courseData) {
     notFound();
   }
@@ -37,6 +43,7 @@ export default async function Page({
     <CourseDetailPageWrapper
       courseCode={course_code}
       courseData={courseData}
+      courseOverviewVideoData={courseOverviewVideoData}
       breadcrumbSegments={["courses", course_code]}
       relatedCourseLinkVariant="standard"
     />

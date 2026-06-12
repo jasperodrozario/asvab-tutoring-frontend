@@ -88,6 +88,13 @@ export type BlogListResult = {
   totalPages: number;
 };
 
+export type CourseOverviewVideo = {
+  course_id: string;
+  mobile_youtube_link: string;
+  desktop_youtube_link: string;
+  thumbnail: string;
+};
+
 function getPhpApiUrl(): string | undefined {
   return process.env.PHP_API_URL || process.env.NEXT_PUBLIC_PHP_API_URL;
 }
@@ -130,7 +137,8 @@ async function postPhpApi<T>(
 }
 
 export async function fetchAboutUsItems(): Promise<ContentBlock[]> {
-  const result = await postPhpApi<PhpApiSuccess<ContentBlock[]>>("get-about-us");
+  const result =
+    await postPhpApi<PhpApiSuccess<ContentBlock[]>>("get-about-us");
 
   if (result?.isSuccess && Array.isArray(result.data)) {
     return result.data;
@@ -151,7 +159,8 @@ export async function fetchHowItWorksItems(): Promise<ContentBlock[]> {
 }
 
 export async function fetchTutorList(): Promise<TutorProfile[]> {
-  const result = await postPhpApi<PhpApiSuccess<TutorProfile[]>>("get-tutor-list");
+  const result =
+    await postPhpApi<PhpApiSuccess<TutorProfile[]>>("get-tutor-list");
 
   if (result?.isSuccess && Array.isArray(result.data)) {
     return result.data;
@@ -164,7 +173,11 @@ export async function fetchPrivacyPolicy(): Promise<PolicyDocument | null> {
   const result =
     await postPhpApi<PhpApiSuccess<PolicyDocument[]>>("get-privacy-policy");
 
-  if (result?.isSuccess && Array.isArray(result.data) && result.data.length > 0) {
+  if (
+    result?.isSuccess &&
+    Array.isArray(result.data) &&
+    result.data.length > 0
+  ) {
     return result.data[0];
   }
 
@@ -172,10 +185,15 @@ export async function fetchPrivacyPolicy(): Promise<PolicyDocument | null> {
 }
 
 export async function fetchTermsOfService(): Promise<PolicyDocument | null> {
-  const result =
-    await postPhpApi<PhpApiSuccess<PolicyDocument[]>>("get-terms-conditions");
+  const result = await postPhpApi<PhpApiSuccess<PolicyDocument[]>>(
+    "get-terms-conditions",
+  );
 
-  if (result?.isSuccess && Array.isArray(result.data) && result.data.length > 0) {
+  if (
+    result?.isSuccess &&
+    Array.isArray(result.data) &&
+    result.data.length > 0
+  ) {
     return result.data[0];
   }
 
@@ -196,7 +214,9 @@ export async function fetchFaqs(): Promise<FaqItem[]> {
   return [];
 }
 
-function normalizeCourseDetail(data: Record<string, unknown> | null): CourseData | null {
+function normalizeCourseDetail(
+  data: Record<string, unknown> | null,
+): CourseData | null {
   if (!data || data.status !== 200) {
     return null;
   }
@@ -212,6 +232,23 @@ function normalizeCourseDetail(data: Record<string, unknown> | null): CourseData
   };
 }
 
+function getCourseIdFromCode(courseCode: string): string {
+  switch (courseCode) {
+    case "asvab":
+      return "27";
+    case "astb":
+      return "26";
+    case "sift":
+      return "25";
+    case "afoqt":
+      return "24";
+    case "oar":
+      return "21";
+    default:
+      return "";
+  }
+}
+
 export async function fetchCourseDetailsByCode(
   courseCode: string,
 ): Promise<CourseData | null> {
@@ -221,6 +258,24 @@ export async function fetchCourseDetailsByCode(
   );
 
   return normalizeCourseDetail(result);
+}
+
+export async function fetchCourseOverviewVideoByCode(
+  courseCode: string,
+): Promise<CourseOverviewVideo | null> {
+  const courseId = getCourseIdFromCode(courseCode);
+  const result = await postPhpApi<PhpApiSuccess<CourseOverviewVideo>>(
+    "get-course-overview-video",
+    {
+      course_id: courseId,
+    },
+  );
+
+  if (result?.isSuccess && result.data) {
+    return result.data;
+  }
+
+  return null;
 }
 
 export async function fetchServiceDetail(
