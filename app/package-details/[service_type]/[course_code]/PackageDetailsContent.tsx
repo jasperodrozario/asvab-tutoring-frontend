@@ -3,51 +3,13 @@
 import React from "react";
 import { useRouter, usePathname } from "next/navigation";
 import styles from "../../packageDetails.module.css";
-import Button from "@/components/button/Button";
 import HotDealBanner from "@/components/promotions/HotDealBanner";
+import PricingCard, {
+  isSubscriptionSession,
+} from "@/components/pricing/PricingCard";
 import { decodeHtmlEntitiesDeep } from "@/lib/decode-html";
-import {
-  convertCourseCodeToId,
-} from "@/lib/package-utils";
+import { convertCourseCodeToId } from "@/lib/package-utils";
 import type { PackageDetailsResponse } from "@/lib/php-api";
-
-function cleanQuestionText(input: string): string {
-  if (!input) return "";
-  let decoded = decodeHtmlEntitiesDeep(input);
-
-  decoded = decoded
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<p[^>]*>/gi, "")
-    .replace(/<\/p>/gi, "\n\n")
-    .replace(/<h[1-6][^>]*>/gi, "")
-    .replace(/<\/h[1-6]>/gi, "\n\n")
-    .replace(/<li[^>]*>/gi, "• ")
-    .replace(/<\/li>/gi, "\n")
-    .replace(/<\/tr>/gi, "\n")
-    .replace(/<\/td>/gi, "\t")
-    .replace(/<\/th>/gi, "\t")
-    .replace(/<[^>]*>/g, "")
-    .replace(/\\\(|\\\)/g, "")
-    .replace(/\^(\d+)\/_({?)(\d+)(}?)/g, "$1/$3");
-
-  decoded = decodeHtmlEntitiesDeep(decoded);
-  return decoded.trim();
-}
-
-function renderTextWithLineBreaks(text: string) {
-  return text
-    .split(/\r?\n/)
-    .filter(Boolean)
-    .map((line, idx) => (
-      <p key={idx} style={{ marginBottom: "0.6em", whiteSpace: "pre-wrap" }}>
-        {line}
-      </p>
-    ));
-}
-
-function isSubscriptionSession(session: { mode?: string }): boolean {
-  return String(session?.mode ?? "").toLowerCase() === "subscription";
-}
 
 export default function PackageDetailsContent({
   service_type,
@@ -62,13 +24,6 @@ export default function PackageDetailsContent({
   const pathname = usePathname();
   const isSubscribePage = pathname?.includes("self-study");
   const courseData = initialCourseData;
-
-  // ✅ safe boolean compute (works even when courseData is null)
-  const showPaymentImage = (() => {
-    const allSessions =
-      courseData?.data?.flatMap((pkg: any) => pkg?.sessions ?? []) ?? [];
-    return allSessions.some((s: any) => !isSubscriptionSession(s));
-  })();
 
   if (!courseData) {
     return (
@@ -148,67 +103,15 @@ export default function PackageDetailsContent({
                   }}
                 />
                 <div className={styles.pricingGrid}>
-                  {pkg.sessions.map((session: any) => {
-                    const isSub = isSubscriptionSession(session);
-                    const buttonLabel = isSub ? "Subscribe" : "Enroll Now";
-                    const query = {
-                      course_id: convertCourseCodeToId(course_code),
-                      package_id: String(pkg.package_id),
-                      session_id: String(session.session_id),
-                      amount: String(Math.round(Number(session.price) * 100)),
-                      mode: isSub ? "subscription" : "one_time",
-                      product: String(session.product ?? ""),
-                      cadence: String(session.cadence ?? ""),
-                    };
-                    return (
-                      <div
-                        key={session.session_id}
-                        className={`${styles.pricingCard} ${
-                          session.is_most_popular === "1"
-                            ? styles.mostPopularWrap
-                            : ""
-                        }`}
-                      >
-                        {session.is_most_popular === "1" && (
-                          <div className={styles.mostPopularBadge}>
-                            Most Popular
-                          </div>
-                        )}
-
-                        <div className={styles.cardInner}>
-                          <div className={styles.cardTitleWrap}>
-                            <h4 className={styles.cardTitle}>
-                              {decodeHtmlEntitiesDeep(session.title ?? "")}
-                            </h4>
-                          </div>
-                          <div className={styles.priceWrap}>
-                            <div className={styles.price}>
-                              $
-                              {decodeHtmlEntitiesDeep(
-                                String(session.price ?? ""),
-                              )}
-                            </div>
-                          </div>
-                          <div className={styles.featureWrap}>
-                            <div className={styles.featureBox}>
-                              {renderTextWithLineBreaks(
-                                cleanQuestionText(session.feature ?? ""),
-                              )}
-                            </div>
-                          </div>
-                          <div className={styles.cardFooter}>
-                            <Button
-                              pathname={"/checkout"}
-                              queryObj={query}
-                              className={`btn btn-primary-custom ${styles.cardBtn}`}
-                            >
-                              {buttonLabel}
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+                  {pkg.sessions.map((session: any) => (
+                    <PricingCard
+                      key={session.session_id}
+                      session={session}
+                      packageId={pkg.package_id}
+                      courseCode={course_code}
+                      styles={styles}
+                    />
+                  ))}
                 </div>
               </>
             )}

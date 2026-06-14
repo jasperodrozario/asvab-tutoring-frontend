@@ -1,11 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { cleanQuestionText } from "@/utils/textUtils";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
-import Button from "@/components/button/Button";
 import LessonPlanTab from "@/components/tabs/LessonPlanTab";
 import CourseVideoTab, { VideoObject } from "@/components/tabs/CourseVideoTab";
 import FreeTestTab, {
@@ -13,31 +10,18 @@ import FreeTestTab, {
   TestResults,
   UserAnswers,
 } from "@/components/tabs/FreeTestTab";
+import CoursePricingPanel from "@/components/pricing/CoursePricingPanel";
 import { processHtmlContent } from "@/lib/decode-html";
-import type { CourseData, RelatedCourse } from "@/lib/course-types";
+import type { CourseData } from "@/lib/course-types";
+import type { PackagesByService } from "@/lib/package-types";
 
 export type CourseDetailClientProps = {
   courseCode: string;
   courseData: CourseData | null;
+  packagesByService?: PackagesByService;
   location?: string;
   breadcrumbSegments: string[];
-  /** How related-course sidebar links are built (serializable; no function props from RSC). */
-  relatedCourseLinkVariant?: "standard" | "online";
-  /** Required when relatedCourseLinkVariant is "online". */
-  onlineCourseCity?: string;
 };
-
-function getRelatedCourseHref(
-  course: RelatedCourse,
-  variant: "standard" | "online",
-  onlineCourseCity?: string,
-): string {
-  if (variant === "online" && onlineCourseCity) {
-    return `/online-courses/${onlineCourseCity}/${encodeURIComponent(course.course_code)}-tutor`;
-  }
-
-  return `/courses/${encodeURIComponent(course.course_code)}`;
-}
 
 function formatLocationLabel(location: string): string {
   return location.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -46,10 +30,9 @@ function formatLocationLabel(location: string): string {
 export function CourseDetailClient({
   courseCode,
   courseData,
+  packagesByService,
   location: locationProp = "",
   breadcrumbSegments,
-  relatedCourseLinkVariant = "standard",
-  onlineCourseCity,
 }: CourseDetailClientProps) {
   const searchParams = useSearchParams();
   const location = locationProp || searchParams?.get("location") || "";
@@ -297,75 +280,15 @@ export function CourseDetailClient({
                   )}
                 </div>
               </div>
-              <div className="text-center">
-                <Button
-                  pathname={`/package-details/1-on-1-tutoring/${encodeURIComponent(courseCode)}`}
-                  className="btn-primary-custom2"
-                >
-                  Enroll Now
-                </Button>
-              </div>
             </div>
 
             <div className="col-lg-4">
-              {courseData.related_courses &&
-                courseData.related_courses.length > 0 && (
-                  <div
-                    className="related-courses-sidebar sticky-top p-lg-0 mt-lg-0"
-                    style={{ top: "120px" }}
-                  >
-                    <h4 className="fs-3 fw-bold" style={{ color: "#e58a34" }}>
-                      Other Courses
-                    </h4>
-                    {courseData.related_courses.map((course, i) => (
-                      <Link
-                        key={course.course_id || i}
-                        href={getRelatedCourseHref(
-                          course,
-                          relatedCourseLinkVariant,
-                          onlineCourseCity,
-                        )}
-                        className="text-decoration-none"
-                      >
-                        <div
-                          className="card related-course-card"
-                          style={{ marginTop: "10px" }}
-                        >
-                          <img
-                            src={course.image || "/img/default-course.jpg"}
-                            alt={course.name}
-                            className="card-img-top"
-                            style={{ height: "200px", objectFit: "cover" }}
-                          />
-                          <div className="card-body">
-                            <h6
-                              className="card-title mb-1 related-course-card-title text-center"
-                              style={{
-                                color: "#002341",
-                                fontWeight: "600",
-                                width: "100%",
-                              }}
-                            >
-                              <span className="course-name">{course.name}</span>
-                              <br />
-                              <span className="course-full-form">
-                                {course.full_form}
-                              </span>
-                            </h6>
-                            <p className="card-text small">
-                              {cleanQuestionText(
-                                course.details || "",
-                              ).substring(0, 100) +
-                                (course.details && course.details.length > 100
-                                  ? "..."
-                                  : "")}
-                            </p>
-                          </div>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                )}
+              {packagesByService && (
+                <CoursePricingPanel
+                  courseCode={courseCode}
+                  packagesByService={packagesByService}
+                />
+              )}
             </div>
           </div>
         </div>
