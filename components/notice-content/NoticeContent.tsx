@@ -170,7 +170,6 @@ export default function NoticeContent({
           }
           setNotices(data.data);
         } else {
-          console.error(data?.message || "Failed to fetch notices");
           setError(
             data?.message ||
               "Backend logic implementation in progress. Notices will be displayed here soon. Thanks for your patience.",

@@ -11,28 +11,43 @@ import {
   FaSignInAlt,
   FaUserPlus,
 } from "react-icons/fa";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 type Course = {
   course_id: string;
+  course_code: string;
   name: string;
 };
 
-type ServiceCourse = {
+type Service = {
   service_id: string;
   course_name: string;
 };
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
 
   const [courses, setCourses] = useState<Course[]>([]);
-  const [services, setServices] = useState<ServiceCourse[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
 
   const [isCoursesOpen, setIsCoursesOpen] = useState(false);
   const [isServicesOpen, setIsServicesOpen] = useState(false);
   const [isPricingOpen, setIsPricingOpen] = useState(false);
+
+  const getServiceSlug = (serviceId: string) => {
+    switch (serviceId) {
+      case "2":
+        return "1-on-1-tutoring";
+      case "3":
+        return "group-tutoring";
+      case "4":
+        return "self-study";
+      default:
+        return "unknown";
+    }
+  };
 
   useEffect(() => {
     async function fetchCourses() {
@@ -71,12 +86,41 @@ export default function Navbar() {
     fetchServices();
   }, []);
 
+  const closeAll = () => {
+    setIsMenuOpen(false);
+    setIsCoursesOpen(false);
+    setIsServicesOpen(false);
+    setIsPricingOpen(false);
+  };
+
+  // Close navbar on outside click or scroll
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (isMenuOpen && navRef.current && !navRef.current.contains(event.target as Node)) {
+        closeAll();
+      }
+    };
+
+    const handleScroll = () => {
+      if (isMenuOpen) {
+        closeAll();
+      }
+    };
+
+    if (isMenuOpen) {
+      document.addEventListener("mousedown", handleOutsideClick);
+      window.addEventListener("scroll", handleScroll);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [isMenuOpen]);
+
   const handleLinkClick = () => {
     if (typeof window !== "undefined" && window.innerWidth < 992) {
-      setIsMenuOpen(false);
-      setIsCoursesOpen(false);
-      setIsServicesOpen(false);
-      setIsPricingOpen(false);
+      closeAll();
     }
   };
 
@@ -135,7 +179,7 @@ export default function Navbar() {
           <div className="d-flex align-items-center gap-2">
             <FaApple />
             <Link
-              href="/mobile-app-list"
+              href="/our-mobile-apps"
               className="primary-color-custom text-decoration-none"
             >
               Our Mobile Apps
@@ -145,7 +189,10 @@ export default function Navbar() {
       </div>
 
       {/* Main Navbar */}
-      <nav className="navbar navbar-expand-lg bg-custom-secondary text-white py-2 py-md-3 fixed-top navbar-desktop-mt">
+      <nav
+        ref={navRef}
+        className="navbar navbar-expand-lg bg-custom-secondary text-white py-2 py-md-3 fixed-top navbar-desktop-mt"
+      >
         <div className="container d-flex justify-content-between align-items-center px-3">
           {/* MOBILE HEADER */}
           <div className="d-flex d-lg-none justify-content-between align-items-center w-100">
@@ -163,7 +210,10 @@ export default function Navbar() {
               type="button"
               onClick={toggleMenu}
             >
-              <FaBars size={26} className="text-white" />
+              <FaBars
+                size={26}
+                className={isMenuOpen ? "primary-color-custom" : "text-white"}
+              />
             </button>
           </div>
 
@@ -202,11 +252,11 @@ export default function Navbar() {
                 <ul
                   className={`dropdown-menu mt-0 ${isCoursesOpen ? "show" : ""}`}
                 >
-                  {courses.map((course) => (
-                    <li key={course.course_id}>
+                  {courses.map((course, index) => (
+                    <li key={index}>
                       <Link
                         className="dropdown-item"
-                        href={`/course-detail/${course.course_id}`}
+                        href={`/courses/${course.course_code}`}
                       >
                         {course.name}
                       </Link>
@@ -272,7 +322,7 @@ export default function Navbar() {
                     <li key={service.service_id}>
                       <Link
                         className="dropdown-item"
-                        href={`/service-detail/${service.service_id}`}
+                        href={`/services/${getServiceSlug(service.service_id)}`}
                       >
                         {service.course_name}
                       </Link>
@@ -295,30 +345,16 @@ export default function Navbar() {
                 <ul
                   className={`dropdown-menu mt-0 ${isPricingOpen ? "show" : ""}`}
                 >
-                  <li>
-                    <Link
-                      href="/pricing-page?submenu=one"
-                      className="dropdown-item"
-                    >
-                      1-on-1 Tutoring
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="/pricing-page?submenu=group"
-                      className="dropdown-item"
-                    >
-                      Group Tutoring
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="/pricing-page?submenu=subscribe"
-                      className="dropdown-item"
-                    >
-                      Self Study
-                    </Link>
-                  </li>
+                  {services.map((service) => (
+                    <li key={service.service_id}>
+                      <Link
+                        className="dropdown-item"
+                        href={`/pricing/${getServiceSlug(service.service_id)}`}
+                      >
+                        {service.course_name}
+                      </Link>
+                    </li>
+                  ))}
                 </ul>
               </li>
 
@@ -333,11 +369,11 @@ export default function Navbar() {
               </li>
 
               {/* <li className="nav-item">
-                <Link href="https://staging-test-prep.asvab-tutoring.com/register-free" className="btn border text-white px-3 py-1 fs-6">
-                  ONLINE STUDY
-                </Link>
-              </li> */}
-              {/* ✅ LOGIN */}
+                    <Link href={`${process.env.NEXT_PUBLIC_RESOURCES_URL}/register-free`} className="btn border text-white px-3 py-1 fs-6">
+                      ONLINE STUDY
+                    </Link>
+                  </li> */}
+              {/* LOGIN */}
               <li className="nav-item">
                 <Link
                   href="/user-login"
@@ -347,7 +383,7 @@ export default function Navbar() {
                 </Link>
               </li>
 
-              {/* ✅ REGISTER */}
+              {/* REGISTER */}
               <li className="nav-item">
                 <Link
                   href="/user-registration"
@@ -406,7 +442,7 @@ export default function Navbar() {
                       {courses.map((course) => (
                         <li key={course.course_id} className="nav-item">
                           <Link
-                            href={`/course-detail/${course.course_id}`}
+                            href={`/courses/${course.course_code}`}
                             className="nav-link text-white"
                             onClick={handleLinkClick}
                           >
@@ -433,7 +469,7 @@ export default function Navbar() {
                       {services.map((service) => (
                         <li key={service.service_id} className="nav-item">
                           <Link
-                            href={`/service-detail/${service.service_id}`}
+                            href={`/services/${getServiceSlug(service.service_id)}`}
                             className="nav-link text-white"
                             onClick={handleLinkClick}
                           >
@@ -457,33 +493,16 @@ export default function Navbar() {
 
                   {isPricingOpen && (
                     <ul className="navbar-nav ps-3">
-                      <li>
-                        <Link
-                          href="/pricing-page?submenu=one"
-                          className="nav-link text-white"
-                          onClick={handleLinkClick}
-                        >
-                          1-on-1 Tutoring
-                        </Link>
-                      </li>
-                      <li>
-                        <Link
-                          href="/pricing-page?submenu=group"
-                          className="nav-link text-white"
-                          onClick={handleLinkClick}
-                        >
-                          Group Tutoring
-                        </Link>
-                      </li>
-                      <li>
-                        <Link
-                          href="/pricing-page?submenu=subscribe"
-                          className="nav-link text-white"
-                          onClick={handleLinkClick}
-                        >
-                          Self Study
-                        </Link>
-                      </li>
+                      {services.map((service) => (
+                        <li key={service.service_id}>
+                          <Link
+                            className="dropdown-item"
+                            href={`/pricing/${getServiceSlug(service.service_id)}`}
+                          >
+                            {service.course_name}
+                          </Link>
+                        </li>
+                      ))}
                     </ul>
                   )}
                 </li>
@@ -495,7 +514,7 @@ export default function Navbar() {
 
                 {/* <li className="nav-item">
                   <Link 
-                    href="https://staging-test-prep.asvab-tutoring.com/register-free"
+                    href={`${process.env.NEXT_PUBLIC_RESOURCES_URL}/register-free"
                     className="nav-link text-white d-flex align-items-center btn border px-3 py-1 fs-6"  style={{ maxWidth: "112px", textAlign: "center" }}
                    
                     onClick={handleLinkClick}

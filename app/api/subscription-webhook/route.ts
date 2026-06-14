@@ -19,13 +19,13 @@ function json200(body: Record<string, any> = { ok: true }) {
 function json401() {
   return NextResponse.json(
     { ok: false, message: "Unauthorized." },
-    { status: 401 }
+    { status: 401 },
   );
 }
 function json400() {
   return NextResponse.json(
     { ok: false, message: "Bad request." },
-    { status: 400 }
+    { status: 400 },
   );
 }
 
@@ -34,7 +34,8 @@ function safeTrim(v: unknown) {
 }
 
 function squareBaseUrl() {
-  const env = safeTrim(process.env.SQUARE_ENVIRONMENT).toLowerCase() || "sandbox";
+  const env =
+    safeTrim(process.env.SQUARE_ENVIRONMENT).toLowerCase() || "sandbox";
   return env === "production"
     ? "https://connect.squareup.com"
     : "https://connect.squareupsandbox.com";
@@ -106,7 +107,7 @@ function computeNextBillingDate(sub: any) {
 
 async function safeFetchJson(
   url: string,
-  init: RequestInit
+  init: RequestInit,
 ): Promise<{ ok: boolean; status: number; json: any | null }> {
   try {
     const res = await fetch(url, init);
@@ -149,7 +150,7 @@ async function fetchSubscription(subscriptionId: string) {
   if (!headers) return null;
 
   const url = `${squareBaseUrl()}/v2/subscriptions/${encodeURIComponent(
-    subscriptionId
+    subscriptionId,
   )}`;
   const r = await safeFetchJson(url, { headers });
   return r.ok ? (r.json as { subscription?: any }) : null;
@@ -267,14 +268,14 @@ export async function POST(req: NextRequest) {
 
   const signature = req.headers.get("x-square-hmacsha256-signature");
   const signatureKey = safeTrim(
-    process.env.SQUARE_SUBSCRIPTION_WEBHOOK_SIGNATURE_KEY
+    process.env.SQUARE_SUBSCRIPTION_WEBHOOK_SIGNATURE_KEY,
   );
   const notificationUrl = safeTrim(process.env.SQUARE_SUBSCRIPTION_WEBHOOK_URL);
 
   // If webhook config is missing, do not crash; acknowledge (and log server-side).
   if (!signatureKey || !notificationUrl) {
     console.error(
-      "[subscription-webhook] Missing webhook signature key or notification URL."
+      "[subscription-webhook] Missing webhook signature key or notification URL.",
     );
     return json200({ ok: true });
   }
@@ -380,7 +381,8 @@ export async function POST(req: NextRequest) {
           "";
 
         const amountCents =
-          fetchedInvoice?.payment_requests?.[0]?.computed_amount_money?.amount ??
+          fetchedInvoice?.payment_requests?.[0]?.computed_amount_money
+            ?.amount ??
           fetchedInvoice?.payment_requests?.[0]?.request_method?.amount_money
             ?.amount ??
           fetchedInvoice?.payment_requests?.[0]?.total_completed_amount_money
@@ -391,11 +393,11 @@ export async function POST(req: NextRequest) {
           safeTrim(
             fetchedInvoice?.payment_requests?.[0]?.computed_amount_money
               ?.currency ??
-              fetchedInvoice?.payment_requests?.[0]?.request_method?.amount_money
-                ?.currency ??
-              fetchedInvoice?.payment_requests?.[0]?.total_completed_amount_money
-                ?.currency ??
-              "USD"
+              fetchedInvoice?.payment_requests?.[0]?.request_method
+                ?.amount_money?.currency ??
+              fetchedInvoice?.payment_requests?.[0]
+                ?.total_completed_amount_money?.currency ??
+              "USD",
           ) || "USD";
 
         const paidAt =

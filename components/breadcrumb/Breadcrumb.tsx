@@ -7,17 +7,23 @@ interface BreadcrumbProps {
   className?: string; // for custom styling
 }
 
-export default function Breadcrumb({ segments, dynamicTitle, className }: BreadcrumbProps) {
+export default function Breadcrumb({
+  segments,
+  dynamicTitle,
+  className,
+}: BreadcrumbProps) {
   const lastIndex = segments.length - 1;
 
   // Add any segment names here that should NOT be clickable
-  const nonClickableSegments = ["course-detail", "pricing", "services"];
+  const nonClickableSegments = ["courses", "pricing", "services", "online-courses"];
 
   return (
-    <nav className={`flex justify-center items-center gap-2 flex-wrap ${className || ""}`}>
+    <nav
+      className={`flex justify-center items-center gap-2 flex-wrap ${className || ""}`}
+    >
       {/* Home */}
       <span className="flex items-center">
-        <Link href="/" className="hover:text-white transition-colors duration-200">
+        <Link href="/" className="breadcrumb-link">
           Home
         </Link>
         {segments.length > 0 && <span className="mx-2">›</span>}
@@ -32,12 +38,16 @@ export default function Breadcrumb({ segments, dynamicTitle, className }: Breadc
 
         const href = "/" + segments.slice(0, idx + 1).join("/");
 
-        const isClickable = !isLast && !nonClickableSegments.includes(seg.toLowerCase());
+        const isClickable =
+          !isLast && !nonClickableSegments.includes(seg.toLowerCase());
 
         return (
           <span key={idx} className="flex items-center">
             {isClickable ? (
-              <Link href={href} className="hover:text-white transition-colors duration-200">
+              <Link
+                href={href}
+                className="hover:text-white transition-colors duration-200"
+              >
                 {displayLabel}
               </Link>
             ) : (

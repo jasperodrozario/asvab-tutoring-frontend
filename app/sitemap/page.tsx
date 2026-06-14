@@ -1,74 +1,97 @@
-"use client";
-import React, { useEffect, useState } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
+import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
+import { fetchSitemapSections, type SitemapSection } from "@/lib/sitemap-data";
+import { sitemapMetadata } from "@/lib/page-metadata";
 
-interface SitemapItem {
-  course_id: string;
-  course_name: string;
-  name: string;
+export const metadata: Metadata = sitemapMetadata();
+
+export const revalidate = 3600;
+
+function getTotalLinks(sections: SitemapSection[]): number {
+  return sections.reduce(
+    (total, section) => total + (section.links?.length ?? 0),
+    0,
+  );
 }
 
-export default function SitemapPage() {
-  const [items, setItems] = useState<SitemapItem[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchSitemap = async () => {
-      try {
-        const response = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({ action: "get-sitemap" }),
-        });
-
-        const result = await response.json();
-        if (result.isSuccess && result.data) {
-          setItems(result.data);
-        }
-      } catch (error) {
-        console.error("Error fetching sitemap:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSitemap();
-  }, []);
-
-  if (loading) return <p className="text-center mt-4">Loading sitemap...</p>;
+export default async function SitemapPage() {
+  const sections = await fetchSitemapSections();
+  const totalLinks = getTotalLinks(sections);
 
   return (
-    <div className="container py-5">
-      {/* Header */}
-      <h1
-        className="text-center text-white py-3 mb-5"
-        style={{ backgroundColor: "#f2a155", borderRadius: "6px" }}
-      >
-        Sitemap
-      </h1>
-
-      {/* 3-column grid */}
-      <div className="row g-3">
-        {items.map((item, index) => (
-          <div key={index} className="col-12 col-md-6 col-lg-4">
-            <Link
-              href={`/course-detail/${item.course_id}`}
-              className="d-block text-decoration-none p-3 h-100 shadow-sm rounded bg-light text-dark hover-link"
-            >
-              {item.name}
-              {/* <div className="  small">{item.course_name}</div> */}
-            </Link>
-          </div>
-        ))}
+    <section className="bg-light pb-5">
+      <div className="banner bg-black bg-opacity-50 py-3 px-4 rounded flex flex-col items-center text-center mb-5">
+        <h1 className="text-white mb-2 text-3xl font-bold">Sitemap</h1>
+        <Breadcrumb
+          segments={["sitemap"]}
+          className="text-white text-base mt-1"
+        />
       </div>
 
-      {/* Extra CSS for hover effect */}
-      <style jsx>{`
-        .hover-link:hover {
-          background-color: #e7f1ff;
-          color: #0d6efd;
-        }
-      `}</style>
-    </div>
+      <main className="container">
+        {sections.length === 0 ? (
+          <p className="text-center text-muted">
+            Sitemap links are temporarily unavailable. Please try again later.
+          </p>
+        ) : (
+          <>
+            <p className="text-center text-muted mb-5">
+              {totalLinks} pages across {sections.length} sections
+            </p>
+
+            <nav aria-label="Sitemap" className="d-flex flex-column gap-5">
+              {sections.map((section) => {
+                const isBlogSection = section.category === "Blog Articles";
+
+                return (
+                  <section
+                    key={section.category}
+                    aria-labelledby={`sitemap-${section.category}`}
+                  >
+                    <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 pb-2 border-bottom">
+                      <h2
+                        id={`sitemap-${section.category}`}
+                        className="h4 mb-0"
+                        style={{ color: "#f2a155" }}
+                      >
+                        {section.category}
+                      </h2>
+                      <span className="badge rounded-pill text-bg-secondary">
+                        {section.links?.length ?? 0}{" "}
+                        {(section.links?.length ?? 0) === 1 ? "link" : "links"}
+                      </span>
+                    </div>
+
+                    <ul
+                      className={`row g-3 list-unstyled mb-0 ${
+                        isBlogSection
+                          ? "row-cols-1 row-cols-md-2 row-cols-xl-3"
+                          : "row-cols-1 row-cols-md-2 row-cols-lg-3"
+                      }`}
+                    >
+                      {(section.links ?? []).map((link) => (
+                        <li key={link.path} className="col">
+                          <Link
+                            href={link.path}
+                            className={`sitemap-link d-block p-3 h-100 shadow-sm rounded ${
+                              isBlogSection ? "small" : ""
+                            }`}
+                          >
+                            <span className="d-block fw-semibold">
+                              {link.label}
+                            </span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                );
+              })}
+            </nav>
+          </>
+        )}
+      </main>
+    </section>
   );
 }

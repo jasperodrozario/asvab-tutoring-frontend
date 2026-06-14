@@ -1,4 +1,5 @@
 import Link from "next/link";
+import NextStepCard from "@/components/next-step-card/NextStepCard";
 
 type Method = "mobile" | "card";
 
@@ -6,55 +7,68 @@ export default async function ThankYouPage({
   searchParams,
 }: {
   // Next.js 16: searchParams can be a Promise in Server Components
-  searchParams?: Promise<{ method?: string; id?: string }>;
+  searchParams?: Promise<{
+    method?: string;
+    id?: string;
+    package_id?: string;
+    buy_more?: string;
+  }>;
 }) {
   const params = (await searchParams) ?? {};
 
   const methodParam = (params.method ?? "").toLowerCase();
   const method: Method = methodParam === "mobile" ? "mobile" : "card";
 
-  const title =
-    method === "mobile" ? "Registration Completed" : "Payment Successful";
+  const package_id = params.package_id || "";
+  const oneOnOneArray: string[] = ["12", "14", "16", "18", "23", "28", "30"];
+  const groupArray: string[] = ["15", "19", "29", "31"];
+  const service = oneOnOneArray.includes(package_id)
+    ? "1-on-1 Tutoring"
+    : groupArray.includes(package_id)
+      ? "Group Tutoring"
+      : "";
 
-  const subtitle =
-    method === "mobile"
+  const buyMore = params.buy_more === "1";
+
+  const title = buyMore
+    ? "Payment Successful"
+    : method === "mobile"
+      ? "Registration Completed"
+      : "Payment Successful";
+
+  const subtitle = buyMore
+    ? "Thanks! Your package purchase has been completed."
+    : method === "mobile"
       ? "Thanks! Your registration is complete."
       : "Thanks! Your payment has been completed.";
 
-  const messageBlocks =
-    method === "mobile" ? (
-      <>
-        <p className="mb-3" style={{ fontSize: 16, lineHeight: 1.6 }}>
-          Congratulations, your registration has been done successfully. Your
-          account will be activated by the admin soon.
-        </p>
+  const messageBlocks = buyMore ? (
+    <>
+      <p className="mb-3" style={{ fontSize: 16, lineHeight: 1.6 }}>
+        Congratulations, your purchase has been completed successfully. The new
+        session plan has been added to your account.
+      </p>
 
-        <p className="mb-0" style={{ fontSize: 16, lineHeight: 1.6 }}>
-          After activation, you will be able to{" "}
-          <Link
-            href="/user-login"
-            className="fw-bold text-decoration-underline"
-          >
-            log in
-          </Link>{" "}
-          and start the lessons.
-        </p>
-      </>
-    ) : (
-      <>
-        <p className="mb-0" style={{ fontSize: 16, lineHeight: 1.6 }}>
-          Congratulations, your payment has been done successfully. Now you can{" "}
-          <Link
-            href="/user-login"
-            className="fw-bold text-decoration-underline"
-          >
-            log in
-          </Link>{" "}
-          and start the lessons.
-          {params.id ? <> </> : null}
-        </p>
-      </>
-    );
+      <p className="mb-0" style={{ fontSize: 16, lineHeight: 1.6 }}>
+        You can now return to the portal and continue your learning.
+      </p>
+    </>
+  ) : (
+    <>
+      <p className="mb-3" style={{ fontSize: 16, lineHeight: 1.6 }}>
+        Congratulations, your registration has been done successfully. Your
+        account will be activated by the admin soon.
+      </p>
+
+      <p className="mb-0" style={{ fontSize: 16, lineHeight: 1.6 }}>
+        After activation, you will be able to{" "}
+        <Link href="/user-login" className="fw-bold text-decoration-underline">
+          log in
+        </Link>{" "}
+        and start the lessons.
+      </p>
+    </>
+  );
 
   return (
     <main className="py-5" style={{ background: "#f8fafc", minHeight: "80vh" }}>
@@ -109,18 +123,33 @@ export default async function ThankYouPage({
               <div className="card-body p-4 p-md-5">
                 <div className="mb-4">{messageBlocks}</div>
 
+                <NextStepCard service={service} className={"mb-4"} />
+
                 <div className="d-flex flex-column flex-sm-row gap-2">
-                  <Link
-                    href="/user-login"
-                    className="btn btn-primary-custom flex-fill"
-                    style={{ padding: "12px 14px" }}
-                  >
-                    Go to Login
-                  </Link>
+                  {buyMore ? (
+                    <a
+                      href={
+                        process.env.NEXT_PUBLIC_RESOURCES_URL ||
+                        "https://test-prep.asvab-tutoring.com/"
+                      }
+                      className="btn btn-primary-custom flex-fill text-center"
+                      style={{ padding: "12px 14px" }}
+                    >
+                      Go to Study Portal
+                    </a>
+                  ) : (
+                    <Link
+                      href="/user-login"
+                      className="btn btn-primary-custom flex-fill text-center"
+                      style={{ padding: "12px 14px" }}
+                    >
+                      Go to Login
+                    </Link>
+                  )}
 
                   <Link
                     href="/"
-                    className="btn btn-outline-secondary flex-fill"
+                    className="btn btn-outline-secondary flex-fill text-center"
                     style={{ padding: "12px 14px" }}
                   >
                     Back to Home

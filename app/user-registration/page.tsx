@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BsEye, BsEyeSlash } from "react-icons/bs";
+import { sanitizeMobileInput } from "@/lib/sanitize-mobile-input";
 
 type StatusType = "success" | "error" | "info";
 type Status = { type: StatusType; text: string } | null;
@@ -42,6 +43,58 @@ function moneyUsd(price: string) {
   return Number.isFinite(n) ? n.toFixed(2) : price;
 }
 
+type EmailCheckResult = {
+  exists: boolean | null;
+  message: string;
+};
+
+function normalizeEmail(email: string) {
+  return email.trim().toLowerCase();
+}
+
+function looksLikeEmail(email: string) {
+  const e = normalizeEmail(email);
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
+}
+
+function parseEmailExistsFromResponse(raw: string): EmailCheckResult {
+  try {
+    const data = JSON.parse(raw);
+    const serverMsg = data?.message || "";
+
+    if (data?.code === "EMAIL_EXISTS") {
+      return {
+        exists: true,
+        message: serverMsg || "This email address is already registered.",
+      };
+    }
+
+    if (data?.isSuccess === true) {
+      return { exists: false, message: "" };
+    }
+
+    return {
+      exists: null,
+      message: serverMsg || "We could not verify this email right now.",
+    };
+  } catch {
+    const t = raw.trim().toLowerCase();
+    if (t.includes("exists")) {
+      return {
+        exists: true,
+        message: "This email address is already registered.",
+      };
+    }
+    if (t.includes("success") || t === "0") {
+      return { exists: false, message: "" };
+    }
+    return {
+      exists: null,
+      message: "We could not verify this email right now.",
+    };
+  }
+}
+
 export default function RegisterPage() {
   const router = useRouter();
 
@@ -51,6 +104,7 @@ export default function RegisterPage() {
     email: "",
     mobile: "",
     password: "",
+    confirm_password: "",
   });
 
   const [courses, setCourses] = useState<Course[]>([]);
@@ -68,6 +122,89 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState<Status>(null);
+  const [fieldErrors, setFieldErrors] = useState({
+    first_name: "",
+    last_name: "",
+    mobile: "",
+    confirm_password: "",
+  });
+
+  const EMAIL_CHECK_ACTION = "check-email";
+  const [emailChecking, setEmailChecking] = useState(false);
+  const [emailExists, setEmailExists] = useState(false);
+  const [emailCheckMsg, setEmailCheckMsg] = useState<string>("");
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [emailBlurred, setEmailBlurred] = useState(false);
+  const [lastCheckedEmail, setLastCheckedEmail] = useState<string>("");
+  const emailCheckNonceRef = useRef<number>(0);
+  const lastCheckedEmailRef = useRef<string>("");
+  const emailDebounceRef = useRef<number | null>(null);
+  const emailCheckInFlightRef = useRef<string | null>(null);
+
+  const clearEmailDebounce = useCallback(() => {
+    if (emailDebounceRef.current) {
+      window.clearTimeout(emailDebounceRef.current);
+      emailDebounceRef.current = null;
+    }
+  }, []);
+
+  const mobileDebounceRef = useRef<number | null>(null);
+
+  const clearMobileDebounce = useCallback(() => {
+    if (mobileDebounceRef.current) {
+      window.clearTimeout(mobileDebounceRef.current);
+      mobileDebounceRef.current = null;
+    }
+  }, []);
+
+  const scheduleMobileValidation = useCallback(
+    (mobile: string, immediate = false) => {
+      clearMobileDebounce();
+      const run = () => {
+        setFieldErrors((prev) => ({
+          ...prev,
+          mobile: validateMobile(mobile),
+        }));
+      };
+      if (immediate) {
+        run();
+        return;
+      }
+      mobileDebounceRef.current = window.setTimeout(() => {
+        mobileDebounceRef.current = null;
+        run();
+      }, 400);
+    },
+    [clearMobileDebounce],
+  );
+
+  const validateFirstName = (firstName: string) => {
+    if (!firstName.trim()) return "First name is required.";
+    return "";
+  };
+
+  const validateLastName = (lastName: string) => {
+    if (!lastName.trim()) return "Last name is required.";
+    return "";
+  };
+
+  const validateMobile = (mobile: string) => {
+    const digits = mobile.replace(/\D/g, "");
+    if (digits.length === 0) return "Mobile number is required.";
+    if (digits.length !== 10) return "Enter a valid 10-digit US number.";
+    if (/^(\d)\1{9}$/.test(digits)) return "Enter a valid US number."; // All same digits
+    if (digits[0] === "0" || digits[0] === "1")
+      return "Area code cannot start with 0 or 1.";
+    if (digits[3] === "0" || digits[3] === "1")
+      return "Exchange code cannot start with 0 or 1.";
+    return "";
+  };
+
+  const validateConfirmPassword = (confirm: string, pass: string) => {
+    if (!confirm) return "Please confirm your password.";
+    if (confirm !== pass) return "Passwords do not match.";
+    return "";
+  };
 
   const servicesOptions = useMemo(() => {
     return Object.entries(servicesMap)
@@ -79,6 +216,142 @@ export default function RegisterPage() {
     () => sessions.find((s) => s.session_id === sessionId) || null,
     [sessions, sessionId],
   );
+
+  const checkEmailExists = useCallback(
+    async (emailRaw: string): Promise<EmailCheckResult> => {
+      const email = normalizeEmail(emailRaw);
+      if (!looksLikeEmail(email)) return { exists: null, message: "" };
+
+      const body = new URLSearchParams();
+      body.append("action", EMAIL_CHECK_ACTION);
+      body.append("email", email);
+      if (courseId) body.append("course_id", String(courseId));
+      if (sessionId) body.append("session_id", String(sessionId));
+
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body,
+        });
+        const raw = await res.text();
+        return parseEmailExistsFromResponse(raw);
+      } catch {
+        return {
+          exists: null,
+          message: "Unable to check email right now. Please try again.",
+        };
+      }
+    },
+    [courseId, sessionId],
+  );
+
+  const runEmailCheck = useCallback(
+    async (emailRaw: string) => {
+      const email = normalizeEmail(emailRaw);
+
+      if (!looksLikeEmail(email)) {
+        setEmailChecking(false);
+        setEmailExists(false);
+        setEmailCheckMsg("Please enter a valid email address.");
+        setLastCheckedEmail("");
+        lastCheckedEmailRef.current = "";
+        return;
+      }
+
+      if (
+        email === lastCheckedEmailRef.current ||
+        email === emailCheckInFlightRef.current
+      ) {
+        return;
+      }
+
+      const nonce = Date.now();
+      emailCheckNonceRef.current = nonce;
+      emailCheckInFlightRef.current = email;
+
+      setEmailChecking(true);
+      setEmailCheckMsg("Checking email...");
+
+      try {
+        const result = await checkEmailExists(email);
+
+        if (emailCheckNonceRef.current !== nonce) return;
+
+        setLastCheckedEmail(email);
+        lastCheckedEmailRef.current = email;
+
+        if (result.exists === true) {
+          setEmailExists(true);
+          setEmailCheckMsg(
+            result.message || "This email address is already registered.",
+          );
+          return;
+        }
+
+        if (result.exists === false) {
+          setEmailExists(false);
+          setEmailCheckMsg("");
+          return;
+        }
+
+        setEmailExists(false);
+        setEmailCheckMsg(
+          result.message ||
+            "Unable to verify email right now. Please try again.",
+        );
+      } catch {
+        setEmailExists(false);
+        setEmailCheckMsg("Unable to verify email right now. Please try again.");
+      } finally {
+        if (emailCheckInFlightRef.current === email) {
+          emailCheckInFlightRef.current = null;
+        }
+        setEmailChecking(false);
+      }
+    },
+    [checkEmailExists],
+  );
+
+  useEffect(() => {
+    const email = normalizeEmail(form.email);
+    if (!emailTouched) return;
+
+    if (!email) {
+      clearEmailDebounce();
+      setEmailCheckMsg(
+        emailBlurred ? "Email address is required." : "",
+      );
+      setEmailExists(false);
+      return;
+    }
+
+    if (email === lastCheckedEmailRef.current) return;
+
+    clearEmailDebounce();
+    emailDebounceRef.current = window.setTimeout(() => {
+      emailDebounceRef.current = null;
+      void runEmailCheck(form.email);
+    }, 650);
+
+    return clearEmailDebounce;
+  }, [form.email, emailTouched, emailBlurred, runEmailCheck, clearEmailDebounce]);
+
+  useEffect(() => {
+    if (!lastCheckedEmailRef.current) return;
+    setLastCheckedEmail("");
+    lastCheckedEmailRef.current = "";
+    setEmailExists(false);
+    if (emailTouched && looksLikeEmail(form.email)) {
+      clearEmailDebounce();
+      emailDebounceRef.current = window.setTimeout(() => {
+        emailDebounceRef.current = null;
+        void runEmailCheck(form.email);
+      }, 650);
+    }
+  }, [courseId, sessionId, emailTouched, form.email, runEmailCheck, clearEmailDebounce]);
+
+  useEffect(() => () => clearMobileDebounce(), [clearMobileDebounce]);
 
   // Load courses + services
   useEffect(() => {
@@ -193,28 +466,164 @@ export default function RegisterPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setForm((p) => ({ ...p, [name]: value }));
+
+    if (name === "mobile") {
+      const cleaned = sanitizeMobileInput(value, form.mobile);
+      if (cleaned === null) return;
+      setForm((prev) => ({ ...prev, [name]: cleaned }));
+      setFieldErrors((prev) => ({ ...prev, mobile: "" }));
+      scheduleMobileValidation(cleaned);
+    } else if (name === "first_name") {
+      setForm((prev) => ({ ...prev, [name]: value }));
+      setFieldErrors((prev) => ({ ...prev, first_name: "" }));
+    } else if (name === "last_name") {
+      setForm((prev) => ({ ...prev, [name]: value }));
+      setFieldErrors((prev) => ({ ...prev, last_name: "" }));
+    } else if (name === "email") {
+      setForm((prev) => ({ ...prev, [name]: value }));
+      setEmailExists(false);
+      setEmailCheckMsg("");
+      setEmailBlurred(false);
+      setLastCheckedEmail("");
+      lastCheckedEmailRef.current = "";
+    } else if (name === "confirm_password") {
+      setForm((prev) => ({ ...prev, [name]: value }));
+      // Active validation for password match
+      setFieldErrors((prev) => ({
+        ...prev,
+        confirm_password: validateConfirmPassword(value, form.password),
+      }));
+    } else if (name === "password") {
+      setForm((prev) => ({ ...prev, [name]: value }));
+      // If user is typing in password field, also re-validate confirm_password if it's not empty
+      if (form.confirm_password) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          confirm_password: validateConfirmPassword(
+            form.confirm_password,
+            value,
+          ),
+        }));
+      }
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }));
+    }
+
     if (status?.type === "error") setStatus(null);
   };
+
+  const emailReady = useMemo(() => {
+    const normalized = normalizeEmail(form.email);
+    if (!normalized || !looksLikeEmail(form.email)) return false;
+    if (emailChecking || emailExists) return false;
+    if (emailCheckMsg && emailCheckMsg !== "Checking email...") return false;
+    if (normalized !== lastCheckedEmail) return false;
+    return true;
+  }, [
+    form.email,
+    emailChecking,
+    emailExists,
+    emailCheckMsg,
+    lastCheckedEmail,
+  ]);
 
   const canSubmit = useMemo(() => {
     return (
       !!form.first_name.trim() &&
       !!form.last_name.trim() &&
-      !!form.email.trim() &&
+      emailReady &&
       !!form.mobile.trim() &&
       !!form.password.trim() &&
+      !!form.confirm_password.trim() &&
+      form.password === form.confirm_password &&
+      !fieldErrors.first_name &&
+      !fieldErrors.last_name &&
+      !fieldErrors.mobile &&
+      !fieldErrors.confirm_password &&
       !!courseId &&
       serviceType !== "" &&
       !!sessionId &&
       agree &&
       !submitting
     );
-  }, [form, courseId, serviceType, sessionId, agree, submitting]);
+  }, [
+    form,
+    fieldErrors,
+    courseId,
+    serviceType,
+    sessionId,
+    agree,
+    submitting,
+    emailReady,
+  ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStatus(null);
+    setEmailTouched(true);
+    setEmailBlurred(true);
+
+    const firstNameErr = validateFirstName(form.first_name);
+    const lastNameErr = validateLastName(form.last_name);
+    const mobileErr = validateMobile(form.mobile);
+    const confirmErr = validateConfirmPassword(
+      form.confirm_password,
+      form.password,
+    );
+
+    if (firstNameErr || lastNameErr || mobileErr || confirmErr) {
+      setFieldErrors({
+        first_name: firstNameErr,
+        last_name: lastNameErr,
+        mobile: mobileErr,
+        confirm_password: confirmErr,
+      });
+      setStatus({
+        type: "error",
+        text: "Please fix all the errors in the form before submitting.",
+      });
+      return;
+    }
+
+    if (!form.email.trim() || !looksLikeEmail(form.email)) {
+      if (!form.email.trim()) {
+        setEmailCheckMsg("Email address is required.");
+      } else {
+        void runEmailCheck(form.email);
+      }
+      setStatus({
+        type: "error",
+        text: "Please fix all the errors in the form before submitting.",
+      });
+      return;
+    }
+
+    if (normalizeEmail(form.email) !== lastCheckedEmail) {
+      await runEmailCheck(form.email);
+    }
+
+    if (emailChecking) {
+      setStatus({
+        type: "info",
+        text: "We are checking your email. Please wait a moment and try again.",
+      });
+      return;
+    }
+
+    if (emailExists) {
+      setStatus({
+        type: "error",
+        text: emailCheckMsg || "This email address is already registered.",
+      });
+      return;
+    }
+
+    if (!canSubmit) {
+      setStatus({
+        type: "error",
+        text: "Please complete all required fields correctly before submitting.",
+      });
+      return;
+    }
 
     if (!courseId)
       return setStatus({ type: "error", text: "Please select a course." });
@@ -435,34 +844,66 @@ export default function RegisterPage() {
                     <div className="col-12 col-sm-6">
                       <input
                         type="text"
-                        className="form-control"
+                        className={`form-control ${fieldErrors.first_name ? "is-invalid" : ""}`}
                         name="first_name"
                         placeholder="First name"
                         value={form.first_name}
                         onChange={handleChange}
+                        onBlur={() =>
+                          setFieldErrors((prev) => ({
+                            ...prev,
+                            first_name: validateFirstName(form.first_name),
+                          }))
+                        }
                         required
                         style={{
                           borderRadius: 10,
-                          borderColor: "rgba(0,35,65,0.20)",
+                          borderColor: fieldErrors.first_name
+                            ? "#dc3545"
+                            : "rgba(0,35,65,0.20)",
                           padding: "12px 12px",
                         }}
                       />
+                      {fieldErrors.first_name && (
+                        <div
+                          className="invalid-feedback"
+                          style={{ fontSize: 13, fontWeight: 600 }}
+                        >
+                          {fieldErrors.first_name}
+                        </div>
+                      )}
                     </div>
                     <div className="col-12 col-sm-6">
                       <input
                         type="text"
-                        className="form-control"
+                        className={`form-control ${fieldErrors.last_name ? "is-invalid" : ""}`}
                         name="last_name"
                         placeholder="Last name"
                         value={form.last_name}
                         onChange={handleChange}
+                        onBlur={() =>
+                          setFieldErrors((prev) => ({
+                            ...prev,
+                            last_name: validateLastName(form.last_name),
+                          }))
+                        }
                         required
                         style={{
                           borderRadius: 10,
-                          borderColor: "rgba(0,35,65,0.20)",
+                          borderColor: fieldErrors.last_name
+                            ? "#dc3545"
+                            : "rgba(0,35,65,0.20)",
                           padding: "12px 12px",
                         }}
                       />
+                      {fieldErrors.last_name && (
+                        <div
+                          className="invalid-feedback"
+                          style={{ fontSize: 13, fontWeight: 600 }}
+                        >
+                          {fieldErrors.last_name}
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -470,36 +911,106 @@ export default function RegisterPage() {
                   <div className="mb-3">
                     <input
                       type="email"
-                      className="form-control"
+                      className={`form-control ${
+                        emailExists ||
+                        (emailBlurred && !form.email.trim()) ||
+                        (emailTouched &&
+                          !!form.email.trim() &&
+                          !looksLikeEmail(form.email))
+                          ? "is-invalid"
+                          : ""
+                      }`}
                       name="email"
                       placeholder="Email address"
                       value={form.email}
                       onChange={handleChange}
+                      onBlur={() => {
+                        setEmailTouched(true);
+                        setEmailBlurred(true);
+                        const email = normalizeEmail(form.email);
+                        if (!email) return;
+                        if (
+                          email === lastCheckedEmailRef.current ||
+                          email === emailCheckInFlightRef.current
+                        ) {
+                          return;
+                        }
+                        if (emailDebounceRef.current) {
+                          clearEmailDebounce();
+                          void runEmailCheck(form.email);
+                        }
+                      }}
+                      onFocus={() => {
+                        setEmailTouched(true);
+                        setEmailBlurred(false);
+                      }}
                       required
                       style={{
                         borderRadius: 10,
-                        borderColor: "rgba(0,35,65,0.20)",
+                        borderColor:
+                          emailExists ||
+                          (emailBlurred && !form.email.trim()) ||
+                          (emailTouched &&
+                            !!form.email.trim() &&
+                            !looksLikeEmail(form.email))
+                            ? "#dc3545"
+                            : "rgba(0,35,65,0.20)",
                         padding: "12px 12px",
                       }}
                     />
+                    {emailCheckMsg &&
+                      (emailCheckMsg === "Email address is required."
+                        ? emailBlurred
+                        : emailTouched || !!form.email.trim()) && (
+                      <div
+                        className={`small mt-1 ${
+                          emailExists || !looksLikeEmail(form.email)
+                            ? "text-danger"
+                            : "text-muted"
+                        }`}
+                        role={
+                          emailExists || !looksLikeEmail(form.email)
+                            ? "alert"
+                            : undefined
+                        }
+                        style={{
+                          fontSize: 13,
+                          fontWeight:
+                            emailExists || !looksLikeEmail(form.email) ? 600 : 400,
+                        }}
+                      >
+                        {emailCheckMsg}
+                      </div>
+                    )}
                   </div>
 
                   {/* Mobile */}
                   <div className="mb-3">
                     <input
                       type="text"
-                      className="form-control"
+                      className={`form-control ${fieldErrors.mobile ? "is-invalid" : ""}`}
                       name="mobile"
                       placeholder="Mobile number"
                       value={form.mobile}
                       onChange={handleChange}
+                      onBlur={() => scheduleMobileValidation(form.mobile, true)}
                       required
                       style={{
                         borderRadius: 10,
-                        borderColor: "rgba(0,35,65,0.20)",
+                        borderColor: fieldErrors.mobile
+                          ? "#dc3545"
+                          : "rgba(0,35,65,0.20)",
                         padding: "12px 12px",
                       }}
                     />
+                    {fieldErrors.mobile && (
+                      <div
+                        className="invalid-feedback"
+                        style={{ fontSize: 13, fontWeight: 600 }}
+                      >
+                        {fieldErrors.mobile}
+                      </div>
+                    )}
                   </div>
 
                   {/* Password */}
@@ -540,6 +1051,34 @@ export default function RegisterPage() {
                         <BsEye size={18} />
                       )}
                     </button>
+                  </div>
+
+                  {/* Confirm Password */}
+                  <div className="mb-3 position-relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      className={`form-control pe-5 ${fieldErrors.confirm_password ? "is-invalid" : ""}`}
+                      name="confirm_password"
+                      placeholder="Confirm password"
+                      value={form.confirm_password}
+                      onChange={handleChange}
+                      required
+                      style={{
+                        borderRadius: 10,
+                        borderColor: fieldErrors.confirm_password
+                          ? "#dc3545"
+                          : "rgba(0,35,65,0.20)",
+                        padding: "12px 12px",
+                      }}
+                    />
+                    {fieldErrors.confirm_password && (
+                      <div
+                        className="invalid-feedback"
+                        style={{ fontSize: 13, fontWeight: 600 }}
+                      >
+                        {fieldErrors.confirm_password}
+                      </div>
+                    )}
                   </div>
 
                   {/* ✅ Terms checkbox stays in your desired position (before Register), but more visible */}

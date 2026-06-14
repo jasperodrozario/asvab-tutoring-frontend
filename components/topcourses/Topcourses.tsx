@@ -3,11 +3,17 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Autoplay } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+import "./topcourses.css";
 
 interface Course {
   course_id: string;
   course_code: string;
   name: string;
+  full_form: string;
   details: string;
   image_src: string;
 }
@@ -115,16 +121,50 @@ const getPlainTextPreview = (htmlString: string, maxLength = 100): string => {
 /** Build a safe image URL — trims and encodes as needed */
 const resolveImageUrl = (path?: string): string => {
   if (!path) return "/images/asvab-courses-d.jpg";
+
   const cleaned = path.trim();
 
-  // If it already looks like an absolute URL, just return (trimmed)
+  // If already absolute URL → return as is
   if (/^https?:\/\//i.test(cleaned)) {
     return cleaned;
   }
 
-  // Otherwise prefix your site and encode
-  return `https://staging-test-prep.asvab-tutoring.com/${encodeURI(cleaned)}`;
+  // Use env-based base URL
+  return `${process.env.NEXT_PUBLIC_RESOURCES_URL}/${encodeURI(cleaned)}`;
 };
+
+/** Shared Card Component for List and Carousel */
+const CourseCard = ({ course }: { course: Course }) => (
+  <Link
+    href={`/courses/${encodeURIComponent(course.course_code)}`}
+    className="text-decoration-none text-dark d-block h-100"
+  >
+    <div className="card h-100 shadow-sm hover-lift mb-2">
+      <img
+        src={resolveImageUrl(course.image_src)}
+        alt={course.name || "Course"}
+        className="card-img-top course-card-img"
+        width={300}
+        height={210}
+      />
+      <div className="card-body d-flex flex-column">
+        <h5 className="card-title fw-semibold text-dark text-center">
+          <span className="course-name">{course.name}</span>
+          <br />
+          <span className="course-full-form">{course.full_form}</span>
+        </h5>
+        <p className="card-text small text-dark">
+          {getPlainTextPreview(course.details, 100)}
+        </p>
+        <div className="text-center">
+          <button className="btn btn-secondary-custom btn-sm w-50">
+            LEARN MORE
+          </button>
+        </div>
+      </div>
+    </div>
+  </Link>
+);
 
 export default function TopCourses() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -209,39 +249,42 @@ export default function TopCourses() {
         {loading && <p className="text-center">Loading...</p>}
         {error && <p className="text-center text-danger">{error}</p>}
 
-        <div className="row justify-content-center g-4 pb-3">
-          {!loading &&
-            !error &&
-            courses.map((course) => (
-              <div className="col-sm-6 col-lg-4" key={course.course_id}>
-                <div className="card h-100 shadow-sm hover-lift">
-                  <img
-                    src={resolveImageUrl(course.image_src)}
-                    alt={course.name || "Course"}
-                    className="card-img-top"
-                    width={300}
-                    height={210}
-                    style={{ height: "200px", objectFit: "cover" }}
-                  />
-                  <div className="card-body d-flex flex-column">
-                    <h5 className="card-title fw-semibold">
-                      {course.name || course.course_code}
-                    </h5>
-                    <p className="card-text small">
-                      {getPlainTextPreview(course.details, 100)}
-                    </p>
-                    <div className="text-center mt-auto">
-                      <Link
-                        href={`/course-detail/${encodeURIComponent(course.course_code)}`}
-                        className="btn btn-secondary-custom btn-sm w-50"
-                      >
-                        LEARN MORE
-                      </Link>
-                    </div>
-                  </div>
+        {/* Desktop Carousel (>= 992px) */}
+        <div className="pb-3 position-relative slider-wrapper d-none d-lg-block">
+          {!loading && !error && (
+            <Swiper
+              modules={[Navigation, Autoplay]}
+              spaceBetween={24}
+              slidesPerView={3}
+              loop={true}
+              navigation={true}
+              autoplay={{ delay: 3000, disableOnInteraction: false }}
+              breakpoints={{
+                992: { slidesPerView: 3 },
+                768: { slidesPerView: 3 },
+              }}
+              className="top-courses-swiper py-3"
+            >
+              {courses.map((course) => (
+                <SwiperSlide key={course.course_id} style={{ height: "auto" }}>
+                  <CourseCard course={course} />
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          )}
+        </div>
+
+        {/* Mobile & Tablet List (< 992px) */}
+        <div className="d-block d-lg-none">
+          {!loading && !error && (
+            <div className="row g-4 pb-3">
+              {courses.map((course) => (
+                <div className="col-12" key={course.course_id}>
+                  <CourseCard course={course} />
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </section>

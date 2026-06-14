@@ -335,7 +335,9 @@ export default function SubscribeAgainPaymentForm({
         onSuccess?.(id);
       }
 
-      setMessage("✅ Subscription created successfully!");
+      setMessage(
+        "✅ Subscription created. Your access will activate once payment is confirmed.",
+      );
 
       // Redirect
       const back =
@@ -395,7 +397,7 @@ export default function SubscribeAgainPaymentForm({
       )}
 
       {/* Button */}
-      <div className="mt-4 d-flex align-items-center gap-3">
+      <div className="mt-4 d-flex align-items-center justify-content-center gap-3">
         <button
           className="btn btn-primary-custom px-5 py-2"
           onClick={handleSubscribe}
@@ -422,12 +424,22 @@ export default function SubscribeAgainPaymentForm({
 
       {/* Messages */}
       {missingInfo && !message && (
-        <p className="mt-3 fw-bold" style={{ color: "#8a5a00" }}>
+        <p
+          className="mt-3 fw-bold text-center"
+          style={{ color: "#8a5a00", fontSize: "13px" }}
+        >
           {missingInfo}
         </p>
       )}
 
-      {message && <p className="mt-3 fw-bold">{message}</p>}
+      {message && (
+        <p
+          className="mt-4 fw-bold text-center"
+          style={{ color: "#686868ff", fontSize: "13px" }}
+        >
+          {message}
+        </p>
+      )}
     </div>
   );
 }

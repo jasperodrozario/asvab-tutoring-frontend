@@ -45,8 +45,4 @@ pm2 restart asvab-tutoring --update-env
 echo "Saving PM2 process list..."
 pm2 save
 
-<<<<<<< HEAD
 echo "Deploy completed successfully."
-=======
-echo "Deploy completed successfully."
->>>>>>> Mahmud

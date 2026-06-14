@@ -16,7 +16,6 @@ type PackageItem = {
   is_most_popular?: boolean;
   ord?: number;
 
-  // If you later add it in PHP, this will start working automatically
   plan_variation_id?: string;
 
   // optional
@@ -75,7 +74,7 @@ export default function SubscribeAgainClient() {
     return (
       ctx?.return_url ||
       return_url ||
-      "https://staging-test-prep.asvab-tutoring.com/subscription-profile"
+      `${process.env.NEXT_PUBLIC_RESOURCES_URL}/subscription-profile`
     );
   }, [ctx?.return_url, return_url]);
 
@@ -293,6 +292,7 @@ export default function SubscribeAgainClient() {
                         borderRadius: 14,
                         border: isSel ? "2px solid #111" : "1px solid #ddd",
                         background: "#fff",
+                        color: "#111",
                         cursor: "pointer",
                       }}
                     >
@@ -326,11 +326,13 @@ export default function SubscribeAgainClient() {
                         ${dollarsFromCents(cents)}
                       </div>
 
-                      {feature ? (
+                      {feature && feature !== "none" ? (
                         <div style={{ marginTop: 6, opacity: 0.85 }}>
                           {feature}
                         </div>
-                      ) : null}
+                      ) : (
+                        ""
+                      )}
 
                       {!String(p.plan_variation_id || "").trim() ? (
                         <div

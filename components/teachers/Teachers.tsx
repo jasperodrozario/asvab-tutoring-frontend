@@ -48,10 +48,7 @@ export default function Teachers() {
   const homepageTutors = teachers.slice(0, 4);
 
   return (
-    <section
-      className="bg-white text-dark mt-5 px-3"
-      style={{ marginBottom: "100px" }}
-    >
+    <section className="bg-white text-dark my-5 px-3">
       <div className="text-center mb-4 position-relative">
         <h2 className="fw-bold display-5 d-inline-block pb-3 position-relative">
           Meet Our Teachers
@@ -107,7 +104,7 @@ export default function Teachers() {
 
         <div className="text-center mt-4">
           <Link
-            href="/tutor-list"
+            href="/our-tutors"
             className="btn btn-primary-custom text-white fw-semibold px-4 py-2"
           >
             See All Tutors

@@ -11,7 +11,8 @@
 } */
 
 body {
-  padding-top: 120px; /* Default for md and larger screens */
+  padding-top: 120px;
+  /* Default for md and larger screens */
   color: #000;
 }
 
@@ -21,6 +22,7 @@ body {
     padding-top: 90px;
   }
 }
+
 html,
 body {
   max-width: 100vw;
@@ -75,6 +77,7 @@ a {
 .primary-color-custom {
   color: var(--primary-color);
 }
+
 .primary-color-dark {
   color: var(--primary-color-dark);
 }
@@ -90,6 +93,13 @@ a {
 /* Custom toggler icon color */
 .navbar-toggler {
   border: none;
+}
+
+.navbar-toggler:focus,
+.navbar-toggler:active,
+.navbar-toggler-icon:focus {
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 /* Hide dropdown by default */
@@ -160,6 +170,7 @@ a {
   background-position: center;
   position: relative;
 }
+
 .bg-hero::before {
   content: "";
   position: absolute;
@@ -167,22 +178,27 @@ a {
   background-color: rgba(0, 0, 0, 0.8);
   z-index: 0;
 }
+
 .hero-content {
   position: relative;
   z-index: 1;
 }
+
 .bg-custom-dark {
   background-color: var(--secondary-color);
 }
+
 .btn-primary-custom {
   background-color: #f2a155;
   color: #fff;
   transition: background-color 0.3s ease-in-out;
 }
+
 .btn-primary-custom:hover {
   color: #fff;
   background-color: #e58a34;
 }
+
 /* Hero section end */
 
 /* Top Courses Section */
@@ -193,25 +209,30 @@ a {
 .hover-lift {
   transition: transform 0.3s ease-in-out;
 }
+
 .hover-lift:hover {
   transform: translateY(-5px);
 }
+
 .btn-secondary-custom {
   transition:
     background-color 0.3s ease-in-out,
     color 0.3s ease-in-out;
   border: 1px solid var(--secondary-color);
 }
+
 .btn-secondary-custom:hover {
   background-color: var(--secondary-color);
   color: #fff;
 }
+
 /* Top Courses Section End*/
 
 /* Meet Our Teachers Section*/
 .text-primary {
   color: var(--secondary-color) !important;
 }
+
 /* Meet Our Teachers Section End*/
 
 /* FAQ section accordion */
@@ -242,12 +263,12 @@ a {
 .icon-down {
   display: none;
 }
+
 /* FAQ section accordion End*/
 
 /*Slide Testimonial-section */
 .testimonial-section {
   background: url("/images/review_bg-1.jpg") center/cover no-repeat;
-  padding: 4rem 1rem;
 }
 
 .quote-icon {
@@ -258,7 +279,8 @@ a {
 
 .testimonial-text,
 .testimonial-author span {
-  color: #1f2937; /* text-gray-800 */
+  color: #1f2937;
+  /* text-gray-800 */
 }
 
 .carousel-indicators {
@@ -273,7 +295,8 @@ a {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background-color: #d1d5db; /* gray-300 */
+  background-color: #d1d5db;
+  /* gray-300 */
   border: 1px solid transparent;
   transition: background-color 0.3s ease-in-out;
 }
@@ -281,27 +304,41 @@ a {
 .carousel-indicators .active {
   background-color: var(--primary-color);
 }
+
 .quote-close {
   transform: rotate(180deg);
   display: inline-block;
 }
+
 /*Slide Testimonial-section End*/
 
 /* Footer Section Start*/
 .footer-link,
-.footer-icon {
+.footer-icon,
+.footer-contact-link {
   transition: color 0.3s ease-in-out;
 }
 
 .footer-link:hover,
-.footer-icon:hover {
+.footer-icon:hover,
+.footer-contact-link:hover {
   color: var(--primary-color) !important;
+}
+
+.footer-text {
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.859);
+}
+
+.footer-contact-link {
+  text-decoration: none;
 }
 
 /* Featured Links */
 .footer-link {
-  color: white;
-  text-decoration: none;
+  color: rgba(255, 255, 255, 0.859);
+  /* font-weight: bold; */
+  font-size: 16px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -320,8 +357,9 @@ a {
 }
 
 .read-more-link:hover {
-  color: white;
+  color: var(--primary-color-dark);
 }
+
 /* Footer Section End*/
 
 /* Common Banner */
@@ -335,6 +373,7 @@ a {
   align-items: center;
   position: relative;
 }
+
 .banner h1 {
   background-color: rgba(0, 0, 0, 0.5);
   color: white;
@@ -342,6 +381,7 @@ a {
   border-radius: 0.5rem;
   font-size: 2rem;
 }
+
 @media (min-width: 768px) {
   .banner h1 {
     font-size: 3rem;
@@ -352,7 +392,8 @@ a {
   cursor: pointer;
 }
 
-/* Base tab styling */
+/* Start: Tab styling */
+
 .nav-link.primary-color-custom {
   color: var(--primary-color-dark);
   border-radius: 5px;
@@ -373,9 +414,13 @@ a {
   color: #fff !important;
   border-color: var(--primary-color-dark);
 }
+
+/* End: Tab styling */
+
 .social-icon {
   transition: all 0.3s ease-in-out;
 }
+
 .social-icon:hover {
   color: var(--secondary-color);
 }
@@ -394,6 +439,7 @@ a {
   flex-shrink: 0;
   box-shadow: 2px 3px 4px #999;
 }
+
 .question-title {
   color: #666;
 }
@@ -405,11 +451,28 @@ a {
   padding: 40px 15px;
 }
 
+/* Table Styling Start */
+table {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
 th,
 td {
-  padding: 10px;
-  /* border: 1px solid black; */
+  padding-left: 10px;
 }
+
+.curriculum-table td {
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+.curriculum-table th {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+/* Table Styling End */
 
 .login-card {
   max-width: 500px;
@@ -425,11 +488,30 @@ td {
 .related-course-card:hover {
   transform: scale(1.02);
 }
+
 .related-course-card-title {
   width: fit-content;
 }
+
 .related-course-card-title:hover {
-  text-decoration: underline;
+  text-decoration: none !important;
+}
+
+@media (max-width: 991px) {
+  .related-course-card {
+    width: 100%;
+  }
+  .related-courses-sidebar {
+    margin-top: 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .related-courses-sidebar > a {
+    width: 100%;
+    max-width: 500px;
+    text-decoration: none !important;
+  }
 }
 
 .form-control {
@@ -447,7 +529,8 @@ td {
 }
 
 .ck-editor__editable {
-  min-height: 200px; /* adjust as needed */
+  min-height: 200px;
+  /* adjust as needed */
 }
 
 /* Start: Checkbox Styling */
@@ -466,6 +549,7 @@ td {
   border-color: #f2a155 !important;
   box-shadow: 0 0 0 0.25rem rgba(242, 161, 85, 0.25);
 }
+
 /* End: Checkbox Styling */
 
 /* Start: Radio Button Styling */
@@ -488,18 +572,21 @@ input[type="radio"]::before {
   border-radius: 50%;
   transform: scale(0);
   transition: 120ms transform ease-in-out;
-  background-color: #f2a155; /* Color of the dot when checked */
+  background-color: #f2a155;
+  /* Color of the dot when checked */
 }
 
 input[type="radio"]:checked::before {
   transform: scale(0.8);
 }
+
 /* End: Radio Button Styling */
 
 /* Course Detail Page */
 .page-title-area {
   position: relative;
-  background-image: url("/images/course_detail_page_cover.jpg"); /* set your static image path here */
+  background-image: url("/images/course_detail_page_cover.jpg");
+  /* set your static image path here */
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -514,17 +601,18 @@ input[type="radio"]:checked::before {
   width: 100%;
   height: 100%;
   backdrop-filter: blur(2px);
-  background-color: rgba(0, 0, 0, 0.7); /* Dark overlay for text readability */
+  background-color: rgba(0, 0, 0, 0.7);
+  /* Dark overlay for text readability */
   z-index: 0;
 }
 
 .page-title-area .container {
   position: relative;
-  z-index: 1; /* Keep text above overlay */
+  z-index: 1;
+  /* Keep text above overlay */
 }
 
 .btn-primary-custom2 {
-  padding: 10px;
   font-weight: 700;
   height: 60px;
   width: 180px;
@@ -538,6 +626,118 @@ input[type="radio"]:checked::before {
 .btn-primary-custom2:hover {
   color: #fff;
   background-color: #e58a34;
+}
+
+.sitemap-link:hover {
+  background-color: #fff6e7;
+  color: #e58a34;
+}
+
+.course-cta-section {
+  margin-top: 2rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid #e8ecef;
+}
+
+.course-cta-hint {
+  text-align: center;
+  color: #6c757d;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  max-width: 520px;
+  margin: 0 auto 1.25rem;
+}
+
+.course-cta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: stretch;
+  gap: 1rem;
+}
+
+.course-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  max-height: 56px;
+  max-width: 230px;
+  flex: 1 1 220px;
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.25;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 35, 65, 0.08);
+}
+
+.course-cta-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0, 35, 65, 0.14);
+  color: #fff;
+}
+
+.course-cta-btn-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.125rem;
+}
+
+.course-cta-btn-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.course-cta-btn-subtitle {
+  font-size: 0.75rem;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.course-cta-btn--teams {
+  background-color: #6264a7;
+  color: #fff;
+}
+
+.course-cta-btn--teams:hover {
+  background-color: #464eb8;
+  color: #fff;
+}
+
+.course-cta-btn--enroll {
+  background-color: #f2a155;
+  color: #fff;
+}
+
+.course-cta-btn--enroll:hover {
+  background-color: #e58a34;
+  color: #fff;
+}
+
+.course-cta-btn--enroll .course-cta-btn-text {
+  align-items: center;
+}
+
+@media (max-width: 575.98px) {
+  .course-cta-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .course-cta-btn {
+    width: 100%;
+    max-width: 320px;
+  }
 }
 
 /* Start: Scroll to top button style */
@@ -556,7 +756,7 @@ input[type="radio"]:checked::before {
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 15px rgba(242, 161, 85, 0.4);
-  z-index: 1000;
+  z-index: 9999;
   border: none;
   font-size: 1.2rem;
 }
@@ -582,9 +782,10 @@ input[type="radio"]:checked::before {
     height: 45px;
   }
 }
+
 /* End: Scroll to top button style */
 
-/* Default color for all nav links */
+/* Default color for all tab links */
 .nav-tabs .nav-link {
   color: #495057;
   /* background-color: #f8f9fa; */
@@ -625,7 +826,104 @@ input[type="radio"]:checked::before {
   border-color: #c5c8c8;  */
 }
 
-/* Course detail page specific tab container styling */
+/* Start: Course detail page specific tab container styling */
+.nav-tabs.responsive-tabs {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 5px !important;
+  padding: 0 !important;
+  border-bottom: none !important;
+}
+
+.tab-btn {
+  width: 100% !important;
+  text-align: center !important;
+  padding: 10px 5px !important;
+  font-size: 13px !important;
+  height: 100%;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .nav-tabs.responsive-tabs {
+    display: flex !important;
+    grid-template-columns: none !important;
+    gap: 5px !important;
+    /* Restore horizontal gap */
+    border-bottom: 2px solid #dee2e6 !important;
+  }
+
+  .tab-btn {
+    width: auto !important;
+    min-width: 160px !important;
+    font-size: 16px !important;
+    padding: 8px 16px !important;
+  }
+}
+
+/* End: Course detail page specific tab container styling */
+
+/* Start: Checkout Page Styling */
+@media (max-width: 449px) {
+  .total-amount {
+    text-align: start !important;
+  }
+}
+
+/* Start: Payment Method Tabs for Checkout Page */
+.checkout-tabs-container {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 12px !important;
+  /* padding: 18px 0 !important; */
+}
+
+/* Ensure title and tabs stay on one row above 466px */
+@media (min-width: 501px) {
+  .checkout-tabs-container {
+    flex-wrap: nowrap !important;
+  }
+}
+
+.checkout-payment-methods {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  gap: 8px !important;
+  padding: 0 !important;
+  border: none !important;
+  margin: 0 !important;
+  list-style: none;
+}
+
+.checkout-payment-methods .tab-btn {
+  width: auto !important;
+  min-width: 125px !important;
+  font-size: 13px !important;
+  padding: 8px 12px !important;
+  white-space: nowrap !important;
+  text-align: center !important;
+}
+/* End: Payment Method Tabs for Checkout Page */
+
+.breadcrumb-link:hover {
+  color: var(--primary-color) !important;
+  transition: all 0.2s ease-in-out;
+}
+
+/* @media (min-width: 1200px) {
+  .checkout-payment-methods .tab-btn {
+    min-width: 160px !important;
+    font-size: 16px !important;
+    padding: 10px 20px !important;
+  }
+} */
+
 .single-course-tab .nav.nav-tabs {
   gap: 6px;
   padding-bottom: 0;
@@ -686,7 +984,8 @@ input[type="radio"]:checked::before {
 /* App Description */
 .app-description {
   font-size: 0.8rem;
-  color: #888; /* Muted gray */
+  color: #888;
+  /* Muted gray */
   font-weight: 400;
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -731,8 +1030,10 @@ input[type="radio"]:checked::before {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
-    padding-left: 1rem; /* slight indent */
-    position: static !important; /* ensure it stays inline */
+    padding-left: 1rem;
+    /* slight indent */
+    position: static !important;
+    /* ensure it stays inline */
   }
 
   .nav-item.dropdown .dropdown-menu .dropdown-item {
@@ -747,7 +1048,8 @@ input[type="radio"]:checked::before {
 }
 
 .breadcrumb-inline {
-  font-size: 2rem; /* same as h1 */
+  font-size: 2rem;
+  /* same as h1 */
   font-weight: 600;
   line-height: 1.2;
 }
@@ -796,6 +1098,7 @@ table {
   .navbar-nav {
     gap: 6px !important;
   }
+
   .navbar-nav .nav-link {
     font-size: 0.85rem !important;
     padding-left: 4px !important;
@@ -807,6 +1110,7 @@ table {
   .navbar-nav {
     gap: 6px !important;
   }
+
   .navbar-nav .nav-link {
     font-size: 0.85rem !important;
     padding-left: 4px !important;
@@ -818,7 +1122,8 @@ table {
 @media (min-width: 992px) {
   .navbar-nav .nav-link,
   .navbar-nav .btn {
-    white-space: nowrap !important; /* stops breaking into 2 lines */
+    white-space: nowrap !important;
+    /* stops breaking into 2 lines */
   }
 
   /* If your dropdown triggers are <span class="nav-link ..."> */
@@ -862,43 +1167,44 @@ table {
   overflow-x: auto;
 }
 
-/* Custom checkbox and radio button styling */
-.custom-checkbox-input {
-  -webkit-appearance: none;
-  appearance: none; /* Removes default styling */
-  background-color: #eee; /* Sets unchecked background color */
-  width: 1.15em;
-  height: 1.15em;
-  border: 0.15em solid #7f83a2; /* Sets unchecked border color */
-  border-radius: 0.15em;
-  display: grid;
-  place-content: center; /* Centers the checkmark */
+/* Responsive Course Full Form */
+.card-body,
+.related-course-card .card-body,
+.single-course-area .col-lg-6,
+.related-courses-sidebar .card-body {
+  container-type: inline-size;
 }
 
-/* Checkmark style */
-.custom-checkbox-input::before {
-  content: "";
-  width: 0.65em;
-  height: 0.65em;
-  transform: scale(0);
-  transition: transform 120ms ease-in-out;
-  box-shadow: inset 1em 1em #fff; /* Checkmark color */
-  clip-path: polygon(
-    14% 44%,
-    0 65%,
-    50% 100%,
-    100% 16%,
-    80% 0%,
-    43% 62%
-  ); /* Checkmark shape */
+.course-name {
+  font-size: 1.2rem;
 }
 
-/* Checked state style */
-.custom-checkbox-input:checked {
-  background-color: #007bff;
-  border-color: #007bff;
+/* Selective Underlining */
+.course-name:hover {
+  text-decoration: underline !important;
 }
 
-.custom-checkbox-input:checked::before {
-  transform: scale(1); /* Shows checkmark */
+.course-full-form {
+  display: block;
+  /* white-space: nowrap; */
+  font-weight: bold;
+  /* Scale font-size automatically between 10px and 14px based on container width */
+  font-size: clamp(10px, 4.5cqw, 14px);
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #666; /* Muted color but bold */
+  text-decoration: none !important;
+  margin-top: 3px;
+  margin-bottom: 6px;
+}
+
+/* Ensure no global underlines on these interactive titles */
+a:hover {
+  text-decoration: none !important;
+}
+
+/* For the main H2 heading, larger scaling */
+h2 .course-full-form {
+  font-size: clamp(12px, 5cqw, 1.25rem);
 }
