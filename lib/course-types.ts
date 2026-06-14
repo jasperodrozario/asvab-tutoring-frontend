@@ -1,6 +1,6 @@
 import type { Session } from "@/components/tabs/LessonPlanTab";
 import type { VideoObject } from "@/components/tabs/CourseVideoTab";
-import type { Question } from "@/components/tabs/FreeTestTab";
+import type { Question } from "@/components/free-test/FreeTest";
 
 export interface RelatedCourse {
   course_id: string;
@@ -30,4 +30,12 @@ export interface CourseData {
   related_courses?: RelatedCourse[];
   total_ques?: number;
   image_src?: string;
+}
+
+export interface CourseOverviewVideo {
+  c_id: string;
+  course_id: string;
+  mobile_youtube_link: string;
+  desktop_youtube_link: string;
+  thumbnail: string;
 }

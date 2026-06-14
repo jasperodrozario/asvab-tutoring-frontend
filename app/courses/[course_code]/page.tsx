@@ -5,6 +5,7 @@ import CourseDetailPageWrapper from "./CourseDetailPage";
 import { courseMetadata } from "@/lib/page-metadata";
 import {
   fetchCourseDetailsByCode,
+  fetchCourseOverviewVideoByCode,
   fetchAllPackageDetailsForCourse,
 } from "@/lib/php-api";
 
@@ -35,6 +36,9 @@ export default async function Page({
     fetchAllPackageDetailsForCourse(course_code),
   ]);
 
+  const courseOverviewVideoData =
+    await fetchCourseOverviewVideoByCode(course_code);
+
   if (!courseData) {
     notFound();
   }
@@ -43,6 +47,7 @@ export default async function Page({
     <CourseDetailPageWrapper
       courseCode={course_code}
       courseData={courseData}
+      courseOverviewVideoData={courseOverviewVideoData}
       packagesByService={packagesByService}
       breadcrumbSegments={["courses", course_code]}
     />

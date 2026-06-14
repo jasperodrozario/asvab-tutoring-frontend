@@ -5,6 +5,7 @@ import CourseDetailPageWrapper from "@/app/courses/[course_code]/CourseDetailPag
 import { onlineCourseMetadata } from "@/lib/page-metadata";
 import {
   fetchCourseDetailsByCode,
+  fetchCourseOverviewVideoByCode,
   fetchAllPackageDetailsForCourse,
 } from "@/lib/php-api";
 
@@ -38,9 +39,10 @@ export default async function Page({ params }: Props) {
     notFound();
   }
 
-  const [courseData, packagesByService] = await Promise.all([
+  const [courseData, packagesByService, courseOverviewVideoData] = await Promise.all([
     fetchCourseDetailsByCode(normalizedCode),
     fetchAllPackageDetailsForCourse(normalizedCode),
+    fetchCourseOverviewVideoByCode(normalizedCode),
   ]);
 
   if (!courseData) {
@@ -51,6 +53,7 @@ export default async function Page({ params }: Props) {
     <CourseDetailPageWrapper
       courseCode={normalizedCode}
       courseData={courseData}
+      courseOverviewVideoData={courseOverviewVideoData}
       packagesByService={packagesByService}
       location={city}
       breadcrumbSegments={["online-courses", city, course_code]}
