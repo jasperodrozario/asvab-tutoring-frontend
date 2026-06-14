@@ -1,4 +1,9 @@
 import type { CourseData } from "@/lib/course-types";
+import type {
+  PackageDetailsData,
+  PackagesByService,
+} from "@/lib/package-types";
+import type { ServiceType } from "@/types/Services";
 import {
   convertCourseCodeToId,
   convertServiceTypeToSubmenu,
@@ -281,6 +286,31 @@ export async function fetchPackageDetails(
   );
 
   return result ?? null;
+}
+
+const ALL_SERVICE_TYPES: ServiceType[] = [
+  "1-on-1-tutoring",
+  "group-tutoring",
+  "self-study",
+];
+
+export async function fetchAllPackageDetailsForCourse(
+  courseCode: string,
+): Promise<PackagesByService> {
+  const entries = await Promise.all(
+    ALL_SERVICE_TYPES.map(
+      async (serviceType) =>
+        [
+          serviceType,
+          (await fetchPackageDetails(
+            serviceType,
+            courseCode,
+          )) as PackageDetailsData | null,
+        ] as const,
+    ),
+  );
+
+  return Object.fromEntries(entries) as PackagesByService;
 }
 
 export async function fetchBlogList(pageNo = 1): Promise<BlogListResult> {
