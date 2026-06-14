@@ -56,6 +56,10 @@
   box-shadow: 0 3px 8px rgba(229, 138, 52, 0.35);
 }
 
+.tabBtnActive:hover {
+  color: #fff !important;
+}
+
 /* Card list — no scroll, vertical stack */
 .cardsList {
   display: flex;
