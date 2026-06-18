@@ -263,6 +263,84 @@
   padding: 1.5rem 0;
 }
 
+.prepStack {
+  border: 1px solid #e3e8ec;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+}
+
+.prepIntro {
+  background: linear-gradient(135deg, #fffaf5 0%, #fff 52%, #f8fafb 100%);
+  padding: 1.15rem 1.15rem 1rem;
+  border-bottom: 1px solid #eef2f6;
+}
+
+.prepIntroHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.55rem;
+}
+
+.prepIntroIcon {
+  color: #e58a34;
+  font-size: 0.9rem;
+}
+
+.prepIntroTitle {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #002341;
+}
+
+.prepIntroText {
+  margin: 0 0 0.75rem;
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: #5c6670;
+}
+
+.prepIntroBenefits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.65rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.prepIntroBenefits li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #002341;
+  background: rgba(0, 35, 65, 0.05);
+  border: 1px solid rgba(0, 35, 65, 0.08);
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+}
+
+.prepIntroBenefits li i {
+  color: #2fa44f;
+  font-size: 0.68rem;
+}
+
+.panelEmbedded {
+  position: static;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  margin-top: 0;
+  padding-top: 1rem;
+}
+
 /* On mobile the panel is no longer sticky */
 @media (max-width: 991.98px) {
   .panel {

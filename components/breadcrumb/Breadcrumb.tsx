@@ -4,12 +4,14 @@ import Link from "next/link";
 interface BreadcrumbProps {
   segments: string[];
   dynamicTitle?: string; // for dynamic pages
+  segmentLabels?: Record<number, string>;
   className?: string; // for custom styling
 }
 
 export default function Breadcrumb({
   segments,
   dynamicTitle,
+  segmentLabels,
   className,
 }: BreadcrumbProps) {
   const lastIndex = segments.length - 1;
@@ -32,9 +34,10 @@ export default function Breadcrumb({
       {segments.map((seg, idx) => {
         const isLast = idx === lastIndex;
         const displayLabel =
-          isLast && dynamicTitle
+          segmentLabels?.[idx] ??
+          (isLast && dynamicTitle
             ? dynamicTitle
-            : seg.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+            : seg.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()));
 
         const href = "/" + segments.slice(0, idx + 1).join("/");
 
@@ -44,10 +47,7 @@ export default function Breadcrumb({
         return (
           <span key={idx} className="flex items-center">
             {isClickable ? (
-              <Link
-                href={href}
-                className="hover:text-white transition-colors duration-200"
-              >
+              <Link href={href} className="breadcrumb-link">
                 {displayLabel}
               </Link>
             ) : (

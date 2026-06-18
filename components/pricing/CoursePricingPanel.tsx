@@ -54,11 +54,13 @@ function hasPackages(data: PackagesByService[ServiceType] | undefined): boolean 
 type CoursePricingPanelProps = {
   courseCode: string;
   packagesByService: PackagesByService;
+  embedded?: boolean;
 };
 
 export default function CoursePricingPanel({
   courseCode,
   packagesByService,
+  embedded = false,
 }: CoursePricingPanelProps) {
   const availableServices = useMemo(
     () => SERVICE_ORDER.filter((s) => hasPackages(packagesByService[s])),
@@ -82,7 +84,9 @@ export default function CoursePricingPanel({
   const isSelfStudy = currentService === "self-study";
 
   return (
-    <div className={styles.panel}>
+    <div
+      className={`${styles.panel} ${embedded ? styles.panelEmbedded : ""}`}
+    >
       <h3 className={styles.panelTitle}>Choose Your Tutoring Plan</h3>
 
       <div className={styles.tabBar} role="tablist">

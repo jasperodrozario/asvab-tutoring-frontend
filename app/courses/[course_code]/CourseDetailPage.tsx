@@ -8,7 +8,7 @@ import LessonPlanTab from "@/components/tabs/LessonPlanTab";
 import CourseVideoTab, { VideoObject } from "@/components/tabs/CourseVideoTab";
 import CoursePricingPanel from "@/components/pricing/CoursePricingPanel";
 import { processHtmlContent } from "@/lib/decode-html";
-import type { CourseData } from "@/lib/course-types";
+import { hasFreeTestQuestions, type CourseData } from "@/lib/course-types";
 import type { CourseOverviewVideo } from "@/lib/php-api";
 import type { PackagesByService } from "@/lib/package-types";
 
@@ -84,16 +84,12 @@ export function CourseDetailClient({
     return false;
   })();
 
-  const hasFreeTestQuestions = (() => {
-    if (!courseData.ft_cat_list?.length) return false;
-    if (!courseData.ft_ques_list) return false;
-    return courseData.ft_cat_list.some((cat) => {
-      const questions = courseData.ft_ques_list?.[cat];
-      return Array.isArray(questions) && questions.length > 0;
-    });
-  })();
+  const showFreeTestLink = hasFreeTestQuestions(
+    courseData.ft_cat_list,
+    courseData.ft_ques_list,
+  );
 
-  console.log(courseOverviewVideoData);
+  // console.log(courseOverviewVideoData);
 
   return (
     <>
@@ -171,6 +167,15 @@ export function CourseDetailClient({
                 )
               )}
 
+              {packagesByService && (
+                <div className="d-lg-none mb-4">
+                  <CoursePricingPanel
+                    courseCode={courseCode}
+                    packagesByService={packagesByService}
+                  />
+                </div>
+              )}
+
               <div
                 className="single-course-tab"
                 style={{
@@ -233,7 +238,7 @@ export function CourseDetailClient({
                           ),
                         }}
                       />
-                      {hasFreeTestQuestions && (
+                      {showFreeTestLink && (
                         <div className="text-center mt-4">
                           <Button
                             pathname={`/courses/${encodeURIComponent(courseCode)}/free-test`}
@@ -273,7 +278,7 @@ export function CourseDetailClient({
               </div>
             </div>
 
-            <div className="col-lg-4">
+            <div className="col-lg-4 d-none d-lg-block">
               {packagesByService && (
                 <CoursePricingPanel
                   courseCode={courseCode}

@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isKnownCourseCode } from "@/lib/known-route-validation";
-import { fetchCourseDetailsByCode } from "@/lib/php-api";
+import { fetchCourseDetailsByCode, fetchAllPackageDetailsForCourse } from "@/lib/php-api";
 import FreeTest from "@/components/free-test/FreeTest";
 
 export const revalidate = 3600;
@@ -32,7 +32,10 @@ export default async function Page({
     notFound();
   }
 
-  const courseData = await fetchCourseDetailsByCode(course_code);
+  const [courseData, packagesByService] = await Promise.all([
+    fetchCourseDetailsByCode(course_code),
+    fetchAllPackageDetailsForCourse(course_code),
+  ]);
 
   if (!courseData) {
     notFound();
@@ -44,6 +47,7 @@ export default async function Page({
       courseCode={course_code}
       ft_cat_list={courseData.ft_cat_list}
       ft_ques_list={courseData.ft_ques_list}
+      packagesByService={packagesByService}
     />
   );
 }

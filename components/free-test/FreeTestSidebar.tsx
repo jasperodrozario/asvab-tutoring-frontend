@@ -1,9 +1,7 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
 import type { TestResults } from "./FreeTest";
-import styles from "./FreeTestSidebar.module.css";
 
 interface ScoreFeedback {
   title: string;
@@ -13,8 +11,6 @@ interface ScoreFeedback {
 }
 
 interface FreeTestSidebarProps {
-  courseCode: string;
-  courseName?: string;
   activeCategoryName: string;
   testSubmitted: boolean;
   testResults: TestResults | null;
@@ -24,37 +20,7 @@ interface FreeTestSidebarProps {
   progressPercentage: number;
 }
 
-interface PackagePromo {
-  serviceType: "self-study" | "1-on-1-tutoring" | "group-tutoring";
-  icon: string;
-  title: string;
-  tagline: string;
-}
-
-const getPackagePromos = (courseName?: string): PackagePromo[] => [
-  {
-    serviceType: "self-study",
-    icon: "bi-journal-bookmark-fill",
-    title: "Subscription",
-    tagline: `Study at your own pace with full ${courseName || "exam"} question banks and video explanations.`,
-  },
-  {
-    serviceType: "1-on-1-tutoring",
-    icon: "bi-person-video3",
-    title: "1-on-1 Tutoring",
-    tagline: "Get a personalized study plan from an expert tutor focused on your weak areas.",
-  },
-  {
-    serviceType: "group-tutoring",
-    icon: "bi-people-fill",
-    title: "Group Tutoring",
-    tagline: "Learn alongside peers with structured sessions and built-in accountability.",
-  },
-];
-
 const FreeTestSidebar: React.FC<FreeTestSidebarProps> = ({
-  courseCode,
-  courseName,
   activeCategoryName,
   testSubmitted,
   testResults,
@@ -63,14 +29,11 @@ const FreeTestSidebar: React.FC<FreeTestSidebarProps> = ({
   totalQuestions,
   progressPercentage,
 }) => {
-  const packagePromos = getPackagePromos(courseName);
-  const encodedCourseCode = encodeURIComponent(courseCode);
   const hasResults = testSubmitted && testResults && feedback;
 
   return (
     <div className="free-test-sidebar">
       <div className="card border-0 shadow-lg rounded-4 overflow-hidden">
-        {/* Results panel */}
         <div
           className="text-white text-center px-4 pt-4 pb-3"
           style={{ backgroundColor: "#002341" }}
@@ -183,64 +146,6 @@ const FreeTestSidebar: React.FC<FreeTestSidebarProps> = ({
                 />
               </div>
             )}
-          </div>
-        </div>
-
-        {/* Prep options — unified lower section */}
-        <div className="bg-white px-4 py-3">
-          <div className="d-flex align-items-center gap-2 mb-1">
-            <i
-              className="bi bi-stars"
-              style={{ color: "#e58a34", fontSize: "0.85rem" }}
-            />
-            <h6 className="fw-bold mb-0 small text-uppercase letter-spacing-1" style={{ color: "#002341", letterSpacing: "0.04em" }}>
-              {hasResults ? "Recommended Next Steps" : "Explore Prep Options"}
-            </h6>
-          </div>
-          <p className="text-muted mb-3" style={{ fontSize: "0.78rem" }}>
-            {hasResults
-              ? "Based on your score, here are the best ways to keep improving."
-              : "Choose the learning format that fits your schedule and goals."}
-          </p>
-
-          <div className="d-flex flex-column gap-2">
-            {packagePromos.map((promo) => (
-              <Link
-                key={promo.serviceType}
-                href={`/package-details/${promo.serviceType}/${encodedCourseCode}`}
-                className={`text-decoration-none d-block rounded-3 p-3 ${styles.prepOption}`}
-              >
-                <div className="d-flex align-items-start gap-2">
-                  <div
-                    className={`rounded-2 d-flex align-items-center justify-content-center flex-shrink-0 ${styles.prepOptionIcon}`}
-                    style={{
-                      width: "36px",
-                      height: "36px",
-                    }}
-                  >
-                    <i className={`bi ${promo.icon}`} style={{ fontSize: "0.9rem" }} />
-                  </div>
-                  <div className="flex-grow-1 min-width-0">
-                    <span
-                      className="fw-semibold d-block mb-1"
-                      style={{ color: "#002341", fontSize: "0.85rem" }}
-                    >
-                      {promo.title}
-                    </span>
-                    <p
-                      className="text-muted mb-0"
-                      style={{ fontSize: "0.75rem", lineHeight: 1.45 }}
-                    >
-                      {promo.tagline}
-                    </p>
-                  </div>
-                  <i
-                    className="bi bi-chevron-right flex-shrink-0 opacity-50 mt-1"
-                    style={{ fontSize: "0.75rem" }}
-                  />
-                </div>
-              </Link>
-            ))}
           </div>
         </div>
       </div>

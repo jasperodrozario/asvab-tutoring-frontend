@@ -39,3 +39,14 @@ export interface CourseOverviewVideo {
   desktop_youtube_link: string;
   thumbnail: string;
 }
+
+export function hasFreeTestQuestions(
+  ft_cat_list?: string[],
+  ft_ques_list?: { [key: string]: Question[] },
+): boolean {
+  if (!ft_cat_list?.length || !ft_ques_list) return false;
+  return ft_cat_list.some((cat) => {
+    const questions = ft_ques_list[cat];
+    return Array.isArray(questions) && questions.length > 0;
+  });
+}

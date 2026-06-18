@@ -3,8 +3,12 @@
 import React, { useState, useLayoutEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import Script from "next/script";
+import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
+import CoursePricingPanel from "@/components/pricing/CoursePricingPanel";
+import prepStyles from "@/components/pricing/coursePricing.module.css";
 import { cleanQuestionText } from "@/utils/textUtils";
 import { typesetMathJax, INACTIVE_CATEGORY_STYLE } from "@/utils/mathjax";
+import type { PackagesByService } from "@/lib/package-types";
 import FreeTestSidebar from "./FreeTestSidebar";
 
 export interface Question {
@@ -46,6 +50,7 @@ interface FreeTestProps {
   courseCode: string;
   ft_cat_list?: string[];
   ft_ques_list?: { [key: string]: Question[] };
+  packagesByService?: PackagesByService;
 }
 
 const FreeTest: React.FC<FreeTestProps> = ({
@@ -53,6 +58,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
   courseCode,
   ft_cat_list,
   ft_ques_list,
+  packagesByService,
 }) => {
   const [activeCategory, setActiveCategory] = useState<number>(0);
   const [userAnswers, setUserAnswers] = useState<UserAnswers>({});
@@ -87,21 +93,38 @@ const FreeTest: React.FC<FreeTestProps> = ({
 
   if (!ft_cat_list || !ft_ques_list || ft_cat_list.length === 0) {
     return (
-      <div className="container py-5 text-center">
-        <div className="alert alert-info">
-          <h3>No Free Practice Test Available</h3>
-          <p>
-            We are currently updating the test questions for this course. Please
-            check back later.
-          </p>
-          <Link
-            href={`/courses/${encodeURIComponent(courseCode)}`}
-            className="btn btn-primary-custom mt-3"
-          >
-            Back to Course
-          </Link>
+      <>
+        <div className="page-title-area text-white py-5">
+          <div className="container text-center">
+            <h1>
+              FREE {courseName?.toUpperCase() || "COURSE"} PRACTICE TEST
+            </h1>
+            <h2 className="h4">
+              EVALUATE YOUR KNOWLEDGE AND PREPARE FOR TEST DAY
+            </h2>
+            <Breadcrumb
+              segments={["courses", courseCode, "free-test"]}
+              segmentLabels={{ 1: courseName || courseCode.toUpperCase() }}
+              dynamicTitle="Free Test"
+            />
+          </div>
         </div>
-      </div>
+        <div className="container py-5 text-center">
+          <div className="alert alert-info">
+            <h3>No Free Practice Test Available</h3>
+            <p>
+              We are currently updating the test questions for this course.
+              Please check back later.
+            </p>
+            <Link
+              href={`/courses/${encodeURIComponent(courseCode)}`}
+              className="btn btn-primary-custom mt-3"
+            >
+              Back to Course
+            </Link>
+          </div>
+        </div>
+      </>
     );
   }
 
@@ -221,6 +244,14 @@ const FreeTest: React.FC<FreeTestProps> = ({
     ? getScoreFeedback(testResults.percentage)
     : null;
 
+  const hasSubmittedResults = testSubmitted && testResults && feedback;
+  const prepIntroTitle = hasSubmittedResults
+    ? "Recommended Next Steps"
+    : "Explore Prep Options";
+  const prepIntroText = hasSubmittedResults
+    ? `${feedback.message} Our ${courseName || "exam"} courses are designed to turn practice into progress—choose a plan below and let our instructors help you close the gaps before test day.`
+    : `Your practice test is a starting point. Our ${courseName || "exam"} courses build on it with structured lessons, expert guidance, and proven strategies to help you raise your score and walk in prepared on test day.`;
+
   return (
     <>
       <Script
@@ -228,39 +259,21 @@ const FreeTest: React.FC<FreeTestProps> = ({
         strategy="afterInteractive"
         onLoad={() => void runTypeset()}
       />
+      <div className="page-title-area text-white py-5">
+        <div className="container text-center">
+          <h1>FREE {courseName?.toUpperCase() || "COURSE"} PRACTICE TEST</h1>
+          <h2 className="h4">
+            EVALUATE YOUR KNOWLEDGE IN A FOCUSED, DISTRACTION-FREE ENVIRONMENT
+          </h2>
+          <Breadcrumb
+            segments={["courses", courseCode, "free-test"]}
+            segmentLabels={{ 1: courseName || courseCode.toUpperCase() }}
+            dynamicTitle="Free Test"
+          />
+        </div>
+      </div>
+
       <div className="container py-5">
-        {/* Navigation Header */}
-        <div className="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
-          <div>
-            <Link
-              href={`/courses/${encodeURIComponent(courseCode)}`}
-              className="text-decoration-none d-flex align-items-center text-secondary hover-primary"
-            >
-              <i className="bi bi-arrow-left me-2"></i> Back to{" "}
-              {courseName || "Course"} Detail
-            </Link>
-          </div>
-          <div>
-            <span
-              className="badge px-3 py-2 rounded-pill text-white"
-              style={{ backgroundColor: "#002341" }}
-            >
-              Practice Test
-            </span>
-          </div>
-        </div>
-
-        {/* Main Title Banner */}
-        <div className="text-center mb-5">
-          <h1 className="fw-bold mb-2" style={{ color: "#002341" }}>
-            Free {courseName} Practice Test
-          </h1>
-          <p className="text-muted fs-5">
-            Evaluate your knowledge and prepare for the actual exam in a
-            focused, distraction-free environment.
-          </p>
-        </div>
-
         <div className="row g-4">
           <div className="col-lg-8">
             {/* Category Pills Navigation */}
@@ -666,8 +679,6 @@ const FreeTest: React.FC<FreeTestProps> = ({
 
           <div className="col-lg-4 align-self-start">
             <FreeTestSidebar
-              courseCode={courseCode}
-              courseName={courseName}
               activeCategoryName={activeCategoryName}
               testSubmitted={testSubmitted}
               testResults={testResults}
@@ -676,6 +687,38 @@ const FreeTest: React.FC<FreeTestProps> = ({
               totalQuestions={totalQuestions}
               progressPercentage={progressPercentage}
             />
+            {packagesByService && (
+              <div className={`mt-4 ${prepStyles.prepStack}`}>
+                <div className={prepStyles.prepIntro}>
+                  <div className={prepStyles.prepIntroHeader}>
+                    <i className={`bi bi-stars ${prepStyles.prepIntroIcon}`} />
+                    <h2 className={prepStyles.prepIntroTitle}>
+                      {prepIntroTitle}
+                    </h2>
+                  </div>
+                  <p className={prepStyles.prepIntroText}>{prepIntroText}</p>
+                  <ul className={prepStyles.prepIntroBenefits}>
+                    <li>
+                      <i className="bi bi-check-circle-fill" />
+                      Expert-led instruction
+                    </li>
+                    <li>
+                      <i className="bi bi-check-circle-fill" />
+                      Flexible learning formats
+                    </li>
+                    <li>
+                      <i className="bi bi-check-circle-fill" />
+                      Proven score improvement
+                    </li>
+                  </ul>
+                </div>
+                <CoursePricingPanel
+                  courseCode={courseCode}
+                  packagesByService={packagesByService}
+                  embedded
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
