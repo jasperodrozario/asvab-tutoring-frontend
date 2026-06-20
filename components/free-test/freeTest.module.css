@@ -1,0 +1,51 @@
+.optionLabel {
+  cursor: pointer;
+  border-color: #dee2e6;
+  background-color: #fff;
+  box-shadow: none;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.optionLabel:hover {
+  background-color: #fffaf5;
+  border-color: #f0c090;
+  box-shadow: 0 2px 6px rgba(229, 138, 52, 0.1);
+}
+
+.optionLabelSelected {
+  border-color: #e58a34;
+  background-color: #fffaf5;
+  box-shadow: 0 2px 4px rgba(229, 138, 52, 0.1);
+}
+
+.optionLabelSelected:hover {
+  background-color: #fff5eb;
+  border-color: #e58a34;
+  box-shadow: 0 2px 8px rgba(229, 138, 52, 0.16);
+}
+
+.optionRadio {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  border: 2px solid #adb5bd;
+  background-color: #fff;
+  box-shadow: none;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.optionLabel:hover .optionRadio {
+  border-color: #e58a34;
+}
+
+.optionRadioSelected {
+  border-color: #e58a34;
+  background-color: #e58a34;
+  box-shadow: 0 0 0 3px rgba(229, 138, 52, 0.2);
+}

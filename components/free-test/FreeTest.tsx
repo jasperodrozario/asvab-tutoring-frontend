@@ -6,6 +6,7 @@ import Script from "next/script";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
 import CoursePricingPanel from "@/components/pricing/CoursePricingPanel";
 import prepStyles from "@/components/pricing/coursePricing.module.css";
+import freeTestStyles from "./freeTest.module.css";
 import { cleanQuestionText } from "@/utils/textUtils";
 import { typesetMathJax, INACTIVE_CATEGORY_STYLE } from "@/utils/mathjax";
 import type { PackagesByService } from "@/lib/package-types";
@@ -428,7 +429,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
                                     </div>
 
                                     <div className="options-container mt-4 ps-lg-5">
-                                      <div className="row g-3">
+                                      <div className="row g-2">
                                         {options.map((opt, oIdx) => {
                                           const isSelected =
                                             userAnswers[
@@ -438,19 +439,11 @@ const FreeTest: React.FC<FreeTestProps> = ({
                                             <div key={oIdx} className="col-12">
                                               <label
                                                 htmlFor={`q-${catIdx}-${qIdx}-o-${oIdx}`}
-                                                className="d-flex align-items-center p-3 rounded-3 border cursor-pointer w-100 mb-0"
-                                                style={{
-                                                  borderColor: isSelected
-                                                    ? "#e58a34"
-                                                    : "#dee2e6",
-                                                  backgroundColor: isSelected
-                                                    ? "#fffaf5"
-                                                    : "#fff",
-                                                  cursor: "pointer",
-                                                  boxShadow: isSelected
-                                                    ? "0 2px 4px rgba(229,138,52,0.1)"
-                                                    : "none",
-                                                }}
+                                                className={`d-flex align-items-center p-3 rounded-3 border cursor-pointer w-100 mb-0 ${freeTestStyles.optionLabel} ${
+                                                  isSelected
+                                                    ? freeTestStyles.optionLabelSelected
+                                                    : ""
+                                                }`}
                                               >
                                                 <input
                                                   className="visually-hidden"
@@ -467,20 +460,12 @@ const FreeTest: React.FC<FreeTestProps> = ({
                                                   }
                                                 />
                                                 <span
-                                                  className="flex-shrink-0"
+                                                  className={`flex-shrink-0 ${freeTestStyles.optionRadio} ${
+                                                    isSelected
+                                                      ? freeTestStyles.optionRadioSelected
+                                                      : ""
+                                                  }`}
                                                   aria-hidden="true"
-                                                  style={{
-                                                    width: "1.25rem",
-                                                    height: "1.25rem",
-                                                    borderRadius: "50%",
-                                                    border: `2px solid ${isSelected ? "#e58a34" : "#adb5bd"}`,
-                                                    backgroundColor: isSelected
-                                                      ? "#e58a34"
-                                                      : "#fff",
-                                                    boxShadow: isSelected
-                                                      ? "0 0 0 3px rgba(229, 138, 52, 0.2)"
-                                                      : "none",
-                                                  }}
                                                 />
                                                 <span className="ms-3 text-dark fw-medium">
                                                   {cleanQuestionText(opt, true)}

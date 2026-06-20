@@ -87,7 +87,9 @@ export default function CoursePricingPanel({
     <div
       className={`${styles.panel} ${embedded ? styles.panelEmbedded : ""}`}
     >
-      <h3 className={styles.panelTitle}>Choose Your Tutoring Plan</h3>
+      <h3 className={styles.panelTitle}>
+        Invest in Your Success <br /> - Find a Plan that Fits You
+      </h3>
 
       <div className={styles.tabBar} role="tablist">
         {availableServices.map((service) => (
@@ -126,14 +128,17 @@ export default function CoursePricingPanel({
               : undefined;
 
             return (
-              <CoursePricingCard
-                key={session.session_id}
-                session={session}
-                packageId={pkg.package_id}
-                courseCode={courseCode}
-                limitedTime={isLimitedTime}
-                checkoutHref={checkoutHref}
-              />
+              <div className={"my-1"}>
+                <CoursePricingCard
+                  key={session.session_id}
+                  session={session}
+                  packageId={pkg.package_id}
+                  courseCode={courseCode}
+                  limitedTime={isLimitedTime}
+                  checkoutHref={checkoutHref}
+                />
+              </div>
+              
             );
           });
         })}

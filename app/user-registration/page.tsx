@@ -695,13 +695,34 @@ export default function RegisterPage() {
                 className="p-4"
                 style={{ background: "#002341", color: "white" }}
               >
-                <h3 className="mb-1 fw-bold">Create Account</h3>
+                <h3 className="fw-bold">Create Account</h3>
                 <p className="mb-0" style={{ opacity: 0.85 }}>
-                  Register to access your courses and study materials.
+                  Register to get access to your course and study materials.
                 </p>
               </div>
 
-              <div className="card-body p-4">
+              <div className="card-body">
+                <p
+                  className="mb-3 small"
+                  style={{
+                    borderRadius: 10,
+                    background: "rgba(242, 161, 85, 0.10)",
+                    border: "1px solid rgba(242, 161, 85, 0.35)",
+                    color: "rgba(0, 35, 65, 0.85)",
+                    fontStyle: "italic",
+                    padding: "10px 12px",
+                  }}
+                >
+                  <span
+                    className="fw-semibold"
+                    style={{ color: "#c17a2e", fontStyle: "normal" }}
+                  >
+                    Note:
+                  </span>{" "}
+                  You must purchase a package before or after registration to
+                  get access to your course and study materials.
+                </p>
+
                 {status && (
                   <div
                     className={`alert ${
@@ -801,14 +822,14 @@ export default function RegisterPage() {
                         <option value="">
                           {loadingSessions
                             ? "Loading packages..."
-                            : "Select your purchased package"}
+                            : "Select package"}
                         </option>
 
                         {sessions.map((s) => {
                           const popular = String(s.is_most_popular) === "1";
                           return (
                             <option key={s.session_id} value={s.session_id}>
-                              {s.name} — ${moneyUsd(s.price)}
+                              {s.name}
                               {popular ? " (Most Popular)" : ""}
                             </option>
                           );

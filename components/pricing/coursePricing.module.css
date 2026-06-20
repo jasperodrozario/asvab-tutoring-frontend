@@ -75,6 +75,9 @@
   border-left: 4px solid #e58a34;
   border-radius: 12px;
   padding: 1rem 1.1rem;
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.05),
+    0 8px 22px rgba(0, 0, 0, 0.1);
   transition:
     transform 0.16s ease,
     box-shadow 0.16s ease,
@@ -83,25 +86,39 @@
 
 .planCard:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  box-shadow:
+    0 4px 10px rgba(0, 0, 0, 0.07),
+    0 14px 32px rgba(0, 0, 0, 0.14);
 }
 
 .planCardPopular {
   border-color: #f2a155;
   border-left-color: #e58a34;
   background: linear-gradient(180deg, #fffaf2 0%, #fff 60%);
-  box-shadow: 0 6px 16px rgba(229, 138, 52, 0.12);
+  box-shadow:
+    0 2px 6px rgba(229, 138, 52, 0.08),
+    0 8px 22px rgba(229, 138, 52, 0.16);
+}
+
+.planCardPopular:hover {
+  box-shadow:
+    0 4px 10px rgba(229, 138, 52, 0.1),
+    0 14px 32px rgba(229, 138, 52, 0.22);
 }
 
 .planCardLimited {
   border-color: #f5b87a;
   border-left-color: #d9534f;
   background: linear-gradient(180deg, #fff8f0 0%, #fff5eb 50%, #fff 100%);
-  box-shadow: 0 6px 18px rgba(217, 83, 79, 0.14);
+  box-shadow:
+    0 2px 6px rgba(217, 83, 79, 0.08),
+    0 8px 22px rgba(217, 83, 79, 0.16);
 }
 
 .planCardLimited:hover {
-  box-shadow: 0 10px 24px rgba(217, 83, 79, 0.18);
+  box-shadow:
+    0 4px 10px rgba(217, 83, 79, 0.1),
+    0 14px 32px rgba(217, 83, 79, 0.22);
 }
 
 .planTag {
