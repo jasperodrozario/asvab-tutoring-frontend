@@ -29,6 +29,16 @@ export default function FreePracticeTestsLayout({
 
   const packagesByService = packagesByCourse[selectedCourseCode];
 
+  if (courses.length === 0) {
+    return (
+      <div className="row justify-content-center">
+        <div className="col-lg-8 col-xl-6">
+          <FreePracticeTestsContent courses={courses} />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="row g-4">
       <div className="col-lg-8">
