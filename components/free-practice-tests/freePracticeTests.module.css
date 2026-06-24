@@ -1,0 +1,46 @@
+.intro {
+  color: #495057;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  max-width: 42rem;
+}
+
+.sectionHeading {
+  color: #002341;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+}
+
+.courseCard {
+  scroll-margin-top: 6rem;
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, outline-color 0.15s ease;
+}
+
+.courseCardSelected {
+  outline: 2px solid #e58a34;
+  outline-offset: 2px;
+  box-shadow: 0 8px 24px rgba(229, 138, 52, 0.15) !important;
+}
+
+.courseCardImg {
+  height: 180px;
+  object-fit: cover;
+}
+
+.sectionBadge {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  color: #495057;
+  font-size: 0.75rem;
+}
+
+.sectionNames {
+  color: #6c757d;
+  font-size: 0.85rem;
+}
+
+.emptyState {
+  max-width: 32rem;
+  margin: 0 auto;
+}

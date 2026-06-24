@@ -1,8 +1,11 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { isKnownCourseCode } from "@/lib/known-route-validation";
-import { fetchCourseDetailsByCode, fetchAllPackageDetailsForCourse } from "@/lib/php-api";
 import FreeTest from "@/components/free-test/FreeTest";
+import { isKnownCourseCode } from "@/lib/known-route-validation";
+import {
+  fetchAllPackageDetailsForCourse,
+  fetchCourseDetailsByCode,
+} from "@/lib/php-api";
 
 export const revalidate = 3600;
 
@@ -14,7 +17,7 @@ export async function generateMetadata({
   const { course_code } = await params;
   const courseData = await fetchCourseDetailsByCode(course_code);
   const courseName = courseData?.course_name || course_code.toUpperCase();
-  
+
   return {
     title: `Free ${courseName} Practice Test | ASVAB Tutoring`,
     description: `Take our free online ${courseName} practice test. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.`,

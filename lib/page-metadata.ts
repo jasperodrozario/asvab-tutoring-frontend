@@ -78,6 +78,12 @@ export const TERMS_OF_SERVICE_SEO: PageSeo = {
     "Review ASVAB Tutoring's terms of service covering enrollment, payments, subscriptions, cancellations, and use of our website and study materials.",
 };
 
+export const FREE_PRACTICE_TESTS_SEO: PageSeo = {
+  title: "Free Practice Tests | ASVAB Tutoring",
+  description:
+    "Browse free online practice tests for ASVAB, AFOQT, SIFT, ASTB, and OAR. No signup required—instant scoring and section-by-section review.",
+};
+
 export const COURSE_SEO: Record<string, PageSeo> = {
   asvab: {
     title: "ASVAB Test Prep Classes | ASVAB Courses | ASVAB Practice Test",
@@ -240,6 +246,14 @@ export function faqMetadata(): Metadata {
     ...FAQ_SEO,
     path: "/faq",
     keywords: getFaqKeywords(),
+  });
+}
+
+export function freePracticeTestsMetadata(): Metadata {
+  return buildPageMetadata({
+    ...FREE_PRACTICE_TESTS_SEO,
+    path: "/free-practice-tests",
+    keywords: getHomeKeywords(),
   });
 }
 

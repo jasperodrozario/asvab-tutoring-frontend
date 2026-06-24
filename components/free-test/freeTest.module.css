@@ -49,3 +49,25 @@
   background-color: #e58a34;
   box-shadow: 0 0 0 3px rgba(229, 138, 52, 0.2);
 }
+
+.showAllTestsWrap {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.showAllTestsBtn {
+  color: #002341;
+  border-radius: 30px;
+  box-shadow: 0 2px 10px rgba(0, 35, 65, 0.1);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+.showAllTestsBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0, 35, 65, 0.14);
+  color: #fff;
+}

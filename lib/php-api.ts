@@ -1,4 +1,5 @@
 import type { CourseData } from "@/lib/course-types";
+import { isFreeTestReady } from "@/lib/course-types";
 import type {
   PackageDetailsData,
   PackagesByService,
@@ -98,6 +99,24 @@ export type CourseOverviewVideo = {
   mobile_youtube_link: string;
   desktop_youtube_link: string;
   thumbnail: string;
+};
+
+export type NavCourse = {
+  course_id: string;
+  course_code: string;
+  name: string;
+  full_form?: string;
+  details?: string;
+  image_src?: string;
+};
+
+export type FreePracticeTestCourse = {
+  courseCode: string;
+  courseName: string;
+  fullForm?: string;
+  imageSrc?: string;
+  sectionCount: number;
+  sectionNames: string[];
 };
 
 function getPhpApiUrl(): string | undefined {
@@ -395,4 +414,45 @@ export async function fetchBlogDetails(
   }
 
   return null;
+}
+
+export async function fetchAllCourses(): Promise<NavCourse[]> {
+  const result = await postPhpApi<PhpApiSuccess<NavCourse[]>>("get-all-courses");
+
+  if (result?.isSuccess && Array.isArray(result.data)) {
+    return result.data;
+  }
+
+  return [];
+}
+
+export async function fetchFreePracticeTestCatalog(): Promise<
+  FreePracticeTestCourse[]
+> {
+  const courses = await fetchAllCourses();
+
+  const entries = await Promise.all(
+    courses.map(async (course) => {
+      const details = await fetchCourseDetailsByCode(course.course_code);
+      const ft_cat_list = details?.ft_cat_list;
+      const ft_ques_list = details?.ft_ques_list;
+
+      if (!isFreeTestReady(ft_cat_list, ft_ques_list) || !ft_cat_list) {
+        return null;
+      }
+
+      const entry: FreePracticeTestCourse = {
+        courseCode: course.course_code,
+        courseName: details?.course_name || course.name,
+        fullForm: course.full_form || details?.full_form,
+        imageSrc: course.image_src || details?.image_src,
+        sectionCount: ft_cat_list.length,
+        sectionNames: ft_cat_list,
+      };
+
+      return entry;
+    }),
+  );
+
+  return entries.filter((entry): entry is FreePracticeTestCourse => entry !== null);
 }

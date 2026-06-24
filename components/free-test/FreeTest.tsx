@@ -10,7 +10,27 @@ import freeTestStyles from "./freeTest.module.css";
 import { cleanQuestionText } from "@/utils/textUtils";
 import { typesetMathJax, INACTIVE_CATEGORY_STYLE } from "@/utils/mathjax";
 import type { PackagesByService } from "@/lib/package-types";
+import { prepareFreeTestQuestions } from "@/lib/course-types";
 import FreeTestSidebar from "./FreeTestSidebar";
+
+const BREADCRUMB_SEGMENTS = (courseCode: string) =>
+  ["courses", courseCode, "free-practice-test"] as const;
+
+const BREADCRUMB_TITLE = "Free Practice Test";
+
+function ShowAllFreeTestsLink() {
+  return (
+    <div className={`container ${freeTestStyles.showAllTestsWrap}`}>
+      <Link
+        href="/free-practice-tests"
+        className={`btn btn-secondary-custom px-4 py-2 fw-semibold d-inline-flex align-items-center gap-2 ${freeTestStyles.showAllTestsBtn}`}
+      >
+        <i className="bi bi-clipboard-check" aria-hidden />
+        Show all Free Tests
+      </Link>
+    </div>
+  );
+}
 
 export interface Question {
   id: number;
@@ -52,30 +72,6 @@ interface FreeTestProps {
   ft_cat_list?: string[];
   ft_ques_list?: { [key: string]: Question[] };
   packagesByService?: PackagesByService;
-}
-
-const FREE_TEST_QUESTION_COUNT = 10;
-
-function prepareFreeTestQuestions(
-  ft_cat_list: string[],
-  ft_ques_list: { [key: string]: Question[] },
-): { sufficient: boolean; questionsByCategory: { [key: string]: Question[] } } {
-  const sufficient = ft_cat_list.every(
-    (cat) => (ft_ques_list[cat]?.length ?? 0) >= FREE_TEST_QUESTION_COUNT,
-  );
-
-  if (!sufficient) {
-    return { sufficient: false, questionsByCategory: {} };
-  }
-
-  const questionsByCategory = Object.fromEntries(
-    ft_cat_list.map((cat) => [
-      cat,
-      (ft_ques_list[cat] ?? []).slice(0, FREE_TEST_QUESTION_COUNT),
-    ]),
-  );
-
-  return { sufficient: true, questionsByCategory };
 }
 
 const FreeTest: React.FC<FreeTestProps> = ({
@@ -128,25 +124,30 @@ const FreeTest: React.FC<FreeTestProps> = ({
               EVALUATE YOUR KNOWLEDGE AND PREPARE FOR TEST DAY
             </h2>
             <Breadcrumb
-              segments={["courses", courseCode, "free-test"]}
+              segments={[...BREADCRUMB_SEGMENTS(courseCode)]}
               segmentLabels={{ 1: courseName || courseCode.toUpperCase() }}
-              dynamicTitle="Free Test"
+              dynamicTitle={BREADCRUMB_TITLE}
             />
           </div>
         </div>
-        <div className="container py-5 text-center">
-          <div className="alert alert-info">
-            <h3>No Free Practice Test Available</h3>
-            <p>
-              We are currently updating the test questions for this course.
-              Please check back later.
-            </p>
-            <Link
-              href={`/courses/${encodeURIComponent(courseCode)}`}
-              className="btn btn-primary-custom mt-3"
-            >
-              Back to Course
-            </Link>
+        <ShowAllFreeTestsLink />
+        <div className="container pb-5">
+          <div className="row justify-content-center">
+            <div className="col-lg-8 text-center">
+                <div className="alert alert-info">
+                  <h3>No Free Practice Test Available</h3>
+                  <p>
+                    We are currently updating the test questions for this
+                    course. Please check back later.
+                  </p>
+                  <Link
+                    href={`/courses/${encodeURIComponent(courseCode)}`}
+                    className="btn btn-primary-custom mt-3"
+                  >
+                    Back to Course
+                  </Link>
+                </div>
+            </div>
           </div>
         </div>
       </>
@@ -168,25 +169,30 @@ const FreeTest: React.FC<FreeTestProps> = ({
               EVALUATE YOUR KNOWLEDGE AND PREPARE FOR TEST DAY
             </h2>
             <Breadcrumb
-              segments={["courses", courseCode, "free-test"]}
+              segments={[...BREADCRUMB_SEGMENTS(courseCode)]}
               segmentLabels={{ 1: courseName || courseCode.toUpperCase() }}
-              dynamicTitle="Free Test"
+              dynamicTitle={BREADCRUMB_TITLE}
             />
           </div>
         </div>
-        <div className="container py-5 text-center">
-          <div className="alert alert-info">
-            <h3>No Free Practice Test Available</h3>
-            <p>
-              Sorry, currently there are no free tests available for this
-              course. Check back again later.
-            </p>
-            <Link
-              href={`/courses/${encodeURIComponent(courseCode)}`}
-              className="btn btn-primary-custom mt-3"
-            >
-              Back to Course
-            </Link>
+        <ShowAllFreeTestsLink />
+        <div className="container pb-5">
+          <div className="row justify-content-center">
+            <div className="col-lg-8 text-center">
+                <div className="alert alert-info">
+                  <h3>No Free Practice Test Available</h3>
+                  <p>
+                    Sorry, currently there are no free tests available for this
+                    course. Check back again later.
+                  </p>
+                  <Link
+                    href={`/courses/${encodeURIComponent(courseCode)}`}
+                    className="btn btn-primary-custom mt-3"
+                  >
+                    Back to Course
+                  </Link>
+                </div>
+            </div>
           </div>
         </div>
       </>
@@ -331,14 +337,16 @@ const FreeTest: React.FC<FreeTestProps> = ({
             EVALUATE YOUR KNOWLEDGE IN A FOCUSED, DISTRACTION-FREE ENVIRONMENT
           </h2>
           <Breadcrumb
-            segments={["courses", courseCode, "free-test"]}
+            segments={[...BREADCRUMB_SEGMENTS(courseCode)]}
             segmentLabels={{ 1: courseName || courseCode.toUpperCase() }}
-            dynamicTitle="Free Test"
+            dynamicTitle={BREADCRUMB_TITLE}
           />
         </div>
       </div>
 
-      <div className="container py-5">
+      <ShowAllFreeTestsLink />
+
+      <div className="container">
         <div className="row g-4">
           <div className="col-lg-8">
             {/* Category Pills Navigation */}

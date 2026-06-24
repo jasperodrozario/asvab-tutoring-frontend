@@ -4,8 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Autoplay } from "swiper/modules";
-import { hasFreeTestQuestions } from "@/lib/course-types";
-import type { Question } from "@/components/free-test/FreeTest";
 import "swiper/css";
 import "swiper/css/navigation";
 import "./topcourses.css";
@@ -135,21 +133,15 @@ const resolveImageUrl = (path?: string): string => {
 };
 
 /** Shared Card Component for List and Carousel */
-const CourseCard = ({
-  course,
-  hasFreeTest = false,
-  showFreeTestLink = false,
-}: {
-  course: Course;
-  hasFreeTest?: boolean;
-  showFreeTestLink?: boolean;
-}) => {
+const CourseCard = ({ course }: { course: Course }) => {
   const courseHref = `/courses/${encodeURIComponent(course.course_code)}`;
-  const freeTestHref = `/courses/${encodeURIComponent(course.course_code)}/free-test`;
 
   return (
-    <div className="card h-100 shadow-sm hover-lift mb-2">
-      <Link href={courseHref} className="text-decoration-none text-dark">
+    <div className="card h-100 shadow-sm hover-lift mb-2 d-flex flex-column course-card">
+      <Link
+        href={courseHref}
+        className="text-decoration-none text-dark d-flex flex-column flex-grow-1"
+      >
         <img
           src={resolveImageUrl(course.image_src)}
           alt={course.name || "Course"}
@@ -157,18 +149,18 @@ const CourseCard = ({
           width={300}
           height={210}
         />
-        <div className="card-body d-flex flex-column pb-2">
+        <div className="card-body d-flex flex-column flex-grow-1 pb-2">
           <h5 className="card-title fw-semibold text-dark text-center">
             <span className="course-name">{course.name}</span>
             <br />
             <span className="course-full-form">{course.full_form}</span>
           </h5>
-          <p className="card-text small text-dark">
+          <p className="card-text small text-dark flex-grow-1 mb-0">
             {getPlainTextPreview(course.details, 100)}
           </p>
         </div>
       </Link>
-      <div className="text-center px-3 pb-3 d-flex justify-content-center gap-2 flex-wrap">
+      <div className="text-center px-3 pb-3 course-card-footer">
         <Link
           href={courseHref}
           className="btn btn-secondary-custom btn-sm"
@@ -176,15 +168,6 @@ const CourseCard = ({
         >
           LEARN MORE
         </Link>
-        {showFreeTestLink && hasFreeTest && (
-          <Link
-            href={freeTestHref}
-            className="btn btn-primary-custom btn-sm"
-            style={{ minWidth: "7rem" }}
-          >
-            FREE TEST
-          </Link>
-        )}
       </div>
     </div>
   );
@@ -192,9 +175,6 @@ const CourseCard = ({
 
 export default function TopCourses() {
   const [courses, setCourses] = useState<Course[]>([]);
-  const [freeTestByCourse, setFreeTestByCourse] = useState<
-    Record<string, boolean>
-  >({});
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState<boolean>(false);
@@ -232,60 +212,6 @@ export default function TopCourses() {
 
     fetchCourses();
   }, []);
-
-  useEffect(() => {
-    if (!courses.length) return;
-
-    let cancelled = false;
-
-    const fetchFreeTestAvailability = async () => {
-      const results = await Promise.all(
-        courses.map(async (course) => {
-          try {
-            const formData = new FormData();
-            formData.append("action", "get-course-details-by-code");
-            formData.append("course_code", course.course_code);
-
-            const res = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
-              method: "POST",
-              body: formData,
-            });
-            const result = await res.json();
-            const onlineFreeTest = result?.online_free_test_data as
-              | {
-                  categories?: string[];
-                  questions?: { [key: string]: Question[] };
-                }
-              | undefined;
-
-            return {
-              courseCode: course.course_code,
-              hasFreeTest: hasFreeTestQuestions(
-                onlineFreeTest?.categories,
-                onlineFreeTest?.questions,
-              ),
-            };
-          } catch {
-            return { courseCode: course.course_code, hasFreeTest: false };
-          }
-        }),
-      );
-
-      if (cancelled) return;
-
-      setFreeTestByCourse(
-        Object.fromEntries(
-          results.map(({ courseCode, hasFreeTest }) => [courseCode, hasFreeTest]),
-        ),
-      );
-    };
-
-    void fetchFreeTestAvailability();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [courses]);
 
   if (!mounted) {
     return (
@@ -351,12 +277,8 @@ export default function TopCourses() {
               className="top-courses-swiper py-3"
             >
               {courses.map((course) => (
-                <SwiperSlide key={course.course_id} style={{ height: "auto" }}>
-                  <CourseCard
-                    course={course}
-                    hasFreeTest={freeTestByCourse[course.course_code] ?? false}
-                    showFreeTestLink
-                  />
+                <SwiperSlide key={course.course_id} className="course-slide">
+                  <CourseCard course={course} />
                 </SwiperSlide>
               ))}
             </Swiper>
@@ -375,6 +297,17 @@ export default function TopCourses() {
             </div>
           )}
         </div>
+
+        {!loading && !error && (
+          <div className="text-center mt-3">
+            <Link
+              href="/free-practice-tests"
+              className="btn btn-primary-custom px-4 py-2"
+            >
+              Take Our Free Practice Tests
+            </Link>
+          </div>
+        )}
       </div>
     </section>
   );

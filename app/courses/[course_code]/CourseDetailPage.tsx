@@ -232,7 +232,7 @@ export function CourseDetailClient({
                       {showFreeTestLink && (
                         <div className="text-center mt-4">
                           <Button
-                            pathname={`/courses/${encodeURIComponent(courseCode)}/free-test`}
+                            pathname={`/courses/${encodeURIComponent(courseCode)}/free-practice-test`}
                             className="btn-primary-custom"
                             style={{
                               padding: "10px 15px",

@@ -13,6 +13,10 @@
   position: static !important; /* Force Swiper container to not trap absolute positioned children */
 }
 
+.top-courses-swiper .swiper-wrapper {
+  align-items: stretch;
+}
+
 .top-courses-swiper .swiper-button-next,
 .top-courses-swiper .swiper-button-prev {
   color: #fca311 !important; /* Premium orange accent */
@@ -43,6 +47,25 @@
   width: 100%;
   height: 200px;
   object-fit: cover;
+  flex-shrink: 0;
+}
+
+.course-card {
+  width: 100%;
+}
+
+.course-card-footer {
+  margin-top: auto;
+  flex-shrink: 0;
+}
+
+.top-courses-swiper .course-slide {
+  height: auto;
+  display: flex;
+}
+
+.top-courses-swiper .course-slide > .course-card {
+  flex: 1;
 }
 
 /* On list view (mobile/tablet), use an aspect ratio so height scales with width */
