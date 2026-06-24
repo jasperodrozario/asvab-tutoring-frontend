@@ -167,15 +167,6 @@ export function CourseDetailClient({
                 )
               )}
 
-              {packagesByService && (
-                <div className="d-lg-none mb-4">
-                  <CoursePricingPanel
-                    courseCode={courseCode}
-                    packagesByService={packagesByService}
-                  />
-                </div>
-              )}
-
               <div
                 className="single-course-tab"
                 style={{
@@ -278,7 +269,7 @@ export function CourseDetailClient({
               </div>
             </div>
 
-            <div className="col-lg-4 d-none d-lg-block">
+            <div className="col-lg-4 align-self-start">
               {packagesByService && (
                 <CoursePricingPanel
                   courseCode={courseCode}

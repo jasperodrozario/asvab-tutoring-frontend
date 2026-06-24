@@ -54,6 +54,30 @@ interface FreeTestProps {
   packagesByService?: PackagesByService;
 }
 
+const FREE_TEST_QUESTION_COUNT = 10;
+
+function prepareFreeTestQuestions(
+  ft_cat_list: string[],
+  ft_ques_list: { [key: string]: Question[] },
+): { sufficient: boolean; questionsByCategory: { [key: string]: Question[] } } {
+  const sufficient = ft_cat_list.every(
+    (cat) => (ft_ques_list[cat]?.length ?? 0) >= FREE_TEST_QUESTION_COUNT,
+  );
+
+  if (!sufficient) {
+    return { sufficient: false, questionsByCategory: {} };
+  }
+
+  const questionsByCategory = Object.fromEntries(
+    ft_cat_list.map((cat) => [
+      cat,
+      (ft_ques_list[cat] ?? []).slice(0, FREE_TEST_QUESTION_COUNT),
+    ]),
+  );
+
+  return { sufficient: true, questionsByCategory };
+}
+
 const FreeTest: React.FC<FreeTestProps> = ({
   courseName,
   courseCode,
@@ -129,8 +153,48 @@ const FreeTest: React.FC<FreeTestProps> = ({
     );
   }
 
+  const { sufficient: hasSufficientQuestions, questionsByCategory } =
+    prepareFreeTestQuestions(ft_cat_list, ft_ques_list);
+
+  if (!hasSufficientQuestions) {
+    return (
+      <>
+        <div className="page-title-area text-white py-5">
+          <div className="container text-center">
+            <h1>
+              FREE {courseName?.toUpperCase() || "COURSE"} PRACTICE TEST
+            </h1>
+            <h2 className="h4">
+              EVALUATE YOUR KNOWLEDGE AND PREPARE FOR TEST DAY
+            </h2>
+            <Breadcrumb
+              segments={["courses", courseCode, "free-test"]}
+              segmentLabels={{ 1: courseName || courseCode.toUpperCase() }}
+              dynamicTitle="Free Test"
+            />
+          </div>
+        </div>
+        <div className="container py-5 text-center">
+          <div className="alert alert-info">
+            <h3>No Free Practice Test Available</h3>
+            <p>
+              Sorry, currently there are no free tests available for this
+              course. Check back again later.
+            </p>
+            <Link
+              href={`/courses/${encodeURIComponent(courseCode)}`}
+              className="btn btn-primary-custom mt-3"
+            >
+              Back to Course
+            </Link>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   const activeCategoryName = ft_cat_list[activeCategory];
-  const questions = ft_ques_list[activeCategoryName] || [];
+  const questions = questionsByCategory[activeCategoryName] || [];
   const { submitted: testSubmitted, results: testResults } =
     categoryStates[activeCategory] ?? { submitted: false, results: null };
 
@@ -321,7 +385,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
               }}
             >
               {ft_cat_list.map((catName, catIdx) => {
-                const catQuestions = ft_ques_list[catName] || [];
+                const catQuestions = questionsByCategory[catName] || [];
                 const catState = categoryStates[catIdx] ?? {
                   submitted: false,
                   results: null,
