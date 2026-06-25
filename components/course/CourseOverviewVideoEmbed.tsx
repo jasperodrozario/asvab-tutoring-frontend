@@ -2,19 +2,8 @@
 
 import { useEffect, useState } from "react";
 import type { CourseOverviewVideo } from "@/lib/php-api";
-
-function getEmbedUrl(url: string): string {
-  if (!url) return "";
-  if (url.includes("/embed/")) return url;
-
-  const regExp =
-    /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#&?]*).*/;
-  const match = url.match(regExp);
-  if (match && match[2].length === 11) {
-    return `https://www.youtube.com/embed/${match[2]}`;
-  }
-  return url;
-}
+import { getYouTubeEmbedUrl } from "@/lib/youtube";
+import styles from "./CourseOverviewVideoEmbed.module.css";
 
 type Props = {
   video: CourseOverviewVideo;
@@ -22,6 +11,20 @@ type Props = {
   fallbackImageAlt?: string;
   className?: string;
 };
+
+function resolveEmbedUrl(
+  video: CourseOverviewVideo,
+  isMobile: boolean,
+): string {
+  const primaryLink = isMobile
+    ? video.mobile_youtube_link
+    : video.desktop_youtube_link;
+  const fallbackLink = isMobile
+    ? video.desktop_youtube_link
+    : video.mobile_youtube_link;
+
+  return getYouTubeEmbedUrl(primaryLink) || getYouTubeEmbedUrl(fallbackLink);
+}
 
 export default function CourseOverviewVideoEmbed({
   video,
@@ -38,38 +41,18 @@ export default function CourseOverviewVideoEmbed({
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  const youtubeLink = isMobile
-    ? video.mobile_youtube_link
-    : video.desktop_youtube_link;
+  const embedUrl = resolveEmbedUrl(video, isMobile);
 
-  if (youtubeLink) {
+  if (embedUrl) {
     return (
-      <div className={className}>
-        <div
-          style={{
-            position: "relative",
-            paddingBottom: "56.25%",
-            height: 0,
-            overflow: "hidden",
-            borderRadius: "12px",
-            boxShadow:
-              "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
-            border: "1px solid #e0e0e0",
-          }}
-        >
+      <div className={`${className} ${styles.wrapper}`}>
+        <div className={styles.frame}>
           <iframe
-            src={getEmbedUrl(youtubeLink)}
+            className={styles.iframe}
+            src={embedUrl}
             title="Course Overview Video"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: "100%",
-              border: "none",
-            }}
           />
         </div>
       </div>

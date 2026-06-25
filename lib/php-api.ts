@@ -287,7 +287,8 @@ export async function fetchCourseDetailsByCode(
 export async function fetchCourseOverviewVideoByCode(
   courseCode: string,
 ): Promise<CourseOverviewVideo | null> {
-  const courseId = getCourseIdFromCode(courseCode);
+  const normalizedCode = courseCode.replace(/-tutor$/, "").toLowerCase();
+  const courseId = getCourseIdFromCode(normalizedCode);
   const result = await postPhpApi<PhpApiSuccess<CourseOverviewVideo>>(
     "get-course-overview-video",
     {

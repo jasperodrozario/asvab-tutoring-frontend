@@ -1,4 +1,5 @@
-import React from 'react';
+import React from "react";
+import styles from "@/components/course/CourseOverviewVideoEmbed.module.css";
 
 export interface VideoObject {
   video_title?: string | string[];
@@ -53,30 +54,16 @@ const CourseVideoTab: React.FC<VideoTabProps> = ({ video }) => {
         <div className="row">
           {videoArray.map((url, index) => (
             <div key={index} className="col-12 mb-4">
-              <div
-                style={{
-                  borderRadius: "12px",
-                  overflow: "hidden",
-                  boxShadow:
-                    "0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08)",
-                  transition: "box-shadow 0.3s ease",
-                  backgroundColor: "#fff",
-                  padding: "8px",
-                  border: "1px solid #e0e0e0",
-                }}
-              >
-                <iframe
-                  width="100%"
-                  height={415}
-                  src={url}
-                  title={`Course video player ${index + 1}`}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  style={{
-                    borderRadius: "8px",
-                    border: "none",
-                  }}
-                />
+              <div className={`${styles.card} ${styles.wrapper}`}>
+                <div className={styles.frame}>
+                  <iframe
+                    className={styles.iframe}
+                    src={url}
+                    title={`Course video player ${index + 1}`}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
               </div>
             </div>
           ))}

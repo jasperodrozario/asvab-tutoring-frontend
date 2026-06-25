@@ -1,12 +1,13 @@
 "use client";
 
-import { Suspense, useState, useEffect } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
 import Button from "@/components/button/Button";
 import LessonPlanTab from "@/components/tabs/LessonPlanTab";
 import CourseVideoTab, { VideoObject } from "@/components/tabs/CourseVideoTab";
 import CoursePricingPanel from "@/components/pricing/CoursePricingPanel";
+import CourseOverviewVideoEmbed from "@/components/course/CourseOverviewVideoEmbed";
 import { processHtmlContent } from "@/lib/decode-html";
 import { hasFreeTestQuestions, type CourseData } from "@/lib/course-types";
 import type { CourseOverviewVideo } from "@/lib/php-api";
@@ -25,20 +26,6 @@ function formatLocationLabel(location: string): string {
   return location.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-function getEmbedUrl(url: string): string {
-  if (!url) return "";
-  if (url.includes("/embed/")) return url;
-
-  let videoId = "";
-  const regExp =
-    /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-  const match = url.match(regExp);
-  if (match && match[2].length === 11) {
-    videoId = match[2];
-  }
-  return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
-}
-
 export function CourseDetailClient({
   courseCode,
   courseData,
@@ -51,16 +38,6 @@ export function CourseDetailClient({
   const location = locationProp || searchParams?.get("location") || "";
 
   const [activeTab, setActiveTab] = useState<number>(0);
-  const [isMobile, setIsMobile] = useState<boolean>(false);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
 
   if (!courseData) {
     return (
@@ -89,8 +66,6 @@ export function CourseDetailClient({
     courseData.ft_ques_list,
   );
 
-  // console.log(courseOverviewVideoData);
-
   return (
     <>
       <div className="page-title-area text-white py-5">
@@ -116,43 +91,12 @@ export function CourseDetailClient({
         <div className="container">
           <div className="row">
             <div className="col-lg-8">
-              {courseOverviewVideoData &&
-              (isMobile
-                ? courseOverviewVideoData.mobile_youtube_link
-                : courseOverviewVideoData.desktop_youtube_link) ? (
-                <div className="mb-4 text-center">
-                  <div
-                    style={{
-                      position: "relative",
-                      paddingBottom: "56.25%",
-                      height: 0,
-                      overflow: "hidden",
-                      borderRadius: "12px",
-                      boxShadow:
-                        "0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08)",
-                      border: "1px solid #e0e0e0",
-                    }}
-                  >
-                    <iframe
-                      src={getEmbedUrl(
-                        isMobile
-                          ? courseOverviewVideoData.mobile_youtube_link
-                          : courseOverviewVideoData.desktop_youtube_link,
-                      )}
-                      title="Course Overview Video"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                      style={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        width: "100%",
-                        height: "100%",
-                        border: "none",
-                      }}
-                    />
-                  </div>
-                </div>
+              {courseOverviewVideoData ? (
+                <CourseOverviewVideoEmbed
+                  video={courseOverviewVideoData}
+                  fallbackImageSrc={courseData.image_src}
+                  fallbackImageAlt={courseData.course_name || "Course Image"}
+                />
               ) : (
                 courseData.image_src && (
                   <div className="mb-4 text-center">
