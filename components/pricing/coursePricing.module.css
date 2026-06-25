@@ -20,6 +20,59 @@
   margin-bottom: 1.1rem;
 }
 
+.selectedCourseContext {
+  margin: -0.35rem 0 1rem;
+  padding: 0.75rem 0.85rem;
+  background: linear-gradient(135deg, #fffaf5 0%, #f8fafb 100%);
+  border: 1px solid #eef2f6;
+  border-radius: 10px;
+}
+
+.courseSelectLabel {
+  display: block;
+  margin: 0 0 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #002341;
+}
+
+.courseSelect {
+  width: 100%;
+  appearance: none;
+  border: 1px solid #d7dee5;
+  border-radius: 8px;
+  background: #fff
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%234a5560' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    no-repeat right 0.85rem center;
+  color: #002341;
+  font-size: 0.92rem;
+  font-weight: 700;
+  padding: 0.55rem 2rem 0.55rem 0.75rem;
+  cursor: pointer;
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.courseSelect:hover {
+  border-color: #e58a34;
+}
+
+.courseSelect:focus {
+  outline: none;
+  border-color: #e58a34;
+  box-shadow: 0 0 0 3px rgba(229, 138, 52, 0.18);
+}
+
+.selectedCourseHint {
+  margin: 0.55rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: #6b7280;
+}
+
 /* Service tabs */
 .tabBar {
   display: flex;

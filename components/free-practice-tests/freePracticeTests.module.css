@@ -12,15 +12,26 @@
 }
 
 .courseCard {
+  position: relative;
   scroll-margin-top: 6rem;
-  cursor: pointer;
   transition: box-shadow 0.15s ease, outline-color 0.15s ease;
 }
 
-.courseCardSelected {
+.courseCard:hover {
   outline: 2px solid #e58a34;
   outline-offset: 2px;
   box-shadow: 0 8px 24px rgba(229, 138, 52, 0.15) !important;
+}
+
+.courseCardLink {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.courseCardActions {
+  position: relative;
+  z-index: 2;
 }
 
 .courseCardImg {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import styles from "./coursePricing.module.css";
 import { isSubscriptionSession } from "./PricingCard";
@@ -37,6 +37,19 @@ const FRIENDLY_PACKAGE_TYPE: Record<ServiceType, string> = {
   "self-study": "Subscription",
 };
 
+type CourseOption = {
+  courseCode: string;
+  courseName: string;
+};
+
+function getDefaultCourseCode(courses: CourseOption[]): string {
+  return (
+    courses.find((c) => c.courseCode === "asvab")?.courseCode ??
+    courses[0]?.courseCode ??
+    ""
+  );
+}
+
 function getFriendlyCourseName(code: string): string {
   const c = code.toLowerCase();
   if (c.includes("asvab")) return "ASVAB";
@@ -51,19 +64,46 @@ function hasPackages(data: PackagesByService[ServiceType] | undefined): boolean 
   return Boolean(data?.data && data.data.length > 0);
 }
 
-type CoursePricingPanelProps = {
-  courseCode: string;
-  packagesByService: PackagesByService;
+type BaseProps = {
   embedded?: boolean;
 };
 
-export default function CoursePricingPanel({
-  courseCode,
-  packagesByService,
-  embedded = false,
-}: CoursePricingPanelProps) {
+type FixedCourseProps = BaseProps & {
+  courseCode: string;
+  packagesByService: PackagesByService;
+  courseOptions?: never;
+  packagesByCourse?: never;
+};
+
+type SelectableCourseProps = BaseProps & {
+  courseOptions: CourseOption[];
+  packagesByCourse: Record<string, PackagesByService>;
+  courseCode?: never;
+  packagesByService?: never;
+};
+
+type CoursePricingPanelProps = FixedCourseProps | SelectableCourseProps;
+
+export default function CoursePricingPanel(props: CoursePricingPanelProps) {
+  const { embedded = false } = props;
+  const isCourseSelectable = "courseOptions" in props && props.courseOptions != null;
+
+  const [selectedCourseCode, setSelectedCourseCode] = useState(() =>
+    isCourseSelectable ? getDefaultCourseCode(props.courseOptions) : "",
+  );
+
+  const courseCode = isCourseSelectable
+    ? selectedCourseCode
+    : props.courseCode;
+  const packagesByService = isCourseSelectable
+    ? props.packagesByCourse[selectedCourseCode]
+    : props.packagesByService;
+
   const availableServices = useMemo(
-    () => SERVICE_ORDER.filter((s) => hasPackages(packagesByService[s])),
+    () =>
+      packagesByService
+        ? SERVICE_ORDER.filter((s) => hasPackages(packagesByService[s]))
+        : [],
     [packagesByService],
   );
 
@@ -71,7 +111,15 @@ export default function CoursePricingPanel({
     availableServices[0] ?? null,
   );
 
-  if (availableServices.length === 0 || !activeService) {
+  useEffect(() => {
+    setActiveService((prev) =>
+      prev && availableServices.includes(prev)
+        ? prev
+        : (availableServices[0] ?? null),
+    );
+  }, [availableServices, courseCode]);
+
+  if (availableServices.length === 0 || !activeService || !packagesByService) {
     return null;
   }
 
@@ -90,6 +138,32 @@ export default function CoursePricingPanel({
       <h3 className={styles.panelTitle}>
         Invest in Your Success <br /> - Find a Plan that Fits You
       </h3>
+
+      {isCourseSelectable && (
+        <div className={styles.selectedCourseContext}>
+          <label
+            htmlFor="pricing-course-select"
+            className={styles.courseSelectLabel}
+          >
+            Course:
+          </label>
+          <select
+            id="pricing-course-select"
+            className={styles.courseSelect}
+            value={selectedCourseCode}
+            onChange={(e) => setSelectedCourseCode(e.target.value)}
+          >
+            {props.courseOptions.map((course) => (
+              <option key={course.courseCode} value={course.courseCode}>
+                {course.courseName}
+              </option>
+            ))}
+          </select>
+          <p className={styles.selectedCourseHint}>
+            Plans and pricing below update when you choose a different course.
+          </p>
+        </div>
+      )}
 
       <div className={styles.tabBar} role="tablist">
         {availableServices.map((service) => (
@@ -128,9 +202,8 @@ export default function CoursePricingPanel({
               : undefined;
 
             return (
-              <div className={"my-1"}>
+              <div key={session.session_id} className="my-1">
                 <CoursePricingCard
-                  key={session.session_id}
                   session={session}
                   packageId={pkg.package_id}
                   courseCode={courseCode}
@@ -138,7 +211,6 @@ export default function CoursePricingPanel({
                   checkoutHref={checkoutHref}
                 />
               </div>
-              
             );
           });
         })}

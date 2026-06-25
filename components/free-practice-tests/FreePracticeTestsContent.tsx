@@ -23,15 +23,9 @@ function formatSectionNames(names: string[]): string {
 
 type Props = {
   courses: FreePracticeTestCourse[];
-  selectedCourseCode?: string;
-  onSelectCourse?: (courseCode: string) => void;
 };
 
-export default function FreePracticeTestsContent({
-  courses,
-  selectedCourseCode,
-  onSelectCourse,
-}: Props) {
+export default function FreePracticeTestsContent({ courses }: Props) {
   if (courses.length === 0) {
     return (
       <div className={`text-center py-5 ${styles.emptyState}`}>
@@ -66,21 +60,13 @@ export default function FreePracticeTestsContent({
             <article
               key={course.courseCode}
               id={course.courseCode}
-              className={`card border-0 shadow-sm overflow-hidden ${styles.courseCard} ${
-                selectedCourseCode === course.courseCode
-                  ? styles.courseCardSelected
-                  : ""
-              }`}
-              onClick={() => onSelectCourse?.(course.courseCode)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  onSelectCourse?.(course.courseCode);
-                }
-              }}
-              role={onSelectCourse ? "button" : undefined}
-              tabIndex={onSelectCourse ? 0 : undefined}
+              className={`card border-0 shadow-sm overflow-hidden ${styles.courseCard}`}
             >
+              <Link
+                href={testHref}
+                className={styles.courseCardLink}
+                aria-label={`Take ${course.courseName} free practice test`}
+              />
               <div className="row g-0 align-items-stretch">
                 <div className="col-md-4">
                   <img
@@ -110,18 +96,18 @@ export default function FreePracticeTestsContent({
                     <p className={`mb-3 ${styles.sectionNames}`}>
                       Sections: {formatSectionNames(course.sectionNames)}
                     </p>
-                    <div className="mt-auto d-flex flex-wrap gap-2">
+                    <div
+                      className={`mt-auto d-flex flex-wrap gap-2 ${styles.courseCardActions}`}
+                    >
                       <Link
                         href={testHref}
                         className="btn btn-primary-custom px-4"
-                        onClick={(e) => e.stopPropagation()}
                       >
                         Take {course.courseName} Test
                       </Link>
                       <Link
                         href={overviewHref}
                         className="btn btn-secondary-custom px-4"
-                        onClick={(e) => e.stopPropagation()}
                       >
                         Course Overview
                       </Link>

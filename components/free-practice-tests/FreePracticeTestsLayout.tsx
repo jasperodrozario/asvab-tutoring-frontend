@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import CoursePricingPanel from "@/components/pricing/CoursePricingPanel";
 import FreePracticeTestsContent from "./FreePracticeTestsContent";
 import type { FreePracticeTestCourse } from "@/lib/php-api";
@@ -11,24 +10,10 @@ type Props = {
   packagesByCourse: Record<string, PackagesByService>;
 };
 
-function getDefaultCourseCode(courses: FreePracticeTestCourse[]): string {
-  return (
-    courses.find((c) => c.courseCode === "asvab")?.courseCode ??
-    courses[0]?.courseCode ??
-    ""
-  );
-}
-
 export default function FreePracticeTestsLayout({
   courses,
   packagesByCourse,
 }: Props) {
-  const [selectedCourseCode, setSelectedCourseCode] = useState(() =>
-    getDefaultCourseCode(courses),
-  );
-
-  const packagesByService = packagesByCourse[selectedCourseCode];
-
   if (courses.length === 0) {
     return (
       <div className="row justify-content-center">
@@ -42,19 +27,16 @@ export default function FreePracticeTestsLayout({
   return (
     <div className="row g-4">
       <div className="col-lg-8">
-        <FreePracticeTestsContent
-          courses={courses}
-          selectedCourseCode={selectedCourseCode}
-          onSelectCourse={setSelectedCourseCode}
-        />
+        <FreePracticeTestsContent courses={courses} />
       </div>
       <div className="col-lg-4 align-self-start">
-        {packagesByService && selectedCourseCode && (
-          <CoursePricingPanel
-            courseCode={selectedCourseCode}
-            packagesByService={packagesByService}
-          />
-        )}
+        <CoursePricingPanel
+          courseOptions={courses.map((course) => ({
+            courseCode: course.courseCode,
+            courseName: course.courseName,
+          }))}
+          packagesByCourse={packagesByCourse}
+        />
       </div>
     </div>
   );
