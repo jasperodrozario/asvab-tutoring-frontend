@@ -1,4 +1,7 @@
-import type { CourseData } from "@/lib/course-types";
+import type {
+  CourseData,
+  FreePracticeTestResponse,
+} from "@/lib/course-types";
 import { isFreeTestReady } from "@/lib/course-types";
 import type {
   PackageDetailsData,
@@ -284,6 +287,21 @@ export async function fetchCourseDetailsByCode(
   return normalizeCourseDetail(result);
 }
 
+export async function fetchFreePracticeTestByCode(
+  courseCode: string,
+): Promise<FreePracticeTestResponse | null> {
+  const result = await postPhpApi<FreePracticeTestResponse>(
+    "get-free-practice-test-by-code",
+    { course_code: courseCode.replace(/-tutor$/, "").toLowerCase() },
+  );
+
+  if (!result || result.status !== 200 || !result.isSuccess || !result.data) {
+    return null;
+  }
+
+  return result;
+}
+
 export async function fetchCourseOverviewVideoByCode(
   courseCode: string,
 ): Promise<CourseOverviewVideo | null> {
@@ -434,9 +452,9 @@ export async function fetchFreePracticeTestCatalog(): Promise<
 
   const entries = await Promise.all(
     courses.map(async (course) => {
-      const details = await fetchCourseDetailsByCode(course.course_code);
-      const ft_cat_list = details?.ft_cat_list;
-      const ft_ques_list = details?.ft_ques_list;
+      const freeTest = await fetchFreePracticeTestByCode(course.course_code);
+      const ft_cat_list = freeTest?.data?.categories;
+      const ft_ques_list = freeTest?.data?.questions;
 
       if (!isFreeTestReady(ft_cat_list, ft_ques_list) || !ft_cat_list) {
         return null;
@@ -444,9 +462,9 @@ export async function fetchFreePracticeTestCatalog(): Promise<
 
       const entry: FreePracticeTestCourse = {
         courseCode: course.course_code,
-        courseName: details?.course_name || course.name,
-        fullForm: course.full_form || details?.full_form,
-        imageSrc: course.image_src || details?.image_src,
+        courseName: freeTest?.course_name || course.name,
+        fullForm: course.full_form || freeTest?.full_form,
+        imageSrc: course.image_src,
         sectionCount: ft_cat_list.length,
         sectionNames: ft_cat_list,
       };

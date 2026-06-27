@@ -1,6 +1,36 @@
 import type { Session } from "@/components/tabs/LessonPlanTab";
 import type { VideoObject } from "@/components/tabs/CourseVideoTab";
-import type { Question } from "@/components/free-test/FreeTest";
+
+export interface FreePracticeTestQuestion {
+  id: number;
+  question: string;
+  option_a?: string;
+  option_b?: string;
+  option_c?: string;
+  option_d?: string;
+  option_e?: string | null;
+  answer: number | string;
+  story_id?: string | number | null;
+  story?: string | null;
+  story_title?: string | null;
+  q_no?: number;
+}
+
+export interface FreePracticeTestData {
+  course_id: number;
+  categories: string[];
+  questions: { [category: string]: FreePracticeTestQuestion[] };
+}
+
+export interface FreePracticeTestResponse {
+  status: number;
+  isSuccess: boolean;
+  message: string;
+  course_name?: string;
+  course_code?: string;
+  full_form?: string;
+  data?: FreePracticeTestData;
+}
 
 export interface RelatedCourse {
   course_id: string;
@@ -26,7 +56,7 @@ export interface CourseData {
   picture?: string;
   video?: VideoObject;
   ft_cat_list?: string[];
-  ft_ques_list?: { [key: string]: Question[] };
+  ft_ques_list?: { [key: string]: FreePracticeTestQuestion[] };
   related_courses?: RelatedCourse[];
   total_ques?: number;
   image_src?: string;
@@ -44,7 +74,7 @@ export const FREE_TEST_QUESTION_COUNT = 10;
 
 export function hasFreeTestQuestions(
   ft_cat_list?: string[],
-  ft_ques_list?: { [key: string]: Question[] },
+  ft_ques_list?: { [key: string]: FreePracticeTestQuestion[] },
 ): boolean {
   if (!ft_cat_list?.length || !ft_ques_list) return false;
   return ft_cat_list.some((cat) => {
@@ -55,7 +85,7 @@ export function hasFreeTestQuestions(
 
 export function isFreeTestReady(
   ft_cat_list?: string[],
-  ft_ques_list?: { [key: string]: Question[] },
+  ft_ques_list?: { [key: string]: FreePracticeTestQuestion[] },
 ): boolean {
   if (!ft_cat_list?.length || !ft_ques_list) return false;
   return ft_cat_list.every(
@@ -65,8 +95,8 @@ export function isFreeTestReady(
 
 export function prepareFreeTestQuestions(
   ft_cat_list: string[],
-  ft_ques_list: { [key: string]: Question[] },
-): { sufficient: boolean; questionsByCategory: { [key: string]: Question[] } } {
+  ft_ques_list: { [key: string]: FreePracticeTestQuestion[] },
+): { sufficient: boolean; questionsByCategory: { [key: string]: FreePracticeTestQuestion[] } } {
   const sufficient = isFreeTestReady(ft_cat_list, ft_ques_list);
 
   if (!sufficient) {

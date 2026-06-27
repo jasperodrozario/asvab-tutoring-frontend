@@ -7,9 +7,10 @@ import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
 import CoursePricingPanel from "@/components/pricing/CoursePricingPanel";
 import prepStyles from "@/components/pricing/coursePricing.module.css";
 import freeTestStyles from "./freeTest.module.css";
-import { cleanQuestionText } from "@/utils/textUtils";
 import { typesetMathJax, INACTIVE_CATEGORY_STYLE } from "@/utils/mathjax";
+import QuestionHtml from "./QuestionHtml";
 import type { PackagesByService } from "@/lib/package-types";
+import type { FreePracticeTestQuestion } from "@/lib/course-types";
 import { prepareFreeTestQuestions } from "@/lib/course-types";
 import FreeTestSidebar from "./FreeTestSidebar";
 
@@ -32,18 +33,54 @@ function ShowAllFreeTestsLink() {
   );
 }
 
-export interface Question {
-  id: number;
-  question: string;
-  option_a?: string;
-  option_b?: string;
-  option_c?: string;
-  option_d?: string;
-  answer: number;
+export type Question = FreePracticeTestQuestion;
+
+function shouldShowStoryPassage(
+  question: FreePracticeTestQuestion,
+  previousQuestion?: FreePracticeTestQuestion,
+): boolean {
+  if (!question.story?.trim() || !question.story_id) {
+    return false;
+  }
+
+  return String(question.story_id) !== String(previousQuestion?.story_id ?? "");
+}
+
+function shouldShowStoryPassageForResult(
+  result: TestResult,
+  previousResult?: TestResult,
+): boolean {
+  if (!result.story?.trim() || !result.story_id) {
+    return false;
+  }
+
+  return String(result.story_id) !== String(previousResult?.story_id ?? "");
+}
+
+function StoryPassage({
+  story,
+  storyTitle,
+}: {
+  story: string;
+  storyTitle?: string | null;
+}) {
+  return (
+    <div
+      className={`mb-4 p-3 rounded-3 border bg-light ${freeTestStyles.storyPassage}`}
+    >
+      {storyTitle?.trim() ? (
+        <h6 className="fw-semibold mb-2 text-secondary">{storyTitle}</h6>
+      ) : null}
+      <QuestionHtml html={story} />
+    </div>
+  );
 }
 
 export interface TestResult {
   question: string;
+  story?: string | null;
+  story_title?: string | null;
+  story_id?: string | number | null;
   options: string[];
   userAnswer: number | null;
   correctAnswer: number;
@@ -220,7 +257,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
 
     const results: TestResult[] = questions.map((question, qIndex) => {
       const userAnswer = userAnswers[`${activeCategory}-${qIndex}`];
-      const correctAnswer = question.answer - 1;
+      const correctAnswer = Number(question.answer) - 1;
       const isCorrect = userAnswer === correctAnswer;
       if (isCorrect) score++;
       const options = [
@@ -231,6 +268,9 @@ const FreeTest: React.FC<FreeTestProps> = ({
       ].filter((opt): opt is string => opt != null);
       return {
         question: question.question,
+        story: question.story,
+        story_title: question.story_title,
+        story_id: question.story_id,
         options,
         userAnswer: userAnswer ?? null,
         correctAnswer,
@@ -484,6 +524,14 @@ const FreeTest: React.FC<FreeTestProps> = ({
                                   }}
                                 >
                                   <div className="card-body p-4">
+                                    {shouldShowStoryPassage(q, catQuestions[qIdx - 1]) &&
+                                    q.story ? (
+                                      <StoryPassage
+                                        story={q.story}
+                                        storyTitle={q.story_title}
+                                      />
+                                    ) : null}
+
                                     <div className="d-flex align-items-start mb-3">
                                       <span
                                         className="badge me-3 px-3 py-2 rounded-3 text-white"
@@ -495,9 +543,9 @@ const FreeTest: React.FC<FreeTestProps> = ({
                                       >
                                         Q {qIdx + 1}
                                       </span>
-                                      <h5 className="fw-bold mb-0 lh-base text-dark pt-1">
-                                        {cleanQuestionText(q.question, true)}
-                                      </h5>
+                                      <div className="fw-bold mb-0 lh-base text-dark pt-1 flex-grow-1">
+                                        <QuestionHtml html={q.question} />
+                                      </div>
                                     </div>
 
                                     <div className="options-container mt-4 ps-lg-5">
@@ -539,8 +587,8 @@ const FreeTest: React.FC<FreeTestProps> = ({
                                                   }`}
                                                   aria-hidden="true"
                                                 />
-                                                <span className="ms-3 text-dark fw-medium">
-                                                  {cleanQuestionText(opt, true)}
+                                                <span className="ms-3 text-dark fw-medium flex-grow-1">
+                                                  <QuestionHtml html={opt} />
                                                 </span>
                                               </label>
                                             </div>
@@ -635,9 +683,19 @@ const FreeTest: React.FC<FreeTestProps> = ({
                               </div>
 
                               <div className="card-body p-4">
-                                <h5 className="fw-semibold text-dark mb-4">
-                                  {cleanQuestionText(res.question, true)}
-                                </h5>
+                                {shouldShowStoryPassageForResult(
+                                  res,
+                                  i > 0 ? catResults.results[i - 1] : undefined,
+                                ) && res.story ? (
+                                  <StoryPassage
+                                    story={res.story}
+                                    storyTitle={res.story_title}
+                                  />
+                                ) : null}
+
+                                <div className="fw-semibold text-dark mb-4">
+                                  <QuestionHtml html={res.question} />
+                                </div>
                                 <div className="row g-2">
                                   {res.options.map((opt, oIdx) => {
                                     let cardBg = "#fff";
@@ -678,7 +736,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
                                             <span className="me-2 text-muted">
                                               {String.fromCharCode(65 + oIdx)}.
                                             </span>
-                                            {cleanQuestionText(opt, true)}
+                                            <QuestionHtml html={opt} />
                                           </span>
                                           {icon}
                                         </div>
