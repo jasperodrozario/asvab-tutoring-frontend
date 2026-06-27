@@ -3,6 +3,7 @@ import {
   getBlogKeywords,
   getCourseKeywords,
   getFaqKeywords,
+  getFreePracticeTestsKeywords,
   getHomeKeywords,
   getMobileAppsKeywords,
   getPricingKeywords,
@@ -79,37 +80,71 @@ export const TERMS_OF_SERVICE_SEO: PageSeo = {
 };
 
 export const FREE_PRACTICE_TESTS_SEO: PageSeo = {
-  title: "Free Practice Tests | ASVAB Tutoring",
+  title: "Free Online Practice Tests for US Army, Marine, Navy | ASVAB Tutoring",
   description:
-    "Browse free online practice tests for ASVAB, AFOQT, SIFT, ASTB, and OAR. No signup required—instant scoring and section-by-section review.",
+    "Take free online practice tests for the U.S. Army, Navy, and Marine Corps. Assess your skills, prepare for military exams, and boost your confidence.",
 };
 
 export const COURSE_SEO: Record<string, PageSeo> = {
   asvab: {
-    title: "ASVAB Test Prep Classes | ASVAB Courses | ASVAB Practice Test",
+    title: "ASVAB Test Prep | ASVAB Math Prep | ASVAB Test Help",
     description:
-      "Prepare for the ASVAB with our comprehensive test prep classes and online practice tests. Boost your confidence and score higher on your exam today!",
+      "ASVAB test prep classes designed to improve your score. Access expert instruction, practice tests, and proven ASVAB test help resources.",
   },
   afoqt: {
-    title: "AFOQT Tutor | AFOQT Test Prep Classes | AFOQT Practice Test",
+    title: "AFOQT Tutor | AFOQT Math Prep | AFOQT Prep Course",
     description:
-      "Get ready for the AFOQT with our expert tutors, comprehensive prep classes, and online practice tests. Boost your confidence and score high!",
+      "Get expert AFOQT tutoring, focused math preparation, and proven study strategies. Enroll in an AFOQT prep course designed to maximize your score.",
   },
   sift: {
-    title: "SIFT Tutor | SIFT Test Prep Classes | SIFT Practice Test",
+    title: "SIFT Tutor | SIFT Math Prep | SIFT Exam Prep",
     description:
-      "Elevate your SIFT test preparation with our expert-led classes and comprehensive online practice tests. Achieve your best score with SIFT Tutor today!",
+      "Expert SIFT tutor services, math prep, and complete exam preparation courses designed to help aspiring Army aviators achieve top scores.",
   },
   astb: {
-    title: "ASTB Tutor | ASTB Test Prep Classes | ASTB Practice Test",
+    title: "ASTB Tutor | ASTB Math Prep | ASTB Test Prep",
     description:
-      "Elevate your ASTB scores with expert tutoring, comprehensive test prep classes, and online practice tests. Start your journey to success today!",
+      "Get expert ASTB test prep, math coaching, and practice resources to improve your score and prepare confidently for exam day.",
   },
   oar: {
-    title: "OAR Tutor | OAR Test Prep Classes | OAR Practice Test",
+    title: "OAR Tutor | OAR Math Prep | OAR Test Prep",
     description:
-      "Join our OAR test prep classes and access online practice tests designed to enhance your skills. Start your journey to success with us now.",
+      "Get expert OAR test prep, math coaching, and practice materials to improve your score and approach exam day with confidence.",
   },
+};
+
+export const FREE_PRACTICE_TEST_SEO: Record<string, PageSeo> = {
+  asvab: {
+    title: "Free ASVAB Practice Test Online 2026 | ASVAB Tutoring",
+    description:
+      "Take our free online ASVAB practice test 2026. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.",
+  },
+  afoqt: {
+    title: "Free AFOQT Practice Test Online 2026 | ASVAB Tutoring",
+    description:
+      "Take our free online AFOQT practice test 2026. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.",
+  },
+  sift: {
+    title: "Free SIFT Practice Test Online 2026 | ASVAB Tutoring",
+    description:
+      "Take our free online SIFT practice test 2026. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.",
+  },
+  oar: {
+    title: "Free OAR Practice Test Online 2026 | ASVAB Tutoring",
+    description:
+      "Take our free online OAR practice test 2026. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.",
+  },
+  astb: {
+    title: "Free ASTB Practice Test Online 2026 | ASVAB Tutoring",
+    description:
+      "Take our free online ASTB practice test 2026. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.",
+  },
+};
+
+export const FREE_PRACTICE_TEST_FALLBACK_SEO: PageSeo = {
+  title: "Free Practice Test | ASVAB Tutoring",
+  description:
+    "Take our free online practice test. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.",
 };
 
 export const COURSE_FALLBACK_SEO: PageSeo = {
@@ -253,7 +288,7 @@ export function freePracticeTestsMetadata(): Metadata {
   return buildPageMetadata({
     ...FREE_PRACTICE_TESTS_SEO,
     path: "/free-practice-tests",
-    keywords: getHomeKeywords(),
+    keywords: getFreePracticeTestsKeywords(),
   });
 }
 
@@ -310,6 +345,19 @@ export function courseMetadata(courseCode: string): Metadata {
     ...meta,
     path,
     keywords: getCourseKeywords(courseCode, "course"),
+  });
+}
+
+export function freePracticeTestMetadata(courseCode: string): Metadata {
+  const meta =
+    FREE_PRACTICE_TEST_SEO[courseCode.toLowerCase()] ??
+    FREE_PRACTICE_TEST_FALLBACK_SEO;
+  const path = `/courses/${courseCode.toLowerCase()}/free-practice-test`;
+
+  return buildPageMetadata({
+    ...meta,
+    path,
+    keywords: getCourseKeywords(courseCode, "free-practice-test"),
   });
 }
 

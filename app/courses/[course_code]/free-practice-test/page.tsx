@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import FreeTest from "@/components/free-test/FreeTest";
 import { isKnownCourseCode } from "@/lib/known-route-validation";
+import { freePracticeTestMetadata } from "@/lib/page-metadata";
 import {
   fetchAllPackageDetailsForCourse,
   fetchCourseDetailsByCode,
@@ -15,13 +16,7 @@ export async function generateMetadata({
   params: Promise<{ course_code: string }>;
 }): Promise<Metadata> {
   const { course_code } = await params;
-  const courseData = await fetchCourseDetailsByCode(course_code);
-  const courseName = courseData?.course_name || course_code.toUpperCase();
-
-  return {
-    title: `Free ${courseName} Practice Test | ASVAB Tutoring`,
-    description: `Take our free online ${courseName} practice test. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.`,
-  };
+  return freePracticeTestMetadata(course_code);
 }
 
 export default async function Page({
