@@ -6,7 +6,7 @@ import Faq from "@/components/faq/Faq";
 import Review from "@/components/review/Review";
 import Packages from "@/components/packages/Packages";
 import PricingPackages from "@/components/pricing-packages/PricingPackages";
-import HotDealPopup from "@/components/promotions/HotDealPopup";
+// import HotDealPopup from "@/components/promotions/HotDealPopup";
 import { homeMetadata } from "@/lib/page-metadata";
 import Link from "next/link";
 
@@ -85,8 +85,8 @@ export default function Home() {
       <Faq />
       <Review />
 
-      {/* ── Pop-in Notification ── */}
-      <HotDealPopup />
+      {/* ── Put Custom Pop-in Notifications below ── */}
+      {/* <HotDealPopup /> */}
     </div>
   );
 }
