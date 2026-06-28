@@ -7,7 +7,11 @@ import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
 import CoursePricingPanel from "@/components/pricing/CoursePricingPanel";
 import prepStyles from "@/components/pricing/coursePricing.module.css";
 import freeTestStyles from "./freeTest.module.css";
-import { typesetMathJax, INACTIVE_CATEGORY_STYLE } from "@/utils/mathjax";
+import {
+  typesetMathJax,
+  ACTIVE_CATEGORY_STYLE,
+  INACTIVE_CATEGORY_STYLE,
+} from "@/utils/mathjax";
 import QuestionHtml from "./QuestionHtml";
 import type { PackagesByService } from "@/lib/package-types";
 import type { FreePracticeTestQuestion } from "@/lib/course-types";
@@ -133,11 +137,11 @@ const FreeTest: React.FC<FreeTestProps> = ({
     setMathJaxReady(true);
   }, []);
 
-  // Typeset only when review panels mount/unmount (submit/retake) — not on category switch
+  // Re-typeset when review panels or active category change (visibility hide keeps DOM intact; this covers edge cases)
   useLayoutEffect(() => {
     if (!mathJaxReady) return;
     void typesetMathJax(mathContentRef.current);
-  }, [categoryStates, mathJaxReady]);
+  }, [categoryStates, activeCategory, mathJaxReady]);
 
   // Fallback if MathJax loaded before the content ref was attached
   useLayoutEffect(() => {
@@ -456,11 +460,8 @@ const FreeTest: React.FC<FreeTestProps> = ({
                 return (
                   <div
                     key={catIdx}
-                    className={!isActive && mathJaxReady ? "d-none" : undefined}
                     style={
-                      !isActive && !mathJaxReady
-                        ? INACTIVE_CATEGORY_STYLE
-                        : undefined
+                      isActive ? ACTIVE_CATEGORY_STYLE : INACTIVE_CATEGORY_STYLE
                     }
                     aria-hidden={!isActive}
                   >

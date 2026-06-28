@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { processHtmlContent } from "@/lib/decode-html";
+import { processQuestionHtml } from "@/lib/decode-html";
 import freeTestStyles from "./freeTest.module.css";
 
 interface QuestionHtmlProps {
@@ -44,7 +44,7 @@ export default function QuestionHtml({
   html,
   className = "",
 }: QuestionHtmlProps) {
-  const processed = processHtmlContent(html || "");
+  const processed = processQuestionHtml(html || "");
   const containerRef = useRef<HTMLDivElement>(null);
   const [enlargedImage, setEnlargedImage] = useState<{
     src: string;
@@ -53,7 +53,7 @@ export default function QuestionHtml({
 
   useLayoutEffect(() => {
     decorateQuestionImages(containerRef.current);
-  });
+  }, [processed]);
 
   useEffect(() => {
     const container = containerRef.current;

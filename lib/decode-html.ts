@@ -1,4 +1,5 @@
 import he from "he";
+import { normalizeCKEditorMath } from "@/lib/normalize-math";
 
 /** Decode HTML entities for safe use in dangerouslySetInnerHTML (server or client). */
 export function decodeHtml(html: string): string {
@@ -33,4 +34,10 @@ export function stripHtmlToText(html: string): string {
 export function processHtmlContent(htmlString: string): string {
   if (!htmlString) return "";
   return decodeHtmlEntitiesDeep(htmlString);
+}
+
+/** Prepare question/option HTML for MathJax (entity decode + CKEditor math cleanup). */
+export function processQuestionHtml(htmlString: string): string {
+  if (!htmlString) return "";
+  return normalizeCKEditorMath(decodeHtmlEntitiesDeep(htmlString));
 }

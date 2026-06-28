@@ -43,7 +43,7 @@ export function typesetMathJax(element?: HTMLElement | null): Promise<void> {
   });
 }
 
-/** Used only during initial MathJax pass — hidden off-layout, not display:none. */
+/** Hide inactive categories without display:none — MathJax output breaks when toggled back from d-none. */
 export const INACTIVE_CATEGORY_STYLE: React.CSSProperties = {
   position: "absolute",
   top: 0,
@@ -51,4 +51,10 @@ export const INACTIVE_CATEGORY_STYLE: React.CSSProperties = {
   width: "100%",
   visibility: "hidden",
   pointerEvents: "none",
+};
+
+export const ACTIVE_CATEGORY_STYLE: React.CSSProperties = {
+  position: "relative",
+  visibility: "visible",
+  pointerEvents: "auto",
 };
