@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { processQuestionHtml } from "@/lib/decode-html";
 import freeTestStyles from "./freeTest.module.css";
 
@@ -51,8 +51,30 @@ export default function QuestionHtml({
     alt: string;
   } | null>(null);
 
-  useLayoutEffect(() => {
-    decorateQuestionImages(containerRef.current);
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) {
+      return;
+    }
+
+    const applyDecorations = () => {
+      decorateQuestionImages(container);
+    };
+
+    applyDecorations();
+
+    // MathJax re-typesets on category switch (see FreeTest) and replaces DOM nodes,
+    // which strips dynamically added enlarge buttons — re-apply when subtree changes.
+    const observer = new MutationObserver(() => {
+      applyDecorations();
+    });
+
+    observer.observe(container, {
+      childList: true,
+      subtree: true,
+    });
+
+    return () => observer.disconnect();
   }, [processed]);
 
   useEffect(() => {
