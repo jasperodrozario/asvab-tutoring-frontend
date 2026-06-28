@@ -44,12 +44,26 @@ export default function FreePracticeTestsContent({ courses }: Props) {
 
   return (
     <>
-      <p className={styles.intro}>
-        Prepare for your military career with our free online practice tests.
-        Choose an exam below to evaluate your knowledge — no signup required.
-      </p>
+      <div className={styles.intro}>
+        <p>
+          At ASVAB Tutoring, we offer a free practice test for every course in our catalog. Each test uses real-style
+          questions so you can gauge how prepared you are before test day.
+        </p>
+        <p>
+          Choose a course below to begin a free practice test. The test is broken down into categories that match that course&apos;s subject
+          areas. Select any category you want to test your skills on and answer each question at your own pace. Then submit when you are finished to know your score for that category.
+        </p>
+        <p>
+          Your results are broken down by category, so you can see exactly where
+          you scored well and where you need more work. Use that breakdown to
+          target your weak areas and make your study time count.
+        </p>
+        <p>
+          Prepare for your military career starting with our free online practice tests today — no signup required.
+        </p>
+      </div>
 
-      <h2 className={`h4 ${styles.sectionHeading}`}>Available Practice Tests</h2>
+      <h1 className={`${styles.sectionHeading}`}>Available Free Practice Tests</h1>
 
       <div className="d-flex flex-column gap-4">
         {courses.map((course) => {
@@ -80,9 +94,9 @@ export default function FreePracticeTestsContent({ courses }: Props) {
                 <div className="col-md-8">
                   <div className="card-body d-flex flex-column h-100 p-4">
                     <div className="d-flex flex-wrap align-items-center gap-2 mb-2">
-                      <h3 className="h5 fw-bold mb-0" style={{ color: "#002341" }}>
-                        {course.courseName}
-                      </h3>
+                      <h2 className="h5 fw-bold mb-0" style={{ color: "#002341", fontSize: "1.25rem" }}>
+                        Free {course.courseName} Practice Test
+                      </h2>
                       <span
                         className={`badge rounded-pill px-3 py-1 ${styles.sectionBadge}`}
                       >

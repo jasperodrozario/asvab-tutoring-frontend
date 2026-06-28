@@ -20,14 +20,14 @@ const SERVICE_ORDER: ServiceType[] = [
 ];
 
 const SERVICE_TAB_LABELS: Record<ServiceType, string> = {
-  "1-on-1-tutoring": "1-on-1",
-  "group-tutoring": "Group",
+  "1-on-1-tutoring": "1-on-1 Tutoring",
+  "group-tutoring": "Group Tutoring",
   "self-study": "Self-Study",
 };
 
 const SERVICE_CTA_LABELS: Record<ServiceType, string> = {
-  "1-on-1-tutoring": "View 1-on-1 Package Details",
-  "group-tutoring": "View Group Package Details",
+  "1-on-1-tutoring": "View 1-on-1 Tutoring Package Details",
+  "group-tutoring": "View Group Tutoring Package Details",
   "self-study": "View Self-Study Package Details",
 };
 

@@ -1,14 +1,24 @@
 .intro {
   color: #495057;
   font-size: 1.05rem;
-  line-height: 1.7;
+  line-height: 1.5;
   max-width: 42rem;
+  margin-bottom: 2rem;
+}
+
+.intro p:last-child {
+  margin-bottom: 0;
+}
+
+.intro p + p {
+  margin-top: 1rem;
 }
 
 .sectionHeading {
   color: #002341;
   font-weight: 700;
   margin-bottom: 1.5rem;
+  font-size: 1.65rem;
 }
 
 .courseCard {
