@@ -72,6 +72,25 @@ export interface CourseOverviewVideo {
 
 export const FREE_TEST_QUESTION_COUNT = 10;
 
+/** Collect non-empty answer choices (A–E) in order. */
+export function getQuestionOptions(
+  question: Pick<
+    FreePracticeTestQuestion,
+    "option_a" | "option_b" | "option_c" | "option_d" | "option_e"
+  >,
+): string[] {
+  return [
+    question.option_a,
+    question.option_b,
+    question.option_c,
+    question.option_d,
+    question.option_e,
+  ].filter(
+    (opt): opt is string =>
+      typeof opt === "string" && opt.trim() !== "",
+  );
+}
+
 export function hasFreeTestQuestions(
   ft_cat_list?: string[],
   ft_ques_list?: { [key: string]: FreePracticeTestQuestion[] },

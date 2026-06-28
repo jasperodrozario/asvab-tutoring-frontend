@@ -43,7 +43,7 @@ export default function RootLayout({
       >
         <ScrollToTop />
         <Navbar />
-        {children}
+        <main className="site-main">{children}</main>
         <Footer />
 
         {/* Google Analytics Implementation */}

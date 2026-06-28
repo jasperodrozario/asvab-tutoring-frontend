@@ -15,7 +15,7 @@ import {
 import QuestionHtml from "./QuestionHtml";
 import type { PackagesByService } from "@/lib/package-types";
 import type { FreePracticeTestQuestion } from "@/lib/course-types";
-import { prepareFreeTestQuestions } from "@/lib/course-types";
+import { prepareFreeTestQuestions, getQuestionOptions } from "@/lib/course-types";
 import FreeTestSidebar from "./FreeTestSidebar";
 
 const BREADCRUMB_SEGMENTS = (courseCode: string) =>
@@ -264,12 +264,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
       const correctAnswer = Number(question.answer) - 1;
       const isCorrect = userAnswer === correctAnswer;
       if (isCorrect) score++;
-      const options = [
-        question.option_a,
-        question.option_b,
-        question.option_c,
-        question.option_d,
-      ].filter((opt): opt is string => opt != null);
+      const options = getQuestionOptions(question);
       return {
         question: question.question,
         story: question.story,
@@ -430,11 +425,9 @@ const FreeTest: React.FC<FreeTestProps> = ({
             {/* Test Questions Section — all categories stay mounted to avoid re-typesetting on switch */}
             <div
               ref={mathContentRef}
-              className="position-relative"
-              style={{
-                visibility: mathJaxReady ? "visible" : "hidden",
-                overflow: mathJaxReady ? undefined : "hidden",
-              }}
+              className={`${freeTestStyles.categoryPanels} ${
+                mathJaxReady ? "" : freeTestStyles.categoryPanelsLoading
+              }`}
             >
               {ft_cat_list.map((catName, catIdx) => {
                 const catQuestions = questionsByCategory[catName] || [];
@@ -504,12 +497,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
                             </div>
 
                             {catQuestions.map((q, qIdx) => {
-                              const options = [
-                                q.option_a,
-                                q.option_b,
-                                q.option_c,
-                                q.option_d,
-                              ].filter((opt): opt is string => opt != null);
+                              const options = getQuestionOptions(q);
 
                               const isAnswered =
                                 userAnswers[`${catIdx}-${qIdx}`] !== undefined;

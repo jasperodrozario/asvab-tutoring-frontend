@@ -72,6 +72,16 @@
   color: #fff;
 }
 
+/* Keeps inactive (absolute) category panels from extending page scroll height. */
+.categoryPanels {
+  position: relative;
+  overflow: hidden;
+}
+
+.categoryPanelsLoading {
+  visibility: hidden;
+}
+
 .storyPassage img {
   max-width: 100%;
   height: auto;

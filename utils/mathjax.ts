@@ -51,6 +51,7 @@ export const INACTIVE_CATEGORY_STYLE: React.CSSProperties = {
   width: "100%",
   visibility: "hidden",
   pointerEvents: "none",
+  overflow: "hidden",
 };
 
 export const ACTIVE_CATEGORY_STYLE: React.CSSProperties = {
