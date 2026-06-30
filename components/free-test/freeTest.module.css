@@ -96,6 +96,17 @@
   margin-bottom: 0;
 }
 
+/* Review panel: keep "A." and answer value on the same row */
+.resultOptionHtml {
+  flex: 1;
+  min-width: 0;
+}
+
+.resultOptionHtml p {
+  display: inline;
+  margin: 0;
+}
+
 :global(.questionImageEnlargeWrap) {
   position: relative;
   display: inline-block;

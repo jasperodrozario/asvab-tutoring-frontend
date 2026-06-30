@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+  memo,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { processQuestionHtml } from "@/lib/decode-html";
 import freeTestStyles from "./freeTest.module.css";
 
@@ -11,6 +18,7 @@ interface QuestionHtmlProps {
 
 const IMAGE_WRAP_CLASS = "questionImageEnlargeWrap";
 const IMAGE_BUTTON_CLASS = "questionImageEnlargeBtn";
+const CONTENT_ATTR = "data-question-html";
 
 function decorateQuestionImages(container: HTMLDivElement | null) {
   if (!container) {
@@ -39,21 +47,40 @@ function decorateQuestionImages(container: HTMLDivElement | null) {
   });
 }
 
-/** Renders API question/option HTML (images, math spans, paragraphs). */
-export default function QuestionHtml({
-  html,
-  className = "",
-}: QuestionHtmlProps) {
-  const processed = processQuestionHtml(html || "");
+/**
+ * Renders API question/option HTML (images, math spans, paragraphs).
+ * Uses a ref for HTML injection so parent re-renders (e.g. option selection)
+ * do not reset MathJax output via dangerouslySetInnerHTML reconciliation.
+ */
+function QuestionHtml({ html, className = "" }: QuestionHtmlProps) {
+  const processed = useMemo(() => processQuestionHtml(html || ""), [html]);
   const containerRef = useRef<HTMLDivElement>(null);
   const [enlargedImage, setEnlargedImage] = useState<{
     src: string;
     alt: string;
   } | null>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const container = containerRef.current;
     if (!container) {
+      return;
+    }
+
+    if (!processed.trim()) {
+      container.innerHTML = "";
+      container.removeAttribute(CONTENT_ATTR);
+      return;
+    }
+
+    if (container.getAttribute(CONTENT_ATTR) !== processed) {
+      container.innerHTML = processed;
+      container.setAttribute(CONTENT_ATTR, processed);
+    }
+  }, [processed]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || !processed.trim()) {
       return;
     }
 
@@ -142,7 +169,6 @@ export default function QuestionHtml({
       <div
         ref={containerRef}
         className={`${freeTestStyles.questionHtml} ${className}`.trim()}
-        dangerouslySetInnerHTML={{ __html: processed }}
       />
 
       {enlargedImage ? (
@@ -172,3 +198,8 @@ export default function QuestionHtml({
     </>
   );
 }
+
+export default memo(
+  QuestionHtml,
+  (prev, next) => prev.html === next.html && prev.className === next.className,
+);
