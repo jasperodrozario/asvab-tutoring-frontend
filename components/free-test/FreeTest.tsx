@@ -23,9 +23,22 @@ const BREADCRUMB_SEGMENTS = (courseCode: string) =>
 
 const BREADCRUMB_TITLE = "Free Practice Test";
 
-function ShowAllFreeTestsLink() {
+/** Pixels between the results action bar and the viewport bottom after submit. Increase to scroll higher. */
+const POST_SUBMIT_SCROLL_BOTTOM_PADDING = 18;
+
+/** Pixels below the "Show all Free Tests" row when using the Top button. Increase to scroll lower. */
+const TOP_SCROLL_BELOW_SHOW_ALL_PADDING = -120;
+
+function ShowAllFreeTestsLink({
+  anchorRef,
+}: {
+  anchorRef?: React.Ref<HTMLDivElement>;
+}) {
   return (
-    <div className={`container ${freeTestStyles.showAllTestsWrap}`}>
+    <div
+      ref={anchorRef}
+      className={`container ${freeTestStyles.showAllTestsWrap}`}
+    >
       <Link
         href="/free-practice-tests"
         className={`btn btn-secondary-custom px-4 py-2 fw-semibold d-inline-flex align-items-center gap-2 ${freeTestStyles.showAllTestsBtn}`}
@@ -129,6 +142,25 @@ const FreeTest: React.FC<FreeTestProps> = ({
   >({});
   const [mathJaxReady, setMathJaxReady] = useState(false);
   const mathContentRef = useRef<HTMLDivElement>(null);
+  const resultsActionsRef = useRef<HTMLDivElement>(null);
+  const showAllTestsRef = useRef<HTMLDivElement>(null);
+  const shouldScrollToResultsRef = useRef(false);
+
+  const scrollToTestTop = useCallback(() => {
+    const el = showAllTestsRef.current;
+    if (!el) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    const rect = el.getBoundingClientRect();
+    const targetTop =
+      window.scrollY + rect.bottom + TOP_SCROLL_BELOW_SHOW_ALL_PADDING;
+    window.scrollTo({
+      top: Math.max(0, targetTop),
+      behavior: "smooth",
+    });
+  }, []);
 
   const runTypeset = useCallback(async () => {
     // Wait for React to commit question DOM before typesetting
@@ -152,6 +184,37 @@ const FreeTest: React.FC<FreeTestProps> = ({
       setMathJaxReady(true);
     })();
   }, [mathJaxReady, ft_cat_list]);
+
+  useLayoutEffect(() => {
+    const catState = categoryStates[activeCategory];
+    const submitted = catState?.submitted ?? false;
+    const results = catState?.results ?? null;
+
+    if (!shouldScrollToResultsRef.current || !submitted || !results) {
+      return;
+    }
+    shouldScrollToResultsRef.current = false;
+
+    const scrollToResultsActions = () => {
+      const el = resultsActionsRef.current;
+      if (!el) return;
+
+      const rect = el.getBoundingClientRect();
+      const targetTop =
+        window.scrollY +
+        rect.bottom -
+        window.innerHeight +
+        POST_SUBMIT_SCROLL_BOTTOM_PADDING;
+      window.scrollTo({
+        top: Math.max(0, targetTop),
+        behavior: "smooth",
+      });
+    };
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(scrollToResultsActions);
+    });
+  }, [categoryStates, activeCategory]);
 
   if (!ft_cat_list || !ft_ques_list || ft_cat_list.length === 0) {
     return (
@@ -289,6 +352,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
         },
       },
     }));
+    shouldScrollToResultsRef.current = true;
   };
 
   const retakeTest = (): void => {
@@ -303,7 +367,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
       });
       return next;
     });
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    scrollToTestTop();
   };
 
   const getAnsweredCount = (catIdx: number, catQuestions: Question[]) =>
@@ -383,7 +447,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
         </div>
       </div>
 
-      <ShowAllFreeTestsLink />
+      <ShowAllFreeTestsLink anchorRef={showAllTestsRef} />
 
       <div className="container">
         <div className="row g-4">
@@ -601,7 +665,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
                                 }}
                                 disabled={catAnsweredCount === 0}
                               >
-                                Submit Practice Test
+                                Submit {catName}
                               </button>
                             </div>
                           </>
@@ -721,11 +785,18 @@ const FreeTest: React.FC<FreeTestProps> = ({
                                             borderColor: borderCol,
                                           }}
                                         >
-                                          <span className={`flex-grow-1 ${textCol}`}>
-                                            <span className="me-2 text-muted">
+                                          <span
+                                            className={`flex-grow-1 d-flex align-items-center gap-2 ${textCol}`}
+                                          >
+                                            <span className="text-muted flex-shrink-0">
                                               {String.fromCharCode(65 + oIdx)}.
                                             </span>
-                                            <QuestionHtml html={opt} />
+                                            <QuestionHtml
+                                              html={opt}
+                                              className={
+                                                freeTestStyles.resultOptionHtml
+                                              }
+                                            />
                                           </span>
                                           {icon}
                                         </div>
@@ -737,7 +808,14 @@ const FreeTest: React.FC<FreeTestProps> = ({
                             </div>
                           ))}
 
-                          <div className="text-center my-5 d-flex justify-content-center align-items-center gap-3 flex-wrap">
+                          <div
+                            ref={
+                              isActive && catSubmitted
+                                ? resultsActionsRef
+                                : undefined
+                            }
+                            className="text-center my-5 d-flex justify-content-center align-items-center gap-3 flex-wrap"
+                          >
                             <button
                               onClick={retakeTest}
                               className="btn btn-outline-secondary px-4 py-3 fw-bold"
@@ -760,12 +838,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
                             </Link>
 
                             <button
-                              onClick={() => {
-                                window.scrollTo({
-                                  top: 0,
-                                  behavior: "smooth",
-                                });
-                              }}
+                              onClick={scrollToTestTop}
                               className="btn btn-light px-4 py-3 fw-semibold border"
                               style={{ borderRadius: "30px" }}
                               title="Go to Top"
