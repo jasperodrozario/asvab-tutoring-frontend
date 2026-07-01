@@ -14,6 +14,7 @@ export interface FreePracticeTestQuestion {
   story?: string | null;
   story_title?: string | null;
   q_no?: number;
+  order_no?: number | string | null;
 }
 
 export interface FreePracticeTestData {
@@ -101,6 +102,84 @@ export function shuffleArray<T>(items: readonly T[]): T[] {
   return arr;
 }
 
+/** True when the API assigned an explicit question order for this category. */
+export function hasQuestionOrderNo(
+  question: Pick<FreePracticeTestQuestion, "order_no">,
+): boolean {
+  const { order_no } = question;
+  if (order_no == null) return false;
+  if (typeof order_no === "string" && order_no.trim() === "") return false;
+  return true;
+}
+
+export function categoryHasFixedQuestionOrder<
+  T extends Pick<FreePracticeTestQuestion, "order_no">,
+>(questions: readonly T[]): boolean {
+  return questions.some(hasQuestionOrderNo);
+}
+
+function sortQuestionsByOrderNo<T extends FreePracticeTestQuestion>(
+  questions: readonly T[],
+): T[] {
+  return [...questions].sort((a, b) => {
+    const aOrder = Number(a.order_no);
+    const bOrder = Number(b.order_no);
+    if (Number.isNaN(aOrder) || Number.isNaN(bOrder)) return 0;
+    return aOrder - bOrder;
+  });
+}
+
+function limitQuestions<T>(
+  questions: readonly T[],
+  limit: number,
+  shuffle: boolean,
+): T[] {
+  const pool = shuffle ? shuffleArray(questions) : [...questions];
+  return pool.length > limit ? pool.slice(0, limit) : pool;
+}
+
+export function prepareQuestionWithOrderedOptions<
+  T extends FreePracticeTestQuestion,
+>(question: T): PreparedTestQuestion<T> {
+  const options = getQuestionOptions(question);
+  const correctAnswerIndex = Number(question.answer) - 1;
+
+  return {
+    question,
+    options,
+    correctAnswerIndex: correctAnswerIndex >= 0 ? correctAnswerIndex : 0,
+  };
+}
+
+function prepareQuestionsForCategory<
+  T extends FreePracticeTestQuestion,
+>(
+  questions: readonly T[],
+  {
+    limit,
+    shuffleQuestions,
+    shuffleOptions,
+  }: {
+    limit?: number;
+    shuffleQuestions: boolean;
+    shuffleOptions: boolean;
+  },
+): PreparedTestQuestion<T>[] {
+  const orderedQuestions = shuffleQuestions
+    ? questions
+    : sortQuestionsByOrderNo(questions);
+  const selected =
+    limit != null
+      ? limitQuestions(orderedQuestions, limit, shuffleQuestions)
+      : shuffleQuestions
+        ? shuffleArray(orderedQuestions)
+        : orderedQuestions;
+
+  return shuffleOptions
+    ? prepareQuestionsWithShuffledOptions(selected)
+    : selected.map(prepareQuestionWithOrderedOptions);
+}
+
 /** Question with shuffled answer choices and remapped correct index. */
 export interface PreparedTestQuestion<
   T extends FreePracticeTestQuestion = FreePracticeTestQuestion,
@@ -173,12 +252,18 @@ export function shuffleQuestionsByCategory<
   limit: number = FREE_TEST_QUESTION_COUNT,
 ): Record<string, PreparedTestQuestion<T>[]> {
   return Object.fromEntries(
-    categories.map((cat) => [
-      cat,
-      prepareQuestionsWithShuffledOptions(
-        shuffleAndLimitQuestions(questionsByCategory[cat] ?? [], limit),
-      ),
-    ]),
+    categories.map((cat) => {
+      const questions = questionsByCategory[cat] ?? [];
+      const fixedOrder = categoryHasFixedQuestionOrder(questions);
+      return [
+        cat,
+        prepareQuestionsForCategory(questions, {
+          limit,
+          shuffleQuestions: !fixedOrder,
+          shuffleOptions: !fixedOrder,
+        }),
+      ];
+    }),
   );
 }
 
@@ -189,9 +274,12 @@ export function shuffleAndLimitPreparedQuestions<
   questions: readonly T[],
   limit: number = FREE_TEST_QUESTION_COUNT,
 ): PreparedTestQuestion<T>[] {
-  return prepareQuestionsWithShuffledOptions(
-    shuffleAndLimitQuestions(questions, limit),
-  );
+  const fixedOrder = categoryHasFixedQuestionOrder(questions);
+  return prepareQuestionsForCategory(questions, {
+    limit,
+    shuffleQuestions: !fixedOrder,
+    shuffleOptions: !fixedOrder,
+  });
 }
 
 /** Shuffle all questions per category without capping the count. */
@@ -202,12 +290,17 @@ export function shuffleAllQuestionsByCategory<
   questionsByCategory: Record<string, readonly T[]>,
 ): Record<string, PreparedTestQuestion<T>[]> {
   return Object.fromEntries(
-    categories.map((cat) => [
-      cat,
-      prepareQuestionsWithShuffledOptions(
-        shuffleArray(questionsByCategory[cat] ?? []),
-      ),
-    ]),
+    categories.map((cat) => {
+      const questions = questionsByCategory[cat] ?? [];
+      const fixedOrder = categoryHasFixedQuestionOrder(questions);
+      return [
+        cat,
+        prepareQuestionsForCategory(questions, {
+          shuffleQuestions: !fixedOrder,
+          shuffleOptions: !fixedOrder,
+        }),
+      ];
+    }),
   );
 }
 
