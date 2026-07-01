@@ -7,7 +7,9 @@ import {
   fetchCourseDetailsByCode,
   fetchCourseOverviewVideoByCode,
   fetchAllPackageDetailsForCourse,
+  fetchFreePredTestByCode,
 } from "@/lib/php-api";
+import { isFreePredTestReady } from "@/lib/prediction-test-types";
 
 export const revalidate = 3600;
 
@@ -31,13 +33,19 @@ export default async function Page({
     notFound();
   }
 
-  const [courseData, packagesByService] = await Promise.all([
+  const [courseData, packagesByService, predTestData] = await Promise.all([
     fetchCourseDetailsByCode(course_code),
     fetchAllPackageDetailsForCourse(course_code),
+    fetchFreePredTestByCode(course_code),
   ]);
 
   const courseOverviewVideoData =
     await fetchCourseOverviewVideoByCode(course_code);
+
+  const hasFreePredTest = isFreePredTestReady(
+    predTestData?.data?.categories,
+    predTestData?.data?.questions,
+  );
 
   if (!courseData) {
     notFound();
@@ -50,6 +58,7 @@ export default async function Page({
       courseOverviewVideoData={courseOverviewVideoData}
       packagesByService={packagesByService}
       breadcrumbSegments={["courses", course_code]}
+      hasFreePredTest={hasFreePredTest}
     />
   );
 }

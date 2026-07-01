@@ -4,6 +4,7 @@ import {
   getCourseKeywords,
   getFaqKeywords,
   getFreePracticeTestsKeywords,
+  getFreePredictionTestsKeywords,
   getHomeKeywords,
   getMobileAppsKeywords,
   getPricingKeywords,
@@ -85,6 +86,12 @@ export const FREE_PRACTICE_TESTS_SEO: PageSeo = {
     "Take free online practice tests for the U.S. Army, Navy, and Marine Corps. Assess your skills, prepare for military exams, and boost your confidence.",
 };
 
+export const FREE_PREDICTION_TESTS_SEO: PageSeo = {
+  title: "Free Online Prediction Tests for US Army, Air Force | ASVAB Tutoring",
+  description:
+    "Take free online prediction tests for military entrance exams. Estimate your ASVAB AFQT, AFOQT, and other scores before test day — no signup required.",
+};
+
 export const COURSE_SEO: Record<string, PageSeo> = {
   asvab: {
     title: "ASVAB Test Prep | ASVAB Math Prep | ASVAB Test Help",
@@ -145,6 +152,40 @@ export const FREE_PRACTICE_TEST_FALLBACK_SEO: PageSeo = {
   title: "Free Practice Test | ASVAB Tutoring",
   description:
     "Take our free online practice test. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.",
+};
+
+export const FREE_PREDICTION_TEST_SEO: Record<string, PageSeo> = {
+  asvab: {
+    title: "Free ASVAB AFQT Prediction Test Online 2026 | ASVAB Tutoring",
+    description:
+      "Prepare for ASVAB, AFOQT, SIFT, ASTB, and OAR with free online prediction tests — no signup required.",
+  },
+  afoqt: {
+    title: "Free AFOQT Prediction Test Online 2026 | ASVAB Tutoring",
+    description:
+      "Take our free online AFOQT prediction test. Complete every section to see your predicted exam score and personalized feedback.",
+  },
+  sift: {
+    title: "Free SIFT Prediction Test Online 2026 | ASVAB Tutoring",
+    description:
+      "Take our free online SIFT prediction test. Estimate your score with realistic questions across every test section.",
+  },
+  oar: {
+    title: "Free OAR Prediction Test Online 2026 | ASVAB Tutoring",
+    description:
+      "Take our free online OAR prediction test. Complete all sections to receive your predicted score and section results.",
+  },
+  astb: {
+    title: "Free ASTB Prediction Test Online 2026 | ASVAB Tutoring",
+    description:
+      "Take our free online ASTB prediction test. Answer every section to view your predicted score and detailed breakdown.",
+  },
+};
+
+export const FREE_PREDICTION_TEST_FALLBACK_SEO: PageSeo = {
+  title: "Free Prediction Test | ASVAB Tutoring",
+  description:
+    "Take our free online prediction test. Complete all sections to receive your predicted exam score and personalized feedback.",
 };
 
 export const COURSE_FALLBACK_SEO: PageSeo = {
@@ -292,6 +333,14 @@ export function freePracticeTestsMetadata(): Metadata {
   });
 }
 
+export function freePredictionTestsMetadata(): Metadata {
+  return buildPageMetadata({
+    ...FREE_PREDICTION_TESTS_SEO,
+    path: "/free-prediction-tests",
+    keywords: getFreePredictionTestsKeywords(),
+  });
+}
+
 export function sitemapMetadata(): Metadata {
   return buildPageMetadata({ ...SITEMAP_SEO, path: "/sitemap" });
 }
@@ -358,6 +407,19 @@ export function freePracticeTestMetadata(courseCode: string): Metadata {
     ...meta,
     path,
     keywords: getCourseKeywords(courseCode, "free-practice-test"),
+  });
+}
+
+export function freePredictionTestMetadata(courseCode: string): Metadata {
+  const meta =
+    FREE_PREDICTION_TEST_SEO[courseCode.toLowerCase()] ??
+    FREE_PREDICTION_TEST_FALLBACK_SEO;
+  const path = `/courses/${courseCode.toLowerCase()}/free-prediction-test`;
+
+  return buildPageMetadata({
+    ...meta,
+    path,
+    keywords: getCourseKeywords(courseCode, "free-prediction-test"),
   });
 }
 

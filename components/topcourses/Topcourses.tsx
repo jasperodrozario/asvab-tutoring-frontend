@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import PredictionTestLinkButton from "@/components/prediction-test/PredictionTestLinkButton";
+import { ALL_FREE_PREDICTION_TESTS_HREF } from "@/lib/prediction-test-links";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Autoplay } from "swiper/modules";
 import "swiper/css";
@@ -299,13 +301,17 @@ export default function TopCourses() {
         </div>
 
         {!loading && !error && (
-          <div className="text-center mt-3">
+          <div className="text-center mt-3 d-flex flex-wrap justify-content-center gap-3">
             <Link
               href="/free-practice-tests"
-              className="btn btn-primary-custom px-4 py-2"
+              className="btn btn-primary-custom px-4 py-2 fw-semibold d-inline-flex align-items-center gap-2"
             >
+              <i className="bi bi-clipboard-check" aria-hidden />
               Take Our Free Practice Tests
             </Link>
+            <PredictionTestLinkButton href={ALL_FREE_PREDICTION_TESTS_HREF}>
+              Take Our Free Prediction Tests
+            </PredictionTestLinkButton>
           </div>
         )}
       </div>

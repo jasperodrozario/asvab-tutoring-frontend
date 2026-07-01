@@ -3,6 +3,8 @@ import type {
   FreePracticeTestResponse,
 } from "@/lib/course-types";
 import { isFreeTestReady } from "@/lib/course-types";
+import type { FreePredTestResponse } from "@/lib/prediction-test-types";
+import { isFreePredTestReady } from "@/lib/prediction-test-types";
 import type {
   PackageDetailsData,
   PackagesByService,
@@ -121,6 +123,8 @@ export type FreePracticeTestCourse = {
   sectionCount: number;
   sectionNames: string[];
 };
+
+export type FreePredTestCourse = FreePracticeTestCourse;
 
 function getPhpApiUrl(): string | undefined {
   return process.env.PHP_API_URL || process.env.NEXT_PUBLIC_PHP_API_URL;
@@ -475,3 +479,48 @@ export async function fetchFreePracticeTestCatalog(): Promise<
 
   return entries.filter((entry): entry is FreePracticeTestCourse => entry !== null);
 }
+
+export async function fetchFreePredTestByCode(
+  courseCode: string,
+): Promise<FreePredTestResponse | null> {
+  const result = await postPhpApi<FreePredTestResponse>(
+    "get-free-pred-test-by-code",
+    { course_code: courseCode.replace(/-tutor$/, "").toLowerCase() },
+  );
+
+  if (!result || result.status !== 200 || !result.isSuccess || !result.data) {
+    return null;
+  }
+
+  return result;
+}
+
+export async function fetchFreePredTestCatalog(): Promise<FreePredTestCourse[]> {
+  const courses = await fetchAllCourses();
+
+  const entries = await Promise.all(
+    courses.map(async (course) => {
+      const predTest = await fetchFreePredTestByCode(course.course_code);
+      const categories = predTest?.data?.categories;
+      const questions = predTest?.data?.questions;
+
+      if (!isFreePredTestReady(categories, questions) || !categories) {
+        return null;
+      }
+
+      const entry: FreePredTestCourse = {
+        courseCode: course.course_code,
+        courseName: predTest?.course_name || course.name,
+        fullForm: course.full_form || predTest?.full_form,
+        imageSrc: course.image_src,
+        sectionCount: categories.length,
+        sectionNames: categories,
+      };
+
+      return entry;
+    }),
+  );
+
+  return entries.filter((entry): entry is FreePredTestCourse => entry !== null);
+}
+

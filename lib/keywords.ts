@@ -10,7 +10,8 @@ export type KeywordGroupName =
   | "app"
   | "questionBased"
   | "buyerIntent"
-  | "practiceTest";
+  | "practiceTest"
+  | "predictionTest";
 
 export type KeywordGroups = Record<KeywordGroupName, readonly string[]>;
 
@@ -43,6 +44,11 @@ export const COURSE_KEYWORDS: Record<CourseCode, KeywordGroups> = {
       "Army ASVAB practice test",
       "Marine Corps ASVAB practice test",
     ],
+    predictionTest: [
+      "free ASVAB prediction test",
+      "AFQT prediction test",
+      "ASVAB score prediction",
+    ],
   },
   afoqt: {
     main: ["AFOQT tutoring"],
@@ -55,6 +61,11 @@ export const COURSE_KEYWORDS: Record<CourseCode, KeywordGroups> = {
       "free AFOQT practice test",
       "AFOQT practice test online",
       "Air Force AFOQT practice test",
+    ],
+    predictionTest: [
+      "free AFOQT prediction test",
+      "AFOQT score prediction",
+      "Air Force AFOQT prediction test",
     ],
   },
   sift: {
@@ -69,6 +80,7 @@ export const COURSE_KEYWORDS: Record<CourseCode, KeywordGroups> = {
       "SIFT practice test online",
       "Army SIFT practice test",
     ],
+    predictionTest: ["free SIFT prediction test"],
   },
   astb: {
     main: ["ASTB tutoring"],
@@ -82,6 +94,7 @@ export const COURSE_KEYWORDS: Record<CourseCode, KeywordGroups> = {
       "ASTB practice test online",
       "Navy ASTB practice test",
     ],
+    predictionTest: ["free ASTB prediction test"],
   },
   oar: {
     main: ["OAR tutoring"],
@@ -95,6 +108,7 @@ export const COURSE_KEYWORDS: Record<CourseCode, KeywordGroups> = {
       "OAR practice test online",
       "Navy OAR practice test",
     ],
+    predictionTest: ["free OAR prediction test"],
   },
 };
 
@@ -110,6 +124,8 @@ export const PAGE_KEYWORD_GROUPS = {
   "mobile-apps": ["app"],
   "free-practice-tests": ["practiceTest"],
   "free-practice-test": ["practiceTest"],
+  "free-prediction-tests": ["predictionTest"],
+  "free-prediction-test": ["predictionTest"],
   faq: ["questionBased", "longTail"],
   blog: ["longTail", "questionBased"],
 } as const satisfies Record<string, readonly KeywordGroupName[]>;
@@ -119,6 +135,12 @@ const SHARED_FREE_PRACTICE_TESTS_KEYWORDS = [
   "free online practice tests",
   "free military practice test",
   "military entrance exam practice test",
+] as const;
+
+const SHARED_FREE_PREDICTION_TESTS_KEYWORDS = [
+  "free online prediction tests",
+  "free military prediction test",
+  "military entrance exam prediction test",
 ] as const;
 
 export type PageKeywordTarget = keyof typeof PAGE_KEYWORD_GROUPS;
@@ -191,6 +213,18 @@ export function getFreePracticeTestsKeywords(): string[] {
   ];
 }
 
+/** Free prediction tests index: shared + per-exam prediction-test keywords. */
+export function getFreePredictionTestsKeywords(): string[] {
+  return [
+    ...new Set([
+      ...SHARED_FREE_PREDICTION_TESTS_KEYWORDS,
+      ...COURSE_CODES.flatMap((code) =>
+        getCourseKeywords(code, "free-prediction-tests"),
+      ),
+    ]),
+  ];
+}
+
 /** FAQ: question-based + long-tail topics across exams. */
 export function getFaqKeywords(): string[] {
   return [
@@ -255,6 +289,8 @@ export function getPageKeywords(options: {
       return getMobileAppsKeywords();
     case "free-practice-tests":
       return getFreePracticeTestsKeywords();
+    case "free-prediction-tests":
+      return getFreePredictionTestsKeywords();
     case "faq":
       return getFaqKeywords();
     case "blog":
@@ -262,6 +298,7 @@ export function getPageKeywords(options: {
     case "course":
     case "online-course":
     case "free-practice-test":
+    case "free-prediction-test":
     case "package-1-on-1":
     case "package-group":
     case "pricing":

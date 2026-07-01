@@ -6,7 +6,9 @@ import { freePracticeTestMetadata } from "@/lib/page-metadata";
 import {
   fetchAllPackageDetailsForCourse,
   fetchFreePracticeTestByCode,
+  fetchFreePredTestByCode,
 } from "@/lib/php-api";
+import { isFreePredTestReady } from "@/lib/prediction-test-types";
 
 export const revalidate = 3600;
 
@@ -30,10 +32,16 @@ export default async function Page({
     notFound();
   }
 
-  const [freeTestData, packagesByService] = await Promise.all([
+  const [freeTestData, packagesByService, predTestData] = await Promise.all([
     fetchFreePracticeTestByCode(course_code),
     fetchAllPackageDetailsForCourse(course_code),
+    fetchFreePredTestByCode(course_code),
   ]);
+
+  const hasFreePredTest = isFreePredTestReady(
+    predTestData?.data?.categories,
+    predTestData?.data?.questions,
+  );
 
   if (!freeTestData?.data) {
     notFound();
@@ -46,6 +54,7 @@ export default async function Page({
       ft_cat_list={freeTestData.data.categories}
       ft_ques_list={freeTestData.data.questions}
       packagesByService={packagesByService}
+      hasFreePredTest={hasFreePredTest}
     />
   );
 }

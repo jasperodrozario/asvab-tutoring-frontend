@@ -72,6 +72,32 @@
   color: #fff;
 }
 
+.predictionPromoBtn {
+  border: none;
+  border-radius: 999px;
+  color: #002341 !important;
+  background: linear-gradient(135deg, #ffe8b8 0%, #ffc56d 42%, #e58a34 100%);
+  box-shadow: none;
+  transition:
+    transform 0.15s ease,
+    filter 0.15s ease;
+}
+
+.predictionPromoBtn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+  box-shadow: none;
+  color: #002341 !important;
+}
+
+.predictionPromoBtn:focus,
+.predictionPromoBtn:active {
+  border: none;
+  box-shadow: none;
+  outline: none;
+  color: #002341 !important;
+}
+
 /* Keeps inactive (absolute) category panels from extending page scroll height. */
 .categoryPanels {
   position: relative;
@@ -198,4 +224,8 @@
 
 .imageLightboxClose:hover {
   background-color: rgba(255, 255, 255, 0.28);
+}
+
+.resultsScrollTarget {
+  scroll-margin-top: 1rem;
 }

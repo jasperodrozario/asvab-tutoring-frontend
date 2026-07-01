@@ -23,8 +23,14 @@ const BREADCRUMB_SEGMENTS = (courseCode: string) =>
 
 const BREADCRUMB_TITLE = "Free Practice Test";
 
-/** Pixels between the results action bar and the viewport bottom after submit. Increase to scroll higher. */
+/** Pixels between the results action bar and the viewport bottom after submit on desktop. Increase to scroll higher. */
 const POST_SUBMIT_SCROLL_BOTTOM_PADDING = 18;
+
+/** Bootstrap lg breakpoint — sidebar stacks below main content below this width. */
+const MOBILE_MAX_WIDTH_PX = 991.98;
+
+/** Pixels above the results sidebar when auto-scrolling after submit on mobile. */
+const POST_SUBMIT_RESULTS_SCROLL_TOP_PADDING = 120;
 
 /** Pixels below the "Show all Free Tests" row when using the Top button. Increase to scroll lower. */
 const TOP_SCROLL_BELOW_SHOW_ALL_PADDING = -120;
@@ -126,6 +132,7 @@ interface FreeTestProps {
   ft_cat_list?: string[];
   ft_ques_list?: { [key: string]: Question[] };
   packagesByService?: PackagesByService;
+  hasFreePredTest?: boolean;
 }
 
 const FreeTest: React.FC<FreeTestProps> = ({
@@ -134,6 +141,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
   ft_cat_list,
   ft_ques_list,
   packagesByService,
+  hasFreePredTest = false,
 }) => {
   const [activeCategory, setActiveCategory] = useState<number>(0);
   const [userAnswers, setUserAnswers] = useState<UserAnswers>({});
@@ -143,6 +151,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
   const [mathJaxReady, setMathJaxReady] = useState(false);
   const mathContentRef = useRef<HTMLDivElement>(null);
   const resultsActionsRef = useRef<HTMLDivElement>(null);
+  const resultsSectionRef = useRef<HTMLDivElement>(null);
   const showAllTestsRef = useRef<HTMLDivElement>(null);
   const shouldScrollToResultsRef = useRef(false);
 
@@ -161,6 +170,47 @@ const FreeTest: React.FC<FreeTestProps> = ({
       behavior: "smooth",
     });
   }, []);
+
+  const scrollToResultsSection = useCallback(() => {
+    const el = resultsSectionRef.current;
+    if (!el) return;
+
+    const rect = el.getBoundingClientRect();
+    const targetTop =
+      window.scrollY + rect.top - POST_SUBMIT_RESULTS_SCROLL_TOP_PADDING;
+    window.scrollTo({
+      top: Math.max(0, targetTop),
+      behavior: "smooth",
+    });
+  }, []);
+
+  const scrollToResultsActions = useCallback(() => {
+    const el = resultsActionsRef.current;
+    if (!el) return;
+
+    const rect = el.getBoundingClientRect();
+    const targetTop =
+      window.scrollY +
+      rect.bottom -
+      window.innerHeight +
+      POST_SUBMIT_SCROLL_BOTTOM_PADDING;
+    window.scrollTo({
+      top: Math.max(0, targetTop),
+      behavior: "smooth",
+    });
+  }, []);
+
+  const scrollAfterSubmit = useCallback(() => {
+    const isMobile = window.matchMedia(
+      `(max-width: ${MOBILE_MAX_WIDTH_PX}px)`,
+    ).matches;
+
+    if (isMobile) {
+      scrollToResultsSection();
+    } else {
+      scrollToResultsActions();
+    }
+  }, [scrollToResultsSection, scrollToResultsActions]);
 
   const runTypeset = useCallback(async () => {
     // Wait for React to commit question DOM before typesetting
@@ -195,26 +245,12 @@ const FreeTest: React.FC<FreeTestProps> = ({
     }
     shouldScrollToResultsRef.current = false;
 
-    const scrollToResultsActions = () => {
-      const el = resultsActionsRef.current;
-      if (!el) return;
-
-      const rect = el.getBoundingClientRect();
-      const targetTop =
-        window.scrollY +
-        rect.bottom -
-        window.innerHeight +
-        POST_SUBMIT_SCROLL_BOTTOM_PADDING;
-      window.scrollTo({
-        top: Math.max(0, targetTop),
-        behavior: "smooth",
-      });
-    };
-
     requestAnimationFrame(() => {
-      requestAnimationFrame(scrollToResultsActions);
+      requestAnimationFrame(() => {
+        scrollAfterSubmit();
+      });
     });
-  }, [categoryStates, activeCategory]);
+  }, [categoryStates, activeCategory, scrollAfterSubmit]);
 
   if (!ft_cat_list || !ft_ques_list || ft_cat_list.length === 0) {
     return (
@@ -424,7 +460,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
     : "Explore Prep Options";
   const prepIntroText = hasSubmittedResults
     ? `${feedback.message} Our ${courseName || "exam"} courses are designed to turn practice into progress—choose a plan below and let our instructors help you close the gaps before test day.`
-    : `Your practice test is a starting point. Our ${courseName || "exam"} courses build on it with structured lessons, expert guidance, and proven strategies to help you raise your score and walk in prepared on test day.`;
+    : `Your practice test is a starting point. Our ${courseName || "exam"} courses build on it with structured lessons, expert guidance, homeworks, practice tests, video tutorials/video lessons, full unlimited real-world prediction tests and proven strategies to help you raise your score and walk in prepared on test day.`;
 
   return (
     <>
@@ -464,7 +500,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
                   {ft_cat_list.map((cat, idx) => (
                     <li key={idx} className="nav-item">
                       <button
-                        className={`nav-link px-4 py-2 fw-medium transition-all ${
+                        className={`nav-link px-4 py-2 fw-semibold transition-all ${
                           activeCategory === idx ? "active shadow-sm" : ""
                         }`}
                         onClick={() => setActiveCategory(idx)}
@@ -854,7 +890,10 @@ const FreeTest: React.FC<FreeTestProps> = ({
             </div>
           </div>
 
-          <div className="col-lg-4 align-self-start">
+          <div
+            ref={resultsSectionRef}
+            className={`col-lg-4 align-self-start ${freeTestStyles.resultsScrollTarget}`}
+          >
             <FreeTestSidebar
               activeCategoryName={activeCategoryName}
               testSubmitted={testSubmitted}
@@ -863,6 +902,9 @@ const FreeTest: React.FC<FreeTestProps> = ({
               answeredCount={answeredCount}
               totalQuestions={totalQuestions}
               progressPercentage={progressPercentage}
+              courseCode={courseCode}
+              courseName={courseName}
+              hasFreePredTest={hasFreePredTest}
             />
             {packagesByService && (
               <div className={`mt-4 ${prepStyles.prepStack}`}>
@@ -886,6 +928,22 @@ const FreeTest: React.FC<FreeTestProps> = ({
                     <li>
                       <i className="bi bi-check-circle-fill" />
                       Proven score improvement
+                    </li>
+                    <li>
+                      <i className="bi bi-check-circle-fill" />
+                      Homeworks
+                    </li>
+                    <li>
+                      <i className="bi bi-check-circle-fill" />
+                      Practice Tests
+                    </li>
+                    <li>
+                      <i className="bi bi-check-circle-fill" />
+                      Video Tutorials/Video Lessons
+                    </li>
+                    <li>
+                      <i className="bi bi-check-circle-fill" />
+                      Full unlimited real-world prediction tests
                     </li>
                   </ul>
                 </div>

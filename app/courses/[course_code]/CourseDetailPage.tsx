@@ -1,17 +1,20 @@
 "use client";
 
+import Link from "next/link";
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
-import Button from "@/components/button/Button";
 import LessonPlanTab from "@/components/tabs/LessonPlanTab";
 import CourseVideoTab, { VideoObject } from "@/components/tabs/CourseVideoTab";
 import CoursePricingPanel from "@/components/pricing/CoursePricingPanel";
 import CourseOverviewVideoEmbed from "@/components/course/CourseOverviewVideoEmbed";
+import PredictionTestLinkButton from "@/components/prediction-test/PredictionTestLinkButton";
+import { getCourseFreePredictionTestHref } from "@/lib/prediction-test-links";
 import { processHtmlContent } from "@/lib/decode-html";
 import { hasFreeTestQuestions, type CourseData } from "@/lib/course-types";
 import type { CourseOverviewVideo } from "@/lib/php-api";
 import type { PackagesByService } from "@/lib/package-types";
+import styles from "./courseDetail.module.css";
 
 export type CourseDetailClientProps = {
   courseCode: string;
@@ -20,6 +23,7 @@ export type CourseDetailClientProps = {
   packagesByService?: PackagesByService;
   location?: string;
   breadcrumbSegments: string[];
+  hasFreePredTest?: boolean;
 };
 
 function formatLocationLabel(location: string): string {
@@ -33,6 +37,7 @@ export function CourseDetailClient({
   location: locationProp = "",
   breadcrumbSegments,
   courseOverviewVideoData,
+  hasFreePredTest = false,
 }: CourseDetailClientProps) {
   const searchParams = useSearchParams();
   const location = locationProp || searchParams?.get("location") || "";
@@ -173,20 +178,25 @@ export function CourseDetailClient({
                           ),
                         }}
                       />
-                      {showFreeTestLink && (
-                        <div className="text-center mt-4">
-                          <Button
-                            pathname={`/courses/${encodeURIComponent(courseCode)}/free-practice-test`}
-                            className="btn-primary-custom"
-                            style={{
-                              padding: "10px 15px",
-                              borderRadius: "5px",
-                              marginBottom: "20px",
-                              border: "none",
-                            }}
-                          >
-                            Take a Free Practice Test
-                          </Button>
+                      {(showFreeTestLink || hasFreePredTest) && (
+                        <div className={styles.overviewTestActions}>
+                          {showFreeTestLink ? (
+                            <Link
+                              href={`/courses/${encodeURIComponent(courseCode)}/free-practice-test`}
+                              className={`btn btn-primary-custom d-inline-flex align-items-center gap-2 ${styles.overviewTestBtn}`}
+                            >
+                              <i className="bi bi-clipboard-check" aria-hidden />
+                              Take a Free Practice Test
+                            </Link>
+                          ) : null}
+                          {hasFreePredTest ? (
+                            <PredictionTestLinkButton
+                              href={getCourseFreePredictionTestHref(courseCode)}
+                              className={styles.overviewTestBtn}
+                            >
+                              Take a Free Prediction Test
+                            </PredictionTestLinkButton>
+                          ) : null}
                         </div>
                       )}
                     </div>

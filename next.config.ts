@@ -67,6 +67,11 @@ const nextConfig: NextConfig = {
           permanent: true,
         },
         {
+          source: `/${course}-prediction-test`,
+          destination: `/courses/${course}/free-prediction-test`,
+          permanent: true,
+        },
+        {
           source: `/courses/${course}/free-test`,
           destination: `/courses/${course}/free-practice-test`,
           permanent: true,

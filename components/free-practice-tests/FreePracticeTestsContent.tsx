@@ -117,7 +117,7 @@ export default function FreePracticeTestsContent({ courses }: Props) {
                         href={testHref}
                         className="btn btn-primary-custom px-4"
                       >
-                        Take {course.courseName} Test
+                        Take {course.courseName} Practice Test
                       </Link>
                       <Link
                         href={overviewHref}
