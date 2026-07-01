@@ -1,6 +1,13 @@
 "use client";
 
-import React, { useState, useLayoutEffect, useRef, useCallback } from "react";
+import React, {
+  useState,
+  useMemo,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useCallback,
+} from "react";
 import Link from "next/link";
 import Script from "next/script";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
@@ -23,7 +30,10 @@ import {
   prepareFreePredTestQuestions,
   buildPredTestScorePayload,
 } from "@/lib/prediction-test-types";
-import { getQuestionOptions } from "@/lib/course-types";
+import {
+  shuffleAllQuestionsByCategory,
+  type PreparedTestQuestion,
+} from "@/lib/course-types";
 import { calculateFreePredTestScore } from "@/lib/php-api-client";
 import FreePredTestSidebar from "./FreePredTestSidebar";
 import IncompleteCategoriesModal from "./IncompleteCategoriesModal";
@@ -182,6 +192,15 @@ export default function FreePredTest({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showIncompleteModal, setShowIncompleteModal] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [questionsByCategory, setQuestionsByCategory] = useState<
+    Record<string, PreparedTestQuestion<FreePredTestQuestion>[]>
+  >(() => {
+    if (!ft_cat_list?.length || !ft_ques_list) return {};
+    const prepared = prepareFreePredTestQuestions(ft_cat_list, ft_ques_list);
+    if (!prepared.sufficient) return {};
+    return shuffleAllQuestionsByCategory(ft_cat_list, prepared.questionsByCategory);
+  });
+  const skipCourseShuffleRef = useRef(true);
   const [mathJaxReady, setMathJaxReady] = useState(false);
 
   const mathContentRef = useRef<HTMLDivElement>(null);
@@ -256,12 +275,31 @@ export default function FreePredTest({
     });
   }, [testSubmitted, scrollAfterSubmit]);
 
+  const { sufficient: hasSufficientQuestions, questionsByCategory: rawQuestionsByCategory } =
+    useMemo(() => {
+      if (!ft_cat_list?.length || !ft_ques_list) {
+        return { sufficient: false, questionsByCategory: {} };
+      }
+      return prepareFreePredTestQuestions(ft_cat_list, ft_ques_list);
+    }, [ft_cat_list, ft_ques_list]);
+
+  useEffect(() => {
+    if (skipCourseShuffleRef.current) {
+      skipCourseShuffleRef.current = false;
+      return;
+    }
+    if (!hasSufficientQuestions || !ft_cat_list) {
+      setQuestionsByCategory({});
+      return;
+    }
+    setQuestionsByCategory(
+      shuffleAllQuestionsByCategory(ft_cat_list, rawQuestionsByCategory),
+    );
+  }, [ft_cat_list, ft_ques_list, hasSufficientQuestions, rawQuestionsByCategory]);
+
   if (!ft_cat_list || !ft_ques_list || ft_cat_list.length === 0) {
     return <UnavailableMessage courseName={courseName} courseCode={courseCode} />;
   }
-
-  const { sufficient: hasSufficientQuestions, questionsByCategory } =
-    prepareFreePredTestQuestions(ft_cat_list, ft_ques_list);
 
   if (!hasSufficientQuestions) {
     return <UnavailableMessage courseName={courseName} courseCode={courseCode} />;
@@ -272,7 +310,10 @@ export default function FreePredTest({
   const isFirstCategory = activeCategory === 0;
   const isLastCategory = activeCategory === ft_cat_list.length - 1;
 
-  const getAnsweredCount = (catIdx: number, catQuestions: FreePredTestQuestion[]) =>
+  const getAnsweredCount = (
+    catIdx: number,
+    catQuestions: PreparedTestQuestion<FreePredTestQuestion>[],
+  ) =>
     catQuestions.reduce(
       (count, _, qIndex) =>
         userAnswers[`${catIdx}-${qIndex}`] !== undefined ? count + 1 : count,
@@ -332,16 +373,16 @@ export default function FreePredTest({
     const allResults: Record<number, TestResult[]> = {};
     ft_cat_list.forEach((catName, catIdx) => {
       const catQuestions = questionsByCategory[catName] || [];
-      allResults[catIdx] = catQuestions.map((question, qIndex) => {
+      allResults[catIdx] = catQuestions.map((pq, qIndex) => {
         const userAnswer = userAnswers[`${catIdx}-${qIndex}`];
-        const correctAnswer = Number(question.answer) - 1;
+        const correctAnswer = pq.correctAnswerIndex;
         const isCorrect = userAnswer === correctAnswer;
         return {
-          question: question.question,
-          story: question.story,
-          story_title: question.story_title,
-          story_id: question.story_id,
-          options: getQuestionOptions(question),
+          question: pq.question.question,
+          story: pq.question.story,
+          story_title: pq.question.story_title,
+          story_id: pq.question.story_id,
+          options: pq.options,
           userAnswer: userAnswer ?? null,
           correctAnswer,
           isCorrect,
@@ -388,6 +429,11 @@ export default function FreePredTest({
   };
 
   const retakeTest = () => {
+    if (ft_cat_list) {
+      setQuestionsByCategory(
+        shuffleAllQuestionsByCategory(ft_cat_list, rawQuestionsByCategory),
+      );
+    }
     setTestSubmitted(false);
     setScoreResult(null);
     setReviewResults({});
@@ -546,8 +592,9 @@ export default function FreePredTest({
                             </div>
                           </div>
 
-                          {catQuestions.map((q, qIdx) => {
-                            const options = getQuestionOptions(q);
+                          {catQuestions.map((pq, qIdx) => {
+                            const options = pq.options;
+                            const q = pq.question;
                             const isAnswered =
                               userAnswers[`${catIdx}-${qIdx}`] !== undefined;
                             return (
@@ -561,7 +608,10 @@ export default function FreePredTest({
                                 }}
                               >
                                 <div className="card-body p-4">
-                                  {shouldShowStoryPassage(q, catQuestions[qIdx - 1]) &&
+                                  {shouldShowStoryPassage(
+                                    q,
+                                    catQuestions[qIdx - 1]?.question,
+                                  ) &&
                                   q.story ? (
                                     <StoryPassage
                                       story={q.story}
@@ -758,8 +808,12 @@ export default function FreePredTest({
                                           borderColor: borderCol,
                                         }}
                                       >
-                                        <span className={`flex-grow-1 ${textCol}`}>
-                                          {String.fromCharCode(65 + oIdx)}.{" "}
+                                        <span
+                                          className={`flex-grow-1 d-flex align-items-center gap-2 ${textCol}`}
+                                        >
+                                          <span className="text-muted flex-shrink-0">
+                                            {String.fromCharCode(65 + oIdx)}.
+                                          </span>
                                           <QuestionHtml
                                             html={opt}
                                             className={freeTestStyles.resultOptionHtml}

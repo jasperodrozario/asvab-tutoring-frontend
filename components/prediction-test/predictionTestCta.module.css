@@ -53,11 +53,11 @@
 
 .promoCardBtn {
   padding: 0.75rem 1rem;
-  border: none;
   border-radius: 999px;
   background: linear-gradient(135deg, #002341 0%, #003a6b 100%);
   color: #fff !important;
   box-shadow: 0 6px 18px rgba(0, 35, 65, 0.28);
+  border: 1px solid #002341;
   transition:
     transform 0.15s ease,
     box-shadow 0.15s ease,

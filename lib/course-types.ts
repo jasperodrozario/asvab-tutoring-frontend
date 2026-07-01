@@ -91,6 +91,50 @@ export function getQuestionOptions(
   );
 }
 
+/** Fisher–Yates shuffle; returns a new array. */
+export function shuffleArray<T>(items: readonly T[]): T[] {
+  const arr = [...items];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+/** Question with shuffled answer choices and remapped correct index. */
+export interface PreparedTestQuestion<
+  T extends FreePracticeTestQuestion = FreePracticeTestQuestion,
+> {
+  question: T;
+  options: string[];
+  /** 0-based index into `options` for the correct choice. */
+  correctAnswerIndex: number;
+}
+
+export function prepareQuestionWithShuffledOptions<
+  T extends FreePracticeTestQuestion,
+>(question: T): PreparedTestQuestion<T> {
+  const options = getQuestionOptions(question);
+  const originalCorrectIndex = Number(question.answer) - 1;
+  const indexed = options.map((opt, originalIndex) => ({ opt, originalIndex }));
+  const shuffled = shuffleArray(indexed);
+  const correctAnswerIndex = shuffled.findIndex(
+    (item) => item.originalIndex === originalCorrectIndex,
+  );
+
+  return {
+    question,
+    options: shuffled.map((item) => item.opt),
+    correctAnswerIndex: correctAnswerIndex >= 0 ? correctAnswerIndex : 0,
+  };
+}
+
+export function prepareQuestionsWithShuffledOptions<
+  T extends FreePracticeTestQuestion,
+>(questions: readonly T[]): PreparedTestQuestion<T>[] {
+  return questions.map(prepareQuestionWithShuffledOptions);
+}
+
 export function hasFreeTestQuestions(
   ft_cat_list?: string[],
   ft_ques_list?: { [key: string]: FreePracticeTestQuestion[] },
@@ -112,6 +156,61 @@ export function isFreeTestReady(
   );
 }
 
+/** Shuffle questions and keep at most `limit` (default 10). */
+export function shuffleAndLimitQuestions<T>(
+  questions: readonly T[],
+  limit: number = FREE_TEST_QUESTION_COUNT,
+): T[] {
+  const shuffled = shuffleArray(questions);
+  return shuffled.length > limit ? shuffled.slice(0, limit) : shuffled;
+}
+
+export function shuffleQuestionsByCategory<
+  T extends FreePracticeTestQuestion,
+>(
+  categories: readonly string[],
+  questionsByCategory: Record<string, readonly T[]>,
+  limit: number = FREE_TEST_QUESTION_COUNT,
+): Record<string, PreparedTestQuestion<T>[]> {
+  return Object.fromEntries(
+    categories.map((cat) => [
+      cat,
+      prepareQuestionsWithShuffledOptions(
+        shuffleAndLimitQuestions(questionsByCategory[cat] ?? [], limit),
+      ),
+    ]),
+  );
+}
+
+/** Shuffle and limit questions, with shuffled options per question. */
+export function shuffleAndLimitPreparedQuestions<
+  T extends FreePracticeTestQuestion,
+>(
+  questions: readonly T[],
+  limit: number = FREE_TEST_QUESTION_COUNT,
+): PreparedTestQuestion<T>[] {
+  return prepareQuestionsWithShuffledOptions(
+    shuffleAndLimitQuestions(questions, limit),
+  );
+}
+
+/** Shuffle all questions per category without capping the count. */
+export function shuffleAllQuestionsByCategory<
+  T extends FreePracticeTestQuestion,
+>(
+  categories: readonly string[],
+  questionsByCategory: Record<string, readonly T[]>,
+): Record<string, PreparedTestQuestion<T>[]> {
+  return Object.fromEntries(
+    categories.map((cat) => [
+      cat,
+      prepareQuestionsWithShuffledOptions(
+        shuffleArray(questionsByCategory[cat] ?? []),
+      ),
+    ]),
+  );
+}
+
 export function prepareFreeTestQuestions(
   ft_cat_list: string[],
   ft_ques_list: { [key: string]: FreePracticeTestQuestion[] },
@@ -123,10 +222,7 @@ export function prepareFreeTestQuestions(
   }
 
   const questionsByCategory = Object.fromEntries(
-    ft_cat_list.map((cat) => [
-      cat,
-      (ft_ques_list[cat] ?? []).slice(0, FREE_TEST_QUESTION_COUNT),
-    ]),
+    ft_cat_list.map((cat) => [cat, ft_ques_list[cat] ?? []]),
   );
 
   return { sufficient: true, questionsByCategory };

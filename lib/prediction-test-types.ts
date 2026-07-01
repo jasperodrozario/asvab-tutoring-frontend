@@ -1,5 +1,8 @@
-import { FREE_TEST_QUESTION_COUNT } from "@/lib/course-types";
-import type { FreePracticeTestQuestion } from "@/lib/course-types";
+import {
+  FREE_TEST_QUESTION_COUNT,
+  type FreePracticeTestQuestion,
+  type PreparedTestQuestion,
+} from "@/lib/course-types";
 
 export interface FreePredTestQuestion extends FreePracticeTestQuestion {
   cat_id?: number | string;
@@ -130,7 +133,9 @@ export interface PredTestScorePayload {
 
 export function buildPredTestScorePayload(
   categories: string[],
-  questionsByCategory: { [key: string]: FreePredTestQuestion[] },
+  questionsByCategory: {
+    [key: string]: PreparedTestQuestion<FreePredTestQuestion>[];
+  },
   courseId: number,
   userAnswers: Record<string, number>,
 ): PredTestScorePayload {
@@ -140,13 +145,12 @@ export function buildPredTestScorePayload(
 
   categories.forEach((catName, catIdx) => {
     const qs = questionsByCategory[catName] ?? [];
-    predCatIds.push(getCategoryCatId(qs));
+    predCatIds.push(getCategoryCatId(qs.map((pq) => pq.question)));
     totals.push(qs.length);
     correctCounts.push(
-      qs.reduce((count, q, qIdx) => {
+      qs.reduce((count, pq, qIdx) => {
         const userAnswer = userAnswers[`${catIdx}-${qIdx}`];
-        const correctAnswer = Number(q.answer) - 1;
-        return userAnswer === correctAnswer ? count + 1 : count;
+        return userAnswer === pq.correctAnswerIndex ? count + 1 : count;
       }, 0),
     );
   });

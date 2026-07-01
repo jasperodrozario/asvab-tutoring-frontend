@@ -231,7 +231,7 @@ export default function FreePredTestSidebar({
         <PredictionTestPromoCard
           href={fullPredictionTestHref || "#"}
           eyebrow="Upgrade Your Prediction"
-          title={`Get a more accurate ${courseName || "exam"} score`}
+          title={`Get the full ${courseName || "exam"} prediction score`}
           text={`This is a partial prediction test. Take the full ${courseName || "exam"} prediction test for a more accurate result — without visiting the recruiter's office.`}
           buttonLabel="Take a Full Prediction Test"
           disabled={!fullPredictionTestHref}

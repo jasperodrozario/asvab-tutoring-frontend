@@ -1,6 +1,13 @@
 "use client";
 
-import React, { useState, useLayoutEffect, useRef, useCallback } from "react";
+import React, {
+  useState,
+  useMemo,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useCallback,
+} from "react";
 import Link from "next/link";
 import Script from "next/script";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
@@ -15,7 +22,12 @@ import {
 import QuestionHtml from "./QuestionHtml";
 import type { PackagesByService } from "@/lib/package-types";
 import type { FreePracticeTestQuestion } from "@/lib/course-types";
-import { prepareFreeTestQuestions, getQuestionOptions } from "@/lib/course-types";
+import {
+  prepareFreeTestQuestions,
+  shuffleAndLimitPreparedQuestions,
+  shuffleQuestionsByCategory,
+  type PreparedTestQuestion,
+} from "@/lib/course-types";
 import FreeTestSidebar from "./FreeTestSidebar";
 
 const BREADCRUMB_SEGMENTS = (courseCode: string) =>
@@ -50,7 +62,7 @@ function ShowAllFreeTestsLink({
         className={`btn btn-secondary-custom px-4 py-2 fw-semibold d-inline-flex align-items-center gap-2 ${freeTestStyles.showAllTestsBtn}`}
       >
         <i className="bi bi-clipboard-check" aria-hidden />
-        Show all Free Tests
+        Show all Free Practice Tests
       </Link>
     </div>
   );
@@ -148,6 +160,15 @@ const FreeTest: React.FC<FreeTestProps> = ({
   const [categoryStates, setCategoryStates] = useState<
     Record<number, CategoryState>
   >({});
+  const [questionsByCategory, setQuestionsByCategory] = useState<
+    Record<string, PreparedTestQuestion<Question>[]>
+  >(() => {
+    if (!ft_cat_list?.length || !ft_ques_list) return {};
+    const prepared = prepareFreeTestQuestions(ft_cat_list, ft_ques_list);
+    if (!prepared.sufficient) return {};
+    return shuffleQuestionsByCategory(ft_cat_list, prepared.questionsByCategory);
+  });
+  const skipCourseShuffleRef = useRef(true);
   const [mathJaxReady, setMathJaxReady] = useState(false);
   const mathContentRef = useRef<HTMLDivElement>(null);
   const resultsActionsRef = useRef<HTMLDivElement>(null);
@@ -252,6 +273,28 @@ const FreeTest: React.FC<FreeTestProps> = ({
     });
   }, [categoryStates, activeCategory, scrollAfterSubmit]);
 
+  const { sufficient: hasSufficientQuestions, questionsByCategory: rawQuestionsByCategory } =
+    useMemo(() => {
+      if (!ft_cat_list?.length || !ft_ques_list) {
+        return { sufficient: false, questionsByCategory: {} };
+      }
+      return prepareFreeTestQuestions(ft_cat_list, ft_ques_list);
+    }, [ft_cat_list, ft_ques_list]);
+
+  useEffect(() => {
+    if (skipCourseShuffleRef.current) {
+      skipCourseShuffleRef.current = false;
+      return;
+    }
+    if (!hasSufficientQuestions || !ft_cat_list) {
+      setQuestionsByCategory({});
+      return;
+    }
+    setQuestionsByCategory(
+      shuffleQuestionsByCategory(ft_cat_list, rawQuestionsByCategory),
+    );
+  }, [ft_cat_list, ft_ques_list, hasSufficientQuestions, rawQuestionsByCategory]);
+
   if (!ft_cat_list || !ft_ques_list || ft_cat_list.length === 0) {
     return (
       <>
@@ -293,9 +336,6 @@ const FreeTest: React.FC<FreeTestProps> = ({
       </>
     );
   }
-
-  const { sufficient: hasSufficientQuestions, questionsByCategory } =
-    prepareFreeTestQuestions(ft_cat_list, ft_ques_list);
 
   if (!hasSufficientQuestions) {
     return (
@@ -358,18 +398,17 @@ const FreeTest: React.FC<FreeTestProps> = ({
   const submitTest = (): void => {
     let score = 0;
 
-    const results: TestResult[] = questions.map((question, qIndex) => {
+    const results: TestResult[] = questions.map((pq, qIndex) => {
       const userAnswer = userAnswers[`${activeCategory}-${qIndex}`];
-      const correctAnswer = Number(question.answer) - 1;
+      const correctAnswer = pq.correctAnswerIndex;
       const isCorrect = userAnswer === correctAnswer;
       if (isCorrect) score++;
-      const options = getQuestionOptions(question);
       return {
-        question: question.question,
-        story: question.story,
-        story_title: question.story_title,
-        story_id: question.story_id,
-        options,
+        question: pq.question.question,
+        story: pq.question.story,
+        story_title: pq.question.story_title,
+        story_id: pq.question.story_id,
+        options: pq.options,
         userAnswer: userAnswer ?? null,
         correctAnswer,
         isCorrect,
@@ -392,6 +431,12 @@ const FreeTest: React.FC<FreeTestProps> = ({
   };
 
   const retakeTest = (): void => {
+    const categoryName = ft_cat_list[activeCategory];
+    const rawQuestions = rawQuestionsByCategory[categoryName] ?? [];
+    setQuestionsByCategory((prev) => ({
+      ...prev,
+      [categoryName]: shuffleAndLimitPreparedQuestions(rawQuestions),
+    }));
     setCategoryStates((prev) => ({
       ...prev,
       [activeCategory]: { submitted: false, results: null },
@@ -406,7 +451,10 @@ const FreeTest: React.FC<FreeTestProps> = ({
     scrollToTestTop();
   };
 
-  const getAnsweredCount = (catIdx: number, catQuestions: Question[]) =>
+  const getAnsweredCount = (
+    catIdx: number,
+    catQuestions: PreparedTestQuestion<Question>[],
+  ) =>
     catQuestions.reduce(
       (count, _, qIndex) =>
         userAnswers[`${catIdx}-${qIndex}`] !== undefined ? count + 1 : count,
@@ -596,8 +644,9 @@ const FreeTest: React.FC<FreeTestProps> = ({
                               </div>
                             </div>
 
-                            {catQuestions.map((q, qIdx) => {
-                              const options = getQuestionOptions(q);
+                            {catQuestions.map((pq, qIdx) => {
+                              const options = pq.options;
+                              const q = pq.question;
 
                               const isAnswered =
                                 userAnswers[`${catIdx}-${qIdx}`] !== undefined;
@@ -613,7 +662,10 @@ const FreeTest: React.FC<FreeTestProps> = ({
                                   }}
                                 >
                                   <div className="card-body p-4">
-                                    {shouldShowStoryPassage(q, catQuestions[qIdx - 1]) &&
+                                    {shouldShowStoryPassage(
+                                      q,
+                                      catQuestions[qIdx - 1]?.question,
+                                    ) &&
                                     q.story ? (
                                       <StoryPassage
                                         story={q.story}
