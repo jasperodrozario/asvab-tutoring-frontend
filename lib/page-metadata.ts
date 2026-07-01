@@ -92,6 +92,12 @@ export const FREE_PREDICTION_TESTS_SEO: PageSeo = {
     "Take free online prediction tests for military entrance exams. Estimate your ASVAB AFQT, AFOQT, and other scores before test day — no signup required.",
 };
 
+const FREE_ONLINE_TEST_EXAMS = "ASVAB, AFOQT, SIFT, ASTB, and OAR";
+
+export const FREE_PRACTICE_TESTS_BANNER_SUBTITLE = `Prepare for ${FREE_ONLINE_TEST_EXAMS} with free online practice tests — no signup required.`;
+
+export const FREE_PREDICTION_TESTS_BANNER_SUBTITLE = `Prepare for ${FREE_ONLINE_TEST_EXAMS} with free online prediction tests — no signup required.`;
+
 export const COURSE_SEO: Record<string, PageSeo> = {
   asvab: {
     title: "ASVAB Test Prep | ASVAB Math Prep | ASVAB Test Help",
@@ -158,7 +164,7 @@ export const FREE_PREDICTION_TEST_SEO: Record<string, PageSeo> = {
   asvab: {
     title: "Free ASVAB AFQT Prediction Test Online 2026 | ASVAB Tutoring",
     description:
-      "Prepare for ASVAB, AFOQT, SIFT, ASTB, and OAR with free online prediction tests — no signup required.",
+      "Take our free online ASVAB AFQT prediction test. Complete all sections to see your predicted AFQT score — no signup required.",
   },
   afoqt: {
     title: "Free AFOQT Prediction Test Online 2026 | ASVAB Tutoring",
@@ -397,6 +403,13 @@ export function courseMetadata(courseCode: string): Metadata {
   });
 }
 
+export function getFreePracticeTestDescription(courseCode: string): string {
+  const meta =
+    FREE_PRACTICE_TEST_SEO[courseCode.toLowerCase()] ??
+    FREE_PRACTICE_TEST_FALLBACK_SEO;
+  return meta.description;
+}
+
 export function freePracticeTestMetadata(courseCode: string): Metadata {
   const meta =
     FREE_PRACTICE_TEST_SEO[courseCode.toLowerCase()] ??
@@ -408,6 +421,13 @@ export function freePracticeTestMetadata(courseCode: string): Metadata {
     path,
     keywords: getCourseKeywords(courseCode, "free-practice-test"),
   });
+}
+
+export function getFreePredictionTestDescription(courseCode: string): string {
+  const meta =
+    FREE_PREDICTION_TEST_SEO[courseCode.toLowerCase()] ??
+    FREE_PREDICTION_TEST_FALLBACK_SEO;
+  return meta.description;
 }
 
 export function freePredictionTestMetadata(courseCode: string): Metadata {

@@ -28,6 +28,7 @@ import {
   shuffleQuestionsByCategory,
   type PreparedTestQuestion,
 } from "@/lib/course-types";
+import { getFreePracticeTestDescription } from "@/lib/page-metadata";
 import FreeTestSidebar from "./FreeTestSidebar";
 
 const BREADCRUMB_SEGMENTS = (courseCode: string) =>
@@ -304,7 +305,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
               FREE {courseName?.toUpperCase() || "COURSE"} PRACTICE TEST
             </h1>
             <h2 className="h4">
-              EVALUATE YOUR KNOWLEDGE AND PREPARE FOR TEST DAY
+              {getFreePracticeTestDescription(courseCode)}
             </h2>
             <Breadcrumb
               segments={[...BREADCRUMB_SEGMENTS(courseCode)]}
@@ -346,7 +347,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
               FREE {courseName?.toUpperCase() || "COURSE"} PRACTICE TEST
             </h1>
             <h2 className="h4">
-              EVALUATE YOUR KNOWLEDGE AND PREPARE FOR TEST DAY
+              {getFreePracticeTestDescription(courseCode)}
             </h2>
             <Breadcrumb
               segments={[...BREADCRUMB_SEGMENTS(courseCode)]}
@@ -521,7 +522,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
         <div className="container text-center">
           <h1>FREE {courseName?.toUpperCase() || "COURSE"} PRACTICE TEST</h1>
           <h2 className="h4">
-            EVALUATE YOUR KNOWLEDGE IN A FOCUSED, DISTRACTION-FREE ENVIRONMENT
+            {getFreePracticeTestDescription(courseCode)}
           </h2>
           <Breadcrumb
             segments={[...BREADCRUMB_SEGMENTS(courseCode)]}

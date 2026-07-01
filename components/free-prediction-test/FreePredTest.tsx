@@ -35,6 +35,7 @@ import {
   type PreparedTestQuestion,
 } from "@/lib/course-types";
 import { calculateFreePredTestScore } from "@/lib/php-api-client";
+import { getFreePredictionTestDescription } from "@/lib/page-metadata";
 import FreePredTestSidebar from "./FreePredTestSidebar";
 import IncompleteCategoriesModal from "./IncompleteCategoriesModal";
 
@@ -140,7 +141,9 @@ function UnavailableMessage({
           <h1>
             FREE {courseName?.toUpperCase() || "COURSE"} PREDICTION TEST
           </h1>
-          <h2 className="h4">PREDICT YOUR EXAM SCORE BEFORE TEST DAY</h2>
+          <h2 className="h4">
+            {getFreePredictionTestDescription(courseCode)}
+          </h2>
           <Breadcrumb
             segments={[...BREADCRUMB_SEGMENTS(courseCode)]}
             segmentLabels={{ 1: courseName || courseCode.toUpperCase() }}
@@ -475,7 +478,7 @@ export default function FreePredTest({
         <div className="container text-center">
           <h1>FREE {courseName?.toUpperCase() || "COURSE"} PREDICTION TEST</h1>
           <h2 className="h4">
-            Prepare for ASVAB, AFOQT, SIFT, ASTB, and OAR with free online prediction tests — no signup required.
+            {getFreePredictionTestDescription(courseCode)}
           </h2>
           <Breadcrumb
             segments={[...BREADCRUMB_SEGMENTS(courseCode)]}

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
 import FreePredictionTestsLayout from "@/components/free-prediction-tests/FreePredictionTestsLayout";
-import { freePredictionTestsMetadata } from "@/lib/page-metadata";
+import { freePredictionTestsMetadata, FREE_PREDICTION_TESTS_BANNER_SUBTITLE } from "@/lib/page-metadata";
 import {
   fetchAllPackageDetailsForCourse,
   fetchFreePredTestCatalog,
@@ -27,10 +27,7 @@ export default async function FreePredictionTestsPage() {
       <div className="page-title-area text-white py-5">
         <div className="container text-center">
           <h1>Free Prediction Tests</h1>
-          <h2 className="h4">
-            Estimate your ASVAB, AFOQT, SIFT, ASTB, and OAR exam scores with free
-            online prediction tests — no signup required.
-          </h2>
+          <h2 className="h4">{FREE_PREDICTION_TESTS_BANNER_SUBTITLE}</h2>
           <Breadcrumb segments={["free-prediction-tests"]} />
         </div>
       </div>

@@ -307,10 +307,10 @@ export default function TopCourses() {
               className="btn btn-primary-custom px-4 py-2 fw-semibold d-inline-flex align-items-center gap-2"
             >
               <i className="bi bi-clipboard-check" aria-hidden />
-              Take Our Free Practice Tests
+              Take a Free Practice Test
             </Link>
             <PredictionTestLinkButton href={ALL_FREE_PREDICTION_TESTS_HREF}>
-              Take Our Free Prediction Tests
+              Take a Free Prediction Test
             </PredictionTestLinkButton>
           </div>
         )}
