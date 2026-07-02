@@ -52,7 +52,7 @@ export default function LoginPage() {
         className="card login-card p-4 shadow mx-auto"
         style={{ maxWidth: "400px" }}
       >
-        <h4 className="text-center mb-4">Login to Your Account</h4>
+        <h4 className="text-center mb-4">Login to Your Account.</h4>
         {error && <div className="alert alert-danger">{error}</div>}
         <form onSubmit={handleSubmit}>
           {/* Username */}
