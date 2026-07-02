@@ -1,0 +1,43 @@
+export const serviceTypeToSubmenu: Record<string, "one" | "group" | "subscribe"> = {
+  "1-on-1-tutoring": "one",
+  "group-tutoring": "group",
+  "self-study": "subscribe",
+};
+
+export const submenuToServiceType: Record<string, string> = {
+  one: "1-on-1-tutoring",
+  group: "group-tutoring",
+  subscribe: "self-study",
+};
+
+export const courseCodeToNumeric: Record<string, string> = {
+  asvab: "40",
+  afoqt: "51",
+  sift: "52",
+  astb: "53",
+  oar: "54",
+};
+
+export const numericToCourseCode: Record<string, string> = {
+  "40": "asvab",
+  "51": "afoqt",
+  "52": "sift",
+  "53": "astb",
+  "54": "oar",
+};
+
+export function toSubmenu(serviceType: string): "one" | "group" | "subscribe" | null {
+  return serviceTypeToSubmenu[serviceType] ?? null;
+}
+
+export function toNumericCourseCode(courseCode: string): string | null {
+  return courseCodeToNumeric[courseCode] ?? null;
+}
+
+export function fromSubmenuToServiceType(submenu: string): string {
+  return submenuToServiceType[submenu] ?? submenu;
+}
+
+export function fromNumericToCourseCode(code: string): string {
+  return numericToCourseCode[code] ?? code;
+}

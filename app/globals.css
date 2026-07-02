@@ -1,0 +1,1223 @@
+/* :root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+} */
+
+body {
+  padding-top: 120px;
+  /* Default for md and larger screens */
+  color: #000;
+}
+
+/* Small screens (less than 768px) */
+@media (max-width: 992px) {
+  body {
+    padding-top: 90px;
+  }
+}
+
+html {
+  max-width: 100vw;
+  /* Single vertical scroll container — overflow-x:hidden on both html+body creates a second scrollbar. */
+  overflow-x: clip;
+  overflow-y: auto;
+  height: 100%;
+}
+
+body {
+  max-width: 100vw;
+  overflow-x: clip;
+  overflow-y: visible;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  /* color: var(--foreground);
+  background: var(--background); */
+  font-family: Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.site-main {
+  flex: 1 0 auto;
+  width: 100%;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: dark;
+  }
+}
+
+/* --- */
+:root {
+  --primary-color: #f2a155;
+  --secondary-color: #002341;
+  --primary-color-dark: #e58a34;
+}
+
+.navbar-nav .nav-link {
+  transition: color 0.3s ease-in-out;
+}
+
+/* Hover effect: change to primary color */
+.navbar-nav .nav-link:hover {
+  color: var(--primary-color) !important;
+}
+
+.bg-custom-secondary {
+  background-color: var(--secondary-color);
+}
+
+.primary-color-custom {
+  color: var(--primary-color);
+}
+
+.primary-color-dark {
+  color: var(--primary-color-dark);
+}
+
+.bg-custom-primary {
+  background-color: var(--primary-color);
+}
+
+.bg-custom-primary:hover {
+  background-color: #e58a34;
+}
+
+/* Custom toggler icon color */
+.navbar-toggler {
+  border: none;
+}
+
+.navbar-toggler:focus,
+.navbar-toggler:active,
+.navbar-toggler-icon:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Hide dropdown by default */
+.custom-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: white;
+  min-width: 200px;
+  padding: 0;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 999;
+}
+
+/* Show custom dropdown on hover */
+.nav-item.dropdown:hover .custom-dropdown {
+  display: block;
+}
+
+/* Style dropdown items */
+.custom-dropdown .dropdown-item {
+  color: #000;
+  padding: 10px 15px;
+  text-decoration: none;
+  display: block;
+}
+
+.dropdown-item:hover {
+  background-color: #f1bf91;
+}
+
+/* Show dropdown on hover for desktop */
+@media (min-width: 768px) {
+  .navbar .dropdown:hover > .dropdown-menu {
+    display: block;
+    opacity: 1;
+    visibility: visible;
+    margin-top: 0;
+  }
+
+  .navbar .dropdown .dropdown-menu {
+    display: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    pointer-events: auto;
+    margin-top: 0;
+  }
+
+  .navbar .dropdown:hover .dropdown-menu:hover {
+    display: block;
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+/* General dropdown padding */
+.navbar .dropdown-menu {
+  margin-top: 0;
+  padding: 0.5rem 0;
+}
+
+/* Homepage Hero section */
+.bg-hero {
+  background-image: url("/images/asvab-bg.jpg");
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+.bg-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  z-index: 0;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+}
+
+.bg-custom-dark {
+  background-color: var(--secondary-color);
+}
+
+.btn-primary-custom {
+  background-color: #f2a155;
+  color: #fff;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.btn-primary-custom:hover {
+  color: #fff;
+  background-color: #e58a34;
+}
+
+/* Hero section end */
+
+/* Top Courses Section */
+.bg-dark-blue {
+  background-color: var(--secondary-color);
+}
+
+.hover-lift {
+  transition: transform 0.3s ease-in-out;
+}
+
+.hover-lift:hover {
+  transform: translateY(-5px);
+}
+
+.btn-secondary-custom {
+  transition:
+    background-color 0.3s ease-in-out,
+    color 0.3s ease-in-out;
+  border: 1px solid var(--secondary-color);
+}
+
+.btn-secondary-custom:hover {
+  background-color: var(--secondary-color);
+  color: #fff;
+}
+
+/* Top Courses Section End*/
+
+/* Meet Our Teachers Section*/
+.text-primary {
+  color: var(--secondary-color) !important;
+}
+
+/* Meet Our Teachers Section End*/
+
+/* FAQ section accordion */
+.accordion-button.custom-bg {
+  background-color: var(--secondary-color) !important;
+  color: white !important;
+  position: relative;
+}
+
+.accordion-button::after {
+  display: none !important;
+}
+
+.accordion-icon {
+  color: var(--primary-color);
+  font-size: 1rem;
+}
+
+.accordion-button.collapsed .icon-down {
+  display: inline;
+}
+
+.accordion-button:not(.collapsed) .icon-up {
+  display: inline;
+}
+
+.icon-up,
+.icon-down {
+  display: none;
+}
+
+/* FAQ section accordion End*/
+
+/*Slide Testimonial-section */
+.testimonial-section {
+  background: url("/images/review_bg-1.jpg") center/cover no-repeat;
+}
+
+.quote-icon {
+  font-size: 2.5rem;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+}
+
+.testimonial-text,
+.testimonial-author span {
+  color: #1f2937;
+  /* text-gray-800 */
+}
+
+.carousel-indicators {
+  position: static;
+  margin-top: 2rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.carousel-indicators [data-bs-target] {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #d1d5db;
+  /* gray-300 */
+  border: 1px solid transparent;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.carousel-indicators .active {
+  background-color: var(--primary-color);
+}
+
+.quote-close {
+  transform: rotate(180deg);
+  display: inline-block;
+}
+
+/*Slide Testimonial-section End*/
+
+/* Footer Section Start*/
+.footer-link,
+.footer-icon,
+.footer-contact-link {
+  transition: color 0.3s ease-in-out;
+}
+
+.footer-link:hover,
+.footer-icon:hover,
+.footer-contact-link:hover {
+  color: var(--primary-color) !important;
+}
+
+.footer-text {
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.859);
+}
+
+.footer-contact-link {
+  text-decoration: none;
+}
+
+/* Featured Links */
+.footer-link {
+  color: rgba(255, 255, 255, 0.859);
+  /* font-weight: bold; */
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: color 0.3s ease-in-out;
+}
+
+.footer-link:hover {
+  color: var(--primary-color);
+}
+
+/* Read More Link */
+.read-more-link {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: color 0.3s ease-in-out;
+}
+
+.read-more-link:hover {
+  color: var(--primary-color-dark);
+}
+
+/* Footer Section End*/
+
+/* Common Banner */
+.banner {
+  height: 18rem;
+  background-image: url("/images/about-hero.jpg");
+  background-size: cover;
+  background-position: top;
+  display: grid;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.banner h1 {
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 0.5rem;
+  font-size: 2rem;
+}
+
+@media (min-width: 768px) {
+  .banner h1 {
+    font-size: 3rem;
+  }
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* Start: Tab styling */
+
+.nav-link.primary-color-custom {
+  color: var(--primary-color-dark);
+  border-radius: 5px;
+  margin-right: 5px;
+  /* transition: background-color 0.6s ease; */
+  transition: all 0.5s ease-in-out;
+}
+
+/* Hover effect */
+.nav-link.primary-color-custom:hover {
+  background-color: var(--primary-color);
+  color: #fff;
+}
+
+/* Active tab styling (selected tab) */
+.nav-link.primary-color-custom.active {
+  background-color: var(--primary-color-dark) !important;
+  color: #fff !important;
+  border-color: var(--primary-color-dark);
+}
+
+/* End: Tab styling */
+
+.social-icon {
+  transition: all 0.3s ease-in-out;
+}
+
+.social-icon:hover {
+  color: var(--secondary-color);
+}
+
+.question-number {
+  color: #fff;
+  background-color: #888;
+  font-weight: bold;
+  font-size: 1.1rem;
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 2px 3px 4px #999;
+}
+
+.question-title {
+  color: #666;
+}
+
+/* Login section */
+.login-container {
+  display: flex;
+  justify-content: center;
+  padding: 40px 15px;
+}
+
+/* Table Styling Start */
+table {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+th,
+td {
+  padding-left: 10px;
+}
+
+.curriculum-table td {
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+.curriculum-table th {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+/* Table Styling End */
+
+.login-card {
+  max-width: 500px;
+  width: 100%;
+  border: none;
+  border-radius: 1rem;
+}
+
+.related-course-card {
+  transition: transform 0.2s ease-in-out;
+}
+
+.related-course-card:hover {
+  transform: scale(1.02);
+}
+
+.related-course-card-title {
+  width: fit-content;
+}
+
+.related-course-card-title:hover {
+  text-decoration: none !important;
+}
+
+@media (max-width: 991px) {
+  .related-course-card {
+    width: 100%;
+  }
+  .related-courses-sidebar {
+    margin-top: 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .related-courses-sidebar > a {
+    width: 100%;
+    max-width: 500px;
+    text-decoration: none !important;
+  }
+}
+
+.form-control {
+  border-radius: 0.5rem;
+}
+
+@media (min-height: 600px) {
+  .login-container {
+    align-items: center;
+  }
+}
+
+.ckeditor-container .ck-editor__editable_inline {
+  min-height: 200px;
+}
+
+.ck-editor__editable {
+  min-height: 200px;
+  /* adjust as needed */
+}
+
+/* Start: Checkbox Styling */
+/* Custom color for checked radio buttons and checkboxes */
+.form-check-input {
+  border: 2px solid rgba(0, 35, 65, 0.55);
+}
+
+.form-check-input:checked {
+  background-color: #f2a155 !important;
+  border-color: #f2a155 !important;
+}
+
+/* Optional: hover/focus states */
+.form-check-input:focus {
+  border-color: #f2a155 !important;
+  box-shadow: 0 0 0 0.25rem rgba(242, 161, 85, 0.25);
+}
+
+/* End: Checkbox Styling */
+
+/* Start: Radio Button Styling */
+input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 2px solid #f2a155;
+  background-color: #fff;
+  border-radius: 50%;
+  cursor: pointer;
+  display: inline-grid;
+  place-content: center;
+}
+
+/* Create the "dot" for the checked state */
+input[type="radio"]::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  transform: scale(0);
+  transition: 120ms transform ease-in-out;
+  background-color: #f2a155;
+  /* Color of the dot when checked */
+}
+
+input[type="radio"]:checked::before {
+  transform: scale(0.8);
+}
+
+/* End: Radio Button Styling */
+
+/* Course Detail Page */
+.page-title-area {
+  position: relative;
+  background-image: url("/images/course_detail_page_cover.jpg");
+  /* set your static image path here */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  overflow: hidden;
+}
+
+.page-title-area::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(2px);
+  background-color: rgba(0, 0, 0, 0.7);
+  /* Dark overlay for text readability */
+  z-index: 0;
+}
+
+.page-title-area .container {
+  position: relative;
+  z-index: 1;
+  /* Keep text above overlay */
+}
+
+.btn-primary-custom2 {
+  font-weight: 700;
+  height: 60px;
+  width: 180px;
+  border: #f2a155;
+  border-radius: 6px;
+  background-color: #f2a155;
+  color: #fff;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.btn-primary-custom2:hover {
+  color: #fff;
+  background-color: #e58a34;
+}
+
+.sitemap-link:hover {
+  background-color: #fff6e7;
+  color: #e58a34;
+}
+
+.course-cta-section {
+  margin-top: 2rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid #e8ecef;
+}
+
+.course-cta-hint {
+  text-align: center;
+  color: #6c757d;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  max-width: 520px;
+  margin: 0 auto 1.25rem;
+}
+
+.course-cta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: stretch;
+  gap: 1rem;
+}
+
+.course-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  max-height: 56px;
+  max-width: 230px;
+  flex: 1 1 220px;
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.25;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 35, 65, 0.08);
+}
+
+.course-cta-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0, 35, 65, 0.14);
+  color: #fff;
+}
+
+.course-cta-btn-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.125rem;
+}
+
+.course-cta-btn-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.course-cta-btn-subtitle {
+  font-size: 0.75rem;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.course-cta-btn--teams {
+  background-color: #6264a7;
+  color: #fff;
+}
+
+.course-cta-btn--teams:hover {
+  background-color: #464eb8;
+  color: #fff;
+}
+
+.course-cta-btn--enroll {
+  background-color: #f2a155;
+  color: #fff;
+}
+
+.course-cta-btn--enroll:hover {
+  background-color: #e58a34;
+  color: #fff;
+}
+
+.course-cta-btn--enroll .course-cta-btn-text {
+  align-items: center;
+}
+
+@media (max-width: 575.98px) {
+  .course-cta-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .course-cta-btn {
+    width: 100%;
+    max-width: 320px;
+  }
+}
+
+/* Start: Scroll to top button style */
+.scroll-to-top {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: #f2a155;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(242, 161, 85, 0.4);
+  z-index: 9999;
+  border: none;
+  font-size: 1.2rem;
+}
+
+.scroll-to-top:hover {
+  transform: translateY(-5px) !important;
+  box-shadow: 0 8px 25px rgba(242, 161, 85, 0.6);
+}
+
+.scroll-to-top:active {
+  transform: translateY(-2px) !important;
+}
+
+.scale-110 {
+  transform: scale(1.1);
+}
+
+@media (max-width: 576px) {
+  .scroll-to-top {
+    bottom: 20px;
+    right: 20px;
+    width: 45px;
+    height: 45px;
+  }
+}
+
+/* End: Scroll to top button style */
+
+/* Default color for all tab links */
+.nav-tabs .nav-link {
+  color: #495057;
+  /* background-color: #f8f9fa; */
+  background-color: #f8f9fa;
+  border: 2px solid #dee2e6;
+  /* border: 1px solid #c5c8c8; */
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  /* padding: 12px 20px; */
+  margin-bottom: -1px;
+  transition: all 0.3s ease-in-out;
+  font-weight: 500;
+  font-weight: 600;
+}
+
+/* Hover effect for nav links */
+.nav-tabs .nav-link:hover {
+  background-color: #e9ecef;
+  color: #e58a34;
+  border-color: #dee2e6;
+}
+
+/* Active tab color (Bootstrap already applies .active) */
+.nav-tabs .nav-link.active {
+  color: #fff !important;
+  background-color: #e58a34 !important;
+  border-color: #e58a34 !important;
+  border-bottom: 3px solid #e58a34 !important;
+  box-shadow: 0 2px 8px rgba(229, 138, 52, 0.3);
+  font-weight: 600;
+
+  /* color: #e58a34 !important;
+  background-color: #e9ecef !important;
+  /* border-color: #e58a34 !important;
+  border-bottom: 3px solid #e58a34 !important; */
+  /* box-shadow: 0 2px 8px rgba(229, 138, 52, 0.3);
+  font-weight: 600;
+  border-color: #c5c8c8;  */
+}
+
+/* Start: Course detail page specific tab container styling */
+.nav-tabs.responsive-tabs {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 5px !important;
+  padding: 0 !important;
+  border-bottom: none !important;
+}
+
+.tab-btn {
+  width: 100% !important;
+  text-align: center !important;
+  padding: 10px 5px !important;
+  font-size: 13px !important;
+  height: 100%;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .nav-tabs.responsive-tabs {
+    display: flex !important;
+    grid-template-columns: none !important;
+    gap: 5px !important;
+    /* Restore horizontal gap */
+    border-bottom: 2px solid #dee2e6 !important;
+  }
+
+  .tab-btn {
+    width: auto !important;
+    min-width: 160px !important;
+    font-size: 16px !important;
+    padding: 8px 16px !important;
+  }
+}
+
+/* End: Course detail page specific tab container styling */
+
+/* Start: Checkout Page Styling */
+@media (max-width: 449px) {
+  .total-amount {
+    text-align: start !important;
+  }
+}
+
+/* Start: Payment Method Tabs for Checkout Page */
+.checkout-tabs-container {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 12px !important;
+  /* padding: 18px 0 !important; */
+}
+
+/* Ensure title and tabs stay on one row above 466px */
+@media (min-width: 501px) {
+  .checkout-tabs-container {
+    flex-wrap: nowrap !important;
+  }
+}
+
+.checkout-payment-methods {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  gap: 8px !important;
+  padding: 0 !important;
+  border: none !important;
+  margin: 0 !important;
+  list-style: none;
+}
+
+.checkout-payment-methods .tab-btn {
+  width: auto !important;
+  min-width: 125px !important;
+  font-size: 13px !important;
+  padding: 8px 12px !important;
+  white-space: nowrap !important;
+  text-align: center !important;
+}
+/* End: Payment Method Tabs for Checkout Page */
+
+.breadcrumb-link:hover {
+  color: var(--primary-color) !important;
+  transition: all 0.2s ease-in-out;
+}
+
+/* @media (min-width: 1200px) {
+  .checkout-payment-methods .tab-btn {
+    min-width: 160px !important;
+    font-size: 16px !important;
+    padding: 10px 20px !important;
+  }
+} */
+
+.single-course-tab .nav.nav-tabs {
+  gap: 6px;
+  padding-bottom: 0;
+  border-bottom: 2px solid #dee2e6;
+  margin-bottom: 20px !important;
+}
+
+/* @media (prefers-color-scheme: dark) {
+  body, body * {
+    color: #333 !important;
+  }
+} */
+
+/* @media (prefers-color-scheme: dark) {
+  :root {
+    --bs-body-color: #fff;     
+    --bs-heading-color: #fff;   
+    --bs-link-color: #f2a155;   
+  }
+} */
+
+.dropdown-menu {
+  --bs-dropdown-link-active-bg: #f2a155 !important;
+}
+
+@media (min-width: 992px) {
+  .navbar-desktop-mt {
+    margin-top: 30px;
+  }
+}
+
+/* === Our Mobile Apps === */
+/* Card */
+.app-card {
+  border-radius: 16px;
+  padding: 32px 24px;
+  text-align: center;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  border: 1px solid #dde3ec;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.app-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.13);
+  border-color: #c8d0dc;
+}
+
+/* App Name */
+.app-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+/* App Description */
+.app-description {
+  font-size: 0.8rem;
+  color: #888;
+  /* Muted gray */
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+/* Logo */
+.app-logo {
+  display: block;
+  margin: 0 auto 16px auto;
+  width: 90px;
+  height: 90px;
+  border-radius: 20px;
+}
+
+/* App Link Button */
+.app-link-btn {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+.app-link-btn:hover {
+  transform: scale(1.017);
+}
+
+/* === Mobile menu alignment === */
+@media (max-width: 767px) {
+  .navbar-collapse.show {
+    text-align: left;
+  }
+
+  .navbar-nav {
+    align-items: flex-start !important;
+  }
+
+  .navbar-nav .nav-item {
+    width: 100%;
+  }
+
+  /* === Services submenu style ONLY for mobile === */
+  .nav-item.dropdown .dropdown-menu {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding-left: 1rem;
+    /* slight indent */
+    position: static !important;
+    /* ensure it stays inline */
+  }
+
+  .nav-item.dropdown .dropdown-menu .dropdown-item {
+    color: #fff !important;
+    padding: 5px 10px;
+  }
+
+  .nav-item.dropdown .dropdown-menu .dropdown-item:hover {
+    text-decoration: underline;
+    background: none !important;
+  }
+}
+
+.breadcrumb-inline {
+  font-size: 2rem;
+  /* same as h1 */
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.breadcrumb-item-inline .hover-underline:hover {
+  text-decoration: underline;
+  opacity: 0.9;
+}
+
+table {
+  width: 100% !important;
+}
+
+.payment-row {
+  padding: 10px 5px;
+  border-radius: 8px;
+  transition: 0.25s ease;
+}
+
+.payment-row:hover {
+  background-color: #f4f4f4;
+  transform: translateX(5px);
+}
+
+.payment-icon-box {
+  width: 50px;
+  height: 50px;
+  background: #ffffff;
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* Prevent nav items from wrapping + reduce spacing on medium screens */
+@media (max-width: 1400px) {
+  .navbar-nav .nav-link {
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+    font-size: 0.93rem !important;
+  }
+}
+
+@media (max-width: 1300px) {
+  .navbar-nav {
+    gap: 6px !important;
+  }
+
+  .navbar-nav .nav-link {
+    font-size: 0.85rem !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+  }
+}
+
+@media (max-width: 1150px) {
+  .navbar-nav {
+    gap: 6px !important;
+  }
+
+  .navbar-nav .nav-link {
+    font-size: 0.85rem !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+  }
+}
+
+/* ✅ Desktop navbar: keep menu items in ONE line (no text wrap) */
+@media (min-width: 992px) {
+  .navbar-nav .nav-link,
+  .navbar-nav .btn {
+    white-space: nowrap !important;
+    /* stops breaking into 2 lines */
+  }
+
+  /* If your dropdown triggers are <span class="nav-link ..."> */
+  .navbar-nav .nav-item > .nav-link,
+  .navbar-nav .nav-item > span.nav-link {
+    white-space: nowrap !important;
+  }
+}
+
+/* @media (max-width: 992px) {
+  .navbar-nav {
+    gap: 8px !important;
+  }
+} */
+
+.service-description a {
+  color: rgba(var(--bs-link-color-rgb), var(--bs-link-opacity, 1));
+  text-decoration: underline !important;
+}
+
+/* Blog detail HTML content responsiveness */
+.blog-content img {
+  max-width: 100% !important;
+  height: auto !important;
+  display: block;
+}
+
+/* If blog content has figures / tables / embeds */
+.blog-content figure {
+  max-width: 100%;
+}
+
+.blog-content iframe,
+.blog-content video {
+  max-width: 100%;
+}
+
+.blog-content table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* Responsive Course Full Form */
+.card-body,
+.related-course-card .card-body,
+.single-course-area .col-lg-6,
+.related-courses-sidebar .card-body {
+  container-type: inline-size;
+}
+
+.course-name {
+  font-size: 1.2rem;
+}
+
+/* Selective Underlining */
+.course-name:hover {
+  text-decoration: underline !important;
+}
+
+.course-full-form {
+  display: block;
+  /* white-space: nowrap; */
+  font-weight: bold;
+  /* Scale font-size automatically between 10px and 14px based on container width */
+  font-size: clamp(10px, 4.5cqw, 14px);
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #666; /* Muted color but bold */
+  text-decoration: none !important;
+  margin-top: 3px;
+  margin-bottom: 6px;
+}
+
+/* Ensure no global underlines on these interactive titles */
+a:hover {
+  text-decoration: none !important;
+}
+
+/* For the main H2 heading, larger scaling */
+h2 .course-full-form {
+  font-size: clamp(12px, 5cqw, 1.25rem);
+}

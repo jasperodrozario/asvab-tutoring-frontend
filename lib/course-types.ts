@@ -1,0 +1,322 @@
+import type { Session } from "@/components/tabs/LessonPlanTab";
+import type { VideoObject } from "@/components/tabs/CourseVideoTab";
+
+export interface FreePracticeTestQuestion {
+  id: number;
+  question: string;
+  option_a?: string;
+  option_b?: string;
+  option_c?: string;
+  option_d?: string;
+  option_e?: string | null;
+  answer: number | string;
+  story_id?: string | number | null;
+  story?: string | null;
+  story_title?: string | null;
+  q_no?: number;
+  order_no?: number | string | null;
+}
+
+export interface FreePracticeTestData {
+  course_id: number;
+  categories: string[];
+  questions: { [category: string]: FreePracticeTestQuestion[] };
+}
+
+export interface FreePracticeTestResponse {
+  status: number;
+  isSuccess: boolean;
+  message: string;
+  course_name?: string;
+  course_code?: string;
+  full_form?: string;
+  data?: FreePracticeTestData;
+}
+
+export interface RelatedCourse {
+  course_id: string;
+  course_code: string;
+  full_form: string;
+  subscribe_button_url?: string;
+  image?: string;
+  name: string;
+  details?: string;
+}
+
+export interface CourseData {
+  status: number;
+  isSuccess: boolean;
+  message: string;
+  course_name?: string;
+  full_form: string;
+  course_header?: string;
+  course_tagline?: string;
+  overview?: string;
+  curriculum?: string;
+  sessions?: Session[];
+  picture?: string;
+  video?: VideoObject;
+  ft_cat_list?: string[];
+  ft_ques_list?: { [key: string]: FreePracticeTestQuestion[] };
+  related_courses?: RelatedCourse[];
+  total_ques?: number;
+  image_src?: string;
+}
+
+export interface CourseOverviewVideo {
+  c_id: string;
+  course_id: string;
+  mobile_youtube_link: string;
+  desktop_youtube_link: string;
+  thumbnail: string;
+}
+
+export const FREE_TEST_QUESTION_COUNT = 10;
+
+/** Collect non-empty answer choices (A–E) in order. */
+export function getQuestionOptions(
+  question: Pick<
+    FreePracticeTestQuestion,
+    "option_a" | "option_b" | "option_c" | "option_d" | "option_e"
+  >,
+): string[] {
+  return [
+    question.option_a,
+    question.option_b,
+    question.option_c,
+    question.option_d,
+    question.option_e,
+  ].filter(
+    (opt): opt is string =>
+      typeof opt === "string" && opt.trim() !== "",
+  );
+}
+
+/** Fisher–Yates shuffle; returns a new array. */
+export function shuffleArray<T>(items: readonly T[]): T[] {
+  const arr = [...items];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+/** True when the API assigned an explicit question order for this category. */
+export function hasQuestionOrderNo(
+  question: Pick<FreePracticeTestQuestion, "order_no">,
+): boolean {
+  const { order_no } = question;
+  if (order_no == null) return false;
+  if (typeof order_no === "string" && order_no.trim() === "") return false;
+  return true;
+}
+
+export function categoryHasFixedQuestionOrder<
+  T extends Pick<FreePracticeTestQuestion, "order_no">,
+>(questions: readonly T[]): boolean {
+  return questions.some(hasQuestionOrderNo);
+}
+
+function sortQuestionsByOrderNo<T extends FreePracticeTestQuestion>(
+  questions: readonly T[],
+): T[] {
+  return [...questions].sort((a, b) => {
+    const aOrder = Number(a.order_no);
+    const bOrder = Number(b.order_no);
+    if (Number.isNaN(aOrder) || Number.isNaN(bOrder)) return 0;
+    return aOrder - bOrder;
+  });
+}
+
+function limitQuestions<T>(
+  questions: readonly T[],
+  limit: number,
+  shuffle: boolean,
+): T[] {
+  const pool = shuffle ? shuffleArray(questions) : [...questions];
+  return pool.length > limit ? pool.slice(0, limit) : pool;
+}
+
+export function prepareQuestionWithOrderedOptions<
+  T extends FreePracticeTestQuestion,
+>(question: T): PreparedTestQuestion<T> {
+  const options = getQuestionOptions(question);
+  const correctAnswerIndex = Number(question.answer) - 1;
+
+  return {
+    question,
+    options,
+    correctAnswerIndex: correctAnswerIndex >= 0 ? correctAnswerIndex : 0,
+  };
+}
+
+function prepareQuestionsForCategory<
+  T extends FreePracticeTestQuestion,
+>(
+  questions: readonly T[],
+  {
+    limit,
+    shuffleQuestions,
+    shuffleOptions,
+  }: {
+    limit?: number;
+    shuffleQuestions: boolean;
+    shuffleOptions: boolean;
+  },
+): PreparedTestQuestion<T>[] {
+  const orderedQuestions = shuffleQuestions
+    ? questions
+    : sortQuestionsByOrderNo(questions);
+  const selected =
+    limit != null
+      ? limitQuestions(orderedQuestions, limit, shuffleQuestions)
+      : shuffleQuestions
+        ? shuffleArray(orderedQuestions)
+        : orderedQuestions;
+
+  return shuffleOptions
+    ? prepareQuestionsWithShuffledOptions(selected)
+    : selected.map(prepareQuestionWithOrderedOptions);
+}
+
+/** Question with shuffled answer choices and remapped correct index. */
+export interface PreparedTestQuestion<
+  T extends FreePracticeTestQuestion = FreePracticeTestQuestion,
+> {
+  question: T;
+  options: string[];
+  /** 0-based index into `options` for the correct choice. */
+  correctAnswerIndex: number;
+}
+
+export function prepareQuestionWithShuffledOptions<
+  T extends FreePracticeTestQuestion,
+>(question: T): PreparedTestQuestion<T> {
+  const options = getQuestionOptions(question);
+  const originalCorrectIndex = Number(question.answer) - 1;
+  const indexed = options.map((opt, originalIndex) => ({ opt, originalIndex }));
+  const shuffled = shuffleArray(indexed);
+  const correctAnswerIndex = shuffled.findIndex(
+    (item) => item.originalIndex === originalCorrectIndex,
+  );
+
+  return {
+    question,
+    options: shuffled.map((item) => item.opt),
+    correctAnswerIndex: correctAnswerIndex >= 0 ? correctAnswerIndex : 0,
+  };
+}
+
+export function prepareQuestionsWithShuffledOptions<
+  T extends FreePracticeTestQuestion,
+>(questions: readonly T[]): PreparedTestQuestion<T>[] {
+  return questions.map(prepareQuestionWithShuffledOptions);
+}
+
+export function hasFreeTestQuestions(
+  ft_cat_list?: string[],
+  ft_ques_list?: { [key: string]: FreePracticeTestQuestion[] },
+): boolean {
+  if (!ft_cat_list?.length || !ft_ques_list) return false;
+  return ft_cat_list.some((cat) => {
+    const questions = ft_ques_list[cat];
+    return Array.isArray(questions) && questions.length > 0;
+  });
+}
+
+export function isFreeTestReady(
+  ft_cat_list?: string[],
+  ft_ques_list?: { [key: string]: FreePracticeTestQuestion[] },
+): boolean {
+  if (!ft_cat_list?.length || !ft_ques_list) return false;
+  return ft_cat_list.every(
+    (cat) => (ft_ques_list[cat]?.length ?? 0) >= FREE_TEST_QUESTION_COUNT,
+  );
+}
+
+/** Shuffle questions and keep at most `limit` (default 10). */
+export function shuffleAndLimitQuestions<T>(
+  questions: readonly T[],
+  limit: number = FREE_TEST_QUESTION_COUNT,
+): T[] {
+  const shuffled = shuffleArray(questions);
+  return shuffled.length > limit ? shuffled.slice(0, limit) : shuffled;
+}
+
+export function shuffleQuestionsByCategory<
+  T extends FreePracticeTestQuestion,
+>(
+  categories: readonly string[],
+  questionsByCategory: Record<string, readonly T[]>,
+  limit: number = FREE_TEST_QUESTION_COUNT,
+): Record<string, PreparedTestQuestion<T>[]> {
+  return Object.fromEntries(
+    categories.map((cat) => {
+      const questions = questionsByCategory[cat] ?? [];
+      const fixedOrder = categoryHasFixedQuestionOrder(questions);
+      return [
+        cat,
+        prepareQuestionsForCategory(questions, {
+          limit,
+          shuffleQuestions: !fixedOrder,
+          shuffleOptions: !fixedOrder,
+        }),
+      ];
+    }),
+  );
+}
+
+/** Shuffle and limit questions, with shuffled options per question. */
+export function shuffleAndLimitPreparedQuestions<
+  T extends FreePracticeTestQuestion,
+>(
+  questions: readonly T[],
+  limit: number = FREE_TEST_QUESTION_COUNT,
+): PreparedTestQuestion<T>[] {
+  const fixedOrder = categoryHasFixedQuestionOrder(questions);
+  return prepareQuestionsForCategory(questions, {
+    limit,
+    shuffleQuestions: !fixedOrder,
+    shuffleOptions: !fixedOrder,
+  });
+}
+
+/** Shuffle all questions per category without capping the count. */
+export function shuffleAllQuestionsByCategory<
+  T extends FreePracticeTestQuestion,
+>(
+  categories: readonly string[],
+  questionsByCategory: Record<string, readonly T[]>,
+): Record<string, PreparedTestQuestion<T>[]> {
+  return Object.fromEntries(
+    categories.map((cat) => {
+      const questions = questionsByCategory[cat] ?? [];
+      const fixedOrder = categoryHasFixedQuestionOrder(questions);
+      return [
+        cat,
+        prepareQuestionsForCategory(questions, {
+          shuffleQuestions: !fixedOrder,
+          shuffleOptions: !fixedOrder,
+        }),
+      ];
+    }),
+  );
+}
+
+export function prepareFreeTestQuestions(
+  ft_cat_list: string[],
+  ft_ques_list: { [key: string]: FreePracticeTestQuestion[] },
+): { sufficient: boolean; questionsByCategory: { [key: string]: FreePracticeTestQuestion[] } } {
+  const sufficient = isFreeTestReady(ft_cat_list, ft_ques_list);
+
+  if (!sufficient) {
+    return { sufficient: false, questionsByCategory: {} };
+  }
+
+  const questionsByCategory = Object.fromEntries(
+    ft_cat_list.map((cat) => [cat, ft_ques_list[cat] ?? []]),
+  );
+
+  return { sufficient: true, questionsByCategory };
+}
