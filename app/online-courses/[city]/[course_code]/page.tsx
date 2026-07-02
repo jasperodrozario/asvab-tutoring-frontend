@@ -8,8 +8,10 @@ import {
   fetchCourseOverviewVideoByCode,
   fetchAllPackageDetailsForCourse,
   fetchFreePredTestByCode,
+  fetchFreePracticeTestByCode,
 } from "@/lib/php-api";
 import { isFreePredTestReady } from "@/lib/prediction-test-types";
+import { isFreeTestReady } from "@/lib/course-types";
 
 type Props = {
   params: Promise<{ city: string; course_code: string }>;
@@ -41,17 +43,23 @@ export default async function Page({ params }: Props) {
     notFound();
   }
 
-  const [courseData, packagesByService, courseOverviewVideoData, predTestData] =
+  const [courseData, packagesByService, courseOverviewVideoData, predTestData, freeTestData] =
     await Promise.all([
       fetchCourseDetailsByCode(normalizedCode),
       fetchAllPackageDetailsForCourse(normalizedCode),
       fetchCourseOverviewVideoByCode(normalizedCode),
       fetchFreePredTestByCode(normalizedCode),
+      fetchFreePracticeTestByCode(normalizedCode),
     ]);
 
   const hasFreePredTest = isFreePredTestReady(
     predTestData?.data?.categories,
     predTestData?.data?.questions,
+  );
+
+  const hasFreePracticeTest = isFreeTestReady(
+    freeTestData?.data?.categories,
+    freeTestData?.data?.questions,
   );
 
   if (!courseData) {
@@ -67,6 +75,7 @@ export default async function Page({ params }: Props) {
       location={city}
       breadcrumbSegments={["online-courses", city, course_code]}
       hasFreePredTest={hasFreePredTest}
+      hasFreePracticeTest={hasFreePracticeTest}
     />
   );
 }

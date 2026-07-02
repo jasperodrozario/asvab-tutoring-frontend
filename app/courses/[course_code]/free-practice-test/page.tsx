@@ -51,7 +51,7 @@ export default async function Page({
     <FreeTest
       courseName={freeTestData.course_name}
       courseCode={course_code}
-      ft_cat_list={freeTestData.data.categories}
+      ft_categories={freeTestData.data.categories}
       ft_ques_list={freeTestData.data.questions}
       packagesByService={packagesByService}
       hasFreePredTest={hasFreePredTest}

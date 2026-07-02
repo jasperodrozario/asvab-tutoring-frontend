@@ -17,9 +17,14 @@ export interface FreePracticeTestQuestion {
   order_no?: number | string | null;
 }
 
+export interface FreeTestCategory {
+  name: string;
+  description?: string | null;
+}
+
 export interface FreePracticeTestData {
   course_id: number;
-  categories: string[];
+  categories: FreeTestCategory[];
   questions: { [category: string]: FreePracticeTestQuestion[] };
 }
 
@@ -56,8 +61,6 @@ export interface CourseData {
   sessions?: Session[];
   picture?: string;
   video?: VideoObject;
-  ft_cat_list?: string[];
-  ft_ques_list?: { [key: string]: FreePracticeTestQuestion[] };
   related_courses?: RelatedCourse[];
   total_ques?: number;
   image_src?: string;
@@ -72,6 +75,22 @@ export interface CourseOverviewVideo {
 }
 
 export const FREE_TEST_QUESTION_COUNT = 10;
+
+export function getFreeTestCategoryNames(
+  categories: readonly FreeTestCategory[],
+): string[] {
+  return categories.map((category) => category.name);
+}
+
+export function getCategoryDescription(
+  categories: readonly FreeTestCategory[],
+  name: string,
+): string | null {
+  const description = categories.find((category) => category.name === name)
+    ?.description;
+  const trimmed = description?.trim();
+  return trimmed ? trimmed : null;
+}
 
 /** Collect non-empty answer choices (A–E) in order. */
 export function getQuestionOptions(
@@ -215,22 +234,22 @@ export function prepareQuestionsWithShuffledOptions<
 }
 
 export function hasFreeTestQuestions(
-  ft_cat_list?: string[],
+  ft_categories?: FreeTestCategory[],
   ft_ques_list?: { [key: string]: FreePracticeTestQuestion[] },
 ): boolean {
-  if (!ft_cat_list?.length || !ft_ques_list) return false;
-  return ft_cat_list.some((cat) => {
+  if (!ft_categories?.length || !ft_ques_list) return false;
+  return getFreeTestCategoryNames(ft_categories).some((cat) => {
     const questions = ft_ques_list[cat];
     return Array.isArray(questions) && questions.length > 0;
   });
 }
 
 export function isFreeTestReady(
-  ft_cat_list?: string[],
+  ft_categories?: FreeTestCategory[],
   ft_ques_list?: { [key: string]: FreePracticeTestQuestion[] },
 ): boolean {
-  if (!ft_cat_list?.length || !ft_ques_list) return false;
-  return ft_cat_list.every(
+  if (!ft_categories?.length || !ft_ques_list) return false;
+  return getFreeTestCategoryNames(ft_categories).every(
     (cat) => (ft_ques_list[cat]?.length ?? 0) >= FREE_TEST_QUESTION_COUNT,
   );
 }
@@ -305,17 +324,18 @@ export function shuffleAllQuestionsByCategory<
 }
 
 export function prepareFreeTestQuestions(
-  ft_cat_list: string[],
+  ft_categories: FreeTestCategory[],
   ft_ques_list: { [key: string]: FreePracticeTestQuestion[] },
 ): { sufficient: boolean; questionsByCategory: { [key: string]: FreePracticeTestQuestion[] } } {
-  const sufficient = isFreeTestReady(ft_cat_list, ft_ques_list);
+  const categoryNames = getFreeTestCategoryNames(ft_categories);
+  const sufficient = isFreeTestReady(ft_categories, ft_ques_list);
 
   if (!sufficient) {
     return { sufficient: false, questionsByCategory: {} };
   }
 
   const questionsByCategory = Object.fromEntries(
-    ft_cat_list.map((cat) => [cat, ft_ques_list[cat] ?? []]),
+    categoryNames.map((cat) => [cat, ft_ques_list[cat] ?? []]),
   );
 
   return { sufficient: true, questionsByCategory };

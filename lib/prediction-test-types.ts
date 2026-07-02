@@ -1,8 +1,12 @@
 import {
   FREE_TEST_QUESTION_COUNT,
+  getFreeTestCategoryNames,
   type FreePracticeTestQuestion,
+  type FreeTestCategory,
   type PreparedTestQuestion,
 } from "@/lib/course-types";
+
+export type FreePredTestCategory = FreeTestCategory;
 
 export interface FreePredTestQuestion extends FreePracticeTestQuestion {
   cat_id?: number | string;
@@ -11,7 +15,7 @@ export interface FreePredTestQuestion extends FreePracticeTestQuestion {
 
 export interface FreePredTestData {
   course_id: number;
-  categories: string[];
+  categories: FreeTestCategory[];
   questions: { [category: string]: FreePredTestQuestion[] };
 }
 
@@ -78,33 +82,34 @@ export function getPredScoreFeedback(score: number): PredScoreFeedback {
 }
 
 export function hasFreePredTestQuestions(
-  categories?: string[],
+  categories?: FreeTestCategory[],
   questions?: { [key: string]: FreePredTestQuestion[] },
 ): boolean {
   if (!categories?.length || !questions) return false;
-  return categories.some((cat) => {
+  return getFreeTestCategoryNames(categories).some((cat) => {
     const qs = questions[cat];
     return Array.isArray(qs) && qs.length > 0;
   });
 }
 
 export function isFreePredTestReady(
-  categories?: string[],
+  categories?: FreeTestCategory[],
   questions?: { [key: string]: FreePredTestQuestion[] },
 ): boolean {
   if (!categories?.length || !questions) return false;
-  return categories.every(
+  return getFreeTestCategoryNames(categories).every(
     (cat) => (questions[cat]?.length ?? 0) >= FREE_TEST_QUESTION_COUNT,
   );
 }
 
 export function prepareFreePredTestQuestions(
-  categories: string[],
+  categories: FreeTestCategory[],
   questions: { [key: string]: FreePredTestQuestion[] },
 ): {
   sufficient: boolean;
   questionsByCategory: { [key: string]: FreePredTestQuestion[] };
 } {
+  const categoryNames = getFreeTestCategoryNames(categories);
   const sufficient = isFreePredTestReady(categories, questions);
 
   if (!sufficient) {
@@ -112,7 +117,7 @@ export function prepareFreePredTestQuestions(
   }
 
   const questionsByCategory = Object.fromEntries(
-    categories.map((cat) => [cat, questions[cat] ?? []]),
+    categoryNames.map((cat) => [cat, questions[cat] ?? []]),
   );
 
   return { sufficient: true, questionsByCategory };
@@ -132,18 +137,19 @@ export interface PredTestScorePayload {
 }
 
 export function buildPredTestScorePayload(
-  categories: string[],
+  categories: FreeTestCategory[],
   questionsByCategory: {
     [key: string]: PreparedTestQuestion<FreePredTestQuestion>[];
   },
   courseId: number,
   userAnswers: Record<string, number>,
 ): PredTestScorePayload {
+  const categoryNames = getFreeTestCategoryNames(categories);
   const predCatIds: number[] = [];
   const correctCounts: number[] = [];
   const totals: number[] = [];
 
-  categories.forEach((catName, catIdx) => {
+  categoryNames.forEach((catName, catIdx) => {
     const qs = questionsByCategory[catName] ?? [];
     predCatIds.push(getCategoryCatId(qs.map((pq) => pq.question)));
     totals.push(qs.length);

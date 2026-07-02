@@ -44,7 +44,7 @@ export default async function Page({
       courseName={predTestData.course_name}
       courseCode={course_code}
       courseId={predTestData.data.course_id}
-      ft_cat_list={predTestData.data.categories}
+      ft_categories={predTestData.data.categories}
       ft_ques_list={predTestData.data.questions}
       packagesByService={packagesByService}
     />

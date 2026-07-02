@@ -252,15 +252,7 @@ function normalizeCourseDetail(
     return null;
   }
 
-  const onlineFreeTest = data.online_free_test_data as
-    | { categories?: string[]; questions?: CourseData["ft_ques_list"] }
-    | undefined;
-
-  return {
-    ...(data as unknown as CourseData),
-    ft_cat_list: onlineFreeTest?.categories || [],
-    ft_ques_list: onlineFreeTest?.questions || {},
-  };
+  return data as unknown as CourseData;
 }
 
 function getCourseIdFromCode(courseCode: string): string {
@@ -470,7 +462,7 @@ export async function fetchFreePracticeTestCatalog(): Promise<
         fullForm: course.full_form || freeTest?.full_form,
         imageSrc: course.image_src,
         sectionCount: ft_cat_list.length,
-        sectionNames: ft_cat_list,
+        sectionNames: ft_cat_list.map((category) => category.name),
       };
 
       return entry;
@@ -514,7 +506,7 @@ export async function fetchFreePredTestCatalog(): Promise<FreePredTestCourse[]> 
         fullForm: course.full_form || predTest?.full_form,
         imageSrc: course.image_src,
         sectionCount: categories.length,
-        sectionNames: categories,
+        sectionNames: categories.map((category) => category.name),
       };
 
       return entry;

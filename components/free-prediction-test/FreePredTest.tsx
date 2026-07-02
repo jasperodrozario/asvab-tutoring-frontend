@@ -31,7 +31,10 @@ import {
   buildPredTestScorePayload,
 } from "@/lib/prediction-test-types";
 import {
+  getCategoryDescription,
+  getFreeTestCategoryNames,
   shuffleAllQuestionsByCategory,
+  type FreeTestCategory,
   type PreparedTestQuestion,
 } from "@/lib/course-types";
 import { calculateFreePredTestScore } from "@/lib/php-api-client";
@@ -69,7 +72,7 @@ interface FreePredTestProps {
   courseName?: string;
   courseCode: string;
   courseId: number;
-  ft_cat_list?: string[];
+  ft_categories?: FreeTestCategory[];
   ft_ques_list?: { [key: string]: FreePredTestQuestion[] };
   packagesByService?: PackagesByService;
 }
@@ -127,6 +130,16 @@ function StoryPassage({
   );
 }
 
+function CategoryDescription({ html }: { html: string }) {
+  return (
+    <div
+      className={`mb-4 p-3 rounded-3 border bg-light ${styles.categoryDescription}`}
+    >
+      <QuestionHtml html={html} />
+    </div>
+  );
+}
+
 function UnavailableMessage({
   courseName,
   courseCode,
@@ -179,10 +192,14 @@ export default function FreePredTest({
   courseName,
   courseCode,
   courseId,
-  ft_cat_list,
+  ft_categories,
   ft_ques_list,
   packagesByService,
 }: FreePredTestProps) {
+  const categoryNames = useMemo(
+    () => getFreeTestCategoryNames(ft_categories ?? []),
+    [ft_categories],
+  );
   const [activeCategory, setActiveCategory] = useState(0);
   const [userAnswers, setUserAnswers] = useState<UserAnswers>({});
   const [testSubmitted, setTestSubmitted] = useState(false);
@@ -198,10 +215,13 @@ export default function FreePredTest({
   const [questionsByCategory, setQuestionsByCategory] = useState<
     Record<string, PreparedTestQuestion<FreePredTestQuestion>[]>
   >(() => {
-    if (!ft_cat_list?.length || !ft_ques_list) return {};
-    const prepared = prepareFreePredTestQuestions(ft_cat_list, ft_ques_list);
+    if (!ft_categories?.length || !ft_ques_list) return {};
+    const prepared = prepareFreePredTestQuestions(ft_categories, ft_ques_list);
     if (!prepared.sufficient) return {};
-    return shuffleAllQuestionsByCategory(ft_cat_list, prepared.questionsByCategory);
+    return shuffleAllQuestionsByCategory(
+      getFreeTestCategoryNames(ft_categories),
+      prepared.questionsByCategory,
+    );
   });
   const skipCourseShuffleRef = useRef(true);
   const [mathJaxReady, setMathJaxReady] = useState(false);
@@ -266,7 +286,7 @@ export default function FreePredTest({
       await typesetMathJax(mathContentRef.current);
       setMathJaxReady(true);
     })();
-  }, [mathJaxReady, ft_cat_list]);
+  }, [mathJaxReady, ft_categories]);
 
   useLayoutEffect(() => {
     if (!shouldScrollAfterSubmitRef.current || !testSubmitted) return;
@@ -280,27 +300,27 @@ export default function FreePredTest({
 
   const { sufficient: hasSufficientQuestions, questionsByCategory: rawQuestionsByCategory } =
     useMemo(() => {
-      if (!ft_cat_list?.length || !ft_ques_list) {
+      if (!ft_categories?.length || !ft_ques_list) {
         return { sufficient: false, questionsByCategory: {} };
       }
-      return prepareFreePredTestQuestions(ft_cat_list, ft_ques_list);
-    }, [ft_cat_list, ft_ques_list]);
+      return prepareFreePredTestQuestions(ft_categories, ft_ques_list);
+    }, [ft_categories, ft_ques_list]);
 
   useEffect(() => {
     if (skipCourseShuffleRef.current) {
       skipCourseShuffleRef.current = false;
       return;
     }
-    if (!hasSufficientQuestions || !ft_cat_list) {
+    if (!hasSufficientQuestions || !ft_categories) {
       setQuestionsByCategory({});
       return;
     }
     setQuestionsByCategory(
-      shuffleAllQuestionsByCategory(ft_cat_list, rawQuestionsByCategory),
+      shuffleAllQuestionsByCategory(categoryNames, rawQuestionsByCategory),
     );
-  }, [ft_cat_list, ft_ques_list, hasSufficientQuestions, rawQuestionsByCategory]);
+  }, [ft_categories, ft_ques_list, hasSufficientQuestions, rawQuestionsByCategory, categoryNames]);
 
-  if (!ft_cat_list || !ft_ques_list || ft_cat_list.length === 0) {
+  if (!ft_categories || !ft_ques_list || ft_categories.length === 0) {
     return <UnavailableMessage courseName={courseName} courseCode={courseCode} />;
   }
 
@@ -308,10 +328,10 @@ export default function FreePredTest({
     return <UnavailableMessage courseName={courseName} courseCode={courseCode} />;
   }
 
-  const activeCategoryName = ft_cat_list[activeCategory];
+  const activeCategoryName = categoryNames[activeCategory];
   const questions = questionsByCategory[activeCategoryName] || [];
   const isFirstCategory = activeCategory === 0;
-  const isLastCategory = activeCategory === ft_cat_list.length - 1;
+  const isLastCategory = activeCategory === categoryNames.length - 1;
 
   const getAnsweredCount = (
     catIdx: number,
@@ -324,7 +344,7 @@ export default function FreePredTest({
     );
 
   const isCategoryComplete = (catIdx: number) => {
-    const catName = ft_cat_list[catIdx];
+    const catName = categoryNames[catIdx];
     const catQuestions = questionsByCategory[catName] || [];
     return (
       getAnsweredCount(catIdx, catQuestions) === catQuestions.length &&
@@ -335,7 +355,7 @@ export default function FreePredTest({
   const incompleteCategories = (() => {
     const names: string[] = [];
     const indices: number[] = [];
-    ft_cat_list.forEach((name, idx) => {
+    categoryNames.forEach((name, idx) => {
       if (!isCategoryComplete(idx)) {
         names.push(name);
         indices.push(idx);
@@ -345,11 +365,11 @@ export default function FreePredTest({
   })();
 
   const allCategoriesComplete = incompleteCategories.names.length === 0;
-  const completedSectionCount = ft_cat_list.filter((_, idx) =>
+  const completedSectionCount = categoryNames.filter((_, idx) =>
     isCategoryComplete(idx),
   ).length;
 
-  const categoryProgress = ft_cat_list.map((name, idx) => {
+  const categoryProgress = categoryNames.map((name, idx) => {
     const catQuestions = questionsByCategory[name] || [];
     const answered = getAnsweredCount(idx, catQuestions);
     return {
@@ -374,7 +394,7 @@ export default function FreePredTest({
 
   const buildReviewResults = (): Record<number, TestResult[]> => {
     const allResults: Record<number, TestResult[]> = {};
-    ft_cat_list.forEach((catName, catIdx) => {
+    categoryNames.forEach((catName, catIdx) => {
       const catQuestions = questionsByCategory[catName] || [];
       allResults[catIdx] = catQuestions.map((pq, qIndex) => {
         const userAnswer = userAnswers[`${catIdx}-${qIndex}`];
@@ -407,7 +427,7 @@ export default function FreePredTest({
     setSubmitError(null);
 
     const payload = buildPredTestScorePayload(
-      ft_cat_list,
+      ft_categories,
       questionsByCategory,
       courseId,
       userAnswers,
@@ -432,9 +452,9 @@ export default function FreePredTest({
   };
 
   const retakeTest = () => {
-    if (ft_cat_list) {
+    if (ft_categories) {
       setQuestionsByCategory(
-        shuffleAllQuestionsByCategory(ft_cat_list, rawQuestionsByCategory),
+        shuffleAllQuestionsByCategory(categoryNames, rawQuestionsByCategory),
       );
     }
     setTestSubmitted(false);
@@ -499,7 +519,7 @@ export default function FreePredTest({
               </div>
               <div className="card-body p-3">
                 <ul className="nav nav-pills gap-2 justify-content-start flex-wrap">
-                  {ft_cat_list.map((cat, idx) => {
+                  {ft_categories.map((cat, idx) => {
                     const complete = isCategoryComplete(idx);
                     return (
                       <li key={idx} className="nav-item">
@@ -519,7 +539,7 @@ export default function FreePredTest({
                             borderRadius: "20px",
                           }}
                         >
-                          {cat}
+                          {cat.name}
                           {complete ? (
                             <i
                               className={`bi bi-check-circle-fill ${styles.categoryCheck}`}
@@ -534,7 +554,7 @@ export default function FreePredTest({
               </div>
               <div className="card-footer bg-white border-top px-4 py-2">
                 <span className="small text-muted">
-                  {completedSectionCount} of {ft_cat_list.length} sections complete
+                  {completedSectionCount} of {ft_categories.length} sections complete
                 </span>
               </div>
             </div>
@@ -545,7 +565,11 @@ export default function FreePredTest({
                 mathJaxReady ? "" : styles.categoryPanelsLoading
               }`}
             >
-              {ft_cat_list.map((catName, catIdx) => {
+              {categoryNames.map((catName, catIdx) => {
+                const categoryDescription = getCategoryDescription(
+                  ft_categories,
+                  catName,
+                );
                 const catQuestions = questionsByCategory[catName] || [];
                 const catReview = reviewResults[catIdx];
                 const isActive = catIdx === activeCategory;
@@ -594,6 +618,10 @@ export default function FreePredTest({
                               />
                             </div>
                           </div>
+
+                          {categoryDescription ? (
+                            <CategoryDescription html={categoryDescription} />
+                          ) : null}
 
                           {catQuestions.map((pq, qIdx) => {
                             const options = pq.options;
@@ -932,7 +960,7 @@ export default function FreePredTest({
               catScores={scoreResult?.cat_scores}
               categoryProgress={categoryProgress}
               completedSectionCount={completedSectionCount}
-              totalSectionCount={ft_cat_list.length}
+              totalSectionCount={ft_categories.length}
               courseName={courseName}
               courseCode={courseCode}
               courseId={courseId}

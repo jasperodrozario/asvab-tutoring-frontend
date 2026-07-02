@@ -87,6 +87,15 @@
   height: auto;
 }
 
+.categoryDescription {
+  border-color: #dee2e6 !important;
+}
+
+.categoryDescription img {
+  max-width: 100%;
+  height: auto;
+}
+
 .resultsScrollTarget {
   scroll-margin-top: 1rem;
 }

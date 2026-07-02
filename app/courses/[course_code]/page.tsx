@@ -8,8 +8,10 @@ import {
   fetchCourseOverviewVideoByCode,
   fetchAllPackageDetailsForCourse,
   fetchFreePredTestByCode,
+  fetchFreePracticeTestByCode,
 } from "@/lib/php-api";
 import { isFreePredTestReady } from "@/lib/prediction-test-types";
+import { isFreeTestReady } from "@/lib/course-types";
 
 export const revalidate = 3600;
 
@@ -33,11 +35,13 @@ export default async function Page({
     notFound();
   }
 
-  const [courseData, packagesByService, predTestData] = await Promise.all([
-    fetchCourseDetailsByCode(course_code),
-    fetchAllPackageDetailsForCourse(course_code),
-    fetchFreePredTestByCode(course_code),
-  ]);
+  const [courseData, packagesByService, predTestData, freeTestData] =
+    await Promise.all([
+      fetchCourseDetailsByCode(course_code),
+      fetchAllPackageDetailsForCourse(course_code),
+      fetchFreePredTestByCode(course_code),
+      fetchFreePracticeTestByCode(course_code),
+    ]);
 
   const courseOverviewVideoData =
     await fetchCourseOverviewVideoByCode(course_code);
@@ -45,6 +49,11 @@ export default async function Page({
   const hasFreePredTest = isFreePredTestReady(
     predTestData?.data?.categories,
     predTestData?.data?.questions,
+  );
+
+  const hasFreePracticeTest = isFreeTestReady(
+    freeTestData?.data?.categories,
+    freeTestData?.data?.questions,
   );
 
   if (!courseData) {
@@ -59,6 +68,7 @@ export default async function Page({
       packagesByService={packagesByService}
       breadcrumbSegments={["courses", course_code]}
       hasFreePredTest={hasFreePredTest}
+      hasFreePracticeTest={hasFreePracticeTest}
     />
   );
 }

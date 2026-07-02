@@ -11,7 +11,7 @@ import CourseOverviewVideoEmbed from "@/components/course/CourseOverviewVideoEmb
 import PredictionTestLinkButton from "@/components/prediction-test/PredictionTestLinkButton";
 import { getCourseFreePredictionTestHref } from "@/lib/prediction-test-links";
 import { processHtmlContent } from "@/lib/decode-html";
-import { hasFreeTestQuestions, type CourseData } from "@/lib/course-types";
+import type { CourseData } from "@/lib/course-types";
 import type { CourseOverviewVideo } from "@/lib/php-api";
 import type { PackagesByService } from "@/lib/package-types";
 import styles from "./courseDetail.module.css";
@@ -24,6 +24,7 @@ export type CourseDetailClientProps = {
   location?: string;
   breadcrumbSegments: string[];
   hasFreePredTest?: boolean;
+  hasFreePracticeTest?: boolean;
 };
 
 function formatLocationLabel(location: string): string {
@@ -38,6 +39,7 @@ export function CourseDetailClient({
   breadcrumbSegments,
   courseOverviewVideoData,
   hasFreePredTest = false,
+  hasFreePracticeTest = false,
 }: CourseDetailClientProps) {
   const searchParams = useSearchParams();
   const location = locationProp || searchParams?.get("location") || "";
@@ -66,10 +68,7 @@ export function CourseDetailClient({
     return false;
   })();
 
-  const showFreeTestLink = hasFreeTestQuestions(
-    courseData.ft_cat_list,
-    courseData.ft_ques_list,
-  );
+  const showFreeTestLink = hasFreePracticeTest;
 
   return (
     <>

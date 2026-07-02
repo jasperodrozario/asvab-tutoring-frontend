@@ -23,9 +23,12 @@ import QuestionHtml from "./QuestionHtml";
 import type { PackagesByService } from "@/lib/package-types";
 import type { FreePracticeTestQuestion } from "@/lib/course-types";
 import {
+  getCategoryDescription,
+  getFreeTestCategoryNames,
   prepareFreeTestQuestions,
   shuffleAndLimitPreparedQuestions,
   shuffleQuestionsByCategory,
+  type FreeTestCategory,
   type PreparedTestQuestion,
 } from "@/lib/course-types";
 import { getFreePracticeTestDescription } from "@/lib/page-metadata";
@@ -142,20 +145,34 @@ interface CategoryState {
 interface FreeTestProps {
   courseName?: string;
   courseCode: string;
-  ft_cat_list?: string[];
+  ft_categories?: FreeTestCategory[];
   ft_ques_list?: { [key: string]: Question[] };
   packagesByService?: PackagesByService;
   hasFreePredTest?: boolean;
 }
 
+function CategoryDescription({ html }: { html: string }) {
+  return (
+    <div
+      className={`mb-4 p-3 rounded-3 border bg-light ${freeTestStyles.categoryDescription}`}
+    >
+      <QuestionHtml html={html} />
+    </div>
+  );
+}
+
 const FreeTest: React.FC<FreeTestProps> = ({
   courseName,
   courseCode,
-  ft_cat_list,
+  ft_categories,
   ft_ques_list,
   packagesByService,
   hasFreePredTest = false,
 }) => {
+  const categoryNames = useMemo(
+    () => getFreeTestCategoryNames(ft_categories ?? []),
+    [ft_categories],
+  );
   const [activeCategory, setActiveCategory] = useState<number>(0);
   const [userAnswers, setUserAnswers] = useState<UserAnswers>({});
   const [categoryStates, setCategoryStates] = useState<
@@ -164,10 +181,13 @@ const FreeTest: React.FC<FreeTestProps> = ({
   const [questionsByCategory, setQuestionsByCategory] = useState<
     Record<string, PreparedTestQuestion<Question>[]>
   >(() => {
-    if (!ft_cat_list?.length || !ft_ques_list) return {};
-    const prepared = prepareFreeTestQuestions(ft_cat_list, ft_ques_list);
+    if (!ft_categories?.length || !ft_ques_list) return {};
+    const prepared = prepareFreeTestQuestions(ft_categories, ft_ques_list);
     if (!prepared.sufficient) return {};
-    return shuffleQuestionsByCategory(ft_cat_list, prepared.questionsByCategory);
+    return shuffleQuestionsByCategory(
+      getFreeTestCategoryNames(ft_categories),
+      prepared.questionsByCategory,
+    );
   });
   const skipCourseShuffleRef = useRef(true);
   const [mathJaxReady, setMathJaxReady] = useState(false);
@@ -255,7 +275,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
       await typesetMathJax(mathContentRef.current);
       setMathJaxReady(true);
     })();
-  }, [mathJaxReady, ft_cat_list]);
+  }, [mathJaxReady, ft_categories]);
 
   useLayoutEffect(() => {
     const catState = categoryStates[activeCategory];
@@ -276,27 +296,27 @@ const FreeTest: React.FC<FreeTestProps> = ({
 
   const { sufficient: hasSufficientQuestions, questionsByCategory: rawQuestionsByCategory } =
     useMemo(() => {
-      if (!ft_cat_list?.length || !ft_ques_list) {
+      if (!ft_categories?.length || !ft_ques_list) {
         return { sufficient: false, questionsByCategory: {} };
       }
-      return prepareFreeTestQuestions(ft_cat_list, ft_ques_list);
-    }, [ft_cat_list, ft_ques_list]);
+      return prepareFreeTestQuestions(ft_categories, ft_ques_list);
+    }, [ft_categories, ft_ques_list]);
 
   useEffect(() => {
     if (skipCourseShuffleRef.current) {
       skipCourseShuffleRef.current = false;
       return;
     }
-    if (!hasSufficientQuestions || !ft_cat_list) {
+    if (!hasSufficientQuestions || !ft_categories) {
       setQuestionsByCategory({});
       return;
     }
     setQuestionsByCategory(
-      shuffleQuestionsByCategory(ft_cat_list, rawQuestionsByCategory),
+      shuffleQuestionsByCategory(categoryNames, rawQuestionsByCategory),
     );
-  }, [ft_cat_list, ft_ques_list, hasSufficientQuestions, rawQuestionsByCategory]);
+  }, [ft_categories, ft_ques_list, hasSufficientQuestions, rawQuestionsByCategory, categoryNames]);
 
-  if (!ft_cat_list || !ft_ques_list || ft_cat_list.length === 0) {
+  if (!ft_categories || !ft_ques_list || ft_categories.length === 0) {
     return (
       <>
         <div className="page-title-area text-white py-5">
@@ -380,7 +400,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
     );
   }
 
-  const activeCategoryName = ft_cat_list[activeCategory];
+  const activeCategoryName = categoryNames[activeCategory];
   const questions = questionsByCategory[activeCategoryName] || [];
   const { submitted: testSubmitted, results: testResults } =
     categoryStates[activeCategory] ?? { submitted: false, results: null };
@@ -432,7 +452,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
   };
 
   const retakeTest = (): void => {
-    const categoryName = ft_cat_list[activeCategory];
+    const categoryName = categoryNames[activeCategory];
     const rawQuestions = rawQuestionsByCategory[categoryName] ?? [];
     setQuestionsByCategory((prev) => ({
       ...prev,
@@ -546,7 +566,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
               </div>
               <div className="card-body p-3">
                 <ul className="nav nav-pills gap-2 justify-content-start">
-                  {ft_cat_list.map((cat, idx) => (
+                  {ft_categories.map((cat, idx) => (
                     <li key={idx} className="nav-item">
                       <button
                         className={`nav-link px-4 py-2 fw-semibold transition-all ${
@@ -563,7 +583,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
                           borderRadius: "20px",
                         }}
                       >
-                        {cat}
+                        {cat.name}
                       </button>
                     </li>
                   ))}
@@ -578,7 +598,11 @@ const FreeTest: React.FC<FreeTestProps> = ({
                 mathJaxReady ? "" : freeTestStyles.categoryPanelsLoading
               }`}
             >
-              {ft_cat_list.map((catName, catIdx) => {
+              {categoryNames.map((catName, catIdx) => {
+                const categoryDescription = getCategoryDescription(
+                  ft_categories,
+                  catName,
+                );
                 const catQuestions = questionsByCategory[catName] || [];
                 const catState = categoryStates[catIdx] ?? {
                   submitted: false,
@@ -644,6 +668,10 @@ const FreeTest: React.FC<FreeTestProps> = ({
                                 ></div>
                               </div>
                             </div>
+
+                            {categoryDescription ? (
+                              <CategoryDescription html={categoryDescription} />
+                            ) : null}
 
                             {catQuestions.map((pq, qIdx) => {
                               const options = pq.options;
