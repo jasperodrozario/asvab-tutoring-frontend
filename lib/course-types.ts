@@ -127,7 +127,12 @@ export function hasQuestionOrderNo(
 ): boolean {
   const { order_no } = question;
   if (order_no == null) return false;
-  if (typeof order_no === "string" && order_no.trim() === "") return false;
+  if (typeof order_no === "string") {
+    const trimmed = order_no.trim();
+    if (trimmed === "" || trimmed === "0") return false;
+    return true;
+  }
+  if (order_no === 0) return false;
   return true;
 }
 
