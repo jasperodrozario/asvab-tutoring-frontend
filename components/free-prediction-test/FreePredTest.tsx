@@ -41,6 +41,7 @@ import { calculateFreePredTestScore } from "@/lib/php-api-client";
 import { getFreePredictionTestDescription } from "@/lib/page-metadata";
 import FreePredTestSidebar from "./FreePredTestSidebar";
 import IncompleteCategoriesModal from "./IncompleteCategoriesModal";
+import TestRulesIntro from "@/components/free-test/TestRulesIntro";
 
 const BREADCRUMB_SEGMENTS = (courseCode: string) =>
   ["courses", courseCode, "free-prediction-test"] as const;
@@ -512,6 +513,10 @@ export default function FreePredTest({
 
       <div className="container pb-5">
         <div className="row g-4">
+          <div className="col-12">
+            <TestRulesIntro variant="prediction" courseName={courseName} />
+          </div>
+
           <div className="col-lg-8">
             <div className="card shadow-sm border-0 mb-4 rounded-3 overflow-hidden">
               <div className="bg-light px-4 py-3 border-bottom">

@@ -33,6 +33,7 @@ import {
 } from "@/lib/course-types";
 import { getFreePracticeTestDescription } from "@/lib/page-metadata";
 import FreeTestSidebar from "./FreeTestSidebar";
+import TestRulesIntro from "./TestRulesIntro";
 
 const BREADCRUMB_SEGMENTS = (courseCode: string) =>
   ["courses", courseCode, "free-practice-test"] as const;
@@ -556,12 +557,16 @@ const FreeTest: React.FC<FreeTestProps> = ({
 
       <div className="container">
         <div className="row g-4">
+          <div className="col-12">
+            <TestRulesIntro variant="practice" courseName={courseName} />
+          </div>
+
           <div className="col-lg-8">
-            {/* Category Pills Navigation */}
+            {/* Section pills navigation */}
             <div className="card shadow-sm border-0 mb-4 rounded-3 overflow-hidden">
               <div className="bg-light px-4 py-3 border-bottom">
                 <h5 className="mb-0 fw-semibold text-secondary">
-                  Select Category
+                  Select Section
                 </h5>
               </div>
               <div className="card-body p-3">
@@ -638,7 +643,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
                           <div className="card shadow-sm border-0 mb-4 p-4 rounded-3">
                               <div className="d-flex justify-content-between align-items-center mb-2">
                                 <span className="fw-semibold text-secondary">
-                                  Category:{" "}
+                                  Section:{" "}
                                   <span style={{ color: "#002341" }}>
                                     {catName}
                                   </span>
@@ -794,7 +799,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
                             <h4 className="fw-bold">No Questions Found</h4>
                             <p className="text-muted">
                               There are no practice questions loaded in this
-                              category yet.
+                              section yet.
                             </p>
                           </div>
                         )}

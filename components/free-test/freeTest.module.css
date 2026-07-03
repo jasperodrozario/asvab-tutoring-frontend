@@ -50,6 +50,81 @@
   box-shadow: 0 0 0 3px rgba(229, 138, 52, 0.2);
 }
 
+.testRulesCard {
+  background: linear-gradient(135deg, #fffaf5 0%, #fff 48%, #f4f8fb 100%);
+  border: 1px solid #e8edf2;
+  border-left: 4px solid #e58a34;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 18px rgba(0, 35, 65, 0.06);
+  padding: 1.35rem 1.5rem 1.4rem;
+}
+
+.testRulesHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.75rem;
+}
+
+.testRulesIconWrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.5rem;
+  background: rgba(229, 138, 52, 0.12);
+  color: #e58a34;
+  font-size: 1.1rem;
+}
+
+.testRulesTitle {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #002341;
+  line-height: 1.3;
+}
+
+.testRulesLead {
+  margin: 0 0 1rem;
+  font-size: 0.98rem;
+  line-height: 1.65;
+  color: #5c6670;
+}
+
+.testRulesList {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.65rem 1.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+@media (min-width: 768px) {
+  .testRulesList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.testRulesList li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: #495057;
+}
+
+.testRulesList li i {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+  color: #e58a34;
+  font-size: 0.8rem;
+}
+
 .showAllTestsWrap {
   margin-top: 20px;
   margin-bottom: 20px;

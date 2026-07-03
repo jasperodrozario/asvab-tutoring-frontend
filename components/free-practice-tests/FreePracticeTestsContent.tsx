@@ -50,11 +50,11 @@ export default function FreePracticeTestsContent({ courses }: Props) {
           questions so you can gauge how prepared you are before test day.
         </p>
         <p>
-          Choose a course below to begin a free practice test. The test is broken down into categories that match that course&apos;s subject
-          areas. Select any category you want to test your skills on and answer each question at your own pace. Then submit when you are finished to know your score for that category.
+          Choose a course below to begin a free practice test. The test is broken down into sections that match that course&apos;s subject
+          areas. Select any section you want to test your skills on and answer each question at your own pace. Then submit when you are finished to know your score for that section.
         </p>
         <p>
-          Your results are broken down by category, so you can see exactly where
+          Your results are broken down by section, so you can see exactly where
           you scored well and where you need more work. Use that breakdown to
           target your weak areas and make your study time count.
         </p>
