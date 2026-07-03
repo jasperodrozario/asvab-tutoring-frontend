@@ -8,17 +8,22 @@ import type { PackagesByService } from "@/lib/package-types";
 type Props = {
   courses: FreePredTestCourse[];
   packagesByCourse: Record<string, PackagesByService>;
+  showMoreTestsComingSoon?: boolean;
 };
 
 export default function FreePredictionTestsLayout({
   courses,
   packagesByCourse,
+  showMoreTestsComingSoon = false,
 }: Props) {
   if (courses.length === 0) {
     return (
       <div className="row justify-content-center">
         <div className="col-lg-8 col-xl-6">
-          <FreePredictionTestsContent courses={courses} />
+          <FreePredictionTestsContent
+            courses={courses}
+            showMoreTestsComingSoon={showMoreTestsComingSoon}
+          />
         </div>
       </div>
     );
@@ -27,7 +32,10 @@ export default function FreePredictionTestsLayout({
   return (
     <div className="row g-4">
       <div className="col-lg-8">
-        <FreePredictionTestsContent courses={courses} />
+        <FreePredictionTestsContent
+          courses={courses}
+          showMoreTestsComingSoon={showMoreTestsComingSoon}
+        />
       </div>
       <div className="col-lg-4 align-self-start">
         <CoursePricingPanel

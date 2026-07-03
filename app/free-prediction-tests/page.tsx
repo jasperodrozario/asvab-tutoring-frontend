@@ -33,9 +33,11 @@ export default async function FreePredictionTestsPage() {
       </div>
 
       <div className="container py-5">
+        {/* TEMPORARY: remove showMoreTestsComingSoon when all prediction tests are restored in fetchFreePredTestByCode */}
         <FreePredictionTestsLayout
           courses={courses}
           packagesByCourse={packagesByCourse}
+          showMoreTestsComingSoon
         />
       </div>
     </>

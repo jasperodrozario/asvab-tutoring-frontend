@@ -475,13 +475,24 @@ export async function fetchFreePracticeTestCatalog(): Promise<
 export async function fetchFreePredTestByCode(
   courseCode: string,
 ): Promise<FreePredTestResponse | null> {
+  const normalizedCode = courseCode.replace(/-tutor$/, "").toLowerCase();
+
+  // TEMPORARY: only ASVAB and AFOQT prediction tests are live. Remove this block to restore all courses.
+  if (!["asvab", "afoqt"].includes(normalizedCode)) {
+    return null;
+  }
+
   const result = await postPhpApi<FreePredTestResponse>(
     "get-free-pred-test-by-code",
-    { course_code: courseCode.replace(/-tutor$/, "").toLowerCase() },
+    { course_code: normalizedCode },
   );
 
   if (!result || result.status !== 200 || !result.isSuccess || !result.data) {
     return null;
+  }
+
+  if (normalizedCode === "asvab") {
+    result.course_name = `${result.course_name} AFQT`;
   }
 
   return result;
@@ -502,7 +513,7 @@ export async function fetchFreePredTestCatalog(): Promise<FreePredTestCourse[]> 
 
       const entry: FreePredTestCourse = {
         courseCode: course.course_code,
-        courseName: predTest?.course_name || course.name,
+        courseName: course.course_code==="asvab" ? `${course.name} AFQT` : predTest?.course_name || course.name,
         fullForm: course.full_form || predTest?.full_form,
         imageSrc: course.image_src,
         sectionCount: categories.length,
