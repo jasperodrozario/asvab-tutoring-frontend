@@ -40,7 +40,7 @@ export default function TestRulesIntro({
     <div className={styles.testRulesCard}>
       <div className={styles.testRulesHeader}>
         <span className={styles.testRulesIconWrap} aria-hidden>
-          <i className="bi bi-clipboard-check" />
+          <i className="bi bi-info-circle-fill" aria-hidden />
         </span>
         <h2 className={styles.testRulesTitle}>{title}</h2>
       </div>
