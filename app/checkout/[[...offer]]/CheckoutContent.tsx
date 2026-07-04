@@ -18,8 +18,18 @@ import NextStepCard from "@/components/next-step-card/NextStepCard";
 import { BsEye, BsEyeSlash } from "react-icons/bs";
 import { sanitizeMobileInput } from "@/lib/sanitize-mobile-input";
 
+import { convertCourseIdToProduct } from "@/lib/package-utils";
+
 type PaymentMode = "one_time" | "subscription";
-type Product = "ASVAB" | "AFOQT" | "ASTB" | "SIFT" | "OAR";
+type Product =
+  | "ASVAB"
+  | "AFOQT"
+  | "ASTB"
+  | "SIFT"
+  | "OAR"
+  | "HESI A2"
+  | "ATI TEAS"
+  | "CNA";
 type Cadence = "1M" | "3M" | "6M" | "12M";
 
 type PaymentMethod = "mobile" | "card";
@@ -35,7 +45,10 @@ function isProduct(x: any): x is Product {
     x === "AFOQT" ||
     x === "ASTB" ||
     x === "SIFT" ||
-    x === "OAR"
+    x === "OAR" ||
+    x === "HESI A2" ||
+    x === "ATI TEAS" ||
+    x === "CNA"
   );
 }
 
@@ -48,12 +61,18 @@ function isMode(x: any): x is PaymentMode {
 }
 
 function inferProductFromCourseId(courseId: string): Product | "" {
+  const fromId = convertCourseIdToProduct(courseId);
+  if (fromId && isProduct(fromId)) return fromId;
+
   const s = (courseId || "").toLowerCase();
   if (s.includes("asvab")) return "ASVAB";
   if (s.includes("afoqt")) return "AFOQT";
   if (s.includes("astb")) return "ASTB";
   if (s.includes("sift")) return "SIFT";
   if (s.includes("oar")) return "OAR";
+  if (s.includes("hesi")) return "HESI A2";
+  if (s.includes("teas")) return "ATI TEAS";
+  if (s.includes("cna")) return "CNA";
   return "";
 }
 

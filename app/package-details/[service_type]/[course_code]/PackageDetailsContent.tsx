@@ -8,7 +8,7 @@ import PricingCard, {
   isSubscriptionSession,
 } from "@/components/pricing/PricingCard";
 import { decodeHtmlEntitiesDeep } from "@/lib/decode-html";
-import { convertCourseCodeToId } from "@/lib/package-utils";
+import { convertCourseCodeToId, getFriendlyCourseName } from "@/lib/package-utils";
 import type { PackageDetailsResponse } from "@/lib/php-api";
 
 export default function PackageDetailsContent({
@@ -51,16 +51,6 @@ export default function PackageDetailsContent({
                   const isSub = firstSession
                     ? isSubscriptionSession(firstSession)
                     : false;
-
-                  const getFriendlyCourseName = (code: string) => {
-                    const c = code.toLowerCase();
-                    if (c.includes("asvab")) return "ASVAB";
-                    if (c.includes("afoqt")) return "AFOQT";
-                    if (c.includes("astb")) return "ASTB";
-                    if (c.includes("sift")) return "SIFT";
-                    if (c.includes("oar")) return "OAR";
-                    return "Military Prep";
-                  };
 
                   const getFriendlyPackageType = (type: string) => {
                     if (type === "group-tutoring") return "Group Tutoring";

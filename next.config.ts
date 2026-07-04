@@ -19,6 +19,9 @@ const legacyCourseRedirects = [
   'afoqt',
   'sift',
   'astb',
+  'hesi-a2',
+  'ati-teas',
+  'cna',
 ] as const;
 
 const CANONICAL_HOST = 'www.asvab-tutoring.com';

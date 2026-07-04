@@ -12,6 +12,7 @@ import {
   FaUserPlus,
 } from "react-icons/fa";
 import { useState, useEffect, useRef } from "react";
+import { groupCoursesForNav } from "@/lib/package-utils";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 type Course = {
@@ -24,6 +25,66 @@ type Service = {
   service_id: string;
   course_name: string;
 };
+
+function CourseNavGroups({
+  courses,
+  variant,
+  onLinkClick,
+}: {
+  courses: Course[];
+  variant: "desktop" | "mobile";
+  onLinkClick?: () => void;
+}) {
+  const { military, medical, other } = groupCoursesForNav(courses);
+
+  const renderCourse = (course: Course) => (
+    <li
+      key={course.course_id}
+      className={`navbar-course-item ${variant === "mobile" ? "nav-item" : ""}`}
+    >
+      <Link
+        className={variant === "desktop" ? "dropdown-item" : "nav-link text-white"}
+        href={`/courses/${course.course_code}`}
+        onClick={onLinkClick}
+      >
+        {course.name}
+      </Link>
+    </li>
+  );
+
+  const renderGroup = (
+    label: string,
+    groupCourses: Course[],
+    showDivider: boolean,
+  ) => {
+    if (groupCourses.length === 0) return null;
+
+    return (
+      <>
+        {showDivider && variant === "desktop" && (
+          <li>
+            <hr className="dropdown-divider my-1" />
+          </li>
+        )}
+        <li
+          className={variant === "mobile" ? "nav-item" : undefined}
+          aria-hidden="true"
+        >
+          <span className="navbar-course-category">{label}</span>
+        </li>
+        {groupCourses.map(renderCourse)}
+      </>
+    );
+  };
+
+  return (
+    <>
+      {renderGroup("Military", military, false)}
+      {renderGroup("Medical", medical, military.length > 0)}
+      {other.map(renderCourse)}
+    </>
+  );
+}
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -265,16 +326,7 @@ export default function Navbar() {
                 <ul
                   className={`dropdown-menu mt-0 ${isCoursesOpen ? "show" : ""}`}
                 >
-                  {courses.map((course, index) => (
-                    <li key={index}>
-                      <Link
-                        className="dropdown-item"
-                        href={`/courses/${course.course_code}`}
-                      >
-                        {course.name}
-                      </Link>
-                    </li>
-                  ))}
+                  <CourseNavGroups courses={courses} variant="desktop" />
                 </ul>
               </li>
 
@@ -488,17 +540,11 @@ export default function Navbar() {
 
                   {isCoursesOpen && (
                     <ul className="navbar-nav ps-3">
-                      {courses.map((course) => (
-                        <li key={course.course_id} className="nav-item">
-                          <Link
-                            href={`/courses/${course.course_code}`}
-                            className="nav-link text-white"
-                            onClick={handleLinkClick}
-                          >
-                            {course.name}
-                          </Link>
-                        </li>
-                      ))}
+                      <CourseNavGroups
+                        courses={courses}
+                        variant="mobile"
+                        onLinkClick={handleLinkClick}
+                      />
                     </ul>
                   )}
                 </li>

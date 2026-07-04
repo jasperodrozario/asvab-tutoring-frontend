@@ -24,7 +24,15 @@ type User = {
 };
 
 type PaymentMode = "one_time" | "subscription";
-type Product = "ASVAB" | "AFOQT" | "ASTB" | "SIFT" | "OAR";
+type Product =
+  | "ASVAB"
+  | "AFOQT"
+  | "ASTB"
+  | "SIFT"
+  | "OAR"
+  | "HESI A2"
+  | "ATI TEAS"
+  | "CNA";
 type Cadence = "1M" | "3M" | "6M" | "12M";
 
 export type CardState = {

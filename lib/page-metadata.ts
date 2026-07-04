@@ -124,6 +124,21 @@ export const COURSE_SEO: Record<string, PageSeo> = {
     description:
       "Get expert OAR test prep, math coaching, and practice materials to improve your score and approach exam day with confidence.",
   },
+  "hesi-a2": {
+    title: "HESI A2 Tutor | HESI A2 Math Prep | HESI A2 Test Prep",
+    description:
+      "Get expert HESI A2 tutoring, focused math preparation, and proven study strategies. Enroll in a HESI A2 prep course designed to maximize your score.",
+  },
+  "ati-teas": {
+    title: "ATI TEAS Tutor | TEAS Math Prep | ATI TEAS Test Prep",
+    description:
+      "Get expert ATI TEAS tutoring, focused math preparation, and proven study strategies. Enroll in a TEAS prep course designed to maximize your score.",
+  },
+  cna: {
+    title: "CNA Tutor | CNA Exam Prep | CNA Test Prep",
+    description:
+      "Get expert CNA exam prep, focused study strategies, and proven resources. Enroll in a CNA prep course designed to help you pass with confidence.",
+  },
 };
 
 export const FREE_PRACTICE_TEST_SEO: Record<string, PageSeo> = {
@@ -151,6 +166,21 @@ export const FREE_PRACTICE_TEST_SEO: Record<string, PageSeo> = {
     title: "Free ASTB Practice Test Online 2026 | ASVAB Tutoring",
     description:
       "Take our free online ASTB practice test 2026. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.",
+  },
+  "hesi-a2": {
+    title: "Free HESI A2 Practice Test Online 2026 | ASVAB Tutoring",
+    description:
+      "Take our free online HESI A2 practice test 2026. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.",
+  },
+  "ati-teas": {
+    title: "Free ATI TEAS Practice Test Online 2026 | ASVAB Tutoring",
+    description:
+      "Take our free online ATI TEAS practice test 2026. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.",
+  },
+  cna: {
+    title: "Free CNA Practice Test Online 2026 | ASVAB Tutoring",
+    description:
+      "Take our free online CNA practice test 2026. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.",
   },
 };
 
@@ -185,6 +215,21 @@ export const FREE_PREDICTION_TEST_SEO: Record<string, PageSeo> = {
     title: "Free ASTB Prediction Test Online 2026 | ASVAB Tutoring",
     description:
       "Take our free online ASTB prediction test. Answer every section to view your predicted score and detailed breakdown.",
+  },
+  "hesi-a2": {
+    title: "Free HESI A2 Prediction Test Online 2026 | ASVAB Tutoring",
+    description:
+      "Take our free online HESI A2 prediction test. Complete all sections to receive your predicted score and section results.",
+  },
+  "ati-teas": {
+    title: "Free ATI TEAS Prediction Test Online 2026 | ASVAB Tutoring",
+    description:
+      "Take our free online ATI TEAS prediction test. Complete all sections to receive your predicted score and section results.",
+  },
+  cna: {
+    title: "Free CNA Prediction Test Online 2026 | ASVAB Tutoring",
+    description:
+      "Take our free online CNA prediction test. Complete all sections to receive your predicted score and section results.",
   },
 };
 
@@ -270,6 +315,21 @@ export const PACKAGE_SEO: Record<string, Record<string, PageSeo>> = {
       description:
         "Get the best value for 1-on-1 tutoring sessions designed for OAR test prep. Unlock your potential with customized learning strategies.",
     },
+    "hesi-a2": {
+      title: "1-on-1 Tutoring Sessions Price for HESI A2 Test Prep",
+      description:
+        "Explore our affordable 1-on-1 tutoring sessions for HESI A2 test preparation. Get expert help tailored to your needs and boost your scores.",
+    },
+    "ati-teas": {
+      title: "1-on-1 Tutoring Sessions Price for ATI TEAS Test Prep",
+      description:
+        "Explore our affordable 1-on-1 tutoring sessions for ATI TEAS test preparation. Get expert help tailored to your needs and boost your scores.",
+    },
+    cna: {
+      title: "1-on-1 Tutoring Sessions Price for CNA Test Prep",
+      description:
+        "Explore our affordable 1-on-1 tutoring sessions for CNA test preparation. Get expert help tailored to your needs and boost your scores.",
+    },
   },
   "group-tutoring": {
     asvab: {
@@ -296,6 +356,21 @@ export const PACKAGE_SEO: Record<string, Record<string, PageSeo>> = {
       title: "Group Tutoring Sessions Price for OAR Test Prep",
       description:
         "Discover affordable group tutoring sessions for OAR Test Prep. Boost your scores with expert guidance and collaborative learning today!",
+    },
+    "hesi-a2": {
+      title: "Group Tutoring Sessions Price for HESI A2 Test Prep",
+      description:
+        "Discover affordable group tutoring sessions for HESI A2 Test Prep. Boost your scores with expert guidance and collaborative learning today!",
+    },
+    "ati-teas": {
+      title: "Group Tutoring Sessions Price for ATI TEAS Test Prep",
+      description:
+        "Discover affordable group tutoring sessions for ATI TEAS Test Prep. Boost your scores with expert guidance and collaborative learning today!",
+    },
+    cna: {
+      title: "Group Tutoring Sessions Price for CNA Test Prep",
+      description:
+        "Discover affordable group tutoring sessions for CNA Test Prep. Boost your scores with expert guidance and collaborative learning today!",
     },
   },
 };

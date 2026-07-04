@@ -267,6 +267,12 @@ function getCourseIdFromCode(courseCode: string): string {
       return "24";
     case "oar":
       return "21";
+    case "hesi-a2":
+      return "20";
+    case "ati-teas":
+      return "33";
+    case "cna":
+      return "34";
     default:
       return "";
   }
