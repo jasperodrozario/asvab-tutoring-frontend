@@ -16,8 +16,8 @@ body {
   color: #000;
 }
 
-/* Small screens (less than 768px) */
-@media (max-width: 992px) {
+/* Small screens (less than 1090px) */
+@media (max-width: 1090px) {
   body {
     padding-top: 90px;
   }
@@ -962,7 +962,7 @@ input[type="radio"]:checked::before {
   --bs-dropdown-link-active-bg: #f2a155 !important;
 }
 
-@media (min-width: 992px) {
+@media (min-width: 1090px) {
   .navbar-desktop-mt {
     margin-top: 30px;
   }
@@ -1025,7 +1025,7 @@ input[type="radio"]:checked::before {
 }
 
 /* === Mobile menu alignment === */
-@media (max-width: 767px) {
+@media (max-width: 1089.98px) {
   .navbar-collapse.show {
     text-align: left;
   }
@@ -1220,4 +1220,35 @@ a:hover {
 /* For the main H2 heading, larger scaling */
 h2 .course-full-form {
   font-size: clamp(12px, 5cqw, 1.25rem);
+}
+
+/* Override Bootstrap classes specifically for navbar responsiveness below 1090px */
+@media (max-width: 1089.98px) {
+  /* Hide the top contact bar */
+  .fixed-top.d-lg-block {
+    display: none !important;
+  }
+  /* Hide the desktop menu */
+  nav.navbar .d-none.d-lg-flex {
+    display: none !important;
+  }
+  /* Show the mobile header and mobile collapsible menu */
+  nav.navbar .d-lg-none {
+    display: block !important;
+  }
+  nav.navbar .d-flex.d-lg-none {
+    display: flex !important;
+  }
+  /* Force the hamburger icon / toggler button to display */
+  nav.navbar.navbar-expand-lg .navbar-toggler {
+    display: block !important;
+  }
+  /* Reset navbar to wrap on mobile */
+  nav.navbar.navbar-expand-lg {
+    flex-flow: wrap !important;
+  }
+  /* Force vertical list layout for mobile nav list */
+  nav.navbar.navbar-expand-lg .navbar-nav {
+    flex-direction: column !important;
+  }
 }

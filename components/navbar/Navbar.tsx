@@ -35,6 +35,7 @@ export default function Navbar() {
   const [isCoursesOpen, setIsCoursesOpen] = useState(false);
   const [isServicesOpen, setIsServicesOpen] = useState(false);
   const [isPricingOpen, setIsPricingOpen] = useState(false);
+  const [isFreeTestsOpen, setIsFreeTestsOpen] = useState(false);
 
   const getServiceSlug = (serviceId: string) => {
     switch (serviceId) {
@@ -91,6 +92,7 @@ export default function Navbar() {
     setIsCoursesOpen(false);
     setIsServicesOpen(false);
     setIsPricingOpen(false);
+    setIsFreeTestsOpen(false);
   };
 
   // Close navbar on outside click or scroll
@@ -119,7 +121,7 @@ export default function Navbar() {
   }, [isMenuOpen]);
 
   const handleLinkClick = () => {
-    if (typeof window !== "undefined" && window.innerWidth < 992) {
+    if (typeof window !== "undefined" && window.innerWidth < 1090) {
       closeAll();
     }
   };
@@ -131,6 +133,7 @@ export default function Navbar() {
     setIsCoursesOpen(false);
     setIsServicesOpen(false);
     setIsPricingOpen(false);
+    setIsFreeTestsOpen(false);
   };
 
   // When opening one submenu, close others (mobile only)
@@ -138,18 +141,28 @@ export default function Navbar() {
     setIsCoursesOpen(!isCoursesOpen);
     setIsServicesOpen(false);
     setIsPricingOpen(false);
+    setIsFreeTestsOpen(false);
   };
 
   const toggleServices = () => {
     setIsServicesOpen(!isServicesOpen);
     setIsCoursesOpen(false);
     setIsPricingOpen(false);
+    setIsFreeTestsOpen(false);
   };
 
   const togglePricing = () => {
     setIsPricingOpen(!isPricingOpen);
     setIsCoursesOpen(false);
     setIsServicesOpen(false);
+    setIsFreeTestsOpen(false);
+  };
+
+  const toggleFreeTests = () => {
+    setIsFreeTestsOpen(!isFreeTestsOpen);
+    setIsCoursesOpen(false);
+    setIsServicesOpen(false);
+    setIsPricingOpen(false);
   };
 
   return (
@@ -262,6 +275,42 @@ export default function Navbar() {
                       </Link>
                     </li>
                   ))}
+                </ul>
+              </li>
+
+              {/* FREE TESTS */}
+              <li
+                className="nav-item dropdown"
+                onMouseEnter={() => setIsFreeTestsOpen(true)}
+                onMouseLeave={() => setIsFreeTestsOpen(false)}
+              >
+                <span
+                  className="nav-link text-white d-flex align-items-center gap-1 px-2"
+                  role="button"
+                >
+                  FREE TESTS <FaCaretDown className="fs-6" />
+                </span>
+                <ul
+                  className={`dropdown-menu mt-0 ${isFreeTestsOpen ? "show" : ""}`}
+                >
+                  <li>
+                    <Link
+                      className="dropdown-item"
+                      href="/free-prediction-tests"
+                      onClick={handleLinkClick}
+                    >
+                      Free Prediction Tests
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      className="dropdown-item"
+                      href="/free-practice-tests"
+                      onClick={handleLinkClick}
+                    >
+                      Free Practice Tests
+                    </Link>
+                  </li>
                 </ul>
               </li>
 
@@ -450,6 +499,40 @@ export default function Navbar() {
                           </Link>
                         </li>
                       ))}
+                    </ul>
+                  )}
+                </li>
+
+                {/* FREE TESTS MOBILE */}
+                <li className="nav-item">
+                  <span
+                    className="nav-link text-white d-flex align-items-center gap-1"
+                    role="button"
+                    onClick={toggleFreeTests}
+                  >
+                    FREE TESTS <FaCaretDown />
+                  </span>
+
+                  {isFreeTestsOpen && (
+                    <ul className="navbar-nav ps-3">
+                      <li className="nav-item">
+                        <Link
+                          href="/free-prediction-tests"
+                          className="nav-link text-white"
+                          onClick={handleLinkClick}
+                        >
+                          Free Prediction Tests
+                        </Link>
+                      </li>
+                      <li className="nav-item">
+                        <Link
+                          href="/free-practice-tests"
+                          className="nav-link text-white"
+                          onClick={handleLinkClick}
+                        >
+                          Free Practice Tests
+                        </Link>
+                      </li>
                     </ul>
                   )}
                 </li>
