@@ -67,6 +67,7 @@ export function isExcludedPath(pathname: string): boolean {
     path.startsWith("/login") ||
     path.startsWith("/user-login") ||
     path.startsWith("/user-registration") ||
+    path.startsWith("/forgot-password") ||
     path.startsWith("/checkout") ||
     path.startsWith("/admin")
   );
