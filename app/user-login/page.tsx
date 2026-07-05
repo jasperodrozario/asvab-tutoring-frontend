@@ -210,8 +210,9 @@ export default function LoginPage() {
                     </div>
 
                     <Link
-                      href="/forgot-password"
+                      href="https://test-prep.asvab-tutoring.com/forgot-pass"
                       className="small text-decoration-none"
+                      target="_blank"
                     >
                       Forgot password?
                     </Link>
