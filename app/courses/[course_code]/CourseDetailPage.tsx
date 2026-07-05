@@ -5,7 +5,7 @@ import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
 import LessonPlanTab from "@/components/tabs/LessonPlanTab";
-import CourseVideoTab, { VideoObject } from "@/components/tabs/CourseVideoTab";
+import FreeLessonVideosTab, { VideoObject } from "@/components/tabs/FreeLessonVideosTab";
 import CoursePricingPanel from "@/components/pricing/CoursePricingPanel";
 import CourseOverviewVideoEmbed from "@/components/course/CourseOverviewVideoEmbed";
 import PredictionTestLinkButton from "@/components/prediction-test/PredictionTestLinkButton";
@@ -67,6 +67,8 @@ export function CourseDetailClient({
     }
     return false;
   })();
+
+  const hasSessions = (courseData.sessions?.length ?? 0) > 0;
 
   const showFreeTestLink = hasFreePracticeTest;
 
@@ -147,21 +149,23 @@ export function CourseDetailClient({
                         </button>
                       </li>
                     )}
-                  <li className="nav-item">
-                    <button
-                      className={`nav-link tab-btn ${activeTab === 4 ? "active" : ""}`}
-                      onClick={() => setActiveTab(4)}
-                    >
-                      Session Plan
-                    </button>
-                  </li>
+                  {hasSessions && (
+                    <li className="nav-item">
+                      <button
+                        className={`nav-link tab-btn ${activeTab === 4 ? "active" : ""}`}
+                        onClick={() => setActiveTab(4)}
+                      >
+                        Session Plan
+                      </button>
+                    </li>
+                  )}
                   {hasVideo && (
                     <li className="nav-item">
                       <button
                         className={`nav-link tab-btn ${activeTab === 2 ? "active" : ""}`}
                         onClick={() => setActiveTab(2)}
                       >
-                        Course Video
+                        Free Lesson Videos
                       </button>
                     </li>
                   )}
@@ -210,13 +214,13 @@ export function CourseDetailClient({
                       className="curriculum-table"
                     />
                   )}
-                  {activeTab === 4 && (
+                  {hasSessions && activeTab === 4 && (
                     <div className="sessions-tab transition-fade">
                       <LessonPlanTab sessions={courseData.sessions} />
                     </div>
                   )}
                   {activeTab === 2 && (
-                    <CourseVideoTab video={courseData.video} />
+                    <FreeLessonVideosTab video={courseData.video} />
                   )}
                 </div>
               </div>

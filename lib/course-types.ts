@@ -1,5 +1,5 @@
 import type { Session } from "@/components/tabs/LessonPlanTab";
-import type { VideoObject } from "@/components/tabs/CourseVideoTab";
+import type { VideoObject } from "@/components/tabs/FreeLessonVideosTab";
 
 export interface FreePracticeTestQuestion {
   id: number;

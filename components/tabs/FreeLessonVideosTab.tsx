@@ -11,7 +11,7 @@ interface VideoTabProps {
   video?: VideoObject;
 }
 
-const CourseVideoTab: React.FC<VideoTabProps> = ({ video }) => {
+const FreeLessonVideosTab: React.FC<VideoTabProps> = ({ video }) => {
   let videoArray: string[] = [];
 
   if (video) {
@@ -59,7 +59,7 @@ const CourseVideoTab: React.FC<VideoTabProps> = ({ video }) => {
                   <iframe
                     className={styles.iframe}
                     src={url}
-                    title={`Course video player ${index + 1}`}
+                    title={`Free lesson video player ${index + 1}`}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                   />
@@ -75,4 +75,4 @@ const CourseVideoTab: React.FC<VideoTabProps> = ({ video }) => {
   return null;
 };
 
-export default CourseVideoTab;
+export default FreeLessonVideosTab;
