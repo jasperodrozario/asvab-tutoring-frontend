@@ -3,6 +3,7 @@ import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
 import FreePredictionTestsLayout from "@/components/free-prediction-tests/FreePredictionTestsLayout";
 import { freePredictionTestsMetadata, FREE_PREDICTION_TESTS_BANNER_SUBTITLE } from "@/lib/page-metadata";
 import {
+  fetchAllCourses,
   fetchAllPackageDetailsForCourse,
   fetchFreePredTestCatalog,
 } from "@/lib/php-api";
@@ -11,12 +12,15 @@ export const metadata: Metadata = freePredictionTestsMetadata();
 export const revalidate = 3600;
 
 export default async function FreePredictionTestsPage() {
-  const courses = await fetchFreePredTestCatalog();
+  const [allCourses, predictionTests] = await Promise.all([
+    fetchAllCourses(),
+    fetchFreePredTestCatalog(),
+  ]);
 
   const packageEntries = await Promise.all(
-    courses.map(async (course) => {
-      const packages = await fetchAllPackageDetailsForCourse(course.courseCode);
-      return [course.courseCode, packages] as const;
+    allCourses.map(async (course) => {
+      const packages = await fetchAllPackageDetailsForCourse(course.course_code);
+      return [course.course_code, packages] as const;
     }),
   );
 
@@ -35,7 +39,8 @@ export default async function FreePredictionTestsPage() {
       <div className="container py-5">
         {/* TEMPORARY: remove showMoreTestsComingSoon when all prediction tests are restored in fetchFreePredTestByCode */}
         <FreePredictionTestsLayout
-          courses={courses}
+          courses={predictionTests}
+          allCourses={allCourses}
           packagesByCourse={packagesByCourse}
           showMoreTestsComingSoon
         />

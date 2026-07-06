@@ -2,17 +2,27 @@
 
 import CoursePricingPanel from "@/components/pricing/CoursePricingPanel";
 import FreePredictionTestsContent from "./FreePredictionTestsContent";
-import type { FreePredTestCourse } from "@/lib/php-api";
+import type { FreePredTestCourse, NavCourse } from "@/lib/php-api";
 import type { PackagesByService } from "@/lib/package-types";
 
 type Props = {
   courses: FreePredTestCourse[];
+  allCourses: NavCourse[];
   packagesByCourse: Record<string, PackagesByService>;
   showMoreTestsComingSoon?: boolean;
 };
 
+function toPricingCourseOption(course: NavCourse) {
+  return {
+    courseCode: course.course_code,
+    courseName:
+    course.name,
+  };
+}
+
 export default function FreePredictionTestsLayout({
   courses,
+  allCourses,
   packagesByCourse,
   showMoreTestsComingSoon = false,
 }: Props) {
@@ -39,10 +49,7 @@ export default function FreePredictionTestsLayout({
       </div>
       <div className="col-lg-4 align-self-start">
         <CoursePricingPanel
-          courseOptions={courses.map((course) => ({
-            courseCode: course.courseCode,
-            courseName: course.courseName,
-          }))}
+          courseOptions={allCourses.map(toPricingCourseOption)}
           packagesByCourse={packagesByCourse}
         />
       </div>

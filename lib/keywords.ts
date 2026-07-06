@@ -29,10 +29,10 @@ export const COURSE_CODES: readonly CourseCode[] = [
 export const COURSE_KEYWORDS: Record<CourseCode, KeywordGroups> = {
   asvab: {
     main: ["ASVAB tutoring", "ASVAB tutor", "ASVAB prep"],
-    longTail: ["ASVAB math tutor", "AFQT tutoring", "ASVAB GT score"],
+    longTail: ["ASVAB math tutor", "ASVAB tutoring", "ASVAB GT score"],
     local: ["ASVAB tutor in {city}", "ASVAB tutoring in {city}"],
-    app: ["ASVAB practice test"],
-    questionBased: ["AFQT tutoring", "ASVAB GT score"],
+    app: ["ASVAB practice test", "ASVAB/AFQT prediction test"],
+    questionBased: ["ASVAB tutoring", "ASVAB GT score"],
     buyerIntent: [
       "ASVAB tutor online",
       "best ASVAB tutoring program",
@@ -46,7 +46,7 @@ export const COURSE_KEYWORDS: Record<CourseCode, KeywordGroups> = {
     ],
     predictionTest: [
       "free ASVAB prediction test",
-      "AFQT prediction test",
+      "ASVAB/AFQT prediction test",
       "ASVAB score prediction",
     ],
   },

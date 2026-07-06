@@ -89,7 +89,7 @@ export const FREE_PRACTICE_TESTS_SEO: PageSeo = {
 export const FREE_PREDICTION_TESTS_SEO: PageSeo = {
   title: "Free Online Prediction Tests for US Army, Air Force | ASVAB Tutoring",
   description:
-    "Take free online prediction tests for military entrance exams. Estimate your ASVAB AFQT, AFOQT, and other scores before test day — no signup required.",
+    "Take free online prediction tests for military entrance exams. Estimate your ASVAB/AFQT, AFOQT, and other scores before test day — no signup required.",
 };
 
 const FREE_ONLINE_TEST_EXAMS = "ASVAB, AFOQT, SIFT, ASTB, and OAR";
@@ -162,9 +162,9 @@ export const FREE_PRACTICE_TEST_FALLBACK_SEO: PageSeo = {
 
 export const FREE_PREDICTION_TEST_SEO: Record<string, PageSeo> = {
   asvab: {
-    title: "Free ASVAB AFQT Prediction Test Online 2026 | ASVAB Tutoring",
+    title: "Free ASVAB/AFQT Prediction Test Online 2026 | ASVAB Tutoring",
     description:
-      "Take our free online ASVAB AFQT prediction test. Complete all sections to see your predicted AFQT score — no signup required.",
+      "Take our free online ASVAB/AFQT prediction test. Complete all sections to see your predicted ASVAB/AFQT score — no signup required.",
   },
   afoqt: {
     title: "Free AFOQT Prediction Test Online 2026 | ASVAB Tutoring",
