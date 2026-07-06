@@ -496,8 +496,10 @@ export async function fetchFreePredTestByCode(
     return null;
   }
 
+  result.prediction_test_name = result.course_name ?? "";
+
   if (normalizedCode === "asvab") {
-    result.course_name = `${result.course_name}/AFQT`;
+    result.prediction_test_name = `${result.course_name}/AFQT`;
   }
 
   return result;
@@ -518,7 +520,10 @@ export async function fetchFreePredTestCatalog(): Promise<FreePredTestCourse[]> 
 
       const entry: FreePredTestCourse = {
         courseCode: course.course_code,
-        courseName: course.course_code==="asvab" ? `${course.name}/AFQT` : predTest?.course_name || course.name,
+        courseName:
+          predTest?.prediction_test_name ||
+          predTest?.course_name ||
+          course.name,
         fullForm: course.full_form || predTest?.full_form,
         imageSrc: course.image_src,
         sectionCount: categories.length,

@@ -24,6 +24,7 @@ export interface FreePredTestResponse {
   isSuccess: boolean;
   message: string;
   course_name?: string;
+  prediction_test_name?: string;
   course_code?: string;
   full_form?: string;
   data?: FreePredTestData;

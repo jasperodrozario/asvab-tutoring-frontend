@@ -42,6 +42,7 @@ export default async function Page({
   return (
     <FreePredTest
       courseName={predTestData.course_name}
+      predictionTestName={predTestData.prediction_test_name}
       courseCode={course_code}
       courseId={predTestData.data.course_id}
       ft_categories={predTestData.data.categories}

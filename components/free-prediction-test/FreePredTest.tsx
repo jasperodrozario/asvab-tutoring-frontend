@@ -71,6 +71,7 @@ type UserAnswers = Record<string, number>;
 
 interface FreePredTestProps {
   courseName?: string;
+  predictionTestName?: string;
   courseCode: string;
   courseId: number;
   ft_categories?: FreeTestCategory[];
@@ -143,17 +144,21 @@ function CategoryDescription({ html }: { html: string }) {
 
 function UnavailableMessage({
   courseName,
+  predictionTestName,
   courseCode,
 }: {
   courseName?: string;
+  predictionTestName?: string;
   courseCode: string;
 }) {
+  const testName = predictionTestName?.trim() || courseName?.trim() || "COURSE";
+
   return (
     <>
       <div className="page-title-area text-white py-5">
         <div className="container text-center">
           <h1>
-            FREE {courseName?.toUpperCase() || "COURSE"} PREDICTION TEST
+            FREE {testName.toUpperCase()} PREDICTION TEST
           </h1>
           <h2 className="h4">
             {getFreePredictionTestDescription(courseCode)}
@@ -191,6 +196,7 @@ function UnavailableMessage({
 
 export default function FreePredTest({
   courseName,
+  predictionTestName,
   courseCode,
   courseId,
   ft_categories,
@@ -321,12 +327,26 @@ export default function FreePredTest({
     );
   }, [ft_categories, ft_ques_list, hasSufficientQuestions, rawQuestionsByCategory, categoryNames]);
 
+  const testName = predictionTestName?.trim() || courseName?.trim() || "COURSE";
+
   if (!ft_categories || !ft_ques_list || ft_categories.length === 0) {
-    return <UnavailableMessage courseName={courseName} courseCode={courseCode} />;
+    return (
+      <UnavailableMessage
+        courseName={courseName}
+        predictionTestName={predictionTestName}
+        courseCode={courseCode}
+      />
+    );
   }
 
   if (!hasSufficientQuestions) {
-    return <UnavailableMessage courseName={courseName} courseCode={courseCode} />;
+    return (
+      <UnavailableMessage
+        courseName={courseName}
+        predictionTestName={predictionTestName}
+        courseCode={courseCode}
+      />
+    );
   }
 
   const activeCategoryName = categoryNames[activeCategory];
@@ -497,7 +517,7 @@ export default function FreePredTest({
 
       <div className="page-title-area text-white py-5">
         <div className="container text-center">
-          <h1>FREE {courseName?.toUpperCase() || "COURSE"} PREDICTION TEST</h1>
+          <h1>FREE {testName.toUpperCase()} PREDICTION TEST</h1>
           <h2 className="h4">
             {getFreePredictionTestDescription(courseCode)}
           </h2>
@@ -514,7 +534,7 @@ export default function FreePredTest({
       <div className="container pb-5">
         <div className="row g-4">
           <div className="col-12">
-            <TestRulesIntro variant="prediction" courseName={courseName} />
+            <TestRulesIntro variant="prediction" courseName={testName} />
           </div>
 
           <div className="col-lg-8">
@@ -961,12 +981,12 @@ export default function FreePredTest({
             <FreePredTestSidebar
               testSubmitted={testSubmitted}
               predScore={scoreResult?.pred_score ?? null}
-              predTestName={scoreResult?.pred_test_name}
+              predTestName={scoreResult?.pred_test_name ?? predictionTestName}
               catScores={scoreResult?.cat_scores}
               categoryProgress={categoryProgress}
               completedSectionCount={completedSectionCount}
               totalSectionCount={ft_categories.length}
-              courseName={courseName}
+              predictionTestName={testName}
               courseCode={courseCode}
               courseId={courseId}
               packagesByService={packagesByService}
