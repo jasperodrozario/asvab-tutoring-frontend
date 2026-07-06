@@ -25,7 +25,7 @@ type Props = {
   categoryProgress: CategoryProgress[];
   completedSectionCount: number;
   totalSectionCount: number;
-  predictionTestName?: string;
+  courseName?: string;
   courseCode: string;
   courseId: number;
   packagesByService?: PackagesByService;
@@ -39,7 +39,7 @@ export default function FreePredTestSidebar({
   categoryProgress,
   completedSectionCount,
   totalSectionCount,
-  predictionTestName,
+  courseName,
   courseCode,
   courseId,
   packagesByService,
@@ -231,8 +231,8 @@ export default function FreePredTestSidebar({
         <PredictionTestPromoCard
           href={fullPredictionTestHref || "#"}
           eyebrow="Upgrade Your Prediction"
-          title={`Get the full ${predictionTestName || "exam"} prediction score`}
-          text={`This is a partial prediction test. Take the full ${predictionTestName || "exam"} prediction test for a more accurate result — without visiting the recruiter's office.`}
+          title={`Get the full ${courseName || "exam"} prediction score`}
+          text={`Take the full ${courseName || "exam"} prediction test for a more accurate result — without visiting the recruiter's office.`}
           buttonLabel="Take a Full Prediction Test"
           disabled={!fullPredictionTestHref}
         />

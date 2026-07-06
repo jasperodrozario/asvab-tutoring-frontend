@@ -986,7 +986,7 @@ export default function FreePredTest({
               categoryProgress={categoryProgress}
               completedSectionCount={completedSectionCount}
               totalSectionCount={ft_categories.length}
-              predictionTestName={testName}
+              courseName={courseName}
               courseCode={courseCode}
               courseId={courseId}
               packagesByService={packagesByService}

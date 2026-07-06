@@ -22,7 +22,7 @@ export default function PredictionTestPromoCard({
   buttonClassName,
   buttonIconClass = "bi-arrow-right",
 }: Props) {
-  const btnClass = `btn fw-bold d-inline-flex align-items-center justify-content-center gap-2 px-4 ${buttonClassName ?? styles.promoCardBtn}`;
+  const btnClass = `btn fw-bold d-inline-flex align-items-center justify-content-center gap-2 px-5 ${buttonClassName ?? styles.promoCardBtn}`;
   return (
     <div className={`card border-0 shadow-sm rounded-4 overflow-hidden ${styles.promoCard}`}>
       <div className={styles.promoCardBody}>
@@ -38,7 +38,7 @@ export default function PredictionTestPromoCard({
             {buttonLabel}
           </button>
         ) : (
-          <Link href={href} className={btnClass} style={{ boxShadow: "2px 2px 5px rgba(0, 35, 65, 0.28)" }}>
+          <Link href={href} className={btnClass} style={{ boxShadow: "2px 2px 5px rgba(0, 35, 65, 0.28)", fontSize: "1.15rem" }}>
             {buttonLabel}
             <i className={`bi ${buttonIconClass}`} aria-hidden />
           </Link>
