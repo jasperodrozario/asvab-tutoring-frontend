@@ -9,7 +9,6 @@ type Props = {
   courses: FreePredTestCourse[];
   allCourses: NavCourse[];
   packagesByCourse: Record<string, PackagesByService>;
-  showMoreTestsComingSoon?: boolean;
 };
 
 function toPricingCourseOption(course: NavCourse) {
@@ -24,16 +23,12 @@ export default function FreePredictionTestsLayout({
   courses,
   allCourses,
   packagesByCourse,
-  showMoreTestsComingSoon = false,
 }: Props) {
   if (courses.length === 0) {
     return (
       <div className="row justify-content-center">
         <div className="col-lg-8 col-xl-6">
-          <FreePredictionTestsContent
-            courses={courses}
-            showMoreTestsComingSoon={showMoreTestsComingSoon}
-          />
+          <FreePredictionTestsContent courses={courses} />
         </div>
       </div>
     );
@@ -42,10 +37,7 @@ export default function FreePredictionTestsLayout({
   return (
     <div className="row g-4">
       <div className="col-lg-8">
-        <FreePredictionTestsContent
-          courses={courses}
-          showMoreTestsComingSoon={showMoreTestsComingSoon}
-        />
+        <FreePredictionTestsContent courses={courses} />
       </div>
       <div className="col-lg-4 align-self-start">
         <CoursePricingPanel

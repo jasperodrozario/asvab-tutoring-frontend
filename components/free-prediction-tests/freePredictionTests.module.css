@@ -66,19 +66,3 @@
   max-width: 32rem;
   margin: 0 auto;
 }
-
-.comingSoonNotice {
-  margin-top: 1.5rem;
-  padding: 1rem 1.15rem;
-  border-radius: 0.75rem;
-  border: 1px dashed #d7dee5;
-  background: linear-gradient(135deg, #f8fafb 0%, #fff 100%);
-  color: #5c6670;
-  font-size: 0.95rem;
-  line-height: 1.6;
-}
-
-.comingSoonNotice i {
-  color: #e58a34;
-  margin-right: 0.45rem;
-}

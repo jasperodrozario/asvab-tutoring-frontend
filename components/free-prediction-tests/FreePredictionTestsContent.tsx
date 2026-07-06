@@ -23,13 +23,9 @@ function formatSectionNames(names: string[]): string {
 
 type Props = {
   courses: FreePredTestCourse[];
-  showMoreTestsComingSoon?: boolean;
 };
 
-export default function FreePredictionTestsContent({
-  courses,
-  showMoreTestsComingSoon = false,
-}: Props) {
+export default function FreePredictionTestsContent({ courses }: Props) {
   if (courses.length === 0) {
     return (
       <div className={`text-center py-5 ${styles.emptyState}`}>
@@ -141,13 +137,6 @@ export default function FreePredictionTestsContent({
           );
         })}
       </div>
-
-      {showMoreTestsComingSoon ? (
-        <p className={styles.comingSoonNotice} role="status">
-          <i className="bi bi-hourglass-split" aria-hidden />
-          More free prediction tests are coming soon. Check back soon.
-        </p>
-      ) : null}
     </>
   );
 }
