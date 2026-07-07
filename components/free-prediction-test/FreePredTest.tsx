@@ -70,7 +70,7 @@ export interface TestResult {
 type UserAnswers = Record<string, number>;
 
 interface FreePredTestProps {
-  courseName?: string;
+  courseName: string;
   predictionTestName?: string;
   courseCode: string;
   courseId: number;
@@ -988,6 +988,7 @@ export default function FreePredTest({
               totalSectionCount={ft_categories.length}
               courseName={courseName}
               courseCode={courseCode}
+              passingScore={scoreResult?.passing_score}
               courseId={courseId}
               packagesByService={packagesByService}
             />
@@ -1001,6 +1002,36 @@ export default function FreePredTest({
                     </h2>
                   </div>
                   <p className={prepStyles.prepIntroText}>{prepIntroText}</p>
+                  <ul className={prepStyles.prepIntroBenefits}>
+                    <li>
+                      <i className="bi bi-check-circle-fill" />
+                      Expert-led instruction
+                    </li>
+                    <li>
+                      <i className="bi bi-check-circle-fill" />
+                      Flexible learning formats
+                    </li>
+                    <li>
+                      <i className="bi bi-check-circle-fill" />
+                      Proven score improvement
+                    </li>
+                    <li>
+                      <i className="bi bi-check-circle-fill" />
+                      Homeworks
+                    </li>
+                    <li>
+                      <i className="bi bi-check-circle-fill" />
+                      Practice Tests
+                    </li>
+                    <li>
+                      <i className="bi bi-check-circle-fill" />
+                      Video Tutorials/Video Lessons
+                    </li>
+                    <li>
+                      <i className="bi bi-check-circle-fill" />
+                      Full unlimited real-world prediction tests
+                    </li>
+                  </ul>
                 </div>
                 <CoursePricingPanel
                   courseCode={courseCode}

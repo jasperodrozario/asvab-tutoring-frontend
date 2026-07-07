@@ -1,4 +1,5 @@
 import Link from "next/link";
+import prepStyles from "@/components/pricing/coursePricing.module.css";
 import styles from "./predictionTestCta.module.css";
 
 type Props = {
@@ -7,6 +8,7 @@ type Props = {
   title: string;
   text: string;
   buttonLabel: string;
+  benefits?: string[];
   disabled?: boolean;
   buttonClassName?: string;
   buttonIconClass?: string;
@@ -18,6 +20,7 @@ export default function PredictionTestPromoCard({
   title,
   text,
   buttonLabel,
+  benefits,
   disabled = false,
   buttonClassName,
   buttonIconClass = "bi-arrow-right",
@@ -32,6 +35,16 @@ export default function PredictionTestPromoCard({
         <p className={styles.promoCardEyebrow}>{eyebrow}</p>
         <p className={styles.promoCardTitle}>{title}</p>
         <p className={styles.promoCardText}>{text}</p>
+        {benefits && benefits.length > 0 ? (
+          <ul className={`${prepStyles.prepIntroBenefits} ${styles.promoCardBenefits}`}>
+            {benefits.map((benefit) => (
+              <li key={benefit}>
+                <i className="bi bi-check-circle-fill" aria-hidden />
+                {benefit}
+              </li>
+            ))}
+          </ul>
+        ) : null}
         {disabled ? (
           <button type="button" className={btnClass} disabled>
             <i className={`bi ${buttonIconClass}`} aria-hidden />

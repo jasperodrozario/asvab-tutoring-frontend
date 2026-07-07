@@ -25,8 +25,9 @@ type Props = {
   categoryProgress: CategoryProgress[];
   completedSectionCount: number;
   totalSectionCount: number;
-  courseName?: string;
+  courseName: string;
   courseCode: string;
+  passingScore?: number;
   courseId: number;
   packagesByService?: PackagesByService;
 };
@@ -41,11 +42,14 @@ export default function FreePredTestSidebar({
   totalSectionCount,
   courseName,
   courseCode,
+  passingScore,
   courseId,
   packagesByService,
 }: Props) {
   const feedback: PredScoreFeedback | null =
-    testSubmitted && predScore != null ? getPredScoreFeedback(predScore) : null;
+    testSubmitted && predScore != null
+      ? getPredScoreFeedback(predScore, courseCode, courseName, passingScore)
+      : null;
   const fullPredictionTestHref = getFullPredictionTestCheckoutHref({
     courseCode,
     courseId,
@@ -84,14 +88,14 @@ export default function FreePredTestSidebar({
               ) : null}
               <div className={styles.scoreGaugeStack}>
                 <span
-                  className={`badge px-3 py-1 rounded-pill mb-3 ${styles.scoreBadge}`}
-                  style={{ backgroundColor: feedback.color, fontSize: "0.7rem" }}
+                  className={`badge rounded-pill mb-3 ${styles.scoreBadge}`}
+                  style={{ backgroundColor: feedback.color }}
                 >
                   <i className={`bi ${feedback.iconClass} me-1`} aria-hidden />
                   {feedback.badgeText}
                 </span>
                 <div
-                  className="rounded-circle d-flex flex-column justify-content-center align-items-center mx-auto mb-2"
+                  className={`rounded-circle d-flex flex-column justify-content-center align-items-center mx-auto ${styles.scoreGauge}`}
                   style={{
                     width: "100px",
                     height: "100px",
@@ -233,6 +237,11 @@ export default function FreePredTestSidebar({
           eyebrow="Upgrade Your Prediction"
           title={`Get the full ${courseName || "exam"} prediction score`}
           text={`Take the full ${courseName || "exam"} prediction test for a more accurate result — without visiting the recruiter's office.`}
+          benefits={[
+            `All ${courseName} topics`,
+            `Exactly the same questions as the real ${courseName} exam`,
+            `Full ${courseName} prediction score`,
+          ]}
           buttonLabel="Take a Full Prediction Test"
           disabled={!fullPredictionTestHref}
         />

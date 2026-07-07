@@ -13,11 +13,19 @@
   flex-direction: column;
   align-items: center;
   width: 100%;
+  margin-bottom: 0.85rem;
 }
 
 .scoreBadge {
   display: inline-flex;
   align-items: center;
+  padding: 0.45rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.scoreGauge {
+  margin-bottom: 0;
 }
 
 .incompleteModal {

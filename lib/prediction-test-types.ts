@@ -23,7 +23,7 @@ export interface FreePredTestResponse {
   status: number;
   isSuccess: boolean;
   message: string;
-  course_name?: string;
+  course_name: string;
   prediction_test_name?: string;
   course_code?: string;
   full_form?: string;
@@ -40,6 +40,7 @@ export interface CategoryScore {
 export interface FreePredTestScoreResponse {
   pred_test_name?: string;
   pred_score?: number;
+  passing_score?: number;
   cat_scores?: Record<string, CategoryScore>;
   message?: string;
 }
@@ -52,8 +53,33 @@ export interface PredScoreFeedback {
   badgeText: string;
 }
 
-export function getPredScoreFeedback(score: number): PredScoreFeedback {
-  if (score >= 75) {
+type PredScoreThresholds = {
+  good: number;
+  excellence: number;
+};
+
+const PRED_SCORE_THRESHOLDS: Record<string, PredScoreThresholds> = {
+  sift: { good: 60, excellence: 75 },
+  oar: { good: 60, excellence: 75 },
+  astb: { good: 60, excellence: 75 },
+  asvab: { good: 75, excellence: 90 },
+  afoqt: { good: 75, excellence: 90 },
+};
+
+function getPredScoreThresholds(courseCode: string): PredScoreThresholds {
+  const normalized = courseCode.toLowerCase().replace(/-tutor$/, "");
+  return PRED_SCORE_THRESHOLDS[normalized] ?? PRED_SCORE_THRESHOLDS.sift;
+}
+
+export function getPredScoreFeedback(
+  score: number,
+  courseCode: string,
+  courseName: string,
+  passingScore?: number,
+): PredScoreFeedback {
+  const { excellence, good } = getPredScoreThresholds(courseCode);
+
+  if (score >= excellence) {
     return {
       title: "Excellence Achieved!",
       message: `You scored ${score} in your test. You are highly likely to pass the real exam with this level of preparation.`,
@@ -63,7 +89,7 @@ export function getPredScoreFeedback(score: number): PredScoreFeedback {
     };
   }
 
-  if (score >= 60) {
+  if (score >= good) {
     return {
       title: "Good Progress!",
       message: `You scored ${score}. Great score! Keep practicing to further solidify your knowledge and guarantee a pass.`,
@@ -73,9 +99,22 @@ export function getPredScoreFeedback(score: number): PredScoreFeedback {
     };
   }
 
+  if (passingScore != null && score >= passingScore) {
+    return {
+      title: "Keep Practicing",
+      message: `You scored ${score}. Consistent practice will help you improve.`,
+      color: "#5b8fc7",
+      iconClass: "bi-arrow-up-circle-fill",
+      badgeText: "Keep Practicing",
+    };
+  }
+
   return {
     title: "Focus Required",
-    message: `You scored ${score}. Your score is currently below the target for a successful pass. Consistent practice will help you improve.`,
+    message:
+      passingScore != null && score < passingScore
+        ? `You scored ${score}. The minimum ${courseName} passing score is ${passingScore} or above. Consistent practice will help you improve.`
+        : `You scored ${score}. Consistent practice will help you improve.`,
     color: "#dc3545",
     iconClass: "bi-exclamation-triangle-fill",
     badgeText: "Focus Required",
