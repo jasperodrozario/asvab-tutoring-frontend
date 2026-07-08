@@ -71,6 +71,10 @@ function getPredScoreThresholds(courseCode: string): PredScoreThresholds {
   return PRED_SCORE_THRESHOLDS[normalized] ?? PRED_SCORE_THRESHOLDS.sift;
 }
 
+export function getPredScoreExcellenceThreshold(courseCode: string): number {
+  return getPredScoreThresholds(courseCode).excellence;
+}
+
 export function getPredScoreFeedback(
   score: number,
   courseCode: string,

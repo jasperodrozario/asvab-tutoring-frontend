@@ -3,7 +3,7 @@
 import React from "react";
 import type { PackagesByService } from "@/lib/package-types";
 import type { CategoryScore, PredScoreFeedback } from "@/lib/prediction-test-types";
-import { getPredScoreFeedback } from "@/lib/prediction-test-types";
+import { getPredScoreExcellenceThreshold, getPredScoreFeedback } from "@/lib/prediction-test-types";
 import { getFullPredictionTestCheckoutHref } from "@/lib/prediction-test-links";
 import PredictionTestPromoCard from "@/components/prediction-test/PredictionTestPromoCard";
 import ctaStyles from "@/components/prediction-test/predictionTestCta.module.css";
@@ -46,6 +46,7 @@ export default function FreePredTestSidebar({
   courseId,
   packagesByService,
 }: Props) {
+  const excellenceScore = getPredScoreExcellenceThreshold(courseCode);
   const feedback: PredScoreFeedback | null =
     testSubmitted && predScore != null
       ? getPredScoreFeedback(predScore, courseCode, courseName, passingScore)
@@ -237,6 +238,8 @@ export default function FreePredTestSidebar({
           eyebrow="Upgrade Your Prediction"
           title={`Get the full ${courseName || "exam"} prediction score`}
           text={`Take the full ${courseName || "exam"} prediction test for a more accurate result — without visiting the recruiter's office.`}
+          courseName={courseName}
+          excellenceScore={excellenceScore}
           benefits={[
             `All ${courseName} topics`,
             `Exactly the same questions as the real ${courseName} exam`,
