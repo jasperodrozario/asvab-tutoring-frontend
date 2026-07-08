@@ -5,7 +5,7 @@ import Link from "next/link";
 import styles from "./coursePricing.module.css";
 import { isSubscriptionSession } from "./PricingCard";
 import CoursePricingCard from "./CoursePricingCard";
-import { convertCourseCodeToId } from "@/lib/package-utils";
+import { convertCourseCodeToId, getFriendlyCourseName } from "@/lib/package-utils";
 import type { ServiceType } from "@/types/Services";
 import type {
   PackageData,
@@ -48,16 +48,6 @@ function getDefaultCourseCode(courses: CourseOption[]): string {
     courses[0]?.courseCode ??
     ""
   );
-}
-
-function getFriendlyCourseName(code: string): string {
-  const c = code.toLowerCase();
-  if (c.includes("asvab")) return "ASVAB";
-  if (c.includes("afoqt")) return "AFOQT";
-  if (c.includes("astb")) return "ASTB";
-  if (c.includes("sift")) return "SIFT";
-  if (c.includes("oar")) return "OAR";
-  return "Military Prep";
 }
 
 function hasPackages(data: PackagesByService[ServiceType] | undefined): boolean {

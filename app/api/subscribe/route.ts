@@ -7,7 +7,15 @@ import { Currency } from "square";
 
 export const runtime = "nodejs";
 
-type Product = "ASVAB" | "AFOQT" | "ASTB" | "SIFT" | "OAR";
+type Product =
+  | "ASVAB"
+  | "AFOQT"
+  | "ASTB"
+  | "SIFT"
+  | "OAR"
+  | "HESI A2"
+  | "ATI TEAS"
+  | "CNA";
 type Cadence = "1M" | "3M" | "6M" | "12M";
 
 type Payload = {
@@ -82,7 +90,16 @@ function assertRequiredEnv(): void {
 }
 
 function isProduct(x: unknown): x is Product {
-  return ["ASVAB", "AFOQT", "ASTB", "SIFT", "OAR"].includes(String(x));
+  return [
+    "ASVAB",
+    "AFOQT",
+    "ASTB",
+    "SIFT",
+    "OAR",
+    "HESI A2",
+    "ATI TEAS",
+    "CNA",
+  ].includes(String(x));
 }
 
 function isCadence(x: unknown): x is Cadence {

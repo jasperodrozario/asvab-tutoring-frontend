@@ -18,6 +18,9 @@ export const KNOWN_ROUTES_FALLBACK_PATHS: readonly string[] = [
   "/courses/sift",
   "/courses/astb",
   "/courses/oar",
+  "/courses/hesi-a2",
+  "/courses/ati-teas",
+  "/courses/cna",
   "/courses/asvab/free-practice-test",
   "/courses/afoqt/free-practice-test",
   "/courses/sift/free-practice-test",
@@ -49,6 +52,15 @@ export const KNOWN_ROUTES_FALLBACK_PATHS: readonly string[] = [
   "/package-details/self-study/sift",
   "/package-details/self-study/astb",
   "/package-details/self-study/oar",
+  "/package-details/1-on-1-tutoring/hesi-a2",
+  "/package-details/1-on-1-tutoring/ati-teas",
+  "/package-details/1-on-1-tutoring/cna",
+  "/package-details/group-tutoring/hesi-a2",
+  "/package-details/group-tutoring/ati-teas",
+  "/package-details/group-tutoring/cna",
+  "/package-details/self-study/hesi-a2",
+  "/package-details/self-study/ati-teas",
+  "/package-details/self-study/cna",
   "/blog-detail/110/why-it-is-important-to-attempt-asvab-test",
   "/blog-detail/31/top-factors-to-consider-while-selecting-an-asvab-training-center",
   "/blog-detail/36/what-difference-does-it-make-to-an-aspirant-by-joining-the-asvab-training-course",
@@ -210,6 +222,66 @@ export const KNOWN_ROUTES_FALLBACK_LINKS: readonly { path: string; label: string
     "label": "OAR Course"
   },
   {
+    "path": "/courses/hesi-a2",
+    "label": "HESI A2 Course"
+  },
+  {
+    "path": "/courses/ati-teas",
+    "label": "ATI TEAS Course"
+  },
+  {
+    "path": "/courses/cna",
+    "label": "CNA Course"
+  },
+  {
+    "path": "/free-practice-tests",
+    "label": "Free Practice Tests"
+  },
+  {
+    "path": "/free-prediction-tests",
+    "label": "Free Prediction Tests"
+  },
+  {
+    "path": "/courses/asvab/free-practice-test",
+    "label": "Free ASVAB Practice Test"
+  },
+  {
+    "path": "/courses/afoqt/free-practice-test",
+    "label": "Free AFOQT Practice Test"
+  },
+  {
+    "path": "/courses/sift/free-practice-test",
+    "label": "Free SIFT Practice Test"
+  },
+  {
+    "path": "/courses/astb/free-practice-test",
+    "label": "Free ASTB Practice Test"
+  },
+  {
+    "path": "/courses/oar/free-practice-test",
+    "label": "Free OAR Practice Test"
+  },
+  {
+    "path": "/courses/asvab/free-prediction-test",
+    "label": "Free ASVAB AFQT Prediction Test"
+  },
+  {
+    "path": "/courses/afoqt/free-prediction-test",
+    "label": "Free AFOQT Prediction Test"
+  },
+  {
+    "path": "/courses/sift/free-prediction-test",
+    "label": "Free SIFT Prediction Test"
+  },
+  {
+    "path": "/courses/astb/free-prediction-test",
+    "label": "Free ASTB Prediction Test"
+  },
+  {
+    "path": "/courses/oar/free-prediction-test",
+    "label": "Free OAR Prediction Test"
+  },
+  {
     "path": "/services/1-on-1-tutoring",
     "label": "1 On 1 Tutoring Services"
   },
@@ -292,6 +364,42 @@ export const KNOWN_ROUTES_FALLBACK_LINKS: readonly { path: string; label: string
   {
     "path": "/package-details/self-study/oar",
     "label": "Self Study — OAR"
+  },
+  {
+    "path": "/package-details/1-on-1-tutoring/hesi-a2",
+    "label": "1 On 1 Tutoring — HESI A2"
+  },
+  {
+    "path": "/package-details/1-on-1-tutoring/ati-teas",
+    "label": "1 On 1 Tutoring — ATI TEAS"
+  },
+  {
+    "path": "/package-details/1-on-1-tutoring/cna",
+    "label": "1 On 1 Tutoring — CNA"
+  },
+  {
+    "path": "/package-details/group-tutoring/hesi-a2",
+    "label": "Group Tutoring — HESI A2"
+  },
+  {
+    "path": "/package-details/group-tutoring/ati-teas",
+    "label": "Group Tutoring — ATI TEAS"
+  },
+  {
+    "path": "/package-details/group-tutoring/cna",
+    "label": "Group Tutoring — CNA"
+  },
+  {
+    "path": "/package-details/self-study/hesi-a2",
+    "label": "Self Study — HESI A2"
+  },
+  {
+    "path": "/package-details/self-study/ati-teas",
+    "label": "Self Study — ATI TEAS"
+  },
+  {
+    "path": "/package-details/self-study/cna",
+    "label": "Self Study — CNA"
   },
   {
     "path": "/blog-detail/110/why-it-is-important-to-attempt-asvab-test",
@@ -667,6 +775,6 @@ export const KNOWN_ROUTES_FALLBACK_LINKS: readonly { path: string; label: string
   }
 ] as const;
 
-export const COURSE_CODES = ["asvab","afoqt","sift","astb","oar"] as const;
+export const COURSE_CODES = ["asvab","afoqt","sift","astb","oar", "hesi-a2", "ati-teas", "cna"] as const;
 export const SERVICE_TYPES = ["1-on-1-tutoring","group-tutoring","self-study"] as const;
 export const STATIC_PAGE_SEGMENTS = ["about-us","how-it-works","faq","sitemap","our-mobile-apps","our-tutors","privacy-policy","terms-of-service","blog","contact-us"] as const;

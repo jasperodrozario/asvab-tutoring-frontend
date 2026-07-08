@@ -24,6 +24,7 @@ import {
   BsEyeSlash,
 } from "react-icons/bs";
 import { CardState } from "@/components/square-payment-form/SquarePaymentForm";
+import { convertCourseIdToProduct } from "@/lib/package-utils";
 import { sanitizeMobileInput } from "@/lib/sanitize-mobile-input";
 
 type PaymentMode = "one_time" | "subscription";
@@ -60,12 +61,18 @@ export default function OfferCheckout() {
   const EMAIL_CHECK_ACTION = "check-email";
 
   function inferProductFromCourseId(courseId: string) {
+    const fromId = convertCourseIdToProduct(courseId);
+    if (fromId) return fromId;
+
     const s = (courseId || "").toLowerCase();
     if (s.includes("asvab")) return "ASVAB";
     if (s.includes("afoqt")) return "AFOQT";
     if (s.includes("astb")) return "ASTB";
     if (s.includes("sift")) return "SIFT";
     if (s.includes("oar")) return "OAR";
+    if (s.includes("hesi")) return "HESI A2";
+    if (s.includes("teas")) return "ATI TEAS";
+    if (s.includes("cna")) return "CNA";
     return "ASVAB"; // Default for deals
   }
 

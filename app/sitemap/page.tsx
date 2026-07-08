@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
-import { fetchSitemapSections, type SitemapSection } from "@/lib/sitemap-data";
+import { fetchSitemapPageSections, type SitemapSection } from "@/lib/sitemap-data";
 import { sitemapMetadata } from "@/lib/page-metadata";
 
 export const metadata: Metadata = sitemapMetadata();
@@ -16,7 +16,7 @@ function getTotalLinks(sections: SitemapSection[]): number {
 }
 
 export default async function SitemapPage() {
-  const sections = await fetchSitemapSections();
+  const sections = await fetchSitemapPageSections();
   const totalLinks = getTotalLinks(sections);
 
   return (

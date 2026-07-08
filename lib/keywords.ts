@@ -15,7 +15,15 @@ export type KeywordGroupName =
 
 export type KeywordGroups = Record<KeywordGroupName, readonly string[]>;
 
-export type CourseCode = "asvab" | "afoqt" | "sift" | "astb" | "oar";
+export type CourseCode =
+  | "asvab"
+  | "afoqt"
+  | "sift"
+  | "astb"
+  | "oar"
+  | "hesi-a2"
+  | "ati-teas"
+  | "cna";
 
 export const COURSE_CODES: readonly CourseCode[] = [
   "asvab",
@@ -23,6 +31,9 @@ export const COURSE_CODES: readonly CourseCode[] = [
   "sift",
   "astb",
   "oar",
+  "hesi-a2",
+  "ati-teas",
+  "cna",
 ] as const;
 
 /** Keyword groups for each exam (provided keyword list only). */
@@ -109,6 +120,42 @@ export const COURSE_KEYWORDS: Record<CourseCode, KeywordGroups> = {
       "Navy OAR practice test",
     ],
     predictionTest: ["free OAR prediction test"],
+  },
+  "hesi-a2": {
+    main: ["HESI A2 tutoring", "HESI A2 tutor", "HESI A2 prep"],
+    longTail: ["HESI A2 math prep", "HESI A2 test prep"],
+    local: ["HESI A2 tutor in {city}", "HESI A2 tutoring in {city}"],
+    app: [],
+    questionBased: ["HESI A2 exam prep"],
+    buyerIntent: ["HESI A2 tutor online", "best HESI A2 tutoring program"],
+    practiceTest: [
+      "free HESI A2 practice test",
+      "HESI A2 practice test online",
+    ],
+    predictionTest: ["free HESI A2 prediction test"],
+  },
+  "ati-teas": {
+    main: ["ATI TEAS tutoring", "TEAS tutor", "ATI TEAS prep"],
+    longTail: ["ATI TEAS math prep", "TEAS exam prep"],
+    local: ["ATI TEAS tutor in {city}", "TEAS tutoring in {city}"],
+    app: [],
+    questionBased: ["ATI TEAS exam prep"],
+    buyerIntent: ["ATI TEAS tutor online", "best TEAS tutoring program"],
+    practiceTest: [
+      "free ATI TEAS practice test",
+      "TEAS practice test online",
+    ],
+    predictionTest: ["free ATI TEAS prediction test"],
+  },
+  cna: {
+    main: ["CNA tutoring", "CNA tutor", "CNA prep"],
+    longTail: ["CNA exam prep", "CNA test prep"],
+    local: ["CNA tutor in {city}", "CNA tutoring in {city}"],
+    app: [],
+    questionBased: ["CNA certification prep"],
+    buyerIntent: ["CNA tutor online", "best CNA tutoring program"],
+    practiceTest: ["free CNA practice test", "CNA practice test online"],
+    predictionTest: ["free CNA prediction test"],
   },
 };
 
