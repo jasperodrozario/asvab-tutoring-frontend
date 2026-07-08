@@ -37,6 +37,13 @@ function CourseNavGroups({
 }) {
   const { military, medical, other } = groupCoursesForNav(courses);
 
+  const populatedCategoryCount = [
+    military.length > 0,
+    medical.length > 0,
+    other.length > 0,
+  ].filter(Boolean).length;
+  const showCategoryLabels = populatedCategoryCount > 1;
+
   const renderCourse = (course: Course) => (
     <li
       key={course.course_id}
@@ -66,12 +73,14 @@ function CourseNavGroups({
             <hr className="dropdown-divider my-1" />
           </li>
         )}
-        <li
-          className={variant === "mobile" ? "nav-item" : undefined}
-          aria-hidden="true"
-        >
-          <span className="navbar-course-category">{label}</span>
-        </li>
+        {showCategoryLabels && (
+          <li
+            className={variant === "mobile" ? "nav-item" : undefined}
+            aria-hidden="true"
+          >
+            <span className="navbar-course-category">{label}</span>
+          </li>
+        )}
         {groupCourses.map(renderCourse)}
       </>
     );
@@ -80,7 +89,11 @@ function CourseNavGroups({
   return (
     <>
       {renderGroup("Military", military, false)}
-      {renderGroup("Medical", medical, military.length > 0)}
+      {renderGroup(
+        "Medical",
+        medical,
+        showCategoryLabels && military.length > 0,
+      )}
       {other.map(renderCourse)}
     </>
   );

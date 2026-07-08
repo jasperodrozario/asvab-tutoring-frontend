@@ -621,11 +621,6 @@ export async function fetchFreePredTestByCode(
 ): Promise<FreePredTestResponse | null> {
   const normalizedCode = normalizeCourseCode(courseCode);
 
-  // Filter free pred tests
-  // if (!["asvab", "afoqt"].includes(normalizedCode)) {
-  //   return null;
-  // }
-
   const result = await postPhpApi<FreePredTestResponse>(
     "get-free-pred-test-by-code",
     { course_code: normalizedCode },
