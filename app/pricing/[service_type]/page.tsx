@@ -6,7 +6,7 @@ import PricingContent from "@/components/pricing-content/PricingContent";
 import { ServiceType } from "@/types/Services";
 import { pricingMetadata } from "@/lib/page-metadata";
 import {
-  fetchPricingPackages,
+  fetchPublishablePricingPackages,
   fetchPricingPageContent,
 } from "@/lib/php-api";
 import { serviceTypeToSubmenu, type PricingSubmenu } from "@/lib/package-utils";
@@ -56,7 +56,7 @@ export default async function PricingPage({
   const submenu: PricingSubmenu = serviceTypeToSubmenu(serviceType);
 
   const [packages, pricingItems] = await Promise.all([
-    fetchPricingPackages(submenu),
+    fetchPublishablePricingPackages(submenu),
     fetchPricingPageContent(submenu),
   ]);
 

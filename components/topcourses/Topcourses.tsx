@@ -188,14 +188,7 @@ export default function TopCourses() {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const formData = new FormData();
-        formData.append("action", "get-all-courses");
-
-        const res = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
-          method: "POST",
-          body: formData,
-        });
-
+        const res = await fetch("/api/courses");
         const result = await res.json();
 
         if (result?.isSuccess && Array.isArray(result.data)) {

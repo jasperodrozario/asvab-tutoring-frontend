@@ -9,6 +9,7 @@ import {
   fetchAllPackageDetailsForCourse,
   fetchFreePredTestByCode,
   fetchFreePracticeTestByCode,
+  isCoursePublishable,
 } from "@/lib/php-api";
 import { isFreePredTestReady } from "@/lib/prediction-test-types";
 import { isFreeTestReady } from "@/lib/course-types";
@@ -32,6 +33,10 @@ export default async function Page({
   const { course_code } = await params;
 
   if (!isKnownCourseCode(course_code)) {
+    notFound();
+  }
+
+  if (!(await isCoursePublishable(course_code))) {
     notFound();
   }
 

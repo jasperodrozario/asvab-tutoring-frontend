@@ -6,7 +6,7 @@ import {
 } from "@/lib/known-route-validation";
 import PackageDetailsContent from "./PackageDetailsContent";
 import { packageDetailsMetadata } from "@/lib/page-metadata";
-import { fetchPackageDetails } from "@/lib/php-api";
+import { fetchPackageDetails, isCoursePublishable } from "@/lib/php-api";
 
 export const revalidate = 3600;
 
@@ -27,6 +27,10 @@ export default async function Page({
   const { service_type, course_code } = await params;
 
   if (!isKnownServiceType(service_type) || !isKnownCourseCode(course_code)) {
+    notFound();
+  }
+
+  if (!(await isCoursePublishable(course_code))) {
     notFound();
   }
 

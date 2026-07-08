@@ -52,11 +52,7 @@ export default function Navbar() {
   useEffect(() => {
     async function fetchCourses() {
       try {
-        const response = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({ action: "get-all-courses" }),
-        });
+        const response = await fetch("/api/courses");
         const data = await response.json();
         if (data?.isSuccess && Array.isArray(data.data)) {
           setCourses(data.data);

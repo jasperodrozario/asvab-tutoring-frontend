@@ -6,6 +6,7 @@ import { freePredictionTestMetadata } from "@/lib/page-metadata";
 import {
   fetchAllPackageDetailsForCourse,
   fetchFreePredTestByCode,
+  isCoursePublishable,
 } from "@/lib/php-api";
 
 export const revalidate = 3600;
@@ -27,6 +28,10 @@ export default async function Page({
   const { course_code } = await params;
 
   if (!isKnownCourseCode(course_code)) {
+    notFound();
+  }
+
+  if (!(await isCoursePublishable(course_code))) {
     notFound();
   }
 

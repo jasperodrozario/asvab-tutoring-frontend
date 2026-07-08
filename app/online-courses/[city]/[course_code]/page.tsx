@@ -9,6 +9,7 @@ import {
   fetchAllPackageDetailsForCourse,
   fetchFreePredTestByCode,
   fetchFreePracticeTestByCode,
+  isCoursePublishable,
 } from "@/lib/php-api";
 import { isFreePredTestReady } from "@/lib/prediction-test-types";
 import { isFreeTestReady } from "@/lib/course-types";
@@ -40,6 +41,10 @@ export default async function Page({ params }: Props) {
   const normalizedCode = course_code.replace(/-tutor$/, "");
 
   if (!isKnownCourseCode(normalizedCode)) {
+    notFound();
+  }
+
+  if (!(await isCoursePublishable(normalizedCode))) {
     notFound();
   }
 

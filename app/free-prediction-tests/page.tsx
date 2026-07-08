@@ -3,7 +3,7 @@ import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
 import FreePredictionTestsLayout from "@/components/free-prediction-tests/FreePredictionTestsLayout";
 import { freePredictionTestsMetadata, FREE_PREDICTION_TESTS_BANNER_SUBTITLE } from "@/lib/page-metadata";
 import {
-  fetchAllCourses,
+  fetchPublishableCourses,
   fetchAllPackageDetailsForCourse,
   fetchFreePredTestCatalog,
 } from "@/lib/php-api";
@@ -13,7 +13,7 @@ export const revalidate = 3600;
 
 export default async function FreePredictionTestsPage() {
   const [allCourses, predictionTests] = await Promise.all([
-    fetchAllCourses(),
+    fetchPublishableCourses(),
     fetchFreePredTestCatalog(),
   ]);
 

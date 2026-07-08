@@ -4,25 +4,32 @@ import TopCourses from "@/components/topcourses/Topcourses";
 import Teachers from "@/components/teachers/Teachers";
 import Faq from "@/components/faq/Faq";
 import Review from "@/components/review/Review";
-import Packages from "@/components/packages/Packages";
 import PricingPackages from "@/components/pricing-packages/PricingPackages";
-// import HotDealPopup from "@/components/promotions/HotDealPopup";
 import { homeMetadata } from "@/lib/page-metadata";
+import { fetchPublishablePricingPackages } from "@/lib/php-api";
 import Link from "next/link";
 
 export const metadata: Metadata = homeMetadata();
+export const revalidate = 3600;
 
-export default function Home() {
+export default async function Home() {
+  const [oneOnOnePackages, groupPackages, selfStudyPackages] = await Promise.all(
+    [
+      fetchPublishablePricingPackages("one"),
+      fetchPublishablePricingPackages("group"),
+      fetchPublishablePricingPackages("subscribe"),
+    ],
+  );
+
   return (
     <div>
       <Welcome />
       <TopCourses />
-      {/* <Packages /> */}
 
-      {/* 1-on-1 Tutoring Pricing */}
       <PricingPackages
         fixedSubmenu="one"
         sectionTitle="1-on-1 Tutoring Pricing"
+        initialPackages={oneOnOnePackages}
         homepageDescription={
           <>
             <Link
@@ -40,10 +47,10 @@ export default function Home() {
         }
       />
 
-      {/* Group Tutoring Pricing */}
       <PricingPackages
         fixedSubmenu="group"
         sectionTitle="Group Tutoring Pricing"
+        initialPackages={groupPackages}
         homepageDescription={
           <>
             <Link
@@ -61,10 +68,10 @@ export default function Home() {
         }
       />
 
-      {/* Self Study Pricing */}
       <PricingPackages
         fixedSubmenu="subscribe"
         sectionTitle="Self-Study Pricing"
+        initialPackages={selfStudyPackages}
         homepageDescription={
           <>
             <Link
@@ -84,9 +91,6 @@ export default function Home() {
       <Teachers />
       <Faq />
       <Review />
-
-      {/* ── Put Custom Pop-in Notifications below ── */}
-      {/* <HotDealPopup /> */}
     </div>
   );
 }
