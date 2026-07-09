@@ -101,7 +101,10 @@ function CourseNavGroups({
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isNavbarVisible, setIsNavbarVisible] = useState(true);
   const navRef = useRef<HTMLElement>(null);
+  const lastScrollY = useRef(0);
+  const isMenuOpenRef = useRef(isMenuOpen);
 
   const [courses, setCourses] = useState<Course[]>([]);
   const [services, setServices] = useState<Service[]>([]);
@@ -165,7 +168,54 @@ export default function Navbar() {
     setIsFreeTestsOpen(false);
   };
 
-  // Close navbar on outside click or scroll
+  useEffect(() => {
+    isMenuOpenRef.current = isMenuOpen;
+  }, [isMenuOpen]);
+
+  // Auto-hide header on scroll down below 1180px
+  useEffect(() => {
+    const AUTO_HIDE_MAX_WIDTH = 1180;
+
+    const handleScroll = () => {
+      if (window.innerWidth >= AUTO_HIDE_MAX_WIDTH) {
+        setIsNavbarVisible(true);
+        return;
+      }
+
+      const currentScrollY = window.scrollY;
+      const delta = currentScrollY - lastScrollY.current;
+
+      if (isMenuOpenRef.current) {
+        closeAll();
+      }
+
+      if (currentScrollY <= 10) {
+        setIsNavbarVisible(true);
+      } else if (delta > 8) {
+        setIsNavbarVisible(false);
+      } else if (delta < -8) {
+        setIsNavbarVisible(true);
+      }
+
+      lastScrollY.current = currentScrollY;
+    };
+
+    const handleResize = () => {
+      if (window.innerWidth >= AUTO_HIDE_MAX_WIDTH) {
+        setIsNavbarVisible(true);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  // Close navbar on outside click
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
       if (isMenuOpen && navRef.current && !navRef.current.contains(event.target as Node)) {
@@ -173,25 +223,17 @@ export default function Navbar() {
       }
     };
 
-    const handleScroll = () => {
-      if (isMenuOpen) {
-        closeAll();
-      }
-    };
-
     if (isMenuOpen) {
       document.addEventListener("mousedown", handleOutsideClick);
-      window.addEventListener("scroll", handleScroll);
     }
 
     return () => {
       document.removeEventListener("mousedown", handleOutsideClick);
-      window.removeEventListener("scroll", handleScroll);
     };
   }, [isMenuOpen]);
 
   const handleLinkClick = () => {
-    if (typeof window !== "undefined" && window.innerWidth < 1090) {
+    if (typeof window !== "undefined" && window.innerWidth < 992) {
       closeAll();
     }
   };
@@ -236,9 +278,11 @@ export default function Navbar() {
   };
 
   return (
-    <>
+    <header
+      className={`navbar-site-header fixed-top ${!isNavbarVisible ? "navbar-site-header--hidden" : ""}`}
+    >
       {/* 🔹 Top Contact Bar */}
-      <div className="bg-custom-secondary primary-color-custom d-none d-lg-block py-2 fixed-top">
+      <div className="bg-custom-secondary primary-color-custom d-none d-lg-block py-2">
         <div
           className="container-sm d-flex justify-content-between align-items-center small"
           style={{ maxWidth: "1166px", margin: "0 auto" }}
@@ -274,7 +318,7 @@ export default function Navbar() {
       {/* Main Navbar */}
       <nav
         ref={navRef}
-        className="navbar navbar-expand-lg bg-custom-secondary text-white py-2 py-md-3 fixed-top navbar-desktop-mt"
+        className="navbar navbar-expand-lg bg-custom-secondary text-white py-2 py-md-3"
       >
         <div className="container d-flex justify-content-between align-items-center px-3">
           {/* MOBILE HEADER */}
@@ -684,6 +728,6 @@ export default function Navbar() {
           )}
         </div>
       </nav>
-    </>
+    </header>
   );
 }
