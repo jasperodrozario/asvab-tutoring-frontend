@@ -248,7 +248,7 @@ export default function Welcome() {
   return (
     <>
       {/* Hero Section */}
-      <div className="min-vh-100 d-flex align-items-center bg-hero text-white py-5 px-3">
+      <div className="min-vh-100 d-flex align-items-lg-center align-items-start bg-hero text-white py-5 px-3">
         <div className="container hero-content">
           <div className="row align-items-center g-5">
             {/* Left Content */}

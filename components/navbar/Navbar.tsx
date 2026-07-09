@@ -812,10 +812,11 @@ export default function Navbar() {
               {isPricingOpen && (
                 <ul className="navbar-nav ps-3">
                   {services.map((service) => (
-                    <li key={service.service_id}>
+                    <li key={service.service_id} className="nav-item">
                       <Link
-                        className="dropdown-item"
                         href={`/pricing/${getServiceSlug(service.service_id)}`}
+                        className="nav-link text-white"
+                        onClick={handleLinkClick}
                       >
                         {service.course_name}
                       </Link>
@@ -825,7 +826,7 @@ export default function Navbar() {
               )}
             </li>
             <li className="nav-item">
-              <Link href="/blog" className="nav-link text-white px-2">
+              <Link href="/blog" className="nav-link text-white px-2" onClick={handleLinkClick}>
                 BLOG
               </Link>
             </li>
