@@ -203,6 +203,18 @@ export default function Navbar() {
       }
     };
 
+    const getAutoHideThreshold = (scrollY: number) => {
+      const headerHeight = getHeaderHeight();
+      const anchor = document.querySelector("[data-navbar-auto-hide-anchor]");
+
+      if (anchor) {
+        const anchorTop = anchor.getBoundingClientRect().top + scrollY;
+        return Math.max(headerHeight, anchorTop - headerHeight);
+      }
+
+      return headerHeight;
+    };
+
     const setNavbarVisible = (visible: boolean) => {
       if (isNavbarVisibleRef.current === visible) return;
       isNavbarVisibleRef.current = visible;
@@ -219,7 +231,7 @@ export default function Navbar() {
 
       const currentScrollY = window.scrollY;
       const delta = currentScrollY - lastScrollY.current;
-      const headerHeight = getHeaderHeight();
+      const autoHideThreshold = getAutoHideThreshold(currentScrollY);
 
       if (isMenuOpenRef.current) {
         setNavbarVisible(true);
@@ -227,7 +239,7 @@ export default function Navbar() {
         return;
       }
 
-      if (headerHeight > 0 && currentScrollY <= headerHeight) {
+      if (currentScrollY < autoHideThreshold) {
         setNavbarVisible(true);
       } else if (delta > HIDE_DELTA) {
         setNavbarVisible(false);

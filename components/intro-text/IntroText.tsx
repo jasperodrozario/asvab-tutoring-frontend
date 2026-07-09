@@ -55,7 +55,7 @@ export default function WelcomeSection() {
   }, []);
 
   return (
-    <section className="py-5 bg-white px-3">
+    <section className="py-5 bg-white px-3" data-navbar-auto-hide-anchor>
       <div className="container">
         <div className="text-center position-relative">
           <h2 className="fw-bold display-5 text-dark position-relative d-inline-block pb-3">
