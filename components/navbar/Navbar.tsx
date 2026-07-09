@@ -103,8 +103,12 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNavbarVisible, setIsNavbarVisible] = useState(true);
   const navRef = useRef<HTMLElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
+  const headerHeightRef = useRef(0);
   const lastScrollY = useRef(0);
+  const isNavbarVisibleRef = useRef(true);
   const isMenuOpenRef = useRef(isMenuOpen);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   const [courses, setCourses] = useState<Course[]>([]);
   const [services, setServices] = useState<Service[]>([]);
@@ -175,60 +179,168 @@ export default function Navbar() {
   // Auto-hide header on scroll down below 1180px
   useEffect(() => {
     const AUTO_HIDE_MAX_WIDTH = 1180;
+    const HIDE_DELTA = 10;
+    const SHOW_DELTA = 5;
+    let ticking = false;
 
-    const handleScroll = () => {
+    const getHeaderHeight = () => {
+      if (headerHeightRef.current > 0) {
+        return headerHeightRef.current;
+      }
+      return headerRef.current?.offsetHeight ?? 0;
+    };
+
+    const syncHeaderHeight = () => {
+      if (!headerRef.current) return;
+
+      const height = headerRef.current.offsetHeight;
+      if (height > 0) {
+        headerHeightRef.current = height;
+        document.documentElement.style.setProperty(
+          "--navbar-header-height",
+          `${height}px`,
+        );
+      }
+    };
+
+    const setNavbarVisible = (visible: boolean) => {
+      if (isNavbarVisibleRef.current === visible) return;
+      isNavbarVisibleRef.current = visible;
+      setIsNavbarVisible(visible);
+    };
+
+    const updateNavbarOnScroll = () => {
+      ticking = false;
+
       if (window.innerWidth >= AUTO_HIDE_MAX_WIDTH) {
-        setIsNavbarVisible(true);
+        setNavbarVisible(true);
         return;
       }
 
       const currentScrollY = window.scrollY;
       const delta = currentScrollY - lastScrollY.current;
+      const headerHeight = getHeaderHeight();
 
       if (isMenuOpenRef.current) {
-        closeAll();
+        setNavbarVisible(true);
+        lastScrollY.current = currentScrollY;
+        return;
       }
 
-      if (currentScrollY <= 10) {
-        setIsNavbarVisible(true);
-      } else if (delta > 8) {
-        setIsNavbarVisible(false);
-      } else if (delta < -8) {
-        setIsNavbarVisible(true);
+      if (headerHeight > 0 && currentScrollY <= headerHeight) {
+        setNavbarVisible(true);
+      } else if (delta > HIDE_DELTA) {
+        setNavbarVisible(false);
+      } else if (delta < -SHOW_DELTA) {
+        setNavbarVisible(true);
       }
 
       lastScrollY.current = currentScrollY;
     };
 
-    const handleResize = () => {
-      if (window.innerWidth >= AUTO_HIDE_MAX_WIDTH) {
-        setIsNavbarVisible(true);
+    const handleScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(updateNavbarOnScroll);
       }
     };
 
+    const handleResize = () => {
+      syncHeaderHeight();
+
+      if (window.innerWidth >= AUTO_HIDE_MAX_WIDTH) {
+        setNavbarVisible(true);
+      }
+    };
+
+    syncHeaderHeight();
+    lastScrollY.current = window.scrollY;
     window.addEventListener("scroll", handleScroll, { passive: true });
     window.addEventListener("resize", handleResize);
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleResize);
+      document.documentElement.style.removeProperty("--navbar-header-height");
     };
   }, []);
 
+  // Lock page scroll while the mobile menu is open (html only — avoid body position:fixed)
+  useEffect(() => {
+    if (!isMenuOpen) return;
+
+    const { documentElement: html } = document;
+    const previousHtmlOverflow = html.style.overflow;
+    const previousBodyOverflow = document.body.style.overflow;
+
+    html.classList.add("navbar-mobile-menu-open");
+    document.body.classList.add("navbar-mobile-menu-open");
+    html.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+
+    const preventBackgroundTouchMove = (event: TouchEvent) => {
+      const target = event.target as Node;
+      if (mobileMenuRef.current?.contains(target)) {
+        return;
+      }
+      event.preventDefault();
+    };
+
+    document.addEventListener("touchmove", preventBackgroundTouchMove, {
+      passive: false,
+    });
+
+    return () => {
+      document.removeEventListener("touchmove", preventBackgroundTouchMove);
+      html.classList.remove("navbar-mobile-menu-open");
+      document.body.classList.remove("navbar-mobile-menu-open");
+      html.style.overflow = previousHtmlOverflow;
+      document.body.style.overflow = previousBodyOverflow;
+    };
+  }, [isMenuOpen]);
+
+  // Size the scrollable menu panel below the mobile nav bar
+  useEffect(() => {
+    if (!isMenuOpen || !navRef.current) return;
+
+    const updateMenuOffset = () => {
+      const navBottom = navRef.current?.getBoundingClientRect().bottom ?? 0;
+      document.documentElement.style.setProperty(
+        "--navbar-mobile-header-offset",
+        `${navBottom}px`,
+      );
+    };
+
+    const rafId = requestAnimationFrame(updateMenuOffset);
+    window.addEventListener("resize", updateMenuOffset);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener("resize", updateMenuOffset);
+      document.documentElement.style.removeProperty("--navbar-mobile-header-offset");
+    };
+  }, [isMenuOpen]);
+
   // Close navbar on outside click
   useEffect(() => {
-    const handleOutsideClick = (event: MouseEvent) => {
-      if (isMenuOpen && navRef.current && !navRef.current.contains(event.target as Node)) {
+    const handleOutsideClick = (event: MouseEvent | TouchEvent) => {
+      const target = event.target as Node;
+      const clickedNav = navRef.current?.contains(target);
+      const clickedMenu = mobileMenuRef.current?.contains(target);
+
+      if (isMenuOpen && !clickedNav && !clickedMenu) {
         closeAll();
       }
     };
 
     if (isMenuOpen) {
       document.addEventListener("mousedown", handleOutsideClick);
+      document.addEventListener("touchstart", handleOutsideClick);
     }
 
     return () => {
       document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("touchstart", handleOutsideClick);
     };
   }, [isMenuOpen]);
 
@@ -279,7 +391,8 @@ export default function Navbar() {
 
   return (
     <header
-      className={`navbar-site-header fixed-top ${!isNavbarVisible ? "navbar-site-header--hidden" : ""}`}
+      ref={headerRef}
+      className={`navbar-site-header fixed-top ${!isNavbarVisible ? "navbar-site-header--hidden" : ""} ${isMenuOpen ? "navbar-site-header--menu-open" : ""}`}
     >
       {/* 🔹 Top Contact Bar */}
       <div className="bg-custom-secondary primary-color-custom d-none d-lg-block py-2">
@@ -336,6 +449,8 @@ export default function Navbar() {
               className="navbar-toggler border-0"
               type="button"
               onClick={toggleMenu}
+              aria-expanded={isMenuOpen}
+              aria-controls="navbar-mobile-menu"
             >
               <FaBars
                 size={26}
@@ -548,186 +663,183 @@ export default function Navbar() {
               </li>
             </ul>
           </div>
-
-          {/* MOBILE COLLAPSIBLE MENU */}
-          {isMenuOpen && (
-            <div className="d-lg-none mt-3 w-100 text-left">
-              <ul className="navbar-nav">
-                <li className="nav-item">
-                  <Link
-                    href="/"
-                    className="nav-link text-white"
-                    onClick={handleLinkClick}
-                  >
-                    HOME
-                  </Link>
-                </li>
-                <li className="nav-item">
-                  <Link
-                    href="/about-us"
-                    className="nav-link text-white"
-                    onClick={handleLinkClick}
-                  >
-                    ABOUT US
-                  </Link>
-                </li>
-                <li className="nav-item">
-                  <Link
-                    href="/how-it-works"
-                    className="nav-link text-white"
-                    onClick={handleLinkClick}
-                  >
-                    HOW IT WORKS
-                  </Link>
-                </li>
-
-                {/* COURSES MOBILE */}
-                <li className="nav-item">
-                  <span
-                    className="nav-link text-white d-flex align-items-center gap-1"
-                    role="button"
-                    onClick={toggleCourses}
-                  >
-                    COURSES <FaCaretDown />
-                  </span>
-
-                  {isCoursesOpen && (
-                    <ul className="navbar-nav ps-3">
-                      <CourseNavGroups
-                        courses={courses}
-                        variant="mobile"
-                        onLinkClick={handleLinkClick}
-                      />
-                    </ul>
-                  )}
-                </li>
-
-                {/* FREE TESTS MOBILE */}
-                <li className="nav-item">
-                  <span
-                    className="nav-link text-white d-flex align-items-center gap-1"
-                    role="button"
-                    onClick={toggleFreeTests}
-                  >
-                    FREE TESTS <FaCaretDown />
-                  </span>
-
-                  {isFreeTestsOpen && (
-                    <ul className="navbar-nav ps-3">
-                      <li className="nav-item">
-                        <Link
-                          href="/free-prediction-tests"
-                          className="nav-link text-white"
-                          onClick={handleLinkClick}
-                        >
-                          Free Prediction Tests
-                        </Link>
-                      </li>
-                      <li className="nav-item">
-                        <Link
-                          href="/free-practice-tests"
-                          className="nav-link text-white"
-                          onClick={handleLinkClick}
-                        >
-                          Free Practice Tests
-                        </Link>
-                      </li>
-                    </ul>
-                  )}
-                </li>
-
-                {/* SERVICES MOBILE */}
-                <li className="nav-item">
-                  <span
-                    className="nav-link text-white d-flex align-items-center gap-1"
-                    role="button"
-                    onClick={toggleServices}
-                  >
-                    SERVICES <FaCaretDown />
-                  </span>
-
-                  {isServicesOpen && (
-                    <ul className="navbar-nav ps-3">
-                      {services.map((service) => (
-                        <li key={service.service_id} className="nav-item">
-                          <Link
-                            href={`/services/${getServiceSlug(service.service_id)}`}
-                            className="nav-link text-white"
-                            onClick={handleLinkClick}
-                          >
-                            {service.course_name}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </li>
-
-                {/* PRICING MOBILE */}
-                <li className="nav-item">
-                  <span
-                    className="nav-link text-white d-flex align-items-center gap-1"
-                    role="button"
-                    onClick={togglePricing}
-                  >
-                    PRICING <FaCaretDown />
-                  </span>
-
-                  {isPricingOpen && (
-                    <ul className="navbar-nav ps-3">
-                      {services.map((service) => (
-                        <li key={service.service_id}>
-                          <Link
-                            className="dropdown-item"
-                            href={`/pricing/${getServiceSlug(service.service_id)}`}
-                          >
-                            {service.course_name}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </li>
-                <li className="nav-item">
-                  <Link href="/blog" className="nav-link text-white px-2">
-                    BLOG
-                  </Link>
-                </li>
-
-                {/* <li className="nav-item">
-                  <Link 
-                    href={`${process.env.NEXT_PUBLIC_RESOURCES_URL}/register-free"
-                    className="nav-link text-white d-flex align-items-center btn border px-3 py-1 fs-6"  style={{ maxWidth: "112px", textAlign: "center" }}
-                   
-                    onClick={handleLinkClick}
-                  >
-                    ONLINE STUDY
-                  </Link>
-                </li> */}
-                <li className="nav-item">
-                  <Link
-                    href="/user-login"
-                    className="nav-link text-white"
-                    onClick={handleLinkClick}
-                  >
-                    <FaSignInAlt /> Login
-                  </Link>
-                </li>
-
-                <li className="nav-item">
-                  <Link
-                    href="/user-registration"
-                    className="nav-link text-white"
-                    onClick={handleLinkClick}
-                  >
-                    <FaUserPlus /> Register
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          )}
         </div>
       </nav>
+
+      {/* MOBILE COLLAPSIBLE MENU — outside nav so fixed positioning works correctly */}
+      {isMenuOpen && (
+        <div
+          ref={mobileMenuRef}
+          id="navbar-mobile-menu"
+          className="navbar-mobile-menu d-lg-none"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Main navigation"
+        >
+          <ul className="navbar-nav">
+            <li className="nav-item">
+              <Link
+                href="/"
+                className="nav-link text-white"
+                onClick={handleLinkClick}
+              >
+                HOME
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link
+                href="/about-us"
+                className="nav-link text-white"
+                onClick={handleLinkClick}
+              >
+                ABOUT US
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link
+                href="/how-it-works"
+                className="nav-link text-white"
+                onClick={handleLinkClick}
+              >
+                HOW IT WORKS
+              </Link>
+            </li>
+
+            {/* COURSES MOBILE */}
+            <li className="nav-item">
+              <span
+                className="nav-link text-white d-flex align-items-center gap-1"
+                role="button"
+                onClick={toggleCourses}
+              >
+                COURSES <FaCaretDown />
+              </span>
+
+              {isCoursesOpen && (
+                <ul className="navbar-nav ps-3">
+                  <CourseNavGroups
+                    courses={courses}
+                    variant="mobile"
+                    onLinkClick={handleLinkClick}
+                  />
+                </ul>
+              )}
+            </li>
+
+            {/* FREE TESTS MOBILE */}
+            <li className="nav-item">
+              <span
+                className="nav-link text-white d-flex align-items-center gap-1"
+                role="button"
+                onClick={toggleFreeTests}
+              >
+                FREE TESTS <FaCaretDown />
+              </span>
+
+              {isFreeTestsOpen && (
+                <ul className="navbar-nav ps-3">
+                  <li className="nav-item">
+                    <Link
+                      href="/free-prediction-tests"
+                      className="nav-link text-white"
+                      onClick={handleLinkClick}
+                    >
+                      Free Prediction Tests
+                    </Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link
+                      href="/free-practice-tests"
+                      className="nav-link text-white"
+                      onClick={handleLinkClick}
+                    >
+                      Free Practice Tests
+                    </Link>
+                  </li>
+                </ul>
+              )}
+            </li>
+
+            {/* SERVICES MOBILE */}
+            <li className="nav-item">
+              <span
+                className="nav-link text-white d-flex align-items-center gap-1"
+                role="button"
+                onClick={toggleServices}
+              >
+                SERVICES <FaCaretDown />
+              </span>
+
+              {isServicesOpen && (
+                <ul className="navbar-nav ps-3">
+                  {services.map((service) => (
+                    <li key={service.service_id} className="nav-item">
+                      <Link
+                        href={`/services/${getServiceSlug(service.service_id)}`}
+                        className="nav-link text-white"
+                        onClick={handleLinkClick}
+                      >
+                        {service.course_name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+
+            {/* PRICING MOBILE */}
+            <li className="nav-item">
+              <span
+                className="nav-link text-white d-flex align-items-center gap-1"
+                role="button"
+                onClick={togglePricing}
+              >
+                PRICING <FaCaretDown />
+              </span>
+
+              {isPricingOpen && (
+                <ul className="navbar-nav ps-3">
+                  {services.map((service) => (
+                    <li key={service.service_id}>
+                      <Link
+                        className="dropdown-item"
+                        href={`/pricing/${getServiceSlug(service.service_id)}`}
+                      >
+                        {service.course_name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+            <li className="nav-item">
+              <Link href="/blog" className="nav-link text-white px-2">
+                BLOG
+              </Link>
+            </li>
+
+            <li className="nav-item">
+              <Link
+                href="/user-login"
+                className="nav-link text-white"
+                onClick={handleLinkClick}
+              >
+                <FaSignInAlt /> Login
+              </Link>
+            </li>
+
+            <li className="nav-item">
+              <Link
+                href="/user-registration"
+                className="nav-link text-white"
+                onClick={handleLinkClick}
+              >
+                <FaUserPlus /> Register
+              </Link>
+            </li>
+          </ul>
+        </div>
+      )}
     </header>
   );
 }

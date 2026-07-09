@@ -11,16 +11,7 @@
 } */
 
 body {
-  padding-top: 120px;
-  /* Default for md and larger screens */
   color: #000;
-}
-
-/* Small screens (hamburger menu) */
-@media (max-width: 991.98px) {
-  body {
-    padding-top: 90px;
-  }
 }
 
 html {
@@ -29,6 +20,8 @@ html {
   overflow-x: clip;
   overflow-y: auto;
   height: 100%;
+  background-color: var(--secondary-color);
+  scroll-padding-top: var(--navbar-header-height, 120px);
 }
 
 body {
@@ -38,8 +31,6 @@ body {
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  /* color: var(--foreground);
-  background: var(--background); */
   font-family: Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -48,6 +39,17 @@ body {
 .site-main {
   flex: 1 0 auto;
   width: 100%;
+}
+
+/* Offset content below the fixed header; background on the first block fills the top zone */
+.site-main > :first-child {
+  padding-top: var(--navbar-header-height, 120px);
+}
+
+@media (max-width: 991.98px) {
+  .site-main > :first-child {
+    padding-top: var(--navbar-header-height, 90px);
+  }
 }
 
 * {
@@ -994,8 +996,13 @@ input[type="radio"]:checked::before {
 
 .navbar-site-header {
   z-index: 1030;
-  transition: transform 0.3s ease-in-out;
+  transition: transform 0.25s ease-in-out;
   will-change: transform;
+  background-color: var(--secondary-color);
+}
+
+.navbar-site-header--menu-open {
+  transform: none !important;
 }
 
 @media (max-width: 1179.98px) {
@@ -1094,6 +1101,29 @@ input[type="radio"]:checked::before {
     text-decoration: underline;
     background: none !important;
   }
+}
+
+/* Scrollable mobile menu — overflow stays inside the panel, not the page */
+.navbar-mobile-menu {
+  position: fixed;
+  top: var(--navbar-mobile-header-offset, 89px);
+  left: 0;
+  right: 0;
+  height: calc(100dvh - var(--navbar-mobile-header-offset, 89px));
+  z-index: 1040;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  background-color: var(--secondary-color);
+  padding: 0.75rem 1rem 2rem;
+  text-align: left;
+}
+
+html.navbar-mobile-menu-open,
+body.navbar-mobile-menu-open {
+  overflow: hidden !important;
+  overscroll-behavior: none;
 }
 
 .breadcrumb-inline {
