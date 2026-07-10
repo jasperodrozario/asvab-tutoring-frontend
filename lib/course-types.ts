@@ -121,6 +121,39 @@ export function shuffleArray<T>(items: readonly T[]): T[] {
   return arr;
 }
 
+export const READING_COMPREHENSION_CATEGORY = "Reading Comprehension";
+
+export function isReadingComprehensionCategory(category: string): boolean {
+  return category === READING_COMPREHENSION_CATEGORY;
+}
+
+function hasStoryGroup(
+  question: Pick<FreePracticeTestQuestion, "story_id">,
+): boolean {
+  const { story_id } = question;
+  if (story_id == null) return false;
+  const str = String(story_id).trim();
+  return str !== "" && str !== "0";
+}
+
+/** Shuffle questions while keeping each story_id group contiguous. */
+export function shuffleQuestionsPreservingStoryGroups<
+  T extends FreePracticeTestQuestion,
+>(questions: readonly T[]): T[] {
+  const groups = new Map<string, T[]>();
+
+  questions.forEach((question, index) => {
+    const key = hasStoryGroup(question)
+      ? String(question.story_id)
+      : `__no_story__:${index}`;
+    const group = groups.get(key) ?? [];
+    group.push(question);
+    groups.set(key, group);
+  });
+
+  return shuffleArray([...groups.values()].map((group) => shuffleArray(group))).flat();
+}
+
 /** True when the API assigned an explicit question order for this category. */
 export function hasQuestionOrderNo(
   question: Pick<FreePracticeTestQuestion, "order_no">,
@@ -183,10 +216,12 @@ function prepareQuestionsForCategory<
     limit,
     shuffleQuestions,
     shuffleOptions,
+    preserveStoryGroups = false,
   }: {
     limit?: number;
     shuffleQuestions: boolean;
     shuffleOptions: boolean;
+    preserveStoryGroups?: boolean;
   },
 ): PreparedTestQuestion<T>[] {
   const orderedQuestions = shuffleQuestions
@@ -196,7 +231,9 @@ function prepareQuestionsForCategory<
     limit != null
       ? limitQuestions(orderedQuestions, limit, shuffleQuestions)
       : shuffleQuestions
-        ? shuffleArray(orderedQuestions)
+        ? preserveStoryGroups
+          ? shuffleQuestionsPreservingStoryGroups(orderedQuestions)
+          : shuffleArray(orderedQuestions)
         : orderedQuestions;
 
   return shuffleOptions
@@ -322,6 +359,8 @@ export function shuffleAllQuestionsByCategory<
         prepareQuestionsForCategory(questions, {
           shuffleQuestions: !fixedOrder,
           shuffleOptions: !fixedOrder,
+          preserveStoryGroups:
+            !fixedOrder && isReadingComprehensionCategory(cat),
         }),
       ];
     }),
