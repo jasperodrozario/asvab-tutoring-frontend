@@ -99,11 +99,15 @@ function CourseNavGroups({
   );
 }
 
-export default function Navbar() {
+export default function Navbar({
+  initialCourses = [],
+}: {
+  initialCourses?: Course[];
+}) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navRef = useRef<HTMLElement>(null);
 
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [courses, setCourses] = useState<Course[]>(initialCourses);
   const [services, setServices] = useState<Service[]>([]);
 
   const [isCoursesOpen, setIsCoursesOpen] = useState(false);
@@ -127,7 +131,7 @@ export default function Navbar() {
   useEffect(() => {
     async function fetchCourses() {
       try {
-        const response = await fetch("/api/courses");
+        const response = await fetch("/api/courses", { cache: "no-store" });
         const data = await response.json();
         if (data?.isSuccess && Array.isArray(data.data)) {
           setCourses(data.data);

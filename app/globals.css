@@ -163,6 +163,12 @@ a {
     margin-top: 0;
   }
 
+  .navbar .dropdown .dropdown-menu.show {
+    display: block;
+    opacity: 1;
+    visibility: visible;
+  }
+
   .navbar .dropdown:hover .dropdown-menu:hover {
     display: block;
     opacity: 1;
