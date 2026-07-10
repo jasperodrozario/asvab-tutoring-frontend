@@ -5,7 +5,9 @@ import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
 import LessonPlanTab from "@/components/tabs/LessonPlanTab";
-import FreeLessonVideosTab, { VideoObject } from "@/components/tabs/FreeLessonVideosTab";
+import FreeLessonVideosTab, {
+  hasFreeLessonVideos,
+} from "@/components/tabs/FreeLessonVideosTab";
 import CoursePricingPanel from "@/components/pricing/CoursePricingPanel";
 import CourseOverviewVideoEmbed from "@/components/course/CourseOverviewVideoEmbed";
 import PredictionTestLinkButton from "@/components/prediction-test/PredictionTestLinkButton";
@@ -57,16 +59,7 @@ export function CourseDetailClient({
     );
   }
 
-  const hasVideo = (() => {
-    const v = courseData.video;
-    if (!v) return false;
-    if (typeof v === "object" && "video_link" in v) {
-      const link = (v as VideoObject).video_link;
-      if (typeof link === "string") return link.trim().length > 0;
-      if (Array.isArray(link)) return link.length > 0;
-    }
-    return false;
-  })();
+  const hasVideo = hasFreeLessonVideos(courseData.video);
 
   const hasSessions = (courseData.sessions?.length ?? 0) > 0;
 
