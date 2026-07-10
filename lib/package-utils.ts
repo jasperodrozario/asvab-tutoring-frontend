@@ -1,3 +1,5 @@
+import type { ServiceType } from "@/types/Services";
+
 const serviceTypeToSubmenuMap: Record<string, string> = {
   "one-on-1-tutoring": "one",
   "one-on-one-tutoring": "one",
@@ -103,5 +105,16 @@ export function serviceTypeToSubmenu(serviceType: string): PricingSubmenu {
       return "subscribe";
     default:
       return "one";
+  }
+}
+
+export function submenuToServiceType(submenu: PricingSubmenu): ServiceType {
+  switch (submenu) {
+    case "one":
+      return "1-on-1-tutoring";
+    case "group":
+      return "group-tutoring";
+    case "subscribe":
+      return "self-study";
   }
 }

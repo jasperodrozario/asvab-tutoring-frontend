@@ -13,11 +13,13 @@ import type { ServiceType } from "@/types/Services";
 import {
   convertCourseCodeToId,
   convertServiceTypeToSubmenu,
+  submenuToServiceType,
   type PricingSubmenu,
 } from "@/lib/package-utils";
 import {
   assessCourseReadiness,
   DEFAULT_PUBLISH_REQUIREMENTS,
+  hasPackagesForService,
   type CourseReadinessRequirements,
   type CourseReadinessResult,
 } from "@/lib/course-readiness";
@@ -573,11 +575,22 @@ export async function fetchPublishablePricingPackages(
   requirements: CourseReadinessRequirements = DEFAULT_PUBLISH_REQUIREMENTS,
 ): Promise<PricingPackageItem[]> {
   const packages = await fetchPricingPackages(submenu);
+  const serviceType = submenuToServiceType(submenu);
 
   const results = await Promise.all(
     packages.map(async (pkg) => {
       const publishable = await isCoursePublishable(pkg.course_code, requirements);
-      return publishable ? pkg : null;
+      if (!publishable) return null;
+
+      const bundle = await getCachedCourseAssessmentBundle(
+        pkg.course_code,
+        requirements,
+      );
+      if (!hasPackagesForService(bundle.packagesByService, serviceType)) {
+        return null;
+      }
+
+      return pkg;
     }),
   );
 

@@ -55,19 +55,28 @@ export function hasCourseDetails(details?: CourseData | null): boolean {
   );
 }
 
+export function hasPackagesForService(
+  packagesByService: PackagesByService | undefined,
+  serviceType: ServiceType,
+): boolean {
+  if (!packagesByService) return false;
+
+  const servicePackages = packagesByService[serviceType]?.data;
+  if (!Array.isArray(servicePackages) || servicePackages.length === 0) {
+    return false;
+  }
+
+  return servicePackages.some(
+    (pkg) => Array.isArray(pkg.sessions) && pkg.sessions.length > 0,
+  );
+}
+
 export function hasPackages(packagesByService?: PackagesByService): boolean {
   if (!packagesByService) return false;
 
-  return ALL_SERVICE_TYPES.some((serviceType) => {
-    const servicePackages = packagesByService[serviceType]?.data;
-    if (!Array.isArray(servicePackages) || servicePackages.length === 0) {
-      return false;
-    }
-
-    return servicePackages.some(
-      (pkg) => Array.isArray(pkg.sessions) && pkg.sessions.length > 0,
-    );
-  });
+  return ALL_SERVICE_TYPES.some((serviceType) =>
+    hasPackagesForService(packagesByService, serviceType),
+  );
 }
 
 export function hasMappedCourseId(courseCode: string): boolean {

@@ -8,6 +8,11 @@ import type { PricingPackageItem } from "@/lib/php-api";
 
 type Submenu = "one" | "group" | "subscribe";
 
+function isListedPricingPackage(pkg: PricingPackageItem): boolean {
+  const priceRange = (pkg.price_range ?? "").trim();
+  return priceRange !== "" && priceRange.toUpperCase() !== "N/A";
+}
+
 type Props = {
   submenu?: Submenu;
   fixedSubmenu?: Submenu;
@@ -62,7 +67,7 @@ const PricingPackages: React.FC<Props> = ({
         const data = await res.json();
 
         if (data?.isSuccess && Array.isArray(data.data)) {
-          setPackages(data.data);
+          setPackages(data.data.filter(isListedPricingPackage));
         } else {
           setPackages([]);
         }
