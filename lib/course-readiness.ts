@@ -28,6 +28,24 @@ export const DEFAULT_PUBLISH_REQUIREMENTS: CourseReadinessRequirements = {
   mappedCourseId: true,
 };
 
+/** Temporary: CNA publishes with practice test only until prediction test content exists. */
+const COURSES_WITHOUT_PREDICTION_TEST = new Set(["cna"]);
+
+export function normalizeCourseCodeForReadiness(courseCode: string): string {
+  return courseCode.replace(/-tutor$/, "").toLowerCase();
+}
+
+export function getPublishRequirementsForCourse(
+  courseCode: string,
+  base: CourseReadinessRequirements = DEFAULT_PUBLISH_REQUIREMENTS,
+): CourseReadinessRequirements {
+  if (COURSES_WITHOUT_PREDICTION_TEST.has(normalizeCourseCodeForReadiness(courseCode))) {
+    return { ...base, freePredictionTest: false };
+  }
+
+  return base;
+}
+
 export type CourseReadinessInput = {
   courseCode: string;
   details?: CourseData | null;

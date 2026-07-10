@@ -19,6 +19,7 @@ import {
 import {
   assessCourseReadiness,
   DEFAULT_PUBLISH_REQUIREMENTS,
+  getPublishRequirementsForCourse,
   hasPackagesForService,
   type CourseReadinessRequirements,
   type CourseReadinessResult,
@@ -518,7 +519,14 @@ export async function assessCoursePublishability(
   courseCode: string,
   requirements: CourseReadinessRequirements = DEFAULT_PUBLISH_REQUIREMENTS,
 ): Promise<CourseReadinessResult> {
-  const bundle = await getCachedCourseAssessmentBundle(courseCode, requirements);
+  const resolvedRequirements = getPublishRequirementsForCourse(
+    courseCode,
+    requirements,
+  );
+  const bundle = await getCachedCourseAssessmentBundle(
+    courseCode,
+    resolvedRequirements,
+  );
   return bundle.readiness;
 }
 
@@ -584,7 +592,7 @@ export async function fetchPublishablePricingPackages(
 
       const bundle = await getCachedCourseAssessmentBundle(
         pkg.course_code,
-        requirements,
+        getPublishRequirementsForCourse(pkg.course_code, requirements),
       );
       if (!hasPackagesForService(bundle.packagesByService, serviceType)) {
         return null;
@@ -604,7 +612,10 @@ export async function fetchFreePracticeTestCatalog(): Promise<
 
   const entries = await Promise.all(
     courses.map(async (course) => {
-      const bundle = await getCachedCourseAssessmentBundle(course.course_code);
+      const bundle = await getCachedCourseAssessmentBundle(
+        course.course_code,
+        getPublishRequirementsForCourse(course.course_code),
+      );
       const freeTest = bundle.freePracticeTest;
       const ft_cat_list = freeTest?.data?.categories;
       const ft_ques_list = freeTest?.data?.questions;
@@ -657,7 +668,10 @@ export async function fetchFreePredTestCatalog(): Promise<FreePredTestCourse[]> 
 
   const entries = await Promise.all(
     courses.map(async (course) => {
-      const bundle = await getCachedCourseAssessmentBundle(course.course_code);
+      const bundle = await getCachedCourseAssessmentBundle(
+        course.course_code,
+        getPublishRequirementsForCourse(course.course_code),
+      );
       const predTest = bundle.freePredictionTest;
       const categories = predTest?.data?.categories;
       const questions = predTest?.data?.questions;
