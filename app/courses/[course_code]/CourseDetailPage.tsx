@@ -117,7 +117,6 @@ export function CourseDetailClient({
                   borderRadius: "8px",
                   padding: "10px 18px 0px 18px",
                   marginBottom: "10px",
-                  minHeight: "740px",
                 }}
               >
                 <ul className="nav nav-tabs mb-4 responsive-tabs">
