@@ -121,10 +121,13 @@ export function shuffleArray<T>(items: readonly T[]): T[] {
   return arr;
 }
 
-export const READING_COMPREHENSION_CATEGORY = "Reading Comprehension";
+export const STORY_GROUPED_CATEGORIES = [
+  "Reading Comprehension",
+  "Reading",
+] as const;
 
-export function isReadingComprehensionCategory(category: string): boolean {
-  return category === READING_COMPREHENSION_CATEGORY;
+export function isStoryGroupedCategory(category: string): boolean {
+  return (STORY_GROUPED_CATEGORIES as readonly string[]).includes(category);
 }
 
 function hasStoryGroup(
@@ -360,7 +363,7 @@ export function shuffleAllQuestionsByCategory<
           shuffleQuestions: !fixedOrder,
           shuffleOptions: !fixedOrder,
           preserveStoryGroups:
-            !fixedOrder && isReadingComprehensionCategory(cat),
+            !fixedOrder && isStoryGroupedCategory(cat),
         }),
       ];
     }),
