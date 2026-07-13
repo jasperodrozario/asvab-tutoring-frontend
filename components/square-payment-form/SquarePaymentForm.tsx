@@ -70,7 +70,10 @@ function isProduct(x: unknown): x is Product {
     x === "AFOQT" ||
     x === "ASTB" ||
     x === "SIFT" ||
-    x === "OAR"
+    x === "OAR" ||
+    x === "HESI A2" ||
+    x === "ATI TEAS" ||
+    x === "CNA"
   );
 }
 
