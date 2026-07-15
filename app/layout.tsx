@@ -36,7 +36,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const initialCourses = await fetchPublishableCourses();
+  const courses = await fetchPublishableCourses();
 
   return (
     <html lang="en">
@@ -45,7 +45,7 @@ export default async function RootLayout({
         suppressHydrationWarning={true}
       >
         <ScrollToTop />
-        <Navbar initialCourses={initialCourses} />
+        <Navbar courses={courses} />
         <main className="site-main">{children}</main>
         <Footer />
 

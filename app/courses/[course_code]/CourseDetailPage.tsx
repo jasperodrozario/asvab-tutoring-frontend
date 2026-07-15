@@ -27,6 +27,8 @@ export type CourseDetailClientProps = {
   breadcrumbSegments: string[];
   hasFreePredTest?: boolean;
   hasFreePracticeTest?: boolean;
+  practiceTestCourseName?: string;
+  predictionTestCourseName?: string;
 };
 
 function formatLocationLabel(location: string): string {
@@ -42,6 +44,8 @@ export function CourseDetailClient({
   courseOverviewVideoData,
   hasFreePredTest = false,
   hasFreePracticeTest = false,
+  practiceTestCourseName,
+  predictionTestCourseName,
 }: CourseDetailClientProps) {
   const searchParams = useSearchParams();
   const location = locationProp || searchParams?.get("location") || "";
@@ -64,6 +68,10 @@ export function CourseDetailClient({
   const hasSessions = (courseData.sessions?.length ?? 0) > 0;
 
   const showFreeTestLink = hasFreePracticeTest;
+  const practiceName =
+    practiceTestCourseName?.trim() || courseData.course_name?.trim() || "";
+  const predictionName =
+    predictionTestCourseName?.trim() || courseData.course_name?.trim() || "";
 
   return (
     <>
@@ -181,7 +189,8 @@ export function CourseDetailClient({
                               className={`btn btn-primary-custom d-inline-flex align-items-center gap-2 ${styles.overviewTestBtn}`}
                             >
                               <i className="bi bi-clipboard-check" aria-hidden />
-                              Take a Free Practice Test
+                              Take a Free{practiceName ? ` ${practiceName}` : ""}{" "}
+                              practice test
                             </Link>
                           ) : null}
                           {hasFreePredTest ? (
@@ -189,7 +198,9 @@ export function CourseDetailClient({
                               href={getCourseFreePredictionTestHref(courseCode)}
                               className={styles.overviewTestBtn}
                             >
-                              Take a Free Prediction Test
+                              Take a Free
+                              {predictionName ? ` ${predictionName}` : ""}{" "}
+                              prediction test
                             </PredictionTestLinkButton>
                           ) : null}
                         </div>

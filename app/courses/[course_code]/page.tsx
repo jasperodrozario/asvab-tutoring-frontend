@@ -74,6 +74,14 @@ export default async function Page({
       breadcrumbSegments={["courses", course_code]}
       hasFreePredTest={hasFreePredTest}
       hasFreePracticeTest={hasFreePracticeTest}
+      practiceTestCourseName={
+        freeTestData?.course_name || courseData.course_name
+      }
+      predictionTestCourseName={
+        predTestData?.prediction_test_name ||
+        predTestData?.course_name ||
+        courseData.course_name
+      }
     />
   );
 }

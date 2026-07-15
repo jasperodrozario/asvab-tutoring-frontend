@@ -13,7 +13,6 @@ import {
 } from "react-icons/fa";
 import { useState, useEffect, useRef } from "react";
 import { groupCoursesForNav } from "@/lib/package-utils";
-import "bootstrap/dist/css/bootstrap.min.css";
 
 type Course = {
   course_id: string;
@@ -35,12 +34,13 @@ function CourseNavGroups({
   variant: "desktop" | "mobile";
   onLinkClick?: () => void;
 }) {
-  const { military, medical, other } = groupCoursesForNav(courses);
+  const { militaryTestPrep, healthcareTestPrep, academicTestPrep } =
+    groupCoursesForNav(courses);
 
   const populatedCategoryCount = [
-    military.length > 0,
-    medical.length > 0,
-    other.length > 0,
+    militaryTestPrep.length > 0,
+    healthcareTestPrep.length > 0,
+    academicTestPrep.length > 0,
   ].filter(Boolean).length;
   const showCategoryLabels = populatedCategoryCount > 1;
 
@@ -88,26 +88,30 @@ function CourseNavGroups({
 
   return (
     <>
-      {renderGroup("Military", military, false)}
+      {renderGroup("Military Test Prep", militaryTestPrep, false)}
       {renderGroup(
-        "Medical",
-        medical,
-        showCategoryLabels && military.length > 0,
+        "Healthcare Test Prep",
+        healthcareTestPrep,
+        showCategoryLabels && militaryTestPrep.length > 0,
       )}
-      {other.map(renderCourse)}
+      {renderGroup(
+        "Academic Test Prep",
+        academicTestPrep,
+        showCategoryLabels &&
+          (militaryTestPrep.length > 0 || healthcareTestPrep.length > 0),
+      )}
     </>
   );
 }
 
 export default function Navbar({
-  initialCourses = [],
+  courses = [],
 }: {
-  initialCourses?: Course[];
+  courses?: Course[];
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navRef = useRef<HTMLElement>(null);
 
-  const [courses, setCourses] = useState<Course[]>(initialCourses);
   const [services, setServices] = useState<Service[]>([]);
 
   const [isCoursesOpen, setIsCoursesOpen] = useState(false);
@@ -129,18 +133,6 @@ export default function Navbar({
   };
 
   useEffect(() => {
-    async function fetchCourses() {
-      try {
-        const response = await fetch("/api/courses", { cache: "no-store" });
-        const data = await response.json();
-        if (data?.isSuccess && Array.isArray(data.data)) {
-          setCourses(data.data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch courses:", error);
-      }
-    }
-
     async function fetchServices() {
       try {
         const response = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
@@ -157,7 +149,6 @@ export default function Navbar({
       }
     }
 
-    fetchCourses();
     fetchServices();
   }, []);
 
@@ -337,7 +328,7 @@ export default function Navbar({
                   COURSES <FaCaretDown className="fs-6" />
                 </span>
                 <ul
-                  className={`dropdown-menu mt-0 ${isCoursesOpen ? "show" : ""}`}
+                  className={`dropdown-menu navbar-courses-menu mt-0 ${isCoursesOpen ? "show" : ""}`}
                 >
                   <CourseNavGroups courses={courses} variant="desktop" />
                 </ul>

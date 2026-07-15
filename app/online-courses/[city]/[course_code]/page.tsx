@@ -81,6 +81,14 @@ export default async function Page({ params }: Props) {
       breadcrumbSegments={["online-courses", city, course_code]}
       hasFreePredTest={hasFreePredTest}
       hasFreePracticeTest={hasFreePracticeTest}
+      practiceTestCourseName={
+        freeTestData?.course_name || courseData.course_name
+      }
+      predictionTestCourseName={
+        predTestData?.prediction_test_name ||
+        predTestData?.course_name ||
+        courseData.course_name
+      }
     />
   );
 }
