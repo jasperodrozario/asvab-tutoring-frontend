@@ -28,6 +28,24 @@ export const DEFAULT_PUBLISH_REQUIREMENTS: CourseReadinessRequirements = {
   mappedCourseId: true,
 };
 
+/** Temporary: CNA publishes with practice test only until prediction test content exists. */
+const COURSES_WITHOUT_PREDICTION_TEST = new Set(["cna"]);
+
+export function normalizeCourseCodeForReadiness(courseCode: string): string {
+  return courseCode.replace(/-tutor$/, "").toLowerCase();
+}
+
+export function getPublishRequirementsForCourse(
+  courseCode: string,
+  base: CourseReadinessRequirements = DEFAULT_PUBLISH_REQUIREMENTS,
+): CourseReadinessRequirements {
+  if (COURSES_WITHOUT_PREDICTION_TEST.has(normalizeCourseCodeForReadiness(courseCode))) {
+    return { ...base, freePredictionTest: false };
+  }
+
+  return base;
+}
+
 export type CourseReadinessInput = {
   courseCode: string;
   details?: CourseData | null;
@@ -55,19 +73,28 @@ export function hasCourseDetails(details?: CourseData | null): boolean {
   );
 }
 
+export function hasPackagesForService(
+  packagesByService: PackagesByService | undefined,
+  serviceType: ServiceType,
+): boolean {
+  if (!packagesByService) return false;
+
+  const servicePackages = packagesByService[serviceType]?.data;
+  if (!Array.isArray(servicePackages) || servicePackages.length === 0) {
+    return false;
+  }
+
+  return servicePackages.some(
+    (pkg) => Array.isArray(pkg.sessions) && pkg.sessions.length > 0,
+  );
+}
+
 export function hasPackages(packagesByService?: PackagesByService): boolean {
   if (!packagesByService) return false;
 
-  return ALL_SERVICE_TYPES.some((serviceType) => {
-    const servicePackages = packagesByService[serviceType]?.data;
-    if (!Array.isArray(servicePackages) || servicePackages.length === 0) {
-      return false;
-    }
-
-    return servicePackages.some(
-      (pkg) => Array.isArray(pkg.sessions) && pkg.sessions.length > 0,
-    );
-  });
+  return ALL_SERVICE_TYPES.some((serviceType) =>
+    hasPackagesForService(packagesByService, serviceType),
+  );
 }
 
 export function hasMappedCourseId(courseCode: string): boolean {

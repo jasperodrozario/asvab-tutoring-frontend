@@ -36,7 +36,11 @@ export default async function Page({
 
   const initialCourseData = await fetchPackageDetails(service_type, course_code);
 
-  if (!initialCourseData) {
+  if (
+    !initialCourseData ||
+    !Array.isArray(initialCourseData.data) ||
+    initialCourseData.data.length === 0
+  ) {
     notFound();
   }
 

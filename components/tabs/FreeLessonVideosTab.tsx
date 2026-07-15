@@ -17,29 +17,38 @@ interface VideoTabProps {
 const INITIAL_VIDEO_COUNT = 5;
 const LOAD_MORE_COUNT = 5;
 
-function parseVideoLinks(video?: VideoObject): string[] {
+function isValidVideoLink(link: string): boolean {
+  const trimmed = link.trim();
+  return trimmed.length > 0 && trimmed.toLowerCase() !== "none";
+}
+
+export function parseVideoLinks(video?: VideoObject): string[] {
   if (!video) return [];
 
   if (typeof video.video_link === "string") {
     return video.video_link
       .split(",")
       .map((x) => x.trim())
-      .filter((x) => x.length > 0);
+      .filter(isValidVideoLink);
   }
 
   if (Array.isArray(video.video_link)) {
     return video.video_link
       .map((x) => String(x).trim())
-      .filter((x) => x.length > 0);
+      .filter(isValidVideoLink);
   }
 
   if (Array.isArray(video)) {
     return (video as string[])
       .map((x) => String(x).trim())
-      .filter((x) => x.length > 0);
+      .filter(isValidVideoLink);
   }
 
   return [];
+}
+
+export function hasFreeLessonVideos(video?: VideoObject): boolean {
+  return parseVideoLinks(video).length > 0;
 }
 
 const FreeLessonVideosTab: React.FC<VideoTabProps> = ({ video }) => {

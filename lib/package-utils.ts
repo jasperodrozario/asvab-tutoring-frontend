@@ -1,3 +1,5 @@
+import type { ServiceType } from "@/types/Services";
+
 const serviceTypeToSubmenuMap: Record<string, string> = {
   "one-on-1-tutoring": "one",
   "one-on-one-tutoring": "one",
@@ -29,37 +31,45 @@ export const MEDICAL_COURSE_CODES = ["hesi-a2", "ati-teas", "cna"] as const;
 
 
 // Navbar course categorization
-export type CourseNavCategory = "military" | "medical" | "other";
+export type CourseNavCategory =
+  | "military test prep"
+  | "healthcare test prep"
+  | "academic test prep";
 
 export function getCourseNavCategory(courseCode: string): CourseNavCategory {
-  const code = courseCode.toLowerCase();
+  const code = (courseCode ?? "").toLowerCase();
   if ((MILITARY_COURSE_CODES as readonly string[]).includes(code)) {
-    return "military";
+    return "military test prep";
   }
   if ((MEDICAL_COURSE_CODES as readonly string[]).includes(code)) {
-    return "medical";
+    return "healthcare test prep";
   }
   if (code.includes("hesi") || code.includes("teas") || code.includes("cna")) {
-    return "medical";
+    return "healthcare test prep";
   }
-  return "other";
+  return "academic test prep";
 }
 
 export function groupCoursesForNav<T extends { course_code: string }>(
   courses: readonly T[],
-): { military: T[]; medical: T[]; other: T[] } {
-  const military: T[] = [];
-  const medical: T[] = [];
-  const other: T[] = [];
+): {
+  militaryTestPrep: T[];
+  healthcareTestPrep: T[];
+  academicTestPrep: T[];
+} {
+  const militaryTestPrep: T[] = [];
+  const healthcareTestPrep: T[] = [];
+  const academicTestPrep: T[] = [];
 
   for (const course of courses) {
     const category = getCourseNavCategory(course.course_code);
-    if (category === "military") military.push(course);
-    else if (category === "medical") medical.push(course);
-    else other.push(course);
+    if (category === "military test prep") militaryTestPrep.push(course);
+    else if (category === "healthcare test prep")
+      healthcareTestPrep.push(course);
+    else academicTestPrep.push(course);
   }
 
-  return { military, medical, other };
+  return { militaryTestPrep, healthcareTestPrep, academicTestPrep };
 }
 // End of Navbar course categorization
 
@@ -103,5 +113,16 @@ export function serviceTypeToSubmenu(serviceType: string): PricingSubmenu {
       return "subscribe";
     default:
       return "one";
+  }
+}
+
+export function submenuToServiceType(submenu: PricingSubmenu): ServiceType {
+  switch (submenu) {
+    case "one":
+      return "1-on-1-tutoring";
+    case "group":
+      return "group-tutoring";
+    case "subscribe":
+      return "self-study";
   }
 }

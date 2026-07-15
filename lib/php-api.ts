@@ -13,11 +13,14 @@ import type { ServiceType } from "@/types/Services";
 import {
   convertCourseCodeToId,
   convertServiceTypeToSubmenu,
+  submenuToServiceType,
   type PricingSubmenu,
 } from "@/lib/package-utils";
 import {
   assessCourseReadiness,
   DEFAULT_PUBLISH_REQUIREMENTS,
+  getPublishRequirementsForCourse,
+  hasPackagesForService,
   type CourseReadinessRequirements,
   type CourseReadinessResult,
 } from "@/lib/course-readiness";
@@ -516,7 +519,14 @@ export async function assessCoursePublishability(
   courseCode: string,
   requirements: CourseReadinessRequirements = DEFAULT_PUBLISH_REQUIREMENTS,
 ): Promise<CourseReadinessResult> {
-  const bundle = await getCachedCourseAssessmentBundle(courseCode, requirements);
+  const resolvedRequirements = getPublishRequirementsForCourse(
+    courseCode,
+    requirements,
+  );
+  const bundle = await getCachedCourseAssessmentBundle(
+    courseCode,
+    resolvedRequirements,
+  );
   return bundle.readiness;
 }
 
@@ -573,11 +583,22 @@ export async function fetchPublishablePricingPackages(
   requirements: CourseReadinessRequirements = DEFAULT_PUBLISH_REQUIREMENTS,
 ): Promise<PricingPackageItem[]> {
   const packages = await fetchPricingPackages(submenu);
+  const serviceType = submenuToServiceType(submenu);
 
   const results = await Promise.all(
     packages.map(async (pkg) => {
       const publishable = await isCoursePublishable(pkg.course_code, requirements);
-      return publishable ? pkg : null;
+      if (!publishable) return null;
+
+      const bundle = await getCachedCourseAssessmentBundle(
+        pkg.course_code,
+        getPublishRequirementsForCourse(pkg.course_code, requirements),
+      );
+      if (!hasPackagesForService(bundle.packagesByService, serviceType)) {
+        return null;
+      }
+
+      return pkg;
     }),
   );
 
@@ -591,7 +612,10 @@ export async function fetchFreePracticeTestCatalog(): Promise<
 
   const entries = await Promise.all(
     courses.map(async (course) => {
-      const bundle = await getCachedCourseAssessmentBundle(course.course_code);
+      const bundle = await getCachedCourseAssessmentBundle(
+        course.course_code,
+        getPublishRequirementsForCourse(course.course_code),
+      );
       const freeTest = bundle.freePracticeTest;
       const ft_cat_list = freeTest?.data?.categories;
       const ft_ques_list = freeTest?.data?.questions;
@@ -644,7 +668,10 @@ export async function fetchFreePredTestCatalog(): Promise<FreePredTestCourse[]> 
 
   const entries = await Promise.all(
     courses.map(async (course) => {
-      const bundle = await getCachedCourseAssessmentBundle(course.course_code);
+      const bundle = await getCachedCourseAssessmentBundle(
+        course.course_code,
+        getPublishRequirementsForCourse(course.course_code),
+      );
       const predTest = bundle.freePredictionTest;
       const categories = predTest?.data?.categories;
       const questions = predTest?.data?.questions;

@@ -5,7 +5,9 @@ import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
 import LessonPlanTab from "@/components/tabs/LessonPlanTab";
-import FreeLessonVideosTab, { VideoObject } from "@/components/tabs/FreeLessonVideosTab";
+import FreeLessonVideosTab, {
+  hasFreeLessonVideos,
+} from "@/components/tabs/FreeLessonVideosTab";
 import CoursePricingPanel from "@/components/pricing/CoursePricingPanel";
 import CourseOverviewVideoEmbed from "@/components/course/CourseOverviewVideoEmbed";
 import PredictionTestLinkButton from "@/components/prediction-test/PredictionTestLinkButton";
@@ -25,6 +27,8 @@ export type CourseDetailClientProps = {
   breadcrumbSegments: string[];
   hasFreePredTest?: boolean;
   hasFreePracticeTest?: boolean;
+  practiceTestCourseName?: string;
+  predictionTestCourseName?: string;
 };
 
 function formatLocationLabel(location: string): string {
@@ -40,6 +44,8 @@ export function CourseDetailClient({
   courseOverviewVideoData,
   hasFreePredTest = false,
   hasFreePracticeTest = false,
+  practiceTestCourseName,
+  predictionTestCourseName,
 }: CourseDetailClientProps) {
   const searchParams = useSearchParams();
   const location = locationProp || searchParams?.get("location") || "";
@@ -57,20 +63,15 @@ export function CourseDetailClient({
     );
   }
 
-  const hasVideo = (() => {
-    const v = courseData.video;
-    if (!v) return false;
-    if (typeof v === "object" && "video_link" in v) {
-      const link = (v as VideoObject).video_link;
-      if (typeof link === "string") return link.trim().length > 0;
-      if (Array.isArray(link)) return link.length > 0;
-    }
-    return false;
-  })();
+  const hasVideo = hasFreeLessonVideos(courseData.video);
 
   const hasSessions = (courseData.sessions?.length ?? 0) > 0;
 
   const showFreeTestLink = hasFreePracticeTest;
+  const practiceName =
+    practiceTestCourseName?.trim() || courseData.course_name?.trim() || "";
+  const predictionName =
+    predictionTestCourseName?.trim() || courseData.course_name?.trim() || "";
 
   return (
     <>
@@ -124,7 +125,6 @@ export function CourseDetailClient({
                   borderRadius: "8px",
                   padding: "10px 18px 0px 18px",
                   marginBottom: "10px",
-                  minHeight: "740px",
                 }}
               >
                 <ul className="nav nav-tabs mb-4 responsive-tabs">
@@ -189,7 +189,8 @@ export function CourseDetailClient({
                               className={`btn btn-primary-custom d-inline-flex align-items-center gap-2 ${styles.overviewTestBtn}`}
                             >
                               <i className="bi bi-clipboard-check" aria-hidden />
-                              Take a Free Practice Test
+                              Take a Free{practiceName ? ` ${practiceName}` : ""}{" "}
+                              practice test
                             </Link>
                           ) : null}
                           {hasFreePredTest ? (
@@ -197,7 +198,9 @@ export function CourseDetailClient({
                               href={getCourseFreePredictionTestHref(courseCode)}
                               className={styles.overviewTestBtn}
                             >
-                              Take a Free Prediction Test
+                              Take a Free
+                              {predictionName ? ` ${predictionName}` : ""}{" "}
+                              prediction test
                             </PredictionTestLinkButton>
                           ) : null}
                         </div>

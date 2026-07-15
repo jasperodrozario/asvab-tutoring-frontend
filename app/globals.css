@@ -158,6 +158,12 @@ a {
     margin-top: 0;
   }
 
+  .navbar .dropdown .dropdown-menu.show {
+    display: block;
+    opacity: 1;
+    visibility: visible;
+  }
+
   .navbar .dropdown:hover .dropdown-menu:hover {
     display: block;
     opacity: 1;
@@ -966,6 +972,11 @@ input[type="radio"]:checked::before {
   pointer-events: none;
   user-select: none;
   line-height: 1.2;
+  white-space: nowrap;
+}
+
+.navbar .dropdown-menu.navbar-courses-menu {
+  min-width: 11rem;
 }
 
 .navbar .dropdown-menu .navbar-course-category {
@@ -975,7 +986,7 @@ input[type="radio"]:checked::before {
 }
 
 .navbar .dropdown-menu .navbar-course-item .dropdown-item {
-  padding-left: 1.85rem;
+  /* padding-left: 2.6rem; */
 }
 
 .navbar-nav .navbar-course-category {
@@ -984,7 +995,7 @@ input[type="radio"]:checked::before {
 }
 
 .navbar-nav .navbar-course-item .nav-link {
-  padding-left: 1.25rem !important;
+  /* padding-left: 1.85rem !important; */
 }
 
 .navbar-site-header {
