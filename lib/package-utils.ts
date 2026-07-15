@@ -30,13 +30,24 @@ export const MILITARY_COURSE_CODES = [
 export const MEDICAL_COURSE_CODES = ["hesi-a2", "ati-teas", "cna"] as const;
 
 
-// Navbar course categorization
-export type CourseNavCategory =
+export type CourseCategory =
   | "military test prep"
   | "healthcare test prep"
   | "academic test prep";
 
-export function getCourseNavCategory(courseCode: string): CourseNavCategory {
+export const COURSE_CATEGORY_LABELS: Record<CourseCategory, string> = {
+  "military test prep": "Military Test Prep",
+  "healthcare test prep": "Healthcare Test Prep",
+  "academic test prep": "Academic Test Prep",
+};
+
+export const COURSE_CATEGORY_ORDER: readonly CourseCategory[] = [
+  "military test prep",
+  "healthcare test prep",
+  "academic test prep",
+] as const;
+
+export function getCourseCategory(courseCode: string): CourseCategory {
   const code = (courseCode ?? "").toLowerCase();
   if ((MILITARY_COURSE_CODES as readonly string[]).includes(code)) {
     return "military test prep";
@@ -50,7 +61,7 @@ export function getCourseNavCategory(courseCode: string): CourseNavCategory {
   return "academic test prep";
 }
 
-export function groupCoursesForNav<T extends { course_code: string }>(
+export function groupCoursesByCategory<T extends { course_code: string }>(
   courses: readonly T[],
 ): {
   militaryTestPrep: T[];
@@ -62,7 +73,7 @@ export function groupCoursesForNav<T extends { course_code: string }>(
   const academicTestPrep: T[] = [];
 
   for (const course of courses) {
-    const category = getCourseNavCategory(course.course_code);
+    const category = getCourseCategory(course.course_code);
     if (category === "military test prep") militaryTestPrep.push(course);
     else if (category === "healthcare test prep")
       healthcareTestPrep.push(course);
@@ -71,7 +82,6 @@ export function groupCoursesForNav<T extends { course_code: string }>(
 
   return { militaryTestPrep, healthcareTestPrep, academicTestPrep };
 }
-// End of Navbar course categorization
 
 export function getFriendlyCourseName(courseCode: string): string {
   const code = courseCode.toLowerCase();

@@ -12,7 +12,10 @@ import {
   FaUserPlus,
 } from "react-icons/fa";
 import { useState, useEffect, useRef } from "react";
-import { groupCoursesForNav } from "@/lib/package-utils";
+import {
+  COURSE_CATEGORY_LABELS,
+  groupCoursesByCategory,
+} from "@/lib/package-utils";
 
 type Course = {
   course_id: string;
@@ -35,7 +38,7 @@ function CourseNavGroups({
   onLinkClick?: () => void;
 }) {
   const { militaryTestPrep, healthcareTestPrep, academicTestPrep } =
-    groupCoursesForNav(courses);
+    groupCoursesByCategory(courses);
 
   const populatedCategoryCount = [
     militaryTestPrep.length > 0,
@@ -88,14 +91,18 @@ function CourseNavGroups({
 
   return (
     <>
-      {renderGroup("Military Test Prep", militaryTestPrep, false)}
       {renderGroup(
-        "Healthcare Test Prep",
+        COURSE_CATEGORY_LABELS["military test prep"],
+        militaryTestPrep,
+        false,
+      )}
+      {renderGroup(
+        COURSE_CATEGORY_LABELS["healthcare test prep"],
         healthcareTestPrep,
         showCategoryLabels && militaryTestPrep.length > 0,
       )}
       {renderGroup(
-        "Academic Test Prep",
+        COURSE_CATEGORY_LABELS["academic test prep"],
         academicTestPrep,
         showCategoryLabels &&
           (militaryTestPrep.length > 0 || healthcareTestPrep.length > 0),
