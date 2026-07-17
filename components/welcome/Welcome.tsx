@@ -1,23 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import IntroText from "../intro-text/IntroText";
 import Link from "next/link";
 import NoticeContent from "@/components/notice-content/NoticeContent";
 import TutorRequestSuccessModal from "../tutor-request-success-modal/TutorRequestSuccessModal";
-
-interface State {
-  id: string;
-  name: string;
-}
+import { postPhpBrowser } from "@/lib/php-browser";
+import type { StateOption } from "@/lib/php-api";
 
 type StatusType = "success" | "error" | "info";
 
-export default function Welcome() {
-  const API_URL = process.env.NEXT_PUBLIC_PHP_API_URL!;
+type Props = {
+  initialStates?: StateOption[];
+};
 
-  const [states, setStates] = useState<State[]>([]);
+export default function Welcome({ initialStates = [] }: Props) {
+  const [states] = useState<StateOption[]>(initialStates);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -31,7 +30,14 @@ export default function Welcome() {
   const [status, setStatus] = useState<{
     type: StatusType;
     text: string;
-  } | null>(null);
+  } | null>(
+    initialStates.length === 0
+      ? {
+          type: "error",
+          text: "Unable to load state list right now. Please refresh and try again.",
+        }
+      : null,
+  );
 
   const [fieldErrors, setFieldErrors] = useState({
     phone: "",
@@ -58,71 +64,6 @@ export default function Welcome() {
       return "Please enter a valid email address.";
     return "";
   };
-
-  // ✅ Safe JSON parser: avoids "unexpected character" crash
-  const safeJson = async (res: Response) => {
-    const raw = await res.text();
-    try {
-      return { ok: true, data: JSON.parse(raw), raw };
-    } catch {
-      return { ok: false, data: null, raw };
-    }
-  };
-
-  useEffect(() => {
-    const fetchStates = async () => {
-      try {
-        const res = await fetch(API_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: new URLSearchParams({
-            action: "get-state-list",
-          }),
-        });
-
-        const parsed = await safeJson(res);
-
-        if (!parsed.ok) {
-          console.error("get-state-list returned non-JSON:", parsed.raw);
-          setStates([]);
-          setStatus({
-            type: "error",
-            text: "Unable to load state list right now. Please refresh and try again.",
-          });
-          return;
-        }
-
-        const data = parsed.data;
-
-        // ✅ Support both: {isSuccess, data:[...]} OR direct array
-        if (data?.isSuccess && Array.isArray(data.data)) {
-          setStates(data.data);
-          setStatus(null);
-        } else if (Array.isArray(data)) {
-          setStates(data);
-          setStatus(null);
-        } else {
-          console.error("API returned invalid state data:", data);
-          setStates([]);
-          setStatus({
-            type: "error",
-            text: "State list data is invalid. Please try again later.",
-          });
-        }
-      } catch (error) {
-        console.error("Failed to fetch states:", error);
-        setStates([]);
-        setStatus({
-          type: "error",
-          text: "Network error while loading states. Please try again.",
-        });
-      }
-    };
-
-    fetchStates();
-  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -189,33 +130,14 @@ export default function Welcome() {
     setSubmitting(true);
 
     try {
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({
-          action: "tutor-request",
-          name: form.name,
-          email: form.email,
-          phone: form.phone,
-          state_id: form.state_id,
-          message: form.message,
-        }),
-      });
-
-      const parsed = await safeJson(res);
-
-      if (!parsed.ok) {
-        console.error("tutor-request returned non-JSON:", parsed.raw);
-        setStatus({
-          type: "error",
-          text: "Server returned an invalid response. Please try again.",
-        });
-        return;
-      }
-
-      const data = parsed.data;
+      const data = (await postPhpBrowser({
+        action: "tutor-request",
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        state_id: form.state_id,
+        message: form.message,
+      })) as { isSuccess?: boolean; message?: string };
 
       if (data?.isSuccess) {
         setShowSuccessModal(true);

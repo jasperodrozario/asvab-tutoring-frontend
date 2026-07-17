@@ -4,7 +4,7 @@ import Script from "next/script";
 import Navbar from "@/components/navbar/Navbar";
 import Footer from "@/components/footer/Footer";
 import ScrollToTop from "@/components/scroll-to-top/ScrollToTop";
-import { fetchPublishableCourses } from "@/lib/php-api";
+import { fetchNavServices, fetchPublishableCourses } from "@/lib/php-api";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "./globals.css";
@@ -36,7 +36,10 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const courses = await fetchPublishableCourses();
+  const [courses, services] = await Promise.all([
+    fetchPublishableCourses(),
+    fetchNavServices(),
+  ]);
 
   return (
     <html lang="en">
@@ -45,7 +48,7 @@ export default async function RootLayout({
         suppressHydrationWarning={true}
       >
         <ScrollToTop />
-        <Navbar courses={courses} />
+        <Navbar courses={courses} services={services} />
         <main className="site-main">{children}</main>
         <Footer />
 

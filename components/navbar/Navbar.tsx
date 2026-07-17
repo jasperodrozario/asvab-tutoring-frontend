@@ -113,8 +113,10 @@ function CourseNavGroups({
 
 export default function Navbar({
   courses = [],
+  services = [],
 }: {
   courses?: Course[];
+  services?: Service[];
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNavbarVisible, setIsNavbarVisible] = useState(true);
@@ -125,8 +127,6 @@ export default function Navbar({
   const isNavbarVisibleRef = useRef(true);
   const isMenuOpenRef = useRef(isMenuOpen);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
-
-  const [services, setServices] = useState<Service[]>([]);
 
   const [isCoursesOpen, setIsCoursesOpen] = useState(false);
   const [isServicesOpen, setIsServicesOpen] = useState(false);
@@ -145,26 +145,6 @@ export default function Navbar({
         return "unknown";
     }
   };
-
-  useEffect(() => {
-    async function fetchServices() {
-      try {
-        const response = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({ action: "get-service-course-list" }),
-        });
-        const data = await response.json();
-        if (data?.isSuccess && Array.isArray(data.data)) {
-          setServices(data.data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch services:", error);
-      }
-    }
-
-    fetchServices();
-  }, []);
 
   const closeAll = () => {
     setIsMenuOpen(false);

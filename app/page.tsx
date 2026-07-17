@@ -6,24 +6,27 @@ import Faq from "@/components/faq/Faq";
 import Review from "@/components/review/Review";
 import PricingPackages from "@/components/pricing-packages/PricingPackages";
 import { homeMetadata } from "@/lib/page-metadata";
-import { fetchPublishablePricingPackages } from "@/lib/php-api";
+import {
+  fetchPublishablePricingPackages,
+  fetchStateList,
+} from "@/lib/php-api";
 import Link from "next/link";
 
 export const metadata: Metadata = homeMetadata();
 export const revalidate = 3600;
 
 export default async function Home() {
-  const [oneOnOnePackages, groupPackages, selfStudyPackages] = await Promise.all(
-    [
+  const [oneOnOnePackages, groupPackages, selfStudyPackages, states] =
+    await Promise.all([
       fetchPublishablePricingPackages("one"),
       fetchPublishablePricingPackages("group"),
       fetchPublishablePricingPackages("subscribe"),
-    ],
-  );
+      fetchStateList(),
+    ]);
 
   return (
     <div>
-      <Welcome />
+      <Welcome initialStates={states} />
       <TopCourses />
 
       <PricingPackages
