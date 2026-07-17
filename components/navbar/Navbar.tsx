@@ -14,7 +14,9 @@ import {
 import { useState, useEffect, useRef } from "react";
 import {
   COURSE_CATEGORY_LABELS,
+  getFriendlyCourseName,
   groupCoursesByCategory,
+  MILITARY_COURSE_CODES,
 } from "@/lib/package-utils";
 
 type Course = {
@@ -27,6 +29,25 @@ type Service = {
   service_id: string;
   course_name: string;
 };
+
+const FALLBACK_FREE_TEST_COURSES: Course[] = MILITARY_COURSE_CODES.map(
+  (code) => ({
+    course_id: `fallback-${code}`,
+    course_code: code,
+    name: getFriendlyCourseName(code),
+  }),
+);
+
+function orderedCourses(courses: Course[]): Course[] {
+  const { militaryTestPrep, healthcareTestPrep, academicTestPrep } =
+    groupCoursesByCategory(courses);
+  return [...militaryTestPrep, ...healthcareTestPrep, ...academicTestPrep];
+}
+
+function resolveFreeTestCourses(courses: Course[]): Course[] {
+  const sorted = orderedCourses(courses);
+  return sorted.length > 0 ? sorted : FALLBACK_FREE_TEST_COURSES;
+}
 
 function CourseNavGroups({
   courses,
@@ -111,6 +132,141 @@ function CourseNavGroups({
   );
 }
 
+function FreeTestsNavGroups({
+  courses,
+  variant,
+  onLinkClick,
+  practiceOpen = true,
+  predictionOpen = true,
+  onTogglePractice,
+  onTogglePrediction,
+}: {
+  courses: Course[];
+  variant: "desktop" | "mobile";
+  onLinkClick?: () => void;
+  practiceOpen?: boolean;
+  predictionOpen?: boolean;
+  onTogglePractice?: () => void;
+  onTogglePrediction?: () => void;
+}) {
+  const freeTestCourses = resolveFreeTestCourses(courses);
+
+  const renderCourseLinks = (
+    testPathSuffix: "free-practice-test" | "free-prediction-test",
+  ) =>
+    freeTestCourses.map((course) => (
+      <li
+        key={`${testPathSuffix}-${course.course_id}`}
+        className={`navbar-course-item ${variant === "mobile" ? "nav-item" : ""}`}
+      >
+        <Link
+          className={
+            variant === "desktop" ? "dropdown-item" : "nav-link text-white"
+          }
+          href={`/courses/${course.course_code}/${testPathSuffix}`}
+          onClick={onLinkClick}
+        >
+          {course.name}
+        </Link>
+      </li>
+    ));
+
+  const renderDesktopGroup = (
+    label: string,
+    hubHref: string,
+    testPathSuffix: "free-practice-test" | "free-prediction-test",
+    showDivider: boolean,
+  ) => (
+    <>
+      {showDivider && (
+        <li>
+          <hr className="dropdown-divider my-1" />
+        </li>
+      )}
+      <li>
+        <Link
+          className="navbar-course-category navbar-course-category--link"
+          href={hubHref}
+          onClick={onLinkClick}
+        >
+          {label}
+        </Link>
+      </li>
+      {renderCourseLinks(testPathSuffix)}
+    </>
+  );
+
+  const renderMobileGroup = (
+    label: string,
+    hubHref: string,
+    testPathSuffix: "free-practice-test" | "free-prediction-test",
+    isOpen: boolean,
+    onToggle?: () => void,
+  ) => (
+    <li className="nav-item">
+      <div className="navbar-free-tests-category d-flex align-items-center gap-2">
+        <Link
+          className="navbar-course-category navbar-course-category--link flex-grow-1"
+          href={hubHref}
+          onClick={onLinkClick}
+        >
+          {label}
+        </Link>
+        <button
+          type="button"
+          className="navbar-free-tests-category-toggle"
+          aria-expanded={isOpen}
+          aria-label={`${isOpen ? "Collapse" : "Expand"} ${label}`}
+          onClick={onToggle}
+        >
+          <FaCaretDown className={isOpen ? "navbar-caret-open" : undefined} />
+        </button>
+      </div>
+      {isOpen && (
+        <ul className="navbar-nav ps-3">{renderCourseLinks(testPathSuffix)}</ul>
+      )}
+    </li>
+  );
+
+  if (variant === "mobile") {
+    return (
+      <>
+        {renderMobileGroup(
+          "Free Practice Tests",
+          "/free-practice-tests",
+          "free-practice-test",
+          practiceOpen,
+          onTogglePractice,
+        )}
+        {renderMobileGroup(
+          "Free Prediction Tests",
+          "/free-prediction-tests",
+          "free-prediction-test",
+          predictionOpen,
+          onTogglePrediction,
+        )}
+      </>
+    );
+  }
+
+  return (
+    <>
+      {renderDesktopGroup(
+        "Free Practice Tests",
+        "/free-practice-tests",
+        "free-practice-test",
+        false,
+      )}
+      {renderDesktopGroup(
+        "Free Prediction Tests",
+        "/free-prediction-tests",
+        "free-prediction-test",
+        true,
+      )}
+    </>
+  );
+}
+
 export default function Navbar({
   courses = [],
 }: {
@@ -132,6 +288,8 @@ export default function Navbar({
   const [isServicesOpen, setIsServicesOpen] = useState(false);
   const [isPricingOpen, setIsPricingOpen] = useState(false);
   const [isFreeTestsOpen, setIsFreeTestsOpen] = useState(false);
+  const [isFreePracticeOpen, setIsFreePracticeOpen] = useState(true);
+  const [isFreePredictionOpen, setIsFreePredictionOpen] = useState(true);
 
   const getServiceSlug = (serviceId: string) => {
     switch (serviceId) {
@@ -172,6 +330,8 @@ export default function Navbar({
     setIsServicesOpen(false);
     setIsPricingOpen(false);
     setIsFreeTestsOpen(false);
+    setIsFreePracticeOpen(true);
+    setIsFreePredictionOpen(true);
   };
 
   useEffect(() => {
@@ -372,6 +532,8 @@ export default function Navbar({
     setIsServicesOpen(false);
     setIsPricingOpen(false);
     setIsFreeTestsOpen(false);
+    setIsFreePracticeOpen(true);
+    setIsFreePredictionOpen(true);
   };
 
   // When opening one submenu, close others (mobile only)
@@ -397,10 +559,15 @@ export default function Navbar({
   };
 
   const toggleFreeTests = () => {
-    setIsFreeTestsOpen(!isFreeTestsOpen);
+    const nextOpen = !isFreeTestsOpen;
+    setIsFreeTestsOpen(nextOpen);
     setIsCoursesOpen(false);
     setIsServicesOpen(false);
     setIsPricingOpen(false);
+    if (nextOpen) {
+      setIsFreePracticeOpen(true);
+      setIsFreePredictionOpen(true);
+    }
   };
 
   return (
@@ -525,26 +692,13 @@ export default function Navbar({
                   FREE TESTS <FaCaretDown className="fs-6" />
                 </span>
                 <ul
-                  className={`dropdown-menu mt-0 ${isFreeTestsOpen ? "show" : ""}`}
+                  className={`dropdown-menu navbar-courses-menu mt-0 ${isFreeTestsOpen ? "show" : ""}`}
                 >
-                  <li>
-                    <Link
-                      className="dropdown-item"
-                      href="/free-prediction-tests"
-                      onClick={handleLinkClick}
-                    >
-                      Free Prediction Tests
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      className="dropdown-item"
-                      href="/free-practice-tests"
-                      onClick={handleLinkClick}
-                    >
-                      Free Practice Tests
-                    </Link>
-                  </li>
+                  <FreeTestsNavGroups
+                    courses={courses}
+                    variant="desktop"
+                    onLinkClick={handleLinkClick}
+                  />
                 </ul>
               </li>
 
@@ -752,24 +906,19 @@ export default function Navbar({
 
               {isFreeTestsOpen && (
                 <ul className="navbar-nav ps-3">
-                  <li className="nav-item">
-                    <Link
-                      href="/free-prediction-tests"
-                      className="nav-link text-white"
-                      onClick={handleLinkClick}
-                    >
-                      Free Prediction Tests
-                    </Link>
-                  </li>
-                  <li className="nav-item">
-                    <Link
-                      href="/free-practice-tests"
-                      className="nav-link text-white"
-                      onClick={handleLinkClick}
-                    >
-                      Free Practice Tests
-                    </Link>
-                  </li>
+                  <FreeTestsNavGroups
+                    courses={courses}
+                    variant="mobile"
+                    onLinkClick={handleLinkClick}
+                    practiceOpen={isFreePracticeOpen}
+                    predictionOpen={isFreePredictionOpen}
+                    onTogglePractice={() =>
+                      setIsFreePracticeOpen((open) => !open)
+                    }
+                    onTogglePrediction={() =>
+                      setIsFreePredictionOpen((open) => !open)
+                    }
+                  />
                 </ul>
               )}
             </li>

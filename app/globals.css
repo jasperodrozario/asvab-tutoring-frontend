@@ -975,6 +975,20 @@ input[type="radio"]:checked::before {
   white-space: nowrap;
 }
 
+.navbar-course-category--link {
+  pointer-events: auto;
+  user-select: auto;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.15s ease, opacity 0.15s ease;
+}
+
+.navbar-course-category--link:hover,
+.navbar-course-category--link:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
 .navbar .dropdown-menu.navbar-courses-menu {
   min-width: 11rem;
 }
@@ -985,6 +999,11 @@ input[type="radio"]:checked::before {
   margin: 0;
 }
 
+.navbar .dropdown-menu .navbar-course-category--link:hover,
+.navbar .dropdown-menu .navbar-course-category--link:focus-visible {
+  color: #f6b978 !important;
+}
+
 .navbar .dropdown-menu .navbar-course-item .dropdown-item {
   /* padding-left: 2.6rem; */
 }
@@ -992,6 +1011,35 @@ input[type="radio"]:checked::before {
 .navbar-nav .navbar-course-category {
   color: rgba(242, 161, 85, 0.9) !important;
   padding: 0.5rem 0 0.25rem;
+}
+
+.navbar-nav .navbar-course-category--link:hover,
+.navbar-nav .navbar-course-category--link:focus-visible {
+  color: #f2a155 !important;
+}
+
+.navbar-free-tests-category {
+  padding-right: 0.25rem;
+}
+
+.navbar-free-tests-category-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: rgba(242, 161, 85, 0.95);
+  padding: 0.35rem 0.4rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.navbar-free-tests-category-toggle .navbar-caret-open {
+  transform: rotate(180deg);
+}
+
+.navbar-free-tests-category-toggle svg {
+  transition: transform 0.15s ease;
 }
 
 .navbar-nav .navbar-course-item .nav-link {
