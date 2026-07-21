@@ -35,7 +35,7 @@ export default function ContactForm({ initialStates = [] }: Props) {
 
     try {
       const data = (await postPhpBrowser({
-        action: "tutor-request",
+        action: "contact-us",
         name: form.name,
         email: form.email,
         phone: form.phone,
@@ -44,10 +44,13 @@ export default function ContactForm({ initialStates = [] }: Props) {
       })) as { isSuccess?: boolean; message?: string };
 
       if (data?.isSuccess) {
-        alert("Your message has been sent successfully!");
+        alert(
+          data.message ||
+            "We have received your information. We will contact you soon.",
+        );
         setForm({ name: "", email: "", phone: "", state_id: "", message: "" });
       } else {
-        alert(data?.message || "Submission failed");
+        alert(data?.message || "Failed! Please try again later.");
         console.error("Submit failed response:", data);
       }
     } catch (error) {

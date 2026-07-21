@@ -12,6 +12,7 @@ const ALLOWED_ACTIONS = new Set([
   "check-email",
   "user-registration",
   "tutor-request",
+  "contact-us",
 ]);
 
 export async function POST(request: NextRequest) {
@@ -73,9 +74,11 @@ export async function POST(request: NextRequest) {
   }
 
   const { action: _action, ...params } = body;
+  // Browser mutations hit intermittent nginx/Imunify 415s before PHP; retry longer.
   const result = await postPhpApi<unknown>(action, params, {
     cache: "no-store",
-    maxAttempts: 4,
+    maxAttempts: 6,
+    retryBaseDelayMs: 300,
   });
 
   if (result == null) {
@@ -83,7 +86,8 @@ export async function POST(request: NextRequest) {
       {
         isSuccess: false,
         status: 502,
-        message: "Upstream API unavailable. Please try again.",
+        message:
+          "Temporary connection issue with our server. Please try submitting again.",
       },
       { status: 502 },
     );

@@ -190,6 +190,8 @@ type PostPhpApiOptions = {
   cache?: RequestCache;
   revalidate?: number | false;
   maxAttempts?: number;
+  /** Base delay in ms; actual wait is base * attempt number. Default 150. */
+  retryBaseDelayMs?: number;
 };
 
 /**
@@ -208,6 +210,7 @@ export async function postPhpApi<T>(
   }
 
   const maxAttempts = options.maxAttempts ?? PHP_API_MAX_ATTEMPTS;
+  const retryBaseDelayMs = options.retryBaseDelayMs ?? 150;
   const useNoStore = options.cache === "no-store" || options.revalidate === false;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -229,7 +232,7 @@ export async function postPhpApi<T>(
         console.warn(
           `PHP API "${action}": HTTP ${response.status}, retry ${attempt}/${maxAttempts}`,
         );
-        await sleep(150 * attempt);
+        await sleep(retryBaseDelayMs * attempt);
         continue;
       }
 
@@ -252,7 +255,7 @@ export async function postPhpApi<T>(
           `PHP API "${action}": fetch failed, retry ${attempt}/${maxAttempts}`,
           error,
         );
-        await sleep(150 * attempt);
+        await sleep(retryBaseDelayMs * attempt);
         continue;
       }
       console.error(`PHP API "${action}": fetch failed`, error);
