@@ -1,6 +1,7 @@
 import type {
   CourseData,
   FreePracticeTestResponse,
+  UserFeedback,
 } from "@/lib/course-types";
 import { isFreeTestReady } from "@/lib/course-types";
 import type { FreePredTestResponse } from "@/lib/prediction-test-types";
@@ -358,6 +359,22 @@ export async function fetchTutorList(): Promise<TutorProfile[]> {
     await postPhpApi<PhpApiSuccess<TutorProfile[]>>("get-tutor-list");
 
   if (result?.isSuccess && Array.isArray(result.data)) {
+    return result.data;
+  }
+
+  return [];
+}
+
+export async function fetchWebUserFeedback(): Promise<UserFeedback[]> {
+  const result = await postPhpApi<PhpApiSuccess<UserFeedback[]>>(
+    "get-web-user-feedback",
+  );
+
+  if (
+    result?.status === 200 &&
+    result.isSuccess &&
+    Array.isArray(result.data)
+  ) {
     return result.data;
   }
 

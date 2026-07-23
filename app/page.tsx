@@ -10,6 +10,7 @@ import { homeMetadata } from "@/lib/page-metadata";
 import {
   fetchPublishablePricingPackages,
   fetchStateList,
+  fetchWebUserFeedback,
 } from "@/lib/php-api";
 import Link from "next/link";
 
@@ -17,13 +18,19 @@ export const metadata: Metadata = homeMetadata();
 export const revalidate = 3600;
 
 export default async function Home() {
-  const [oneOnOnePackages, groupPackages, selfStudyPackages, states] =
-    await Promise.all([
-      fetchPublishablePricingPackages("one"),
-      fetchPublishablePricingPackages("group"),
-      fetchPublishablePricingPackages("subscribe"),
-      fetchStateList(),
-    ]);
+  const [
+    oneOnOnePackages,
+    groupPackages,
+    selfStudyPackages,
+    states,
+    userFeedbacks,
+  ] = await Promise.all([
+    fetchPublishablePricingPackages("one"),
+    fetchPublishablePricingPackages("group"),
+    fetchPublishablePricingPackages("subscribe"),
+    fetchStateList(),
+    fetchWebUserFeedback(),
+  ]);
 
   return (
     <div>
@@ -97,7 +104,7 @@ export default async function Home() {
 
       <Teachers />
       <Faq />
-      <Review />
+      <Review reviews={userFeedbacks} />
     </div>
   );
 }
