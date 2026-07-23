@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ALL_FREE_PREDICTION_TESTS_HREF } from "@/lib/prediction-test-links";
-import "@/styles/freeTestsShowcase.css";
+import "./freeTestsShowcase.css";
 
 const FREE_TESTS = [
   {
