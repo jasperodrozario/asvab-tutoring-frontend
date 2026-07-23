@@ -45,8 +45,7 @@
 }
 
 /* Pricing grid */
-.pricingGrid,
-.relatedGrid {
+.pricingGrid {
   display: flex;
   flex-wrap: wrap;
   gap: 1.5rem;
@@ -55,20 +54,12 @@
   width: 100%;
 }
 
-.relatedGrid {
-  margin-top: 15px !important;
-}
-
 /* Card */
-.pricingCard,
-.relatedCardWrapper {
+.pricingCard {
   width: 100%;
   max-width: 300px;
   flex: 0 1 300px;
   position: relative;
-}
-
-.pricingCard {
   border-radius: 10px;
   overflow: visible;
   background: linear-gradient(180deg, #fffbe8 0%, #ffe6c7 100%);
@@ -80,30 +71,25 @@
 }
 
 @media (min-width: 500px) {
-  .pricingGrid,
-  .relatedGrid {
+  .pricingGrid {
     max-width: 660px; /* Limits the grid to a width where only 2 cards can fit */
   }
-  .pricingCard,
-  .relatedCardWrapper {
+  .pricingCard {
     flex: 1 1 230px; /* Small enough for BS 540px container at 576-767px viewport */
   }
 }
 
 @media (min-width: 768px) {
-  .pricingCard,
-  .relatedCardWrapper {
+  .pricingCard {
     flex: 1 1 310px; /* Large enough to prevent 3rd card at 992px+ (960px container) */
   }
 }
 
 @media (min-width: 1200px) {
-  .pricingGrid,
-  .relatedGrid {
+  .pricingGrid {
     max-width: 1280px; /* Expands to fit 4 cards + gaps */
   }
-  .pricingCard,
-  .relatedCardWrapper {
+  .pricingCard {
     flex: 1 1 240px; /* Optimized for 4 per row */
   }
 }
