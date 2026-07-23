@@ -125,6 +125,33 @@ export type NavCourse = {
   image_src?: string;
 };
 
+export type NavService = {
+  service_id: string;
+  course_name: string;
+};
+
+export type StateOption = {
+  id: string;
+  name: string;
+};
+
+export type RegistrationCourse = {
+  course_id: string;
+  name: string;
+};
+
+export type RegistrationCourseList = {
+  courses: RegistrationCourse[];
+  services: Record<string, number>;
+};
+
+export type PackageSession = {
+  session_id: string;
+  name: string;
+  price: string;
+  is_most_popular?: "0" | "1" | string;
+};
+
 export type FreePracticeTestCourse = {
   courseCode: string;
   courseName: string;
@@ -152,9 +179,29 @@ function getPhpApiUrl(): string | undefined {
   return process.env.PHP_API_URL || process.env.NEXT_PUBLIC_PHP_API_URL;
 }
 
-async function postPhpApi<T>(
+const PHP_API_MAX_ATTEMPTS = 3;
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+type PostPhpApiOptions = {
+  /** When true, bypass Next fetch cache (mutations / interactive calls). */
+  cache?: RequestCache;
+  revalidate?: number | false;
+  maxAttempts?: number;
+  /** Base delay in ms; actual wait is base * attempt number. Default 150. */
+  retryBaseDelayMs?: number;
+};
+
+/**
+ * Server-side PHP POST helper.
+ * Retries on intermittent nginx 415 / network failures that never reach PHP.
+ */
+export async function postPhpApi<T>(
   action: string,
   params: Record<string, string> = {},
+  options: PostPhpApiOptions = {},
 ): Promise<T | null> {
   const apiUrl = getPhpApiUrl();
   if (!apiUrl) {
@@ -162,31 +209,61 @@ async function postPhpApi<T>(
     return null;
   }
 
-  try {
-    const response = await fetch(apiUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ action, ...params }),
-      next: { revalidate: PHP_API_REVALIDATE_SECONDS },
-    });
+  const maxAttempts = options.maxAttempts ?? PHP_API_MAX_ATTEMPTS;
+  const retryBaseDelayMs = options.retryBaseDelayMs ?? 150;
+  const useNoStore = options.cache === "no-store" || options.revalidate === false;
 
-    if (!response.ok) {
-      console.error(`PHP API "${action}": returned ${response.status}`);
-      return null;
-    }
-
-    const text = await response.text();
-
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      return JSON.parse(text) as T;
-    } catch {
-      console.error(`PHP API "${action}": response was not valid JSON`);
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ action, ...params }),
+        ...(useNoStore
+          ? { cache: "no-store" as const }
+          : { next: { revalidate: options.revalidate ?? PHP_API_REVALIDATE_SECONDS } }),
+      });
+
+      // nginx sometimes returns 415 before PHP; retry briefly.
+      if (
+        (response.status === 415 || response.status >= 500) &&
+        attempt < maxAttempts
+      ) {
+        console.warn(
+          `PHP API "${action}": HTTP ${response.status}, retry ${attempt}/${maxAttempts}`,
+        );
+        await sleep(retryBaseDelayMs * attempt);
+        continue;
+      }
+
+      if (!response.ok) {
+        console.error(`PHP API "${action}": returned ${response.status}`);
+        return null;
+      }
+
+      const text = await response.text();
+
+      try {
+        return JSON.parse(text) as T;
+      } catch {
+        console.error(`PHP API "${action}": response was not valid JSON`);
+        return null;
+      }
+    } catch (error) {
+      if (attempt < maxAttempts) {
+        console.warn(
+          `PHP API "${action}": fetch failed, retry ${attempt}/${maxAttempts}`,
+          error,
+        );
+        await sleep(retryBaseDelayMs * attempt);
+        continue;
+      }
+      console.error(`PHP API "${action}": fetch failed`, error);
       return null;
     }
-  } catch (error) {
-    console.error(`PHP API "${action}": fetch failed`, error);
-    return null;
   }
+
+  return null;
 }
 
 export async function fetchAboutUsItems(): Promise<ContentBlock[]> {
@@ -194,6 +271,71 @@ export async function fetchAboutUsItems(): Promise<ContentBlock[]> {
     await postPhpApi<PhpApiSuccess<ContentBlock[]>>("get-about-us");
 
   if (result?.isSuccess && Array.isArray(result.data)) {
+    return result.data;
+  }
+
+  return [];
+}
+
+export async function fetchNavServices(): Promise<NavService[]> {
+  const result = await postPhpApi<PhpApiSuccess<NavService[]>>(
+    "get-service-course-list",
+  );
+
+  if (result?.isSuccess && Array.isArray(result.data)) {
+    return result.data;
+  }
+
+  return [];
+}
+
+export async function fetchStateList(): Promise<StateOption[]> {
+  const result = await postPhpApi<StateOption[] | PhpApiSuccess<StateOption[]>>(
+    "get-state-list",
+  );
+
+  if (Array.isArray(result)) {
+    return result;
+  }
+
+  if (result?.isSuccess && Array.isArray(result.data)) {
+    return result.data;
+  }
+
+  return [];
+}
+
+export async function fetchRegistrationCourseList(): Promise<RegistrationCourseList> {
+  const result = await postPhpApi<
+    PhpApiSuccess<RegistrationCourse[]> & {
+      services?: Record<string, number>;
+    }
+  >("get-course-list");
+
+  if (result?.isSuccess && Array.isArray(result.data)) {
+    return {
+      courses: result.data,
+      services:
+        result.services && typeof result.services === "object"
+          ? result.services
+          : {},
+    };
+  }
+
+  return { courses: [], services: {} };
+}
+
+export async function fetchPackageSessionList(
+  courseId: string,
+  serviceType: string,
+): Promise<PackageSession[]> {
+  const result = await postPhpApi<PhpApiSuccess<PackageSession[]>>(
+    "get-package-session-list",
+    { course_id: courseId, service_type: serviceType },
+    { cache: "no-store" },
+  );
+
+  if (result?.status === 200 && result?.isSuccess && Array.isArray(result.data)) {
     return result.data;
   }
 

@@ -1,7 +1,6 @@
 "use client";
 
-import React from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import styles from "../../packageDetails.module.css";
 import HotDealBanner from "@/components/promotions/HotDealBanner";
 import PricingCard, {
@@ -20,7 +19,6 @@ export default function PackageDetailsContent({
   course_code: string;
   initialCourseData: PackageDetailsResponse | null;
 }) {
-  const router = useRouter();
   const pathname = usePathname();
   const isSubscribePage = pathname?.includes("self-study");
   const courseData = initialCourseData;
@@ -144,72 +142,6 @@ export default function PackageDetailsContent({
           </>
         )}
       </div>
-
-      {/* Related Courses */}
-      <section className="bg-white">
-        <div className="container">
-          <h5 className="fs-3 fw-bold text-center" style={{ color: "#e58a34" }}>
-            Other Packages
-          </h5>
-
-          <div className={styles.relatedGrid}>
-            {(courseData.related_courses?.length ?? 0) > 0 ? (
-              courseData.related_courses!.map((rel: any) => (
-                <div key={rel.course_id} className={styles.relatedCardWrapper}>
-                  <div
-                    className="card h-100 shadow-sm border-0 cursor-pointer related-course-card text-center"
-                    style={{ borderRadius: "10px" }}
-                    onClick={() =>
-                      router.push(
-                        `/package-details/${service_type}/${rel.course_code}`,
-                      )
-                    }
-                  >
-                    <div className="card-body p-3 d-flex flex-column">
-                      <img
-                        src={rel.image}
-                        alt={decodeHtmlEntitiesDeep(rel.name ?? "")}
-                        width={300}
-                        height={200}
-                        className="rounded mb-3 w-100"
-                        style={{ objectFit: "cover", height: "200px" }}
-                      />
-                      <h6
-                        className="fw-semibold mb-2 related-course-card-title text-center"
-                        style={{ color: "#e58a34", width: "100%" }}
-                      >
-                        <span className="course-name">
-                          {decodeHtmlEntitiesDeep(rel.name ?? "")}
-                        </span>
-                        {rel.full_form && (
-                          <>
-                            <br />
-                            <span className="course-full-form">
-                              {decodeHtmlEntitiesDeep(rel.full_form)}
-                            </span>
-                          </>
-                        )}
-                      </h6>
-                      <p className="fw-bold text-success mb-0 mt-auto">
-                        {decodeHtmlEntitiesDeep(rel.price_range ?? "")
-                          .split(" (")
-                          .map((part: string, i: number) => (
-                            <React.Fragment key={i}>
-                              {i > 0 && <br />}
-                              {i > 0 ? `(${part}` : part}
-                            </React.Fragment>
-                          ))}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-center">No related packages available.</p>
-            )}
-          </div>
-        </div>
-      </section>
     </main>
   );
 }
