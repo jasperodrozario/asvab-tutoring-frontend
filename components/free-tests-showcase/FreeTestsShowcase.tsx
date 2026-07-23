@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ALL_FREE_PREDICTION_TESTS_HREF } from "@/lib/prediction-test-links";
-import "./freeTestsShowcase.css";
+import "@/styles/freeTestsShowcase.css";
 
 const FREE_TESTS = [
   {
@@ -41,7 +41,7 @@ export default function FreeTestsShowcase() {
           />
         </h2>
         <p className="free-tests-showcase__intro mx-auto mt-3 mb-0">
-          Not sure where to start? Try our free practice and prediction tests to
+          Not sure where to start? Browse through our list of free practice and prediction tests to
           measure your readiness and find the study path that fits you best.
         </p>
       </div>
