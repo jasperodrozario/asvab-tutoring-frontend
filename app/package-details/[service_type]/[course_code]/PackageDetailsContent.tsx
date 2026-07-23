@@ -84,12 +84,6 @@ export default function PackageDetailsContent({
               </div>
             ) : (
               <>
-                <div
-                  className={styles.ckContent}
-                  dangerouslySetInnerHTML={{
-                    __html: decodeHtmlEntitiesDeep(pkg.description ?? ""),
-                  }}
-                />
                 <div className={styles.pricingGrid}>
                   {pkg.sessions.map((session: any) => (
                     <PricingCard
@@ -101,6 +95,12 @@ export default function PackageDetailsContent({
                     />
                   ))}
                 </div>
+                <div
+                  className={styles.ckContent}
+                  dangerouslySetInnerHTML={{
+                    __html: decodeHtmlEntitiesDeep(pkg.description ?? ""),
+                  }}
+                />
               </>
             )}
           </div>
