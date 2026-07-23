@@ -46,7 +46,7 @@ export default function Faq({ initialFaqs }: Props) {
   }, [initialFaqs]);
 
   return (
-    <section id="faqs" className="mb-4 px-3 bg-[#f8f9fa] ">
+    <section id="faqs" className="my-5 px-3 bg-[#f8f9fa] ">
       <div className="container">
         <div className="text-center mb-4 position-relative">
           <h2

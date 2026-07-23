@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import PredictionTestLinkButton from "@/components/prediction-test/PredictionTestLinkButton";
-import { ALL_FREE_PREDICTION_TESTS_HREF } from "@/lib/prediction-test-links";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Autoplay } from "swiper/modules";
 import "swiper/css";
@@ -210,7 +208,7 @@ export default function TopCourses() {
 
   if (!mounted) {
     return (
-      <section className="bg-dark-blue text-white py-5 px-3">
+      <section className="text-white pt-5 pb-4 px-3">
         <div className="text-center mb-5 position-relative">
           <h2 className="fw-bold display-5 d-inline-block pb-3 position-relative">
             Our Courses
@@ -232,7 +230,7 @@ export default function TopCourses() {
   }
 
   return (
-    <section id="top-courses" className="bg-dark-blue text-white py-5 px-3">
+    <section id="top-courses" className="text-white pt-5 pb-4 px-3">
       <div className="text-center mb-5 position-relative">
         <h2 className="fw-bold display-5 d-inline-block pb-3 position-relative">
           Our Courses
@@ -292,21 +290,6 @@ export default function TopCourses() {
             </div>
           )}
         </div>
-
-        {!loading && !error && (
-          <div className="text-center mt-3 d-flex flex-wrap justify-content-center gap-3">
-            <Link
-              href="/free-practice-tests"
-              className="btn btn-primary-custom px-4 py-2 fw-semibold d-inline-flex align-items-center gap-2"
-            >
-              <i className="bi bi-clipboard-check" aria-hidden />
-              Take a Free Practice Test
-            </Link>
-            <PredictionTestLinkButton href={ALL_FREE_PREDICTION_TESTS_HREF}>
-              Take a Free Prediction Test
-            </PredictionTestLinkButton>
-          </div>
-        )}
       </div>
     </section>
   );

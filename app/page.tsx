@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Welcome from "@/components/welcome/Welcome";
 import TopCourses from "@/components/topcourses/Topcourses";
+import FreeTestsShowcase from "@/components/free-tests-showcase/FreeTestsShowcase";
 import Teachers from "@/components/teachers/Teachers";
 import Faq from "@/components/faq/Faq";
 import Review from "@/components/review/Review";
@@ -24,7 +25,10 @@ export default async function Home() {
   return (
     <div>
       <Welcome />
-      <TopCourses />
+      <div className="bg-dark-blue text-white">
+        <TopCourses />
+        <FreeTestsShowcase />
+      </div>
 
       <PricingPackages
         fixedSubmenu="one"
