@@ -48,6 +48,15 @@ export interface RelatedCourse {
   details?: string;
 }
 
+export interface UserFeedback {
+  feedback_id: string | number;
+  user_name: string;
+  course_name?: string;
+  rating: string | number;
+  feedback: string;
+  created_at?: string;
+}
+
 export interface CourseData {
   status: number;
   isSuccess: boolean;
@@ -62,6 +71,7 @@ export interface CourseData {
   picture?: string;
   video?: VideoObject;
   related_courses?: RelatedCourse[];
+  user_feedbacks?: UserFeedback[];
   total_ques?: number;
   image_src?: string;
 }

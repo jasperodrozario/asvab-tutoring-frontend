@@ -10,6 +10,7 @@ import FreeLessonVideosTab, {
 } from "@/components/tabs/FreeLessonVideosTab";
 import CoursePricingPanel from "@/components/pricing/CoursePricingPanel";
 import CourseOverviewVideoEmbed from "@/components/course/CourseOverviewVideoEmbed";
+import CourseReviews from "@/components/course/CourseReviews";
 import PredictionTestLinkButton from "@/components/prediction-test/PredictionTestLinkButton";
 import { getCourseFreePredictionTestHref } from "@/lib/prediction-test-links";
 import { processHtmlContent } from "@/lib/decode-html";
@@ -240,6 +241,11 @@ export function CourseDetailClient({
           </div>
         </div>
       </section>
+
+      <CourseReviews
+        reviews={courseData.user_feedbacks ?? []}
+        courseName={courseData.course_name}
+      />
     </>
   );
 }
