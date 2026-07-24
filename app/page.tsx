@@ -34,7 +34,7 @@ export default async function Home() {
 
   return (
     <div>
-      <Welcome />
+      <Welcome initialStates={states} />
       <div className="bg-dark-blue text-white">
         <TopCourses />
         <FreeTestsShowcase />
