@@ -108,9 +108,9 @@ export default function PackageDetailsContent({
       ))}
 
       {/* Notes + Cancellation Policy */}
-      <div className="container pb-4">
+      <div className="container pb-4 text-start">
         {isSubscribePage ? (
-          <p className="fs-6 text-start mx-auto" style={{ maxWidth: "960px" }}>
+          <p className="fs-6">
             <span className="fw-semibold text-danger">NOTE:</span> Your
             subscription will automatically renew at the end of each billing
             cycle (as disclosed at the time of purchase). You may cancel your
@@ -119,19 +119,13 @@ export default function PackageDetailsContent({
           </p>
         ) : (
           <>
-            <p
-              className="fs-6 text-start mx-auto"
-              style={{ maxWidth: "960px" }}
-            >
+            <p className="fs-6">
               <span className="fw-semibold text-danger">NOTE:</span> No session
               will be scheduled without payment information on file. Students
               are required to submit homework before each session.
             </p>
 
-            <p
-              className="fs-6 text-start mx-auto"
-              style={{ maxWidth: "960px" }}
-            >
+            <p className="fs-6">
               <span className="fw-semibold text-primary">
                 Cancellation Policy:
               </span>{" "}
