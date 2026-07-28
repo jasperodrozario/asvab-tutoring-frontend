@@ -7,7 +7,6 @@ function getPriority(path: string): number {
   if (path.startsWith("/courses/")) return 0.9;
   if (path.startsWith("/services/") || path.startsWith("/pricing/")) return 0.9;
   if (path.startsWith("/package-details/")) return 0.8;
-  if (path.startsWith("/online-courses/")) return 0.7;
   if (path.startsWith("/blog-detail/")) return 0.6;
   if (path === "/blog") return 0.7;
   return 0.5;
@@ -15,7 +14,6 @@ function getPriority(path: string): number {
 
 function getChangeFrequency(path: string): ChangeFrequency {
   if (path.startsWith("/blog-detail/")) return "monthly";
-  if (path.startsWith("/online-courses/")) return "monthly";
   return "weekly";
 }
 

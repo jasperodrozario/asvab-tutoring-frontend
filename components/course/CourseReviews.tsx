@@ -44,7 +44,15 @@ function filterValidReviews(reviews: readonly UserFeedback[]): UserFeedback[] {
   );
 }
 
-function pickReviews(
+/** Deterministic pick for SSR/hydration — always present in initial HTML. */
+function pickReviewsStable(
+  reviews: readonly UserFeedback[],
+  maxReviews: number,
+): UserFeedback[] {
+  return filterValidReviews(reviews).slice(0, maxReviews);
+}
+
+function pickReviewsShuffled(
   reviews: readonly UserFeedback[],
   maxReviews: number,
 ): UserFeedback[] {
@@ -131,16 +139,17 @@ export default function CourseReviews({
   maxReviews = COURSE_REVIEW_LIMIT,
 }: CourseReviewsProps) {
   const [index, setIndex] = useState(0);
-  const [visibleReviews, setVisibleReviews] = useState<UserFeedback[] | null>(
-    null,
+  const [visibleReviews, setVisibleReviews] = useState<UserFeedback[]>(() =>
+    pickReviewsStable(reviews, maxReviews),
   );
 
   useEffect(() => {
-    setVisibleReviews(pickReviews(reviews, maxReviews));
+    // Reshuffle after mount when over the limit; stable slice already SSR'd.
+    setVisibleReviews(pickReviewsShuffled(reviews, maxReviews));
     setIndex(0);
   }, [reviews, maxReviews]);
 
-  if (!visibleReviews?.length) return null;
+  if (!visibleReviews.length) return null;
 
   const heading = courseName?.trim()
     ? `${courseName.trim()} Student Reviews`

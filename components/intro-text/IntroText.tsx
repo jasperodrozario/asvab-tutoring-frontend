@@ -1,65 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
+import { decodeHtml } from "@/lib/decode-html";
+import type { ContentBlock } from "@/lib/php-api";
 
-type WelcomeItem = {
-  id: string;
-  title: string;
-  description: string;
+type Props = {
+  initialWelcome?: ContentBlock | null;
 };
 
-// HTML decode function
-function decodeHtml(html: string): string {
-  const txt = document.createElement("textarea");
-  txt.innerHTML = html;
-  return txt.value;
-}
-
-export default function WelcomeSection() {
-  const [welcome, setWelcome] = useState<WelcomeItem | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-
-  useEffect(() => {
-    async function fetchWelcomeText() {
-      try {
-        const response = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({
-            action: "get-welcome-text",
-          }),
-        });
-
-        const data = await response.json();
-
-        if (
-          data?.isSuccess &&
-          Array.isArray(data.data) &&
-          data.data.length > 0
-        ) {
-          setWelcome(data.data[0]);
-        } else {
-          setWelcome(null);
-        }
-      } catch (error) {
-        console.error("Failed to fetch welcome text:", error);
-        setWelcome(null);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchWelcomeText();
-  }, []);
+export default function WelcomeSection({ initialWelcome = null }: Props) {
+  const welcome = initialWelcome;
 
   return (
     <section className="py-5 bg-white px-3" data-navbar-auto-hide-anchor>
       <div className="container">
         <div className="text-center position-relative">
           <h2 className="fw-bold display-5 text-dark position-relative d-inline-block pb-3">
-            {loading ? "Loading..." : welcome?.title || "Welcome"}
+            {welcome?.title || "Welcome"}
 
             <img
               src="/images/border_v1.png"
@@ -73,9 +30,7 @@ export default function WelcomeSection() {
         </div>
 
         <div className="my-4 fs-5">
-          {loading ? (
-            <p className="text-center text-muted">Loading welcome content...</p>
-          ) : welcome ? (
+          {welcome ? (
             <div
               className="fs-6"
               dangerouslySetInnerHTML={{

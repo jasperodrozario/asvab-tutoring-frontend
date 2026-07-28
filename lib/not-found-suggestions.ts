@@ -13,8 +13,7 @@ export type NotFoundTemplate =
   | "service"
   | "pricing"
   | "package"
-  | "blog"
-  | "online-course";
+  | "blog";
 
 export interface NotFoundSuggestion {
   href: string;
@@ -53,8 +52,6 @@ interface RouteIndex {
   packagePaths: string[];
   blogById: Map<string, { id: string; slug: string; path: string }>;
   blogSlugs: Array<{ id: string; slug: string; path: string }>;
-  onlineByCity: Map<string, string[]>;
-  onlineCities: string[];
 }
 
 export function buildRouteIndex(data: SerializableRouteIndex): RouteIndex {
@@ -103,16 +100,6 @@ export function buildRouteIndex(data: SerializableRouteIndex): RouteIndex {
     blogSlugs.push(entry);
   }
 
-  const onlineByCity = new Map<string, string[]>();
-  for (const path of data.paths) {
-    if (!path.startsWith("/online-courses/")) continue;
-    const [, , city, courseCode] = path.split("/");
-    if (!city || !courseCode) continue;
-    const existing = onlineByCity.get(city) ?? [];
-    existing.push(courseCode);
-    onlineByCity.set(city, existing);
-  }
-
   return {
     pathSet,
     labelByPath,
@@ -122,8 +109,6 @@ export function buildRouteIndex(data: SerializableRouteIndex): RouteIndex {
     packagePaths,
     blogById,
     blogSlugs,
-    onlineByCity,
-    onlineCities: [...onlineByCity.keys()],
   };
 }
 
@@ -216,8 +201,6 @@ function templateForRoot(root: string | undefined): NotFoundTemplate {
     case "blog":
     case "blog-detail":
       return "blog";
-    case "online-courses":
-      return "online-course";
     default:
       return "default";
   }
@@ -249,11 +232,6 @@ function templateMeta(template: NotFoundTemplate): { title: string; intro: strin
       return {
         title: "Looking for a blog article?",
         intro: "That article was not found. Browse related posts or our blog index.",
-      };
-    case "online-course":
-      return {
-        title: "Looking for a local tutor page?",
-        intro: "That online course page was not found. Try a nearby match or view the main course page.",
       };
     default:
       return {
@@ -288,7 +266,6 @@ function isSegmentRecognized(
       "package-details",
       "blog",
       "blog-detail",
-      "online-courses",
       ...STATIC_ROOTS,
     ].includes(segment);
   }
@@ -321,15 +298,6 @@ function isSegmentRecognized(
     }
   }
 
-  if (root === "online-courses") {
-    if (segmentIndex === 1) return index.onlineCities.includes(segment);
-    if (segmentIndex === 2) {
-      const city = segments[1];
-      const cityCourses = city ? index.onlineByCity.get(city) ?? [] : [];
-      return cityCourses.includes(segment);
-    }
-  }
-
   if (segmentIndex === segments.length - 1) {
     const courseCode = segment.replace(/-tutor$/, "");
     if (index.courses.includes(courseCode)) return true;
@@ -356,17 +324,12 @@ function isPrefixRecognized(prefixSegments: string[], index: RouteIndex): boolea
       "package-details",
       "blog",
       "blog-detail",
-      "online-courses",
       ...STATIC_ROOTS,
     ].includes(root);
   }
 
   if (root === "blog-detail" && prefixSegments.length === 2) {
     return index.blogById.has(prefixSegments[1]!);
-  }
-
-  if (root === "online-courses" && prefixSegments.length === 2) {
-    return index.onlineCities.includes(prefixSegments[1]!);
   }
 
   if (root === "package-details" && prefixSegments.length === 2) {
@@ -396,7 +359,6 @@ const KNOWN_ROOTS = [
   "package-details",
   "blog",
   "blog-detail",
-  "online-courses",
   ...STATIC_ROOTS,
 ];
 
@@ -435,14 +397,6 @@ function getCandidateValues(prefixSegments: string[], index: RouteIndex): string
       const id = prefixSegments[1];
       const blog = id ? index.blogById.get(id) : undefined;
       return blog ? [blog.slug] : index.blogSlugs.map((entry) => entry.slug);
-    }
-  }
-
-  if (root === "online-courses") {
-    if (prefixSegments.length === 1) return index.onlineCities;
-    if (prefixSegments.length === 2) {
-      const city = prefixSegments[1];
-      return city ? (index.onlineByCity.get(city) ?? []) : [];
     }
   }
 
@@ -517,31 +471,6 @@ function suggestionsForPrefix(prefixSegments: string[], index: RouteIndex): NotF
     );
   }
 
-  if (root === "online-courses" && prefixSegments.length === 2) {
-    const city = prefixSegments[1]!;
-    const paths = (index.onlineByCity.get(city) ?? []).map(
-      (courseCode) => `/online-courses/${city}/${courseCode}`,
-    );
-    if (paths.length) {
-      return suggestionsFromPaths(paths, index);
-    }
-    return suggestionsFromPaths(
-      index.courses.map((code) => `/courses/${code}`),
-      index,
-    );
-  }
-
-  if (root === "online-courses" && prefixSegments.length === 1) {
-    const paths = index.onlineCities.slice(0, 5).flatMap((city) => {
-      const firstCourse = index.onlineByCity.get(city)?.[0];
-      return firstCourse ? [`/online-courses/${city}/${firstCourse}`] : [];
-    });
-    return suggestionsFromPaths(
-      paths.length ? paths : index.courses.map((code) => `/courses/${code}`),
-      index,
-    );
-  }
-
   return defaultSuggestions(index);
 }
 
@@ -589,9 +518,6 @@ function resolveFuzzyLeaf(
   const matched = fuzzyBestMatch(fuzzyLeaf.replace(/-tutor$/, ""), candidates);
   if (matched) {
     let primaryPath = buildPathFromPrefix(prefixSegments, matched);
-    if (root === "online-courses" && prefixSegments.length === 2) {
-      primaryPath = buildPathFromPrefix(prefixSegments, matched.includes("-tutor") ? matched : `${matched}-tutor`);
-    }
     if (root === "blog-detail" && prefixSegments.length === 2) {
       const id = prefixSegments[1]!;
       primaryPath = `/blog-detail/${id}/${matched}`;
@@ -607,18 +533,6 @@ function resolveFuzzyLeaf(
           primaryPath,
         ),
       };
-    }
-
-    if (root === "online-courses") {
-      const courseCode = matched.replace(/-tutor$/, "");
-      const fallback = `/courses/${courseCode}`;
-      if (isKnownPath(fallback, index)) {
-        return {
-          template,
-          ...meta,
-          suggestions: suggestionsFromPaths([fallback, "/sitemap"], index, fallback),
-        };
-      }
     }
   }
 
@@ -688,18 +602,6 @@ function caseExactEndpointWithFuzzyParent(segments: string[], index: RouteIndex)
         rebuilt,
       ),
     };
-  }
-
-  if (root === "online-courses" && corrected.length === 3) {
-    const courseCode = corrected[2]!.replace(/-tutor$/, "");
-    const fallback = `/courses/${courseCode}`;
-    if (isKnownPath(fallback, index)) {
-      return {
-        template,
-        ...meta,
-        suggestions: suggestionsFromPaths([fallback], index, fallback),
-      };
-    }
   }
 
   if (root === "package-details" && corrected.length === 3) {

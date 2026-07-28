@@ -426,6 +426,45 @@ export async function fetchFaqs(): Promise<FaqItem[]> {
   return [];
 }
 
+export async function fetchWelcomeText(): Promise<ContentBlock | null> {
+  const result =
+    await postPhpApi<PhpApiSuccess<ContentBlock[]>>("get-welcome-text");
+
+  if (
+    result?.isSuccess &&
+    Array.isArray(result.data) &&
+    result.data.length > 0
+  ) {
+    return result.data[0] ?? null;
+  }
+
+  return null;
+}
+
+export type NoticeItem = {
+  id: string;
+  title: string;
+  description: string;
+  notice_type: "announcement" | "update" | "reminder" | "important";
+  is_pinned: boolean;
+  created_at: string;
+};
+
+export async function fetchNotices(): Promise<NoticeItem[]> {
+  const result = await postPhpApi<PhpApiSuccess<NoticeItem[]>>("get-notices");
+
+  if (result?.status === 200 && Array.isArray(result.data)) {
+    return result.data.map((notice) => ({
+      ...notice,
+      is_pinned:
+        notice.is_pinned === true ||
+        (notice.is_pinned as unknown) === "1",
+    }));
+  }
+
+  return [];
+}
+
 function normalizeCourseDetail(
   data: Record<string, unknown> | null,
 ): CourseData | null {

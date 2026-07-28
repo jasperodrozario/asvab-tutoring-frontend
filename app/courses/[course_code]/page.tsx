@@ -1,7 +1,7 @@
 import { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { isKnownCourseCode } from "@/lib/known-route-validation";
-import CourseDetailPageWrapper from "./CourseDetailPage";
+import CourseDetailPage from "./CourseDetailPage";
 import { courseMetadata } from "@/lib/page-metadata";
 import {
   fetchCourseDetailsByCode,
@@ -16,13 +16,17 @@ import { isFreeTestReady } from "@/lib/course-types";
 
 export const revalidate = 3600;
 
+function normalizeCourseCode(raw: string): string {
+  return raw.replace(/-tutor$/i, "");
+}
+
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ course_code: string }>;
 }): Promise<Metadata> {
-  const { course_code } = await params;
-  return courseMetadata(course_code);
+  const { course_code: raw } = await params;
+  return courseMetadata(normalizeCourseCode(raw));
 }
 
 export default async function Page({
@@ -30,7 +34,13 @@ export default async function Page({
 }: {
   params: Promise<{ course_code: string }>;
 }) {
-  const { course_code } = await params;
+  const { course_code: raw } = await params;
+  const course_code = normalizeCourseCode(raw);
+
+  // Legacy online-courses URLs redirected here may still include `-tutor`.
+  if (raw !== course_code) {
+    permanentRedirect(`/courses/${course_code}`);
+  }
 
   if (!isKnownCourseCode(course_code)) {
     notFound();
@@ -66,7 +76,7 @@ export default async function Page({
   }
 
   return (
-    <CourseDetailPageWrapper
+    <CourseDetailPage
       courseCode={course_code}
       courseData={courseData}
       courseOverviewVideoData={courseOverviewVideoData}

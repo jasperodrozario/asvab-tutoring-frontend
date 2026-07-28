@@ -7,15 +7,21 @@ import Link from "next/link";
 import NoticeContent from "@/components/notice-content/NoticeContent";
 import TutorRequestSuccessModal from "../tutor-request-success-modal/TutorRequestSuccessModal";
 import { postPhpBrowser } from "@/lib/php-browser";
-import type { StateOption } from "@/lib/php-api";
+import type { ContentBlock, NoticeItem, StateOption } from "@/lib/php-api";
 
 type StatusType = "success" | "error" | "info";
 
 type Props = {
   initialStates?: StateOption[];
+  initialWelcome?: ContentBlock | null;
+  initialNotices?: NoticeItem[];
 };
 
-export default function Welcome({ initialStates = [] }: Props) {
+export default function Welcome({
+  initialStates = [],
+  initialWelcome = null,
+  initialNotices = [],
+}: Props) {
   const [states] = useState<StateOption[]>(initialStates);
   const [form, setForm] = useState({
     name: "",
@@ -332,10 +338,10 @@ export default function Welcome({ initialStates = [] }: Props) {
         </div>
       </div>
 
-      <NoticeContent />
+      <NoticeContent initialNotices={initialNotices} />
 
       {/* Welcome Section */}
-      <IntroText />
+      <IntroText initialWelcome={initialWelcome} />
 
       <TutorRequestSuccessModal
         show={showSuccessModal}

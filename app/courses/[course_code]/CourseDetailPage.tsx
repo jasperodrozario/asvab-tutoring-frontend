@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState } from "react";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
 import LessonPlanTab from "@/components/tabs/LessonPlanTab";
 import FreeLessonVideosTab, {
@@ -19,12 +18,11 @@ import type { CourseOverviewVideo } from "@/lib/php-api";
 import type { PackagesByService } from "@/lib/package-types";
 import styles from "./courseDetail.module.css";
 
-export type CourseDetailClientProps = {
+export type CourseDetailPageProps = {
   courseCode: string;
   courseData: CourseData | null;
   courseOverviewVideoData?: CourseOverviewVideo | null;
   packagesByService?: PackagesByService;
-  location?: string;
   breadcrumbSegments: string[];
   hasFreePredTest?: boolean;
   hasFreePracticeTest?: boolean;
@@ -32,25 +30,17 @@ export type CourseDetailClientProps = {
   predictionTestCourseName?: string;
 };
 
-function formatLocationLabel(location: string): string {
-  return location.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
-export function CourseDetailClient({
+export default function CourseDetailPage({
   courseCode,
   courseData,
   packagesByService,
-  location: locationProp = "",
   breadcrumbSegments,
   courseOverviewVideoData,
   hasFreePredTest = false,
   hasFreePracticeTest = false,
   practiceTestCourseName,
   predictionTestCourseName,
-}: CourseDetailClientProps) {
-  const searchParams = useSearchParams();
-  const location = locationProp || searchParams?.get("location") || "";
-
+}: CourseDetailPageProps) {
   const [activeTab, setActiveTab] = useState<number>(0);
 
   if (!courseData) {
@@ -64,8 +54,9 @@ export function CourseDetailClient({
     );
   }
 
+  const hasOverview = Boolean(courseData.overview?.trim());
+  const hasCurriculum = Boolean(courseData.curriculum?.trim());
   const hasVideo = hasFreeLessonVideos(courseData.video);
-
   const hasSessions = (courseData.sessions?.length ?? 0) > 0;
 
   const showFreeTestLink = hasFreePracticeTest;
@@ -81,12 +72,6 @@ export function CourseDetailClient({
           <h1>{courseData.course_header?.toUpperCase() || "Course Title"}</h1>
           <h2 className="h4">
             {courseData.course_tagline?.toUpperCase() || "Course Tagline"}
-            {location && (
-              <span>
-                {" "}
-                in <b>{formatLocationLabel(location)}</b>
-              </span>
-            )}
           </h2>
           <Breadcrumb
             segments={breadcrumbSegments}
@@ -128,10 +113,13 @@ export function CourseDetailClient({
                   marginBottom: "10px",
                 }}
               >
-                <ul className="nav nav-tabs mb-4 responsive-tabs">
-                  {courseData.overview && courseData.overview.trim() !== "" && (
-                    <li className="nav-item">
+                <ul className="nav nav-tabs mb-4 responsive-tabs" role="tablist">
+                  {hasOverview && (
+                    <li className="nav-item" role="presentation">
                       <button
+                        type="button"
+                        role="tab"
+                        aria-selected={activeTab === 0}
                         className={`nav-link tab-btn ${activeTab === 0 ? "active" : ""}`}
                         onClick={() => setActiveTab(0)}
                       >
@@ -139,20 +127,25 @@ export function CourseDetailClient({
                       </button>
                     </li>
                   )}
-                  {courseData.curriculum &&
-                    courseData.curriculum.trim() !== "" && (
-                      <li className="nav-item">
-                        <button
-                          className={`nav-link tab-btn ${activeTab === 1 ? "active" : ""}`}
-                          onClick={() => setActiveTab(1)}
-                        >
-                          Curriculum
-                        </button>
-                      </li>
-                    )}
-                  {hasSessions && (
-                    <li className="nav-item">
+                  {hasCurriculum && (
+                    <li className="nav-item" role="presentation">
                       <button
+                        type="button"
+                        role="tab"
+                        aria-selected={activeTab === 1}
+                        className={`nav-link tab-btn ${activeTab === 1 ? "active" : ""}`}
+                        onClick={() => setActiveTab(1)}
+                      >
+                        Curriculum
+                      </button>
+                    </li>
+                  )}
+                  {hasSessions && (
+                    <li className="nav-item" role="presentation">
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={activeTab === 4}
                         className={`nav-link tab-btn ${activeTab === 4 ? "active" : ""}`}
                         onClick={() => setActiveTab(4)}
                       >
@@ -161,8 +154,11 @@ export function CourseDetailClient({
                     </li>
                   )}
                   {hasVideo && (
-                    <li className="nav-item">
+                    <li className="nav-item" role="presentation">
                       <button
+                        type="button"
+                        role="tab"
+                        aria-selected={activeTab === 2}
                         className={`nav-link tab-btn ${activeTab === 2 ? "active" : ""}`}
                         onClick={() => setActiveTab(2)}
                       >
@@ -172,9 +168,19 @@ export function CourseDetailClient({
                   )}
                 </ul>
 
+                {/*
+                  Keep text tab panels in the DOM so curriculum and session plan
+                  are present in the initial HTML for crawlers. Inactive panels
+                  stay hidden visually via the `hidden` attribute. Free lesson
+                  video iframes are mounted only when that tab is active.
+                */}
                 <div className="tab-content">
-                  {activeTab === 0 && (
-                    <div className="overview-tab">
+                  {hasOverview && (
+                    <div
+                      className="overview-tab"
+                      role="tabpanel"
+                      hidden={activeTab !== 0}
+                    >
                       <div
                         dangerouslySetInnerHTML={{
                           __html: processHtmlContent(
@@ -208,7 +214,7 @@ export function CourseDetailClient({
                       )}
                     </div>
                   )}
-                  {activeTab === 1 && (
+                  {hasCurriculum && (
                     <div
                       dangerouslySetInnerHTML={{
                         __html: processHtmlContent(
@@ -216,15 +222,29 @@ export function CourseDetailClient({
                         ),
                       }}
                       className="curriculum-table"
+                      role="tabpanel"
+                      hidden={activeTab !== 1}
                     />
                   )}
-                  {hasSessions && activeTab === 4 && (
-                    <div className="sessions-tab transition-fade">
+                  {hasSessions && (
+                    <div
+                      className="sessions-tab transition-fade"
+                      role="tabpanel"
+                      hidden={activeTab !== 4}
+                    >
                       <LessonPlanTab sessions={courseData.sessions} />
                     </div>
                   )}
-                  {activeTab === 2 && (
-                    <FreeLessonVideosTab video={courseData.video} />
+                  {/*
+                    Free lesson iframes must not mount while this panel is hidden:
+                    embeds measure a 0×0 box and lock in blurry thumbnails.
+                    Mount only when the tab is active (curriculum/session plan
+                    stay preloaded for crawlability).
+                  */}
+                  {hasVideo && activeTab === 2 && (
+                    <div role="tabpanel">
+                      <FreeLessonVideosTab video={courseData.video} />
+                    </div>
                   )}
                 </div>
               </div>
@@ -247,26 +267,5 @@ export function CourseDetailClient({
         courseName={courseData.course_name}
       />
     </>
-  );
-}
-
-export default function CourseDetailPageWrapper(
-  props: CourseDetailClientProps,
-) {
-  return (
-    <Suspense
-      fallback={
-        <div
-          className="d-flex justify-content-center align-items-center"
-          style={{ minHeight: "400px" }}
-        >
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-        </div>
-      }
-    >
-      <CourseDetailClient {...props} />
-    </Suspense>
   );
 }

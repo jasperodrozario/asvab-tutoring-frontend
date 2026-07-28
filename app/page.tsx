@@ -8,9 +8,14 @@ import Review from "@/components/review/Review";
 import PricingPackages from "@/components/pricing-packages/PricingPackages";
 import { homeMetadata } from "@/lib/page-metadata";
 import {
+  fetchAllCourses,
+  fetchFaqs,
+  fetchNotices,
   fetchPublishablePricingPackages,
   fetchStateList,
+  fetchTutorList,
   fetchWebUserFeedback,
+  fetchWelcomeText,
 } from "@/lib/php-api";
 import Link from "next/link";
 
@@ -24,19 +29,33 @@ export default async function Home() {
     selfStudyPackages,
     states,
     userFeedbacks,
+    courses,
+    tutors,
+    faqs,
+    welcome,
+    notices,
   ] = await Promise.all([
     fetchPublishablePricingPackages("one"),
     fetchPublishablePricingPackages("group"),
     fetchPublishablePricingPackages("subscribe"),
     fetchStateList(),
     fetchWebUserFeedback(),
+    fetchAllCourses(),
+    fetchTutorList(),
+    fetchFaqs(),
+    fetchWelcomeText(),
+    fetchNotices(),
   ]);
 
   return (
     <div>
-      <Welcome initialStates={states} />
+      <Welcome
+        initialStates={states}
+        initialWelcome={welcome}
+        initialNotices={notices}
+      />
       <div className="bg-dark-blue text-white">
-        <TopCourses />
+        <TopCourses initialCourses={courses} />
         <FreeTestsShowcase />
       </div>
 
@@ -102,8 +121,8 @@ export default async function Home() {
         }
       />
 
-      <Teachers />
-      <Faq />
+      <Teachers initialTutors={tutors} />
+      <Faq initialFaqs={faqs} />
       <Review reviews={userFeedbacks} />
     </div>
   );

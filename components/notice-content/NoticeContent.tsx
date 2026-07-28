@@ -1,28 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import type { NoticeItem } from "@/lib/php-api";
 
-// Notice types for categorization
-export type NoticeType = "announcement" | "update" | "reminder" | "important";
+export type NoticeType = NoticeItem["notice_type"];
+export type Notice = NoticeItem;
 
-// Notice interface - defines the data structure for API/database integration
-export interface Notice {
-  id: string;
-  title: string;
-  description: string;
-  notice_type: NoticeType;
-  is_pinned: boolean;
-  created_at: string;
-}
-
-// Props interface for the component
 interface NoticeContentProps {
-  maxNotices?: number; // Optional limit on number of notices to display
-  showPinnedFirst?: boolean; // Whether to show pinned notices at the top
-  filterType?: NoticeType | "all"; // Filter by specific notice type
+  initialNotices?: NoticeItem[];
+  maxNotices?: number;
+  showPinnedFirst?: boolean;
+  filterType?: NoticeType | "all";
 }
 
-// Helper function to get badge styles based on notice type
 const getNoticeTypeStyles = (
   type: NoticeType,
 ): { bg: string; text: string; label: string } => {
@@ -44,7 +33,6 @@ const getNoticeTypeStyles = (
   }
 };
 
-// Helper function to format date
 const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
   const options: Intl.DateTimeFormatOptions = {
@@ -55,7 +43,6 @@ const formatDate = (dateString: string): string => {
   return date.toLocaleDateString("en-US", options);
 };
 
-// Individual notice card component
 const NoticeCard: React.FC<{ notice: Notice }> = ({ notice }) => {
   const typeStyles = getNoticeTypeStyles(notice.notice_type);
 
@@ -103,99 +90,19 @@ const NoticeCard: React.FC<{ notice: Notice }> = ({ notice }) => {
   );
 };
 
-// Empty state component
-const EmptyState: React.FC = () => (
-  <div className="text-center py-5">
-    <i className="bi bi-bell-slash display-1 text-muted mb-3 d-block"></i>
-    <p className="text-muted">No notices available at the moment.</p>
-  </div>
-);
-
-// Loading skeleton component
-const NoticeSkeleton: React.FC = () => (
-  <div className="border rounded-3 p-3 mb-3 shadow-sm">
-    <div className="d-flex justify-content-between align-items-center mb-3">
-      <div
-        className="skeleton-text bg-secondary rounded"
-        style={{ width: "60%", height: "24px" }}
-      ></div>
-      <div
-        className="skeleton-badge bg-secondary rounded px-3 py-2"
-        style={{ width: "80px" }}
-      ></div>
-    </div>
-    <div
-      className="skeleton-text bg-secondary rounded mb-2"
-      style={{ width: "100%", height: "16px" }}
-    ></div>
-    <div
-      className="skeleton-text bg-secondary rounded mb-2"
-      style={{ width: "90%", height: "16px" }}
-    ></div>
-    <div
-      className="skeleton-text bg-secondary rounded"
-      style={{ width: "70%", height: "16px" }}
-    ></div>
-  </div>
-);
-
 export default function NoticeContent({
+  initialNotices = [],
   maxNotices = 10,
   showPinnedFirst = true,
   filterType = "all",
 }: NoticeContentProps) {
-  const [notices, setNotices] = useState<Notice[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchNotices = async () => {
-      const formData = new FormData();
-      formData.append("action", "get-notices");
-
-      try {
-        const res = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
-          method: "POST",
-          body: formData,
-        });
-
-        const data = await res.json();
-        if (data?.status === 200 && Array.isArray(data.data)) {
-          for (const notice of data.data) {
-            if (notice.is_pinned === "1") {
-              notice.is_pinned = true;
-            } else {
-              notice.is_pinned = false;
-            }
-          }
-          setNotices(data.data);
-        } else {
-          setError(
-            data?.message ||
-              "Backend logic implementation in progress. Notices will be displayed here soon. Thanks for your patience.",
-          );
-        }
-      } catch (err) {
-        console.error("Error fetching notices:", err);
-        setError("An error occurred while loading notices.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchNotices();
-  }, []);
-
-  // Filter and sort notices
   const processedNotices = (() => {
-    let result = [...notices];
+    let result = [...initialNotices];
 
-    // Filter by type if specified
     if (filterType !== "all") {
       result = result.filter((notice) => notice.notice_type === filterType);
     }
 
-    // Sort: pinned first, then by date
     if (showPinnedFirst) {
       result.sort((a, b) => {
         if (a.is_pinned && !b.is_pinned) return -1;
@@ -206,105 +113,63 @@ export default function NoticeContent({
       });
     }
 
-    // Limit results
     return result.slice(0, maxNotices);
   })();
 
+  if (processedNotices.length === 0) {
+    return null;
+  }
+
   return (
-    notices.length > 0 && (
-      <section
-        id="notices"
-        className="py-5 px-3"
-        style={{ backgroundColor: "#002341" }}
-      >
-        <div className="container">
-          {/* Title Section - In the blue background */}
-          <div className="text-center mb-4 position-relative">
-            <h2
-              className="fw-bold display-6 d-inline-block pb-3 position-relative text-white"
-              style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.3)" }}
-            >
-              Notices & Announcements
-              <img
-                src="/images/border_v1.png"
-                alt="underline"
-                width={160}
-                height={8}
-                className="position-absolute start-50 translate-middle-x bottom-0"
-                style={{ height: "8px", width: "160px", objectFit: "cover" }}
-              />
-            </h2>
-          </div>
+    <section
+      id="notices"
+      className="py-5 px-3"
+      style={{ backgroundColor: "#002341" }}
+    >
+      <div className="container">
+        <div className="text-center mb-4 position-relative">
+          <h2
+            className="fw-bold display-6 d-inline-block pb-3 position-relative text-white"
+            style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.3)" }}
+          >
+            Notices & Announcements
+            <img
+              src="/images/border_v1.png"
+              alt="underline"
+              width={160}
+              height={8}
+              className="position-absolute start-50 translate-middle-x bottom-0"
+              style={{ height: "8px", width: "160px", objectFit: "cover" }}
+            />
+          </h2>
+        </div>
 
-          {/* White Card Container for Notice Content */}
-          <div className="card border-0 rounded-4 shadow-lg overflow-hidden">
-            <div className="card-body p-4 p-md-5">
-              {/* Loading State */}
-              {loading && (
-                <div className="notices-list">
-                  {[1, 2, 3].map((i) => (
-                    <NoticeSkeleton key={i} />
-                  ))}
-                </div>
-              )}
-
-              {/* Error State */}
-              {!loading && error && (
-                <div className="alert alert-danger text-center" role="alert">
-                  <i className="bi bi-exclamation-triangle me-2"></i>
-                  {error}
-                </div>
-              )}
-
-              {/* Empty State */}
-              {!loading && !error && processedNotices.length === 0 && (
-                <EmptyState />
-              )}
-
-              {/* Notices List */}
-              {!loading && !error && processedNotices.length > 0 && (
-                <div className="notices-list">
-                  {processedNotices.map((notice) => (
-                    <NoticeCard key={notice.id} notice={notice} />
-                  ))}
-                </div>
-              )}
+        <div className="card border-0 rounded-4 shadow-lg overflow-hidden">
+          <div className="card-body p-4 p-md-5">
+            <div className="notices-list">
+              {processedNotices.map((notice) => (
+                <NoticeCard key={notice.id} notice={notice} />
+              ))}
             </div>
           </div>
         </div>
+      </div>
 
-        {/* CSS for hover effects */}
-        <style jsx>{`
-          .notice-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-          }
+      <style jsx>{`
+        .notice-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+        }
 
-          .notice-description :global(a) {
-            color: #f2a155;
-            text-decoration: underline;
-          }
+        .notice-description :global(a) {
+          color: #f2a155;
+          text-decoration: underline;
+        }
 
-          .notice-description :global(a:hover) {
-            color: #e58a34;
-          }
-
-          .skeleton-text,
-          .skeleton-badge {
-            animation: pulse 1.5s ease-in-out infinite;
-          }
-
-          @keyframes pulse {
-            0%,
-            100% {
-              opacity: 1;
-            }
-            50% {
-              opacity: 0.5;
-            }
-          }
-        `}</style>
-      </section>
-    )
+        .notice-description :global(a:hover) {
+          color: #e58a34;
+        }
+      `}</style>
+    </section>
   );
 }

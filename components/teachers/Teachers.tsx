@@ -1,51 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import type { TutorProfile } from "@/lib/php-api";
 
-interface Tutor {
-  id: string;
-  photo: string;
-  name: string | null;
-  designation: string | null;
-  about: string | null;
-}
+type Props = {
+  initialTutors?: TutorProfile[];
+};
 
-export default function Teachers() {
-  const [teachers, setTeachers] = useState<Tutor[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchTutors = async () => {
-      const formData = new FormData();
-      formData.append("action", "get-tutor-list");
-
-      try {
-        const res = await fetch(process.env.NEXT_PUBLIC_PHP_API_URL!, {
-          method: "POST",
-          body: formData,
-        });
-
-        const data = await res.json();
-
-        if (data?.isSuccess) {
-          setTeachers(data.data);
-        } else {
-          console.error("Failed to load tutors:", data?.message);
-        }
-      } catch (err) {
-        console.error("Error fetching tutors:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTutors();
-  }, []);
-
-  // Only show the first 4 tutors on homepage
-  const homepageTutors = teachers.slice(0, 4);
+export default function Teachers({ initialTutors = [] }: Props) {
+  const homepageTutors = initialTutors.slice(0, 4);
 
   return (
     <section className="bg-dark-blue text-white py-5 mt-5 px-3">
@@ -64,8 +28,8 @@ export default function Teachers() {
       </div>
 
       <div className="container">
-        {loading ? (
-          <p className="text-center">Loading tutors...</p>
+        {homepageTutors.length === 0 ? (
+          <p className="text-center">No tutors available.</p>
         ) : (
           <div className="row g-4">
             {homepageTutors.map((teacher) => (
@@ -88,7 +52,6 @@ export default function Teachers() {
                     <p className="text-center text-primary small mb-3 fw-medium">
                       {teacher.designation || "Tutor"}
                     </p>
-                    {/* ✅ Render HTML safely */}
                     <p
                       className="card-text small  "
                       dangerouslySetInnerHTML={{

@@ -85,6 +85,12 @@ const nextConfig: NextConfig = {
         destination: '/courses/:code/free-practice-test',
         permanent: true,
       },
+      // Retired city landing pages → canonical course pages
+      {
+        source: '/online-courses/:city/:courseCode',
+        destination: '/courses/:courseCode',
+        permanent: true,
+      },
     ];
   },
   images: {

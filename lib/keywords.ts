@@ -167,7 +167,6 @@ export const PAGE_KEYWORD_GROUPS = {
   "package-1-on-1": ["main", "buyerIntent"],
   "package-group": ["main"],
   pricing: ["buyerIntent", "main"],
-  "online-course": ["main", "local"],
   "mobile-apps": ["app"],
   "free-practice-tests": ["practiceTest"],
   "free-practice-test": ["practiceTest"],
@@ -220,14 +219,10 @@ export function getCourseKeywords(
   const result: string[] = [];
 
   for (const name of groupNames) {
-    if (name === "local") {
-      result.push(...applyCity(groups.local, city));
-    } else {
-      result.push(...groups[name]);
-    }
+    result.push(...groups[name]);
   }
 
-  return [...new Set(result)];
+  return [...new Set(applyCity(result, city))];
 }
 
 /** Homepage: main keywords from every exam. */
@@ -343,7 +338,6 @@ export function getPageKeywords(options: {
     case "blog":
       return getBlogKeywords();
     case "course":
-    case "online-course":
     case "free-practice-test":
     case "free-prediction-test":
     case "package-1-on-1":

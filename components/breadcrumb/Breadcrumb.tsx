@@ -17,7 +17,7 @@ export default function Breadcrumb({
   const lastIndex = segments.length - 1;
 
   // Add any segment names here that should NOT be clickable
-  const nonClickableSegments = ["courses", "pricing", "services", "online-courses"];
+  const nonClickableSegments = ["courses", "pricing", "services"];
 
   return (
     <nav

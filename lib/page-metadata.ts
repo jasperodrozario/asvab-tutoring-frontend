@@ -563,23 +563,6 @@ export function packageDetailsMetadata(
   });
 }
 
-export function onlineCourseMetadata(
-  city: string,
-  courseCode: string,
-  title: string,
-  description: string,
-): Metadata {
-  const path = `/online-courses/${city}/${courseCode}`;
-  const normalizedCode = courseCode.replace(/-tutor$/, "");
-
-  return buildPageMetadata({
-    title,
-    description,
-    path,
-    keywords: getCourseKeywords(normalizedCode, "online-course", city),
-  });
-}
-
 export function blogDetailMetadata(
   blogId: string,
   blogTitleSlug: string,

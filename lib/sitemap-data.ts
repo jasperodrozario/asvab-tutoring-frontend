@@ -96,16 +96,17 @@ function isLegacySitemapEntry(item: unknown): item is LegacySitemapEntry {
   );
 }
 
-function cityToSlug(city: string): string {
-  return city.trim().toLowerCase().replace(/\s+/g, "-");
+function isIndexableSitemapPath(path: string): boolean {
+  return Boolean(path) && !path.startsWith("/online-courses/");
 }
 
 function legacyEntryToLink(entry: LegacySitemapEntry): SitemapLink {
-  const path = `/online-courses/${cityToSlug(entry.city)}/${entry.course_code.toLowerCase()}-tutor`;
+  const courseCode = entry.course_code.toLowerCase().replace(/-tutor$/, "");
+  const path = `/courses/${courseCode}`;
   return {
     url: path,
     path,
-    label: entry.name ?? `${entry.course_code} Tutor in ${entry.city}`,
+    label: entry.name ?? entry.course_code.toUpperCase(),
   };
 }
 
@@ -114,16 +115,18 @@ function normalizeSitemapData(data: unknown[]): SitemapSection[] {
   if (data.length === 0) return [];
 
   if (data.every(isSitemapSection)) {
-    return data.map((section) => ({
-      category: section.category,
-      links: section.links.filter((link) => Boolean(link?.path)),
-    }));
+    return data
+      .map((section) => ({
+        category: section.category,
+        links: section.links.filter((link) => isIndexableSitemapPath(link?.path)),
+      }))
+      .filter((section) => section.links.length > 0);
   }
 
   if (data.every(isLegacySitemapEntry)) {
     return [
       {
-        category: "Online Courses",
+        category: "Courses",
         links: data.map(legacyEntryToLink),
       },
     ];

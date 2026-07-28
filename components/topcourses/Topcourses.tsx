@@ -7,15 +7,7 @@ import { Navigation, Autoplay } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "./topcourses.css";
-
-interface Course {
-  course_id: string;
-  course_code: string;
-  name: string;
-  full_form: string;
-  details: string;
-  image_src: string;
-}
+import type { NavCourse } from "@/lib/php-api";
 
 /**
  * Decode HTML entities (named + numeric) into their character equivalents.
@@ -24,7 +16,6 @@ interface Course {
 const decodeHtmlEntities = (input: string): string => {
   if (!input) return "";
 
-  // Replace some common named entities first
   const namedMap: Record<string, string> = {
     nbsp: " ",
     amp: "&",
@@ -34,14 +25,12 @@ const decodeHtmlEntities = (input: string): string => {
     gt: ">",
   };
 
-  // Replace named entities like &nbsp; &amp;
   let s = input.replace(/&([a-zA-Z]+);/g, (match, name) => {
     if (Object.prototype.hasOwnProperty.call(namedMap, name))
       return namedMap[name];
-    return match; // leave unknown named entities for numeric handler
+    return match;
   });
 
-  // Replace decimal numeric entities: &#123;
   s = s.replace(/&#(\d+);/g, (_match, dec) => {
     try {
       return String.fromCharCode(Number(dec));
@@ -50,7 +39,6 @@ const decodeHtmlEntities = (input: string): string => {
     }
   });
 
-  // Replace hex numeric entities: &#x1f600;
   s = s.replace(/&#x([0-9a-fA-F]+);/g, (_match, hex) => {
     try {
       return String.fromCharCode(parseInt(hex, 16));
@@ -62,41 +50,27 @@ const decodeHtmlEntities = (input: string): string => {
   return s;
 };
 
-/** Remove HTML tags (anything between < and >) */
 const stripHtmlTags = (str: string): string =>
   str ? str.replace(/<[^>]*>/g, "") : "";
 
-/** Collapse whitespace and trim */
 const cleanWhitespace = (str: string): string =>
   (str || "")
     .replace(/\r\n|\n|\r|\t/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 
-/**
- * Convert an HTML/HTML-encoded string into plain preview text.
- * This function:
- *  - runs decode+strip loops to handle both encoded tags (&lt;h2&gt;) and raw tags (<h2>)
- *  - decodes remaining entities (e.g. &nbsp;)
- *  - collapses whitespace and truncates cleanly
- */
 const getPlainTextPreview = (htmlString: string, maxLength = 100): string => {
   if (!htmlString) return "No description available";
 
   try {
     let s = htmlString;
 
-    // Run a few passes to handle double-encoded strings safely:
-    // decode -> strip tags -> decode -> strip tags ...
     for (let i = 0; i < 3; i += 1) {
       s = decodeHtmlEntities(s);
       s = stripHtmlTags(s);
     }
 
-    // Final decode for any leftover entities like &nbsp;
     s = decodeHtmlEntities(s);
-
-    // Clean whitespace
     s = cleanWhitespace(s);
 
     if (!s) return "No description available";
@@ -117,23 +91,19 @@ const getPlainTextPreview = (htmlString: string, maxLength = 100): string => {
   }
 };
 
-/** Build a safe image URL — trims and encodes as needed */
 const resolveImageUrl = (path?: string): string => {
   if (!path) return "/images/asvab-courses-d.jpg";
 
   const cleaned = path.trim();
 
-  // If already absolute URL → return as is
   if (/^https?:\/\//i.test(cleaned)) {
     return cleaned;
   }
 
-  // Use env-based base URL
   return `${process.env.NEXT_PUBLIC_RESOURCES_URL}/${encodeURI(cleaned)}`;
 };
 
-/** Shared Card Component for List and Carousel */
-const CourseCard = ({ course }: { course: Course }) => {
+const CourseCard = ({ course }: { course: NavCourse }) => {
   const courseHref = `/courses/${encodeURIComponent(course.course_code)}`;
 
   return (
@@ -156,7 +126,7 @@ const CourseCard = ({ course }: { course: Course }) => {
             <span className="course-full-form">{course.full_form}</span>
           </h5>
           <p className="card-text small text-dark flex-grow-1 mb-0">
-            {getPlainTextPreview(course.details, 100)}
+            {getPlainTextPreview(course.details ?? "", 100)}
           </p>
         </div>
       </Link>
@@ -173,61 +143,16 @@ const CourseCard = ({ course }: { course: Course }) => {
   );
 };
 
-export default function TopCourses() {
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [mounted, setMounted] = useState<boolean>(false);
+type Props = {
+  initialCourses?: NavCourse[];
+};
+
+export default function TopCourses({ initialCourses = [] }: Props) {
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        const res = await fetch("/api/courses");
-        const result = await res.json();
-
-        if (result?.isSuccess && Array.isArray(result.data)) {
-          setCourses(result.data);
-        } else {
-          console.error("Unexpected response:", result);
-          setError("Failed to load course list.");
-        }
-      } catch (err) {
-        console.error("Fetch error:", err);
-        setError("An error occurred while fetching courses.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCourses();
-  }, []);
-
-  if (!mounted) {
-    return (
-      <section className="text-white pt-5 pb-4 px-3">
-        <div className="text-center mb-5 position-relative">
-          <h2 className="fw-bold display-5 d-inline-block pb-3 position-relative">
-            Our Courses
-            <img
-              src="/images/border_v1.png"
-              alt="underline"
-              width={160}
-              height={8}
-              className="position-absolute start-50 translate-middle-x bottom-0"
-              style={{ objectFit: "cover" }}
-            />
-          </h2>
-        </div>
-        <div className="container">
-          <p className="text-center">Loading...</p>
-        </div>
-      </section>
-    );
-  }
 
   return (
     <section id="top-courses" className="text-white pt-5 pb-4 px-3">
@@ -246,50 +171,53 @@ export default function TopCourses() {
       </div>
 
       <div className="container">
-        {loading && <p className="text-center">Loading...</p>}
-        {error && <p className="text-center text-danger">{error}</p>}
-
-        {/* Desktop Carousel (>= 992px) */}
-        <div className="pb-3 position-relative slider-wrapper d-none d-lg-block">
-          {!loading && !error && (
-            <Swiper
-              modules={[Navigation, Autoplay]}
-              spaceBetween={24}
-              slidesPerView={3}
-              loop={true}
-              navigation={true}
-              autoplay={{
-                delay: 3000,
-                disableOnInteraction: false,
-                pauseOnMouseEnter: true,
-              }}
-              breakpoints={{
-                992: { slidesPerView: 3 },
-                768: { slidesPerView: 3 },
-              }}
-              className="top-courses-swiper py-3"
-            >
-              {courses.map((course) => (
-                <SwiperSlide key={course.course_id} className="course-slide">
-                  <CourseCard course={course} />
-                </SwiperSlide>
-              ))}
-            </Swiper>
-          )}
-        </div>
-
-        {/* Mobile & Tablet List (< 992px) */}
-        <div className="d-block d-lg-none">
-          {!loading && !error && (
-            <div className="row g-4 pb-3">
-              {courses.map((course) => (
-                <div className="col-12" key={course.course_id}>
-                  <CourseCard course={course} />
-                </div>
-              ))}
+        {initialCourses.length === 0 ? (
+          <p className="text-center">No courses available.</p>
+        ) : (
+          <>
+            {/*
+              Static cards stay in the HTML for crawlers. After mount, hide on
+              desktop so the Swiper carousel can take over.
+            */}
+            <div className={mounted ? "d-block d-lg-none" : undefined}>
+              <div className="row g-4 pb-3">
+                {initialCourses.map((course) => (
+                  <div className="col-12 col-lg-4" key={course.course_id}>
+                    <CourseCard course={course} />
+                  </div>
+                ))}
+              </div>
             </div>
-          )}
-        </div>
+
+            {mounted && (
+              <div className="pb-3 position-relative slider-wrapper d-none d-lg-block">
+                <Swiper
+                  modules={[Navigation, Autoplay]}
+                  spaceBetween={24}
+                  slidesPerView={3}
+                  loop={true}
+                  navigation={true}
+                  autoplay={{
+                    delay: 3000,
+                    disableOnInteraction: false,
+                    pauseOnMouseEnter: true,
+                  }}
+                  breakpoints={{
+                    992: { slidesPerView: 3 },
+                    768: { slidesPerView: 3 },
+                  }}
+                  className="top-courses-swiper py-3"
+                >
+                  {initialCourses.map((course) => (
+                    <SwiperSlide key={course.course_id} className="course-slide">
+                      <CourseCard course={course} />
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </section>
   );
