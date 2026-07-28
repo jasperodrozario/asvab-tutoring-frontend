@@ -14,9 +14,9 @@ import type {
 } from "@/lib/package-types";
 
 const SERVICE_ORDER: ServiceType[] = [
+  "self-study",
   "1-on-1-tutoring",
   "group-tutoring",
-  "self-study",
 ];
 
 const SERVICE_TAB_LABELS: Record<ServiceType, string> = {
