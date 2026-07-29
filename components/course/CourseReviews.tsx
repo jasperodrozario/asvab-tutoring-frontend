@@ -180,7 +180,7 @@ export default function CourseReviews({
       <div className={`container ${styles.container}`}>
         <h2
           id="course-reviews-heading"
-          className="display-5 fw-bold text-gray-800 d-inline-block pb-3 position-relative"
+          className="display-6 fw-bold text-gray-800 d-inline-block pb-3 position-relative"
         >
           {heading}
           <img

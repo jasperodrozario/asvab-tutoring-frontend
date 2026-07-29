@@ -15,7 +15,7 @@ export default function OurTutorsContent({ tutors }: Props) {
       </div>
 
       <div className="text-center position-relative mb-4">
-        <h2 className="fw-bold display-5 d-inline-block pb-3 position-relative">
+        <h2 className="fw-bold display-6 d-inline-block pb-3 position-relative">
           Meet Our Teachers
           <img
             src="/images/border_v1.png"

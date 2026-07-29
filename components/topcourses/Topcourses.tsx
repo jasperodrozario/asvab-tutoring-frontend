@@ -157,7 +157,7 @@ export default function TopCourses({ initialCourses = [] }: Props) {
   return (
     <section id="top-courses" className="text-white pt-5 pb-4 px-3">
       <div className="text-center mb-5 position-relative">
-        <h2 className="fw-bold display-5 d-inline-block pb-3 position-relative">
+        <h2 className="fw-bold display-6 d-inline-block pb-3 position-relative">
           Our Courses
           <img
             src="/images/border_v1.png"

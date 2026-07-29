@@ -51,7 +51,6 @@ export default function Faq({ initialFaqs }: Props) {
         <div className="text-center mb-4 position-relative">
           <h2
             className="fw-bold display-6 d-inline-block pb-3 position-relative text-dark"
-            style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.3)" }}
           >
             Frequently Asked Questions
             <img

@@ -29,7 +29,7 @@ export default function FreeTestsShowcase() {
   return (
     <section id="free-tests" className="text-white pt-2 pb-5 px-3">
       <div className="text-center mb-4 position-relative">
-        <h2 className="fw-bold display-5 d-inline-block pb-3 position-relative">
+        <h2 className="fw-bold display-6 d-inline-block pb-3 position-relative">
           Free Tests
           <img
             src="/images/border_v1.png"

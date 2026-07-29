@@ -15,9 +15,8 @@ export default function WelcomeSection({ initialWelcome = null }: Props) {
     <section className="py-5 bg-white px-3" data-navbar-auto-hide-anchor>
       <div className="container">
         <div className="text-center position-relative">
-          <h2 className="fw-bold display-5 text-dark position-relative d-inline-block pb-3">
+          <h2 className="fw-bold display-6 text-dark position-relative d-inline-block pb-3">
             {welcome?.title || "Welcome"}
-
             <img
               src="/images/border_v1.png"
               alt="underline"

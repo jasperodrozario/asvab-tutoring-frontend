@@ -69,9 +69,9 @@ export default function CourseDetailPage({
     <>
       <div className="page-title-area text-white py-5">
         <div className="container text-center">
-          <h1>{courseData.course_header?.toUpperCase() || "Course Title"}</h1>
+          <h1 style={{fontSize: "2.1rem", fontWeight: "semibold"}}>{courseData.course_header?.toUpperCase() || "Course Title"}</h1>
           <h2 className="h4">
-            {courseData.course_tagline?.toUpperCase() || "Course Tagline"}
+            {courseData.course_tagline || "Course Tagline"}
           </h2>
           <Breadcrumb
             segments={breadcrumbSegments}
