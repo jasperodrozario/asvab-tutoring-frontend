@@ -1000,14 +1000,14 @@ input[type="radio"]:checked::before {
 }
 
 .navbar .dropdown-menu .navbar-course-category {
-  color: #f2a155 !important;
+  color: var(--primary-color-dark) !important;
   padding: 0.5rem 1rem 0.25rem;
   margin: 0;
 }
 
 .navbar .dropdown-menu .navbar-course-category--link:hover,
 .navbar .dropdown-menu .navbar-course-category--link:focus-visible {
-  color: #f2a155 !important;
+  color: var(--primary-color-dark) !important;
   text-decoration: underline !important;
   text-underline-offset: 0.2em;
 }
@@ -1077,13 +1077,13 @@ input[type="radio"]:checked::before {
 }
 
 .navbar-nav .navbar-course-category {
-  color: rgba(242, 161, 85, 0.9) !important;
+  color: var(--primary-color-dark) !important;
   padding: 0.5rem 0 0.25rem;
 }
 
 .navbar-nav .navbar-course-category--link:hover,
 .navbar-nav .navbar-course-category--link:focus-visible {
-  color: rgba(242, 161, 85, 0.9) !important;
+  color: var(--primary-color-dark) !important;
   text-decoration: underline !important;
   text-underline-offset: 0.2em;
 }
@@ -1098,7 +1098,7 @@ input[type="radio"]:checked::before {
   justify-content: center;
   border: 0;
   background: transparent;
-  color: rgba(242, 161, 85, 0.95);
+  color: var(--primary-color-dark);
   padding: 0.35rem 0.4rem;
   line-height: 1;
   cursor: pointer;
