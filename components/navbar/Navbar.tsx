@@ -140,6 +140,7 @@ function FreeTestsNavGroups({
   predictionOpen = true,
   onTogglePractice,
   onTogglePrediction,
+  isParentOpen = false,
 }: {
   courses: Course[];
   variant: "desktop" | "mobile";
@@ -148,8 +149,18 @@ function FreeTestsNavGroups({
   predictionOpen?: boolean;
   onTogglePractice?: () => void;
   onTogglePrediction?: () => void;
+  isParentOpen?: boolean;
 }) {
   const freeTestCourses = resolveFreeTestCourses(courses);
+  const [desktopOpenGroup, setDesktopOpenGroup] = useState<
+    "practice" | "prediction" | null
+  >(null);
+
+  useEffect(() => {
+    if (variant === "desktop" && !isParentOpen) {
+      setDesktopOpenGroup(null);
+    }
+  }, [variant, isParentOpen]);
 
   const renderCourseLinks = (
     testPathSuffix: "free-practice-test" | "free-prediction-test",
@@ -172,29 +183,39 @@ function FreeTestsNavGroups({
     ));
 
   const renderDesktopGroup = (
+    groupKey: "practice" | "prediction",
     label: string,
     hubHref: string,
     testPathSuffix: "free-practice-test" | "free-prediction-test",
-    showDivider: boolean,
-  ) => (
-    <>
-      {showDivider && (
-        <li>
-          <hr className="dropdown-divider my-1" />
-        </li>
-      )}
-      <li>
+  ) => {
+    const isOpen = desktopOpenGroup === groupKey;
+
+    return (
+      <li
+        className={`navbar-free-tests-submenu ${isOpen ? "show" : ""}`}
+        onMouseEnter={() => setDesktopOpenGroup(groupKey)}
+        onMouseLeave={() =>
+          setDesktopOpenGroup((current) =>
+            current === groupKey ? null : current,
+          )
+        }
+      >
         <Link
-          className="navbar-course-category navbar-course-category--link"
+          className="navbar-course-category navbar-course-category--link navbar-free-tests-submenu-trigger"
           href={hubHref}
           onClick={onLinkClick}
         >
-          {label}
+          <span>{label}</span>
+          <FaCaretDown className="navbar-free-tests-submenu-caret" aria-hidden />
         </Link>
+        <ul
+          className={`dropdown-menu navbar-free-tests-submenu-menu ${isOpen ? "show" : ""}`}
+        >
+          {renderCourseLinks(testPathSuffix)}
+        </ul>
       </li>
-      {renderCourseLinks(testPathSuffix)}
-    </>
-  );
+    );
+  };
 
   const renderMobileGroup = (
     label: string,
@@ -252,16 +273,16 @@ function FreeTestsNavGroups({
   return (
     <>
       {renderDesktopGroup(
+        "practice",
         "Free Practice Tests",
         "/free-practice-tests",
         "free-practice-test",
-        false,
       )}
       {renderDesktopGroup(
+        "prediction",
         "Free Prediction Tests",
         "/free-prediction-tests",
         "free-prediction-test",
-        true,
       )}
     </>
   );
@@ -672,12 +693,13 @@ export default function Navbar({
                   FREE TESTS <FaCaretDown className="fs-6" />
                 </span>
                 <ul
-                  className={`dropdown-menu navbar-courses-menu mt-0 ${isFreeTestsOpen ? "show" : ""}`}
+                  className={`dropdown-menu navbar-free-tests-menu mt-0 ${isFreeTestsOpen ? "show" : ""}`}
                 >
                   <FreeTestsNavGroups
                     courses={courses}
                     variant="desktop"
                     onLinkClick={handleLinkClick}
+                    isParentOpen={isFreeTestsOpen}
                   />
                 </ul>
               </li>

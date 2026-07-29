@@ -994,6 +994,11 @@ input[type="radio"]:checked::before {
   min-width: 11rem;
 }
 
+.navbar .dropdown-menu.navbar-free-tests-menu {
+  min-width: 14.5rem;
+  padding: 0.35rem 0;
+}
+
 .navbar .dropdown-menu .navbar-course-category {
   color: #f2a155 !important;
   padding: 0.5rem 1rem 0.25rem;
@@ -1005,6 +1010,66 @@ input[type="radio"]:checked::before {
   color: #f2a155 !important;
   text-decoration: underline !important;
   text-underline-offset: 0.2em;
+}
+
+.navbar-free-tests-submenu {
+  position: relative;
+}
+
+.navbar-free-tests-submenu-trigger {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.55rem 1rem !important;
+}
+
+.navbar-free-tests-submenu-caret {
+  flex-shrink: 0;
+  font-size: 0.6rem;
+  opacity: 0.85;
+  transition: transform 0.35s ease;
+}
+
+.navbar-free-tests-submenu.show .navbar-free-tests-submenu-caret {
+  transform: rotate(180deg);
+}
+
+.navbar-free-tests-submenu-menu {
+  /* Keep display:block so max-height/opacity can animate (Bootstrap uses display:none) */
+  display: block !important;
+  position: static !important;
+  float: none;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-0.25rem);
+  pointer-events: none;
+  transition:
+    max-height 0.4s ease,
+    opacity 0.35s ease 0.05s,
+    transform 0.35s ease 0.05s,
+    padding 0.4s ease;
+}
+
+.navbar-free-tests-submenu.show .navbar-free-tests-submenu-menu {
+  max-height: 30rem;
+  opacity: 1;
+  transform: translateY(0);
+  padding: 0.15rem 0 0.25rem;
+  pointer-events: auto;
+}
+
+.navbar-free-tests-submenu-menu .dropdown-item {
+  padding-left: 1.75rem;
+  font-size: 0.875rem;
 }
 
 .navbar .dropdown-menu .navbar-course-item .dropdown-item {
