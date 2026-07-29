@@ -111,12 +111,9 @@ export default async function Home() {
               href="/services/self-study"
               className="text-primary text-decoration-underline fw-bold"
             >
-              ASVAB Tutoring’s Self-Study Course
+              Online Self-Study Course Pricing
             </Link>{" "}
-            offers expertly crafted study materials developed by highly
-            experienced instructors. This program helps you strengthen core
-            skills, improve your scores, understand key concepts clearly, and
-            prepare with confidence for test day.
+            Prepare at your own pace with structured online courses for the ASVAB, AFOQT, SIFT, ASTB, OAR, HESI A2, ATI TEAS, and CNA exams. Our self-study courses include exam-specific video lessons, targeted homework with detailed explanations, lesson practice tests, final practice tests, realistic prediction tests, flashcards, detailed test reviews, and progress tracking. Study anytime, identify your weak areas, monitor your improvement, and build the knowledge, speed, and confidence needed for test day.
           </>
         }
       />

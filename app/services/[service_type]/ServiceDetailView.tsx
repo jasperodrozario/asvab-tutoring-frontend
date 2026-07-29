@@ -38,7 +38,7 @@ export default function ServiceDetailView({ data, serviceType }: Props) {
             pathname={`/pricing/${serviceType}`}
             className="btn-primary-custom2"
           >
-            {data.service_type === "subscribe" ? "Subscribe Now" : "Enroll Now"}
+            {serviceType === "self-study" ? "Subscribe Now" : "Enroll Now"}
           </Button>
         </div>
       </div>
