@@ -14,9 +14,7 @@ import {
 import { useState, useEffect, useRef } from "react";
 import {
   COURSE_CATEGORY_LABELS,
-  getFriendlyCourseName,
   groupCoursesByCategory,
-  MILITARY_COURSE_CODES,
 } from "@/lib/package-utils";
 
 type Course = {
@@ -30,23 +28,10 @@ type Service = {
   course_name: string;
 };
 
-const FALLBACK_FREE_TEST_COURSES: Course[] = MILITARY_COURSE_CODES.map(
-  (code) => ({
-    course_id: `fallback-${code}`,
-    course_code: code,
-    name: getFriendlyCourseName(code),
-  }),
-);
-
 function orderedCourses(courses: Course[]): Course[] {
   const { militaryTestPrep, healthcareTestPrep, academicTestPrep } =
     groupCoursesByCategory(courses);
   return [...militaryTestPrep, ...healthcareTestPrep, ...academicTestPrep];
-}
-
-function resolveFreeTestCourses(courses: Course[]): Course[] {
-  const sorted = orderedCourses(courses);
-  return sorted.length > 0 ? sorted : FALLBACK_FREE_TEST_COURSES;
 }
 
 function CourseNavGroups({
@@ -133,16 +118,18 @@ function CourseNavGroups({
 }
 
 function FreeTestsNavGroups({
-  courses,
+  practiceCourses,
+  predictionCourses,
   variant,
   onLinkClick,
-  practiceOpen = true,
-  predictionOpen = true,
+  practiceOpen = false,
+  predictionOpen = false,
   onTogglePractice,
   onTogglePrediction,
   isParentOpen = false,
 }: {
-  courses: Course[];
+  practiceCourses: Course[];
+  predictionCourses: Course[];
   variant: "desktop" | "mobile";
   onLinkClick?: () => void;
   practiceOpen?: boolean;
@@ -151,7 +138,8 @@ function FreeTestsNavGroups({
   onTogglePrediction?: () => void;
   isParentOpen?: boolean;
 }) {
-  const freeTestCourses = resolveFreeTestCourses(courses);
+  const practiceList = orderedCourses(practiceCourses);
+  const predictionList = orderedCourses(predictionCourses);
   const [desktopOpenGroup, setDesktopOpenGroup] = useState<
     "practice" | "prediction" | null
   >(null);
@@ -163,9 +151,10 @@ function FreeTestsNavGroups({
   }, [variant, isParentOpen]);
 
   const renderCourseLinks = (
+    courses: Course[],
     testPathSuffix: "free-practice-test" | "free-prediction-test",
   ) =>
-    freeTestCourses.map((course) => (
+    courses.map((course) => (
       <li
         key={`${testPathSuffix}-${course.course_id}`}
         className={`navbar-course-item ${variant === "mobile" ? "nav-item" : ""}`}
@@ -187,7 +176,10 @@ function FreeTestsNavGroups({
     label: string,
     hubHref: string,
     testPathSuffix: "free-practice-test" | "free-prediction-test",
+    courses: Course[],
   ) => {
+    if (courses.length === 0) return null;
+
     const isOpen = desktopOpenGroup === groupKey;
 
     return (
@@ -211,7 +203,7 @@ function FreeTestsNavGroups({
         <ul
           className={`dropdown-menu navbar-free-tests-submenu-menu ${isOpen ? "show" : ""}`}
         >
-          {renderCourseLinks(testPathSuffix)}
+          {renderCourseLinks(courses, testPathSuffix)}
         </ul>
       </li>
     );
@@ -219,50 +211,51 @@ function FreeTestsNavGroups({
 
   const renderMobileGroup = (
     label: string,
-    hubHref: string,
     testPathSuffix: "free-practice-test" | "free-prediction-test",
+    courses: Course[],
     isOpen: boolean,
     onToggle?: () => void,
-  ) => (
-    <li className="nav-item">
-      <div className="navbar-free-tests-category d-flex align-items-center gap-2">
-        <Link
-          className="navbar-course-category navbar-course-category--link flex-grow-1"
-          href={hubHref}
-          onClick={onLinkClick}
-        >
-          {label}
-        </Link>
+  ) => {
+    if (courses.length === 0) return null;
+
+    return (
+      <li className="nav-item">
         <button
           type="button"
-          className="navbar-free-tests-category-toggle"
+          className="navbar-free-tests-category navbar-free-tests-category--toggle w-100 d-flex align-items-center justify-content-between gap-2"
           aria-expanded={isOpen}
           aria-label={`${isOpen ? "Collapse" : "Expand"} ${label}`}
           onClick={onToggle}
         >
-          <FaCaretDown className={isOpen ? "navbar-caret-open" : undefined} />
+          <span className="navbar-course-category">{label}</span>
+          <FaCaretDown
+            className={`navbar-free-tests-category-caret ${isOpen ? "navbar-caret-open" : ""}`}
+            aria-hidden
+          />
         </button>
-      </div>
-      {isOpen && (
-        <ul className="navbar-nav ps-3">{renderCourseLinks(testPathSuffix)}</ul>
-      )}
-    </li>
-  );
+        <ul
+          className={`navbar-nav ps-3 navbar-mobile-submenu ${isOpen ? "show" : ""}`}
+        >
+          {renderCourseLinks(courses, testPathSuffix)}
+        </ul>
+      </li>
+    );
+  };
 
   if (variant === "mobile") {
     return (
       <>
         {renderMobileGroup(
           "Free Practice Tests",
-          "/free-practice-tests",
           "free-practice-test",
+          practiceList,
           practiceOpen,
           onTogglePractice,
         )}
         {renderMobileGroup(
           "Free Prediction Tests",
-          "/free-prediction-tests",
           "free-prediction-test",
+          predictionList,
           predictionOpen,
           onTogglePrediction,
         )}
@@ -277,12 +270,14 @@ function FreeTestsNavGroups({
         "Free Practice Tests",
         "/free-practice-tests",
         "free-practice-test",
+        practiceList,
       )}
       {renderDesktopGroup(
         "prediction",
         "Free Prediction Tests",
         "/free-prediction-tests",
         "free-prediction-test",
+        predictionList,
       )}
     </>
   );
@@ -291,9 +286,13 @@ function FreeTestsNavGroups({
 export default function Navbar({
   courses = [],
   services = [],
+  freePracticeCourses = [],
+  freePredictionCourses = [],
 }: {
   courses?: Course[];
   services?: Service[];
+  freePracticeCourses?: Course[];
+  freePredictionCourses?: Course[];
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNavbarVisible, setIsNavbarVisible] = useState(true);
@@ -309,8 +308,8 @@ export default function Navbar({
   const [isServicesOpen, setIsServicesOpen] = useState(false);
   const [isPricingOpen, setIsPricingOpen] = useState(false);
   const [isFreeTestsOpen, setIsFreeTestsOpen] = useState(false);
-  const [isFreePracticeOpen, setIsFreePracticeOpen] = useState(true);
-  const [isFreePredictionOpen, setIsFreePredictionOpen] = useState(true);
+  const [isFreePracticeOpen, setIsFreePracticeOpen] = useState(false);
+  const [isFreePredictionOpen, setIsFreePredictionOpen] = useState(false);
 
   const getServiceSlug = (serviceId: string) => {
     switch (serviceId) {
@@ -331,8 +330,8 @@ export default function Navbar({
     setIsServicesOpen(false);
     setIsPricingOpen(false);
     setIsFreeTestsOpen(false);
-    setIsFreePracticeOpen(true);
-    setIsFreePredictionOpen(true);
+    setIsFreePracticeOpen(false);
+    setIsFreePredictionOpen(false);
   };
 
   useEffect(() => {
@@ -533,8 +532,8 @@ export default function Navbar({
     setIsServicesOpen(false);
     setIsPricingOpen(false);
     setIsFreeTestsOpen(false);
-    setIsFreePracticeOpen(true);
-    setIsFreePredictionOpen(true);
+    setIsFreePracticeOpen(false);
+    setIsFreePredictionOpen(false);
   };
 
   // When opening one submenu, close others (mobile only)
@@ -543,6 +542,8 @@ export default function Navbar({
     setIsServicesOpen(false);
     setIsPricingOpen(false);
     setIsFreeTestsOpen(false);
+    setIsFreePracticeOpen(false);
+    setIsFreePredictionOpen(false);
   };
 
   const toggleServices = () => {
@@ -550,6 +551,8 @@ export default function Navbar({
     setIsCoursesOpen(false);
     setIsPricingOpen(false);
     setIsFreeTestsOpen(false);
+    setIsFreePracticeOpen(false);
+    setIsFreePredictionOpen(false);
   };
 
   const togglePricing = () => {
@@ -557,6 +560,8 @@ export default function Navbar({
     setIsCoursesOpen(false);
     setIsServicesOpen(false);
     setIsFreeTestsOpen(false);
+    setIsFreePracticeOpen(false);
+    setIsFreePredictionOpen(false);
   };
 
   const toggleFreeTests = () => {
@@ -565,9 +570,9 @@ export default function Navbar({
     setIsCoursesOpen(false);
     setIsServicesOpen(false);
     setIsPricingOpen(false);
-    if (nextOpen) {
-      setIsFreePracticeOpen(true);
-      setIsFreePredictionOpen(true);
+    if (!nextOpen) {
+      setIsFreePracticeOpen(false);
+      setIsFreePredictionOpen(false);
     }
   };
 
@@ -671,7 +676,10 @@ export default function Navbar({
                   className="nav-link text-white d-flex align-items-center gap-1 px-2"
                   role="button"
                 >
-                  COURSES <FaCaretDown className="fs-6" />
+                  COURSES{" "}
+                  <FaCaretDown
+                    className={`fs-6 navbar-dropdown-caret ${isCoursesOpen ? "navbar-caret-open" : ""}`}
+                  />
                 </span>
                 <ul
                   className={`dropdown-menu navbar-courses-menu mt-0 ${isCoursesOpen ? "show" : ""}`}
@@ -690,13 +698,17 @@ export default function Navbar({
                   className="nav-link text-white d-flex align-items-center gap-1 px-2"
                   role="button"
                 >
-                  FREE TESTS <FaCaretDown className="fs-6" />
+                  FREE TESTS{" "}
+                  <FaCaretDown
+                    className={`fs-6 navbar-dropdown-caret ${isFreeTestsOpen ? "navbar-caret-open" : ""}`}
+                  />
                 </span>
                 <ul
                   className={`dropdown-menu navbar-free-tests-menu mt-0 ${isFreeTestsOpen ? "show" : ""}`}
                 >
                   <FreeTestsNavGroups
-                    courses={courses}
+                    practiceCourses={freePracticeCourses}
+                    predictionCourses={freePredictionCourses}
                     variant="desktop"
                     onLinkClick={handleLinkClick}
                     isParentOpen={isFreeTestsOpen}
@@ -752,7 +764,10 @@ export default function Navbar({
                   className="nav-link text-white d-flex align-items-center gap-1 px-2"
                   role="button"
                 >
-                  SERVICES <FaCaretDown className="fs-6" />
+                  SERVICES{" "}
+                  <FaCaretDown
+                    className={`fs-6 navbar-dropdown-caret ${isServicesOpen ? "navbar-caret-open" : ""}`}
+                  />
                 </span>
                 <ul
                   className={`dropdown-menu mt-0 ${isServicesOpen ? "show" : ""}`}
@@ -779,7 +794,10 @@ export default function Navbar({
                   className="nav-link text-white d-flex align-items-center gap-1 px-2"
                   role="button"
                 >
-                  PRICING <FaCaretDown className="fs-6" />
+                  PRICING{" "}
+                  <FaCaretDown
+                    className={`fs-6 navbar-dropdown-caret ${isPricingOpen ? "navbar-caret-open" : ""}`}
+                  />
                 </span>
                 <ul
                   className={`dropdown-menu mt-0 ${isPricingOpen ? "show" : ""}`}
@@ -882,18 +900,21 @@ export default function Navbar({
                 role="button"
                 onClick={toggleCourses}
               >
-                COURSES <FaCaretDown />
+                COURSES{" "}
+                <FaCaretDown
+                  className={`navbar-dropdown-caret ${isCoursesOpen ? "navbar-caret-open" : ""}`}
+                />
               </span>
 
-              {isCoursesOpen && (
-                <ul className="navbar-nav ps-3">
-                  <CourseNavGroups
-                    courses={courses}
-                    variant="mobile"
-                    onLinkClick={handleLinkClick}
-                  />
-                </ul>
-              )}
+              <ul
+                className={`navbar-nav ps-3 navbar-mobile-submenu ${isCoursesOpen ? "show" : ""}`}
+              >
+                <CourseNavGroups
+                  courses={courses}
+                  variant="mobile"
+                  onLinkClick={handleLinkClick}
+                />
+              </ul>
             </li>
 
             {/* FREE TESTS MOBILE */}
@@ -903,26 +924,30 @@ export default function Navbar({
                 role="button"
                 onClick={toggleFreeTests}
               >
-                FREE TESTS <FaCaretDown />
+                FREE TESTS{" "}
+                <FaCaretDown
+                  className={`navbar-dropdown-caret ${isFreeTestsOpen ? "navbar-caret-open" : ""}`}
+                />
               </span>
 
-              {isFreeTestsOpen && (
-                <ul className="navbar-nav ps-3">
-                  <FreeTestsNavGroups
-                    courses={courses}
-                    variant="mobile"
-                    onLinkClick={handleLinkClick}
-                    practiceOpen={isFreePracticeOpen}
-                    predictionOpen={isFreePredictionOpen}
-                    onTogglePractice={() =>
-                      setIsFreePracticeOpen((open) => !open)
-                    }
-                    onTogglePrediction={() =>
-                      setIsFreePredictionOpen((open) => !open)
-                    }
-                  />
-                </ul>
-              )}
+              <ul
+                className={`navbar-nav ps-3 navbar-mobile-submenu ${isFreeTestsOpen ? "show" : ""}`}
+              >
+                <FreeTestsNavGroups
+                  practiceCourses={freePracticeCourses}
+                  predictionCourses={freePredictionCourses}
+                  variant="mobile"
+                  onLinkClick={handleLinkClick}
+                  practiceOpen={isFreePracticeOpen}
+                  predictionOpen={isFreePredictionOpen}
+                  onTogglePractice={() =>
+                    setIsFreePracticeOpen((open) => !open)
+                  }
+                  onTogglePrediction={() =>
+                    setIsFreePredictionOpen((open) => !open)
+                  }
+                />
+              </ul>
             </li>
 
             {/* SERVICES MOBILE */}
@@ -932,24 +957,27 @@ export default function Navbar({
                 role="button"
                 onClick={toggleServices}
               >
-                SERVICES <FaCaretDown />
+                SERVICES{" "}
+                <FaCaretDown
+                  className={`navbar-dropdown-caret ${isServicesOpen ? "navbar-caret-open" : ""}`}
+                />
               </span>
 
-              {isServicesOpen && (
-                <ul className="navbar-nav ps-3">
-                  {services.map((service) => (
-                    <li key={service.service_id} className="nav-item">
-                      <Link
-                        href={`/services/${getServiceSlug(service.service_id)}`}
-                        className="nav-link text-white"
-                        onClick={handleLinkClick}
-                      >
-                        {service.course_name}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <ul
+                className={`navbar-nav ps-3 navbar-mobile-submenu ${isServicesOpen ? "show" : ""}`}
+              >
+                {services.map((service) => (
+                  <li key={service.service_id} className="nav-item">
+                    <Link
+                      href={`/services/${getServiceSlug(service.service_id)}`}
+                      className="nav-link text-white"
+                      onClick={handleLinkClick}
+                    >
+                      {service.course_name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             </li>
 
             {/* PRICING MOBILE */}
@@ -959,24 +987,27 @@ export default function Navbar({
                 role="button"
                 onClick={togglePricing}
               >
-                PRICING <FaCaretDown />
+                PRICING{" "}
+                <FaCaretDown
+                  className={`navbar-dropdown-caret ${isPricingOpen ? "navbar-caret-open" : ""}`}
+                />
               </span>
 
-              {isPricingOpen && (
-                <ul className="navbar-nav ps-3">
-                  {services.map((service) => (
-                    <li key={service.service_id} className="nav-item">
-                      <Link
-                        href={`/pricing/${getServiceSlug(service.service_id)}`}
-                        className="nav-link text-white"
-                        onClick={handleLinkClick}
-                      >
-                        {service.course_name}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <ul
+                className={`navbar-nav ps-3 navbar-mobile-submenu ${isPricingOpen ? "show" : ""}`}
+              >
+                {services.map((service) => (
+                  <li key={service.service_id} className="nav-item">
+                    <Link
+                      href={`/pricing/${getServiceSlug(service.service_id)}`}
+                      className="nav-link text-white"
+                      onClick={handleLinkClick}
+                    >
+                      {service.course_name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             </li>
             <li className="nav-item">
               <Link href="/blog" className="nav-link text-white px-2" onClick={handleLinkClick}>

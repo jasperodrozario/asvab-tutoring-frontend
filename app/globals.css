@@ -140,34 +140,34 @@ a {
   background-color: #f1bf91;
 }
 
-/* Show dropdown on hover for desktop */
-@media (min-width: 768px) {
-  .navbar .dropdown:hover > .dropdown-menu {
-    display: block;
-    opacity: 1;
-    visibility: visible;
-    margin-top: 0;
-  }
-
-  .navbar .dropdown .dropdown-menu {
-    display: none;
+/* Desktop navbar dropdowns — fade + slide (display stays block so transitions work) */
+@media (min-width: 992px) {
+  .navbar .dropdown > .dropdown-menu {
+    display: block !important;
     opacity: 0;
     visibility: hidden;
-    transition: all 0.3s ease;
-    pointer-events: auto;
+    transform: translateY(-0.35rem);
+    pointer-events: none;
     margin-top: 0;
+    transition:
+      opacity 0.35s ease 0.05s,
+      transform 0.35s ease 0.05s,
+      visibility 0.35s ease;
   }
 
-  .navbar .dropdown .dropdown-menu.show {
-    display: block;
+  .navbar .dropdown > .dropdown-menu.show {
     opacity: 1;
     visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
   }
 
-  .navbar .dropdown:hover .dropdown-menu:hover {
-    display: block;
-    opacity: 1;
-    visibility: visible;
+  .navbar .nav-item.dropdown > .nav-link .navbar-dropdown-caret {
+    transition: transform 0.35s ease;
+  }
+
+  .navbar .nav-item.dropdown > .nav-link .navbar-dropdown-caret.navbar-caret-open {
+    transform: rotate(180deg);
   }
 }
 
@@ -1092,6 +1092,25 @@ input[type="radio"]:checked::before {
   padding-right: 0.25rem;
 }
 
+.navbar-free-tests-category--toggle {
+  border: 0;
+  background: transparent;
+  padding: 0.5rem 0 0.25rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.navbar-free-tests-category-caret {
+  flex-shrink: 0;
+  color: var(--primary-color-dark);
+  font-size: 0.7rem;
+  transition: transform 0.35s ease;
+}
+
+.navbar-free-tests-category-caret.navbar-caret-open {
+  transform: rotate(180deg);
+}
+
 .navbar-free-tests-category-toggle {
   display: inline-flex;
   align-items: center;
@@ -1109,7 +1128,34 @@ input[type="radio"]:checked::before {
 }
 
 .navbar-free-tests-category-toggle svg {
-  transition: transform 0.15s ease;
+  transition: transform 0.35s ease;
+}
+
+.navbar-mobile-menu .navbar-dropdown-caret {
+  transition: transform 0.35s ease;
+}
+
+.navbar-mobile-menu .navbar-dropdown-caret.navbar-caret-open {
+  transform: rotate(180deg);
+}
+
+.navbar-mobile-submenu {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-0.25rem);
+  pointer-events: none;
+  transition:
+    max-height 0.4s ease,
+    opacity 0.35s ease 0.05s,
+    transform 0.35s ease 0.05s;
+}
+
+.navbar-mobile-submenu.show {
+  max-height: 100rem;
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
 }
 
 .navbar-nav .navbar-course-item .nav-link {
