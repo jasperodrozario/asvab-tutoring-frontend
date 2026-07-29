@@ -32,18 +32,26 @@ export default function CourseOverviewVideoEmbed({
   fallbackImageAlt = "Course overview",
   className = "mb-4 text-center",
 }: Props) {
+  const [ready, setReady] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
+    // Mount the iframe only after layout so YouTube measures a real-sized box
+    // and picks a full-res thumbnail (SSR/hidden 0×0 boxes cause blurry posters).
+    const frameId = requestAnimationFrame(() => setReady(true));
     window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+    return () => {
+      cancelAnimationFrame(frameId);
+      window.removeEventListener("resize", checkMobile);
+    };
   }, []);
 
   const embedUrl = resolveEmbedUrl(video, isMobile);
+  const posterSrc = video.thumbnail?.trim() || fallbackImageSrc;
 
-  if (embedUrl) {
+  if (ready && embedUrl) {
     return (
       <div className={`${className} ${styles.wrapper}`}>
         <div className={styles.frame}>
@@ -59,16 +67,27 @@ export default function CourseOverviewVideoEmbed({
     );
   }
 
-  if (fallbackImageSrc) {
+  if (posterSrc) {
     return (
-      <div className={className}>
-        <img
-          src={fallbackImageSrc}
-          alt={fallbackImageAlt}
-          width={800}
-          height={350}
-          className="img-fluid rounded shadow-sm"
-        />
+      <div className={`${className} ${styles.wrapper}`}>
+        <div className={styles.frame}>
+          <img
+            src={posterSrc}
+            alt={fallbackImageAlt}
+            className={styles.poster}
+            width={800}
+            height={450}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Reserve layout space until the client iframe mounts.
+  if (embedUrl) {
+    return (
+      <div className={`${className} ${styles.wrapper}`}>
+        <div className={styles.frame} aria-hidden />
       </div>
     );
   }
