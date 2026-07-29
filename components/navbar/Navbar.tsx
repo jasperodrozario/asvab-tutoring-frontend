@@ -8,6 +8,7 @@ import {
   FaApple,
   FaBars,
   FaCaretDown,
+  FaCaretRight,
   FaSignInAlt,
   FaUserPlus,
 } from "react-icons/fa";
@@ -198,7 +199,7 @@ function FreeTestsNavGroups({
           onClick={onLinkClick}
         >
           <span>{label}</span>
-          <FaCaretDown className="navbar-free-tests-submenu-caret" aria-hidden />
+          <FaCaretRight className="navbar-free-tests-submenu-caret" aria-hidden />
         </Link>
         <ul
           className={`dropdown-menu navbar-free-tests-submenu-menu ${isOpen ? "show" : ""}`}
