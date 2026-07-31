@@ -232,6 +232,19 @@ export default function CourseDetailPage({
                       role="tabpanel"
                       hidden={activeTab !== 4}
                     >
+                      <p className={styles.sessionPlanIntro}>
+                        Our one-on-one{" "}
+                        {courseData.course_name?.trim() || courseCode.toUpperCase()}{" "}
+                        tutoring follows a structured session plan designed to
+                        strengthen each student&apos;s weaker areas while building
+                        the knowledge, speed, and test-taking skills needed for
+                        the exam. Each session combines focused instruction,
+                        guided practice, assigned homework, practice tests, and
+                        progress review. The plan shown below is a sample
+                        framework and may be adjusted based on the student&apos;s
+                        diagnostic assessment, target composites, official test
+                        date, and individual learning needs.
+                      </p>
                       <LessonPlanTab sessions={courseData.sessions} />
                     </div>
                   )}

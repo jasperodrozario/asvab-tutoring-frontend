@@ -22,3 +22,10 @@
   border: none;
   border-radius: 5px;
 }
+
+.sessionPlanIntro {
+  margin: 0 0 1.25rem;
+  color: #334155;
+  font-size: 0.98rem;
+  line-height: 1.65;
+}
