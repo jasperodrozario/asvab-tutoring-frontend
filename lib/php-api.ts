@@ -141,17 +141,51 @@ export type RegistrationCourse = {
   name: string;
 };
 
-export type RegistrationCourseList = {
-  courses: RegistrationCourse[];
-  services: Record<string, number>;
-};
-
 export type PackageSession = {
   session_id: string;
   name: string;
   price: string;
   is_most_popular?: "0" | "1" | string;
 };
+
+export type RegistrationCourseWithServices = RegistrationCourse & {
+  availableServiceTypes: string[];
+};
+
+export type RegistrationCourseList = {
+  courses: RegistrationCourse[];
+  services: Record<string, number>;
+};
+
+export type RegistrationTutoringCourseList = {
+  courses: RegistrationCourseWithServices[];
+  services: Record<string, number>;
+  sessionsByCourseService: Record<string, PackageSession[]>;
+};
+
+export function registrationSessionKey(
+  courseId: string,
+  serviceType: string,
+): string {
+  return `${courseId}:${serviceType}`;
+}
+
+const SELF_STUDY_SERVICE_TYPE = "2";
+const DEFAULT_TUTORING_SERVICE_TYPES = ["0", "1"];
+
+function tutoringServiceTypesFromMap(
+  services: Record<string, number>,
+): string[] {
+  const fromMap = Object.values(services)
+    .map((value) => String(value))
+    .filter((value) => value !== SELF_STUDY_SERVICE_TYPE);
+
+  const unique = Array.from(new Set(fromMap)).sort(
+    (a, b) => Number(a) - Number(b),
+  );
+
+  return unique.length > 0 ? unique : DEFAULT_TUTORING_SERVICE_TYPES;
+}
 
 export type FreePracticeTestCourse = {
   courseCode: string;
@@ -341,6 +375,60 @@ export async function fetchPackageSessionList(
   }
 
   return [];
+}
+
+/**
+ * Server-only: filters registration courses to those with 1-on-1 and/or group
+ * tutoring packages, and preloads package sessions for the registration form.
+ */
+export async function fetchRegistrationTutoringCourseList(): Promise<RegistrationTutoringCourseList> {
+  const { courses, services } = await fetchRegistrationCourseList();
+  const tutoringServiceTypes = tutoringServiceTypesFromMap(services);
+
+  if (courses.length === 0 || tutoringServiceTypes.length === 0) {
+    return { courses: [], services, sessionsByCourseService: {} };
+  }
+
+  const sessionsByCourseService: Record<string, PackageSession[]> = {};
+
+  const enrichedCourses = (
+    await Promise.all(
+      courses.map(async (course) => {
+        const availableServiceTypes: string[] = [];
+
+        await Promise.all(
+          tutoringServiceTypes.map(async (serviceType) => {
+            const sessions = await fetchPackageSessionList(
+              course.course_id,
+              serviceType,
+            );
+            if (sessions.length === 0) return;
+
+            availableServiceTypes.push(serviceType);
+            sessionsByCourseService[
+              registrationSessionKey(course.course_id, serviceType)
+            ] = sessions;
+          }),
+        );
+
+        if (availableServiceTypes.length === 0) return null;
+
+        availableServiceTypes.sort((a, b) => Number(a) - Number(b));
+        return {
+          ...course,
+          availableServiceTypes,
+        } satisfies RegistrationCourseWithServices;
+      }),
+    )
+  ).filter(
+    (course): course is RegistrationCourseWithServices => course !== null,
+  );
+
+  return {
+    courses: enrichedCourses,
+    services,
+    sessionsByCourseService,
+  };
 }
 
 export async function fetchHowItWorksItems(): Promise<ContentBlock[]> {

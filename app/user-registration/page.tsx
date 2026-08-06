@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { fetchRegistrationCourseList } from "@/lib/php-api";
+import { fetchRegistrationTutoringCourseList } from "@/lib/php-api";
 import RegisterForm from "./RegisterForm";
 
 export const metadata: Metadata = {
@@ -11,9 +11,14 @@ export const metadata: Metadata = {
 export const revalidate = 3600;
 
 export default async function RegisterPage() {
-  const { courses, services } = await fetchRegistrationCourseList();
+  const { courses, services, sessionsByCourseService } =
+    await fetchRegistrationTutoringCourseList();
 
   return (
-    <RegisterForm initialCourses={courses} initialServices={services} />
+    <RegisterForm
+      initialCourses={courses}
+      initialServices={services}
+      initialSessionsByCourseService={sessionsByCourseService}
+    />
   );
 }

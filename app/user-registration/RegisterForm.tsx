@@ -6,17 +6,19 @@ import { useRouter } from "next/navigation";
 import { BsEye, BsEyeSlash } from "react-icons/bs";
 import { sanitizeMobileInput } from "@/lib/sanitize-mobile-input";
 import { postPhpBrowser } from "@/lib/php-browser";
-import type {
-  PackageSession,
-  RegistrationCourse,
+import {
+  registrationSessionKey,
+  type PackageSession,
+  type RegistrationCourseWithServices,
 } from "@/lib/php-api";
 
 type StatusType = "success" | "error" | "info";
 type Status = { type: StatusType; text: string } | null;
 
-type Course = RegistrationCourse;
+type Course = RegistrationCourseWithServices;
 type ServicesMap = Record<string, number>;
 type SessionPkg = PackageSession;
+type SessionsByCourseService = Record<string, SessionPkg[]>;
 
 async function postForm(body: Record<string, string>) {
   return postPhpBrowser(body);
@@ -76,11 +78,13 @@ function parseEmailExistsFromResponse(data: unknown): EmailCheckResult {
 type Props = {
   initialCourses?: Course[];
   initialServices?: ServicesMap;
+  initialSessionsByCourseService?: SessionsByCourseService;
 };
 
 export default function RegisterForm({
   initialCourses = [],
   initialServices = {},
+  initialSessionsByCourseService = {},
 }: Props) {
   const router = useRouter();
 
@@ -95,13 +99,13 @@ export default function RegisterForm({
 
   const [courses] = useState<Course[]>(initialCourses);
   const [servicesMap] = useState<ServicesMap>(initialServices);
-  const [sessions, setSessions] = useState<SessionPkg[]>([]);
+  const [sessionsByCourseService] = useState<SessionsByCourseService>(
+    initialSessionsByCourseService,
+  );
 
   const [courseId, setCourseId] = useState("");
-  const [serviceType, setServiceType] = useState(""); // "0" | "1" | "2"
+  const [serviceType, setServiceType] = useState(""); // "0" | "1"
   const [sessionId, setSessionId] = useState("");
-
-  const [loadingSessions, setLoadingSessions] = useState(false);
 
   const [agree, setAgree] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -198,11 +202,27 @@ export default function RegisterForm({
     return "";
   };
 
+  const selectedCourse = useMemo(
+    () => courses.find((c) => c.course_id === courseId) || null,
+    [courses, courseId],
+  );
+
   const servicesOptions = useMemo(() => {
+    const available = selectedCourse?.availableServiceTypes ?? [];
     return Object.entries(servicesMap)
       .map(([label, value]) => ({ label, value: String(value) }))
+      .filter((s) => available.includes(s.value))
       .sort((a, b) => Number(a.value) - Number(b.value));
-  }, [servicesMap]);
+  }, [servicesMap, selectedCourse]);
+
+  const sessions = useMemo(() => {
+    if (!courseId || serviceType === "") return [];
+    return (
+      sessionsByCourseService[
+        registrationSessionKey(courseId, serviceType)
+      ] ?? []
+    );
+  }, [courseId, serviceType, sessionsByCourseService]);
 
   const selectedSession = useMemo(
     () => sessions.find((s) => s.session_id === sessionId) || null,
@@ -341,83 +361,32 @@ export default function RegisterForm({
 
   useEffect(() => () => clearMobileDebounce(), [clearMobileDebounce]);
 
-  // Reset when course changes
+  // Sync package selection from preloaded server sessions
   useEffect(() => {
-    setServiceType("");
-    setSessions([]);
-    setSessionId("");
-  }, [courseId]);
+    if (!courseId || serviceType === "") {
+      setSessionId("");
+      return;
+    }
 
-  // Reset when service changes
-  useEffect(() => {
-    setSessions([]);
-    setSessionId("");
-  }, [serviceType]);
+    if (!selectedCourse?.availableServiceTypes.includes(serviceType)) {
+      setSessionId("");
+      return;
+    }
 
-  // Fetch packages when course + service selected
-  useEffect(() => {
-    let alive = true;
+    const list =
+      sessionsByCourseService[
+        registrationSessionKey(courseId, serviceType)
+      ] ?? [];
 
-    (async () => {
-      if (!courseId || serviceType === "") return;
-
-      try {
-        setLoadingSessions(true);
-
-        const json = (await postForm({
-          action: "get-package-session-list",
-          course_id: courseId,
-          service_type: serviceType,
-        })) as {
-          status?: number;
-          isSuccess?: boolean;
-          data?: SessionPkg[];
-          message?: string;
-        };
-
-        if (!alive) return;
-
-        if (
-          json?.status === 200 &&
-          json?.isSuccess &&
-          Array.isArray(json?.data)
-        ) {
-          const list: SessionPkg[] = json.data;
-          setSessions(list);
-
-          // Auto-select "Most Popular" if present, else keep existing, else first
-          const mostPopular = list.find(
-            (p) => String(p.is_most_popular) === "1",
-          );
-          const keepExisting = list.some((p) => p.session_id === sessionId);
-
-          if (mostPopular) setSessionId(mostPopular.session_id);
-          else if (keepExisting) setSessionId(sessionId);
-          else if (list[0]) setSessionId(list[0].session_id);
-          else setSessionId("");
-        } else {
-          setStatus({
-            type: "error",
-            text: json?.message || "Failed to load package list.",
-          });
-        }
-      } catch (e: any) {
-        if (!alive) return;
-        setStatus({
-          type: "error",
-          text: e?.message || "Failed to load package list.",
-        });
-      } finally {
-        if (!alive) return;
-        setLoadingSessions(false);
-      }
-    })();
-
-    return () => {
-      alive = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [courseId, serviceType]);
+    const mostPopular = list.find((p) => String(p.is_most_popular) === "1");
+    if (mostPopular) {
+      setSessionId(mostPopular.session_id);
+    } else if (list[0]) {
+      setSessionId(list[0].session_id);
+    } else {
+      setSessionId("");
+    }
+  }, [courseId, serviceType, selectedCourse, sessionsByCourseService]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -703,6 +672,8 @@ export default function RegisterForm({
                         value={courseId}
                         onChange={(e) => {
                           setCourseId(e.target.value);
+                          setServiceType("");
+                          setSessionId("");
                           setStatus(null);
                         }}
                         disabled={courses.length === 0}
@@ -741,17 +712,12 @@ export default function RegisterForm({
                           padding: "12px 12px",
                         }}
                       >
-                        {/* ✅ Always show "Select Service" as initial label */}
-                        <option value="">
-                          {!courseId ? "Select service" : "Select service"}
-                        </option>
-                        {servicesOptions.map((s) =>
-                          s.value !== "2" ? (
-                            <option key={s.value} value={s.value}>
-                              {s.label}
-                            </option>
-                          ) : null,
-                        )}
+                        <option value="">Select service</option>
+                        {servicesOptions.map((s) => (
+                          <option key={s.value} value={s.value}>
+                            {s.label}
+                          </option>
+                        ))}
                       </select>
                     </div>
 
@@ -759,26 +725,19 @@ export default function RegisterForm({
                     <div className="col-12">
                       <select
                         className="form-select"
-                        // value={sessionId}
+                        value={sessionId}
                         onChange={(e) => {
                           setSessionId(e.target.value);
                           setStatus(null);
                         }}
-                        disabled={
-                          !courseId || serviceType === "" || loadingSessions
-                        }
+                        disabled={!courseId || serviceType === ""}
                         style={{
                           borderRadius: 10,
                           borderColor: "rgba(0,35,65,0.20)",
                           padding: "12px 12px",
                         }}
                       >
-                        {/* ✅ Always show "Select package" as initial label */}
-                        <option value="">
-                          {loadingSessions
-                            ? "Loading packages..."
-                            : "Select package"}
-                        </option>
+                        <option value="">Select package</option>
 
                         {sessions.map((s) => {
                           const popular = String(s.is_most_popular) === "1";
