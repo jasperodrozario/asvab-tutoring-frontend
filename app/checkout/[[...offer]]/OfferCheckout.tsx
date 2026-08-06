@@ -26,6 +26,8 @@ import {
 import { CardState } from "@/components/square-payment-form/SquarePaymentForm";
 import { convertCourseIdToProduct } from "@/lib/package-utils";
 import { sanitizeMobileInput } from "@/lib/sanitize-mobile-input";
+import type { CheckoutPackageSummaryData } from "@/lib/checkout-package-info";
+import CheckoutPackageSummary from "@/components/checkout/CheckoutPackageSummary";
 
 type PaymentMode = "one_time" | "subscription";
 type PaymentMethod = "mobile" | "card";
@@ -53,7 +55,11 @@ function looksLikeEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
 }
 
-export default function OfferCheckout() {
+export default function OfferCheckout({
+  packageSummary = null,
+}: {
+  packageSummary?: CheckoutPackageSummaryData | null;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -1191,6 +1197,13 @@ export default function OfferCheckout() {
           }
         `}</style>
       </div>
+
+      {packageSummary ? (
+        <CheckoutPackageSummary
+          descriptionHtml={packageSummary.descriptionHtml}
+          serviceType={packageSummary.serviceType}
+        />
+      ) : null}
     </div>
   );
 }

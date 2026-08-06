@@ -19,6 +19,8 @@ import { BsEye, BsEyeSlash } from "react-icons/bs";
 import { sanitizeMobileInput } from "@/lib/sanitize-mobile-input";
 
 import { convertCourseIdToProduct } from "@/lib/package-utils";
+import type { CheckoutPackageSummaryData } from "@/lib/checkout-package-info";
+import CheckoutPackageSummary from "@/components/checkout/CheckoutPackageSummary";
 
 type PaymentMode = "one_time" | "subscription";
 type Product =
@@ -108,7 +110,11 @@ function looksLikeEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
 }
 
-export default function CheckoutContent() {
+export default function CheckoutContent({
+  packageSummary = null,
+}: {
+  packageSummary?: CheckoutPackageSummaryData | null;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -1179,6 +1185,13 @@ export default function CheckoutContent() {
           </div>
         </div>
       </div>
+
+      {packageSummary ? (
+        <CheckoutPackageSummary
+          descriptionHtml={packageSummary.descriptionHtml}
+          serviceType={packageSummary.serviceType}
+        />
+      ) : null}
     </div>
   );
 }

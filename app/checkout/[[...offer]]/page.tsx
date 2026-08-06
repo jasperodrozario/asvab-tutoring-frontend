@@ -1,20 +1,34 @@
-"use client";
-
 import { Suspense } from "react";
 import CheckoutContent from "./CheckoutContent";
-import { useParams } from "next/navigation";
 import OfferCheckout from "./OfferCheckout";
+import { resolveCheckoutPackageSummary } from "@/lib/checkout-package-info";
 
-export default function CheckoutPage() {
-  const params = useParams();
+function firstParam(
+  value: string | string[] | undefined,
+): string {
+  if (Array.isArray(value)) return value[0] ?? "";
+  return value ?? "";
+}
 
-  // Extract the offer slug from the URL
-  // This will be "summer-deal" if the URL is /checkout/summer-deal
-  const offerSlug = Array.isArray(params.offer)
-    ? params.offer[0]
-    : params.offer;
+export default async function CheckoutPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ offer?: string[] }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const { offer } = await params;
+  const offerSlug = Array.isArray(offer) ? offer[0] : offer;
+  const sp = await searchParams;
 
-  // If there is an offer slug, show the special offer checkout
+  const packageSummary = await resolveCheckoutPackageSummary({
+    courseId: firstParam(sp.course_id),
+    packageId: firstParam(sp.package_id),
+    mode: firstParam(sp.mode),
+    tutoringType:
+      firstParam(sp.tutoring_type) || firstParam(sp.package_type),
+  });
+
   if (offerSlug === "limited-time-offer") {
     return (
       <Suspense
@@ -24,17 +38,16 @@ export default function CheckoutPage() {
           </div>
         }
       >
-        <OfferCheckout />
+        <OfferCheckout packageSummary={packageSummary} />
       </Suspense>
     );
   }
 
-  // Otherwise, show the regular checkout
   return (
     <Suspense
       fallback={<div className="container py-5">Loading checkout…</div>}
     >
-      <CheckoutContent />
+      <CheckoutContent packageSummary={packageSummary} />
     </Suspense>
   );
 }

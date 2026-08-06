@@ -104,11 +104,16 @@ export function convertCourseCodeToId(courseCode: string): string {
   return courseCodeToIdMap[courseCode.toLowerCase()] ?? courseCode;
 }
 
-export function convertCourseIdToProduct(courseId: string): string {
+export function convertCourseIdToCode(courseId: string): string {
   const entry = Object.entries(courseCodeToIdMap).find(
     ([, id]) => id === String(courseId),
   );
-  return entry ? getFriendlyCourseName(entry[0]) : "";
+  return entry?.[0] ?? "";
+}
+
+export function convertCourseIdToProduct(courseId: string): string {
+  const code = convertCourseIdToCode(courseId);
+  return code ? getFriendlyCourseName(code) : "";
 }
 
 export type PricingSubmenu = "one" | "group" | "subscribe";
