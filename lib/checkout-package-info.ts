@@ -87,8 +87,9 @@ export function extractPackageIncludesHtml(description: string): string {
   const decoded = decodeHtmlEntitiesDeep(description ?? "").trim();
   if (!decoded) return "";
 
+  // Prod CMS content uses <h3>; older/dev content used <h2>.
   const match = decoded.match(
-    /<h2[^>]*>\s*Package\s+Includes\s*<\/h2>[\s\S]*/i,
+    /<h([1-6])[^>]*>\s*Package\s+Includes\s*<\/h\1>[\s\S]*/i,
   );
   return (match?.[0] ?? decoded).trim();
 }

@@ -14,7 +14,10 @@
   font-size: 1rem;
 }
 
-.content :global(h2) {
+.content :global(h1),
+.content :global(h2),
+.content :global(h3),
+.content :global(h4) {
   color: #002341;
   font-weight: 700;
   font-size: 1.5rem;
