@@ -97,6 +97,8 @@ const Packages = ({
                     width={400}
                     height={200}
                     className="card-img-top"
+                    unoptimized
+                    loading="lazy"
                     style={{ height: "200px", objectFit: "cover" }}
                   />
                   <div className="card-body text-start">

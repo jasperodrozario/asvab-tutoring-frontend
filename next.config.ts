@@ -2,8 +2,10 @@
 import type { NextConfig } from 'next';
 
 const phpApiUrl = process.env.PHP_API_URL || process.env.NEXT_PUBLIC_PHP_API_URL;
+const resourcesUrl = process.env.NEXT_PUBLIC_RESOURCES_URL;
 
 let apiHostname = '';
+let resourcesHostname = '';
 
 if (phpApiUrl) {
   try {
@@ -12,6 +14,16 @@ if (phpApiUrl) {
     console.error('Invalid PHP API URL in env:', phpApiUrl);
   }
 }
+
+if (resourcesUrl) {
+  try {
+    resourcesHostname = new URL(resourcesUrl).hostname;
+  } catch (error) {
+    console.error('Invalid RESOURCES URL in env:', resourcesUrl);
+  }
+}
+
+const imageRemoteHostnames = [...new Set([apiHostname, resourcesHostname].filter(Boolean))];
 
 const legacyCourseRedirects = [
   'asvab',
@@ -94,17 +106,13 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
-    unoptimized: true,
-    remotePatterns: apiHostname
-      ? [
-          {
-            protocol: 'https',
-            hostname: apiHostname,
-            port: '',
-            pathname: '/**',
-          },
-        ]
-      : [],
+    formats: ['image/avif', 'image/webp'],
+    remotePatterns: imageRemoteHostnames.map((hostname) => ({
+      protocol: 'https' as const,
+      hostname,
+      port: '',
+      pathname: '/**',
+    })),
   },
 };
 

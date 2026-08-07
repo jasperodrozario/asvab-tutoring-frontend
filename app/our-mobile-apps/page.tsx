@@ -93,9 +93,9 @@ export default async function OurAppsPage() {
                         <Image
                           src="/images/download-on-the-app-store.svg"
                           alt="App Store"
-                          width={0}
-                          height={0}
-                          sizes="100vw"
+                          width={120}
+                          height={40}
+                          unoptimized
                           style={{ width: "auto", height: "40px" }}
                         />
                       </Link>
@@ -111,9 +111,9 @@ export default async function OurAppsPage() {
                         <Image
                           src="/images/Google_Play_Store_badge_EN.svg"
                           alt="Google Play"
-                          width={0}
-                          height={0}
-                          sizes="100vw"
+                          width={135}
+                          height={40}
+                          unoptimized
                           style={{ width: "auto", height: "40px" }}
                         />
                       </Link>

@@ -24,6 +24,8 @@ export default function WelcomeSection({ initialWelcome = null }: Props) {
               height={8}
               className="position-absolute start-50 translate-middle-x bottom-0"
               style={{ objectFit: "cover" }}
+              loading="lazy"
+              decoding="async"
             />
           </h2>
         </div>

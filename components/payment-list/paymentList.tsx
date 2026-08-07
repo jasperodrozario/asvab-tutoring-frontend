@@ -70,6 +70,7 @@ export default function PaymentMethodSection() {
                       height={45}
                       alt={item.payment_method}
                       className="img-fluid"
+                      unoptimized
                     />
                   </div>
 

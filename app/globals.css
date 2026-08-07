@@ -177,12 +177,17 @@ a {
   padding: 0.5rem 0;
 }
 
-/* Homepage Hero section */
+/* Homepage Hero section — image is a prioritized <Image>, not a late CSS bg */
 .bg-hero {
-  background-image: url("/images/asvab-bg.jpg");
-  background-size: cover;
-  background-position: center;
   position: relative;
+  overflow: clip;
+}
+
+.bg-hero-image {
+  object-fit: cover;
+  object-position: center;
+  z-index: 0;
+  pointer-events: none;
 }
 
 .bg-hero::before {
@@ -190,12 +195,38 @@ a {
   position: absolute;
   inset: 0;
   background-color: rgba(0, 0, 0, 0.8);
-  z-index: 0;
+  z-index: 1;
+  pointer-events: none;
 }
 
 .hero-content {
   position: relative;
-  z-index: 1;
+  z-index: 2;
+}
+
+.hero-video-poster-btn {
+  cursor: pointer;
+  display: block;
+  line-height: 0;
+}
+
+.hero-video-play-icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.hero-video-poster-btn:hover .hero-video-play-icon,
+.hero-video-poster-btn:focus-visible .hero-video-play-icon {
+  transform: scale(1.06);
+}
+
+.hero-video-poster-btn:focus-visible {
+  outline: 2px solid #f2a155;
+  outline-offset: 2px;
 }
 
 .bg-custom-dark {
@@ -280,9 +311,23 @@ a {
 
 /* FAQ section accordion End*/
 
-/*Slide Testimonial-section */
+/* Slide Testimonial-section — bg image is lazy-loaded in the component */
 .testimonial-section {
-  background: url("/images/review_bg-1.jpg") center/cover no-repeat;
+  position: relative;
+  overflow: clip;
+  background-color: #e8eef5;
+}
+
+.testimonial-section-bg {
+  object-fit: cover;
+  object-position: center;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.testimonial-section > .container {
+  position: relative;
+  z-index: 1;
 }
 
 .quote-icon {

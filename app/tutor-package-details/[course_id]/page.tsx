@@ -93,6 +93,7 @@ export default function PackageDetailsPage({
                 height={400}
                 className="img-fluid rounded shadow-sm"
                 style={{ objectFit: "cover" }}
+                unoptimized
               />
             </div>
 
@@ -274,6 +275,8 @@ export default function PackageDetailsPage({
                         height={200}
                         className="rounded mb-3 w-100"
                         style={{ objectFit: "cover", height: "200px" }}
+                        unoptimized
+                        loading="lazy"
                       />
                       <h6
                         className="fw-semibold mb-2"

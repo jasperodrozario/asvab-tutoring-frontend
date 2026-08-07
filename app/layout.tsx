@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import Navbar from "@/components/navbar/Navbar";
 import Footer from "@/components/footer/Footer";
@@ -10,16 +9,6 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import "./globals.css";
 import { SITE_URL } from "@/lib/seo";
 import { HOME_SEO } from "@/lib/page-metadata";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -68,10 +57,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable}`}
-        suppressHydrationWarning={true}
-      >
+      <body suppressHydrationWarning={true}>
         <ScrollToTop />
         <Navbar
           courses={courses}

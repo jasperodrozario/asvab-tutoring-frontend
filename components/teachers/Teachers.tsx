@@ -23,6 +23,8 @@ export default function Teachers({ initialTutors = [] }: Props) {
             height={8}
             className="position-absolute start-50 translate-middle-x bottom-0"
             style={{ objectFit: "cover" }}
+            loading="lazy"
+            decoding="async"
           />
         </h2>
       </div>
@@ -43,6 +45,7 @@ export default function Teachers({ initialTutors = [] }: Props) {
                       height={277}
                       style={{ objectFit: "contain" }}
                       unoptimized={true}
+                      loading="lazy"
                     />
                   </div>
                   <div className="card-body d-flex flex-column text-start px-4">
@@ -52,8 +55,8 @@ export default function Teachers({ initialTutors = [] }: Props) {
                     <p className="text-center text-primary small mb-3 fw-medium">
                       {teacher.designation || "Tutor"}
                     </p>
-                    <p
-                      className="card-text small  "
+                    <div
+                      className="card-text small"
                       dangerouslySetInnerHTML={{
                         __html: teacher.about || "No bio available.",
                       }}

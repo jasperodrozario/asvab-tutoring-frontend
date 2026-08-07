@@ -6,15 +6,34 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 
 export default function Footer() {
-  // Add client-side only state to handle rendering
   const [isMounted, setIsMounted] = useState(false);
+  const [loadBg, setLoadBg] = useState(false);
 
-  // Only render the component after it's mounted on the client
   useEffect(() => {
     setIsMounted(true);
+    let cancelled = false;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    let idleId: number | undefined;
+
+    const enableBg = () => {
+      if (!cancelled) setLoadBg(true);
+    };
+
+    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+      idleId = window.requestIdleCallback(enableBg, { timeout: 2000 });
+    } else {
+      timeoutId = setTimeout(enableBg, 1);
+    }
+
+    return () => {
+      cancelled = true;
+      if (idleId != null && "cancelIdleCallback" in window) {
+        window.cancelIdleCallback(idleId);
+      }
+      if (timeoutId != null) clearTimeout(timeoutId);
+    };
   }, []);
 
-  // Create a simple placeholder with similar structure for SSR
   if (!isMounted) {
     return (
       <footer className="text-white py-5">
@@ -26,10 +45,14 @@ export default function Footer() {
   return (
     <footer
       className="text-white"
-      style={{
-        background:
-          "url('/images/footer_bg.jpg') center center/cover no-repeat",
-      }}
+      style={
+        loadBg
+          ? {
+              background:
+                "url('/images/footer_bg.jpg') center center/cover no-repeat",
+            }
+          : { backgroundColor: "#0b1f3a" }
+      }
     >
       <div
         className="container-xxl"
@@ -114,9 +137,9 @@ export default function Footer() {
                 <Image
                   src="/images/download-on-the-app-store.svg"
                   alt="App Store"
-                  width={0}
-                  height={0}
-                  sizes="100vw"
+                  width={120}
+                  height={40}
+                  unoptimized
                   style={{ width: "auto", height: "40px" }}
                 />
               </a>
@@ -129,9 +152,9 @@ export default function Footer() {
                 <Image
                   src="/images/Google_Play_Store_badge_EN.svg"
                   alt="Google Play"
-                  width={0}
-                  height={0}
-                  sizes="100vw"
+                  width={135}
+                  height={40}
+                  unoptimized
                   style={{ width: "auto", height: "40px" }}
                 />
               </a>

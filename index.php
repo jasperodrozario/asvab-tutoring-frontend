@@ -26,7 +26,8 @@ if (
     return false;
 }
 
-// 2) Never let PHP try to handle Next static assets or common public assets
+// 2) Never let PHP try to handle Next static assets or common public assets.
+//    Exception: /_next/image is a dynamic optimizer route and must be proxied.
 $staticPrefixes = [
     '/_next/',
     '/images/',
@@ -38,10 +39,14 @@ $staticFiles = [
     '/manifest.json',
 ];
 
-foreach ($staticPrefixes as $prefix) {
-    if (strpos($path, $prefix) === 0) {
-        http_response_code(404);
-        exit;
+$isNextImageOptimizer = strpos($path, '/_next/image') === 0;
+
+if (!$isNextImageOptimizer) {
+    foreach ($staticPrefixes as $prefix) {
+        if (strpos($path, $prefix) === 0) {
+            http_response_code(404);
+            exit;
+        }
     }
 }
 

@@ -60,6 +60,8 @@ export default function Faq({ initialFaqs }: Props) {
               height={8}
               className="position-absolute start-50 translate-middle-x bottom-0"
               style={{ height: "8px", width: "160px", objectFit: "cover" }}
+              loading="lazy"
+              decoding="async"
             />
           </h2>
         </div>

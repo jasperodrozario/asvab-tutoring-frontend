@@ -51,7 +51,7 @@ export default function OurTutorsContent({ tutors }: Props) {
                     <p className="text-center text-primary small mb-3 fw-medium">
                       {teacher.designation || "Tutor"}
                     </p>
-                    <p
+                    <div
                       className="card-text small"
                       dangerouslySetInnerHTML={{
                         __html: teacher.about || "No bio available.",

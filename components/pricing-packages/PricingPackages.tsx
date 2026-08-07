@@ -57,6 +57,8 @@ function PackageCard({
             width={400}
             height={250}
             className="card-img-top"
+            unoptimized
+            loading="lazy"
             style={{
               width: "100%",
               height: "auto",

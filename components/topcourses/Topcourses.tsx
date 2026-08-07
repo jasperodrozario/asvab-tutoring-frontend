@@ -118,6 +118,8 @@ const CourseCard = ({ course }: { course: NavCourse }) => {
           className="card-img-top course-card-img"
           width={300}
           height={210}
+          loading="lazy"
+          decoding="async"
         />
         <div className="card-body d-flex flex-column flex-grow-1 pb-2">
           <h5 className="card-title fw-semibold text-dark text-center">
@@ -166,6 +168,8 @@ export default function TopCourses({ initialCourses = [] }: Props) {
             height={8}
             className="position-absolute start-50 translate-middle-x bottom-0"
             style={{ objectFit: "cover" }}
+            loading="lazy"
+            decoding="async"
           />
         </h2>
       </div>

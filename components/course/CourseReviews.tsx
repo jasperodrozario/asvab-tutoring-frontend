@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { Carousel } from "react-bootstrap";
 import type { UserFeedback } from "@/lib/course-types";
 import { shuffleArray } from "@/lib/course-types";
@@ -177,6 +178,15 @@ export default function CourseReviews({
       className="testimonial-section text-center py-5"
       aria-labelledby="course-reviews-heading"
     >
+      <Image
+        src="/images/review_bg-1.jpg"
+        alt=""
+        fill
+        loading="lazy"
+        sizes="100vw"
+        className="testimonial-section-bg"
+        quality={60}
+      />
       <div className={`container ${styles.container}`}>
         <h2
           id="course-reviews-heading"
@@ -190,6 +200,8 @@ export default function CourseReviews({
             height={8}
             className="position-absolute bottom-0 start-50 translate-middle-x"
             style={{ objectFit: "cover" }}
+            loading="lazy"
+            decoding="async"
           />
         </h2>
 
