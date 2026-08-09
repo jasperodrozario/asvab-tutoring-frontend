@@ -821,13 +821,27 @@ export async function POST(req: NextRequest) {
         60,
       );
 
+      const resolvedCourseId = safeStr(
+        course_id || planLookup.course_id || "",
+        60,
+      );
+
+      if (!resolvedCourseId || resolvedCourseId === "0") {
+        return json(400, {
+          ok: false,
+          message:
+            "Course ID is required to finish registration. Please try again or contact support.",
+        });
+      }
+
       await callPhp({
         action: "web-user-registration-subscription",
-        course_id: course_id,
+        course_id: resolvedCourseId,
         user_id: user_id_from_client,
         subscription_date: start_date,
         package_id: package_id,
         session_id: picked_session_id,
+        amount: amount_cents,
         raw_amount: amount_cents,
         currency: currency,
         status: status,

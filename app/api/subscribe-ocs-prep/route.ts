@@ -76,9 +76,9 @@ async function saveSubscriptionToPhp(args: any) {
   form.append("last_name", args.last_name);
   form.append("mobile", args.mobile || "");
 
-  form.append("course_id", args.course_id || "0");
-  form.append("session_id", args.session_id || "0");
-  form.append("package_id", args.package_id || "0");
+  form.append("course_id", cleanString(args.course_id));
+  form.append("session_id", cleanString(args.session_id));
+  form.append("package_id", cleanString(args.package_id));
 
   form.append("amount", String(args.amountInCents));
   form.append("currency", "USD");
@@ -141,6 +141,20 @@ export async function POST(req: NextRequest) {
     if (!body.planVariationId) throw new Error("Missing planVariationId.");
     if (!body.sourceId) throw new Error("Payment method not verified.");
 
+    const courseId = cleanString(body.course_id);
+    const sessionId = cleanString(body.session_id);
+    const packageId = cleanString(body.package_id);
+
+    if (!courseId || courseId === "0") {
+      throw new Error("Course ID is required.");
+    }
+    if (!sessionId || sessionId === "0") {
+      throw new Error("Session ID is required.");
+    }
+    if (!packageId || packageId === "0") {
+      throw new Error("Package ID is required.");
+    }
+
     const amountInCents = parseAmountToCents(body.amount);
     const firstName = body.first_name || body.userName?.split(" ")[0] || "";
     const lastName =
@@ -200,6 +214,9 @@ export async function POST(req: NextRequest) {
 
     const phpResponse = await saveSubscriptionToPhp({
       ...body,
+      course_id: courseId,
+      session_id: sessionId,
+      package_id: packageId,
       first_name: firstName,
       last_name: lastName,
       amountInCents,

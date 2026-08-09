@@ -246,9 +246,10 @@ async function saveSubscriptionToPhp(args: {
   form.append("subscription_id", args.squareSubscriptionId);
   form.append("plan_variation_id", args.planVariationId);
 
-  if (args.course_id) form.append("course_id", args.course_id);
-  if (args.session_id) form.append("session_id", args.session_id);
-  if (args.package_id) form.append("package_id", args.package_id);
+  // Always post IDs — PHP requires course_id (with session/package fallback).
+  form.append("course_id", String(args.course_id || "").trim());
+  form.append("session_id", String(args.session_id || "").trim());
+  form.append("package_id", String(args.package_id || "").trim());
 
   const res = await fetch(phpUrl, {
     method: "POST",
@@ -379,6 +380,39 @@ export async function POST(req: NextRequest) {
       String(body.session_id),
     );
 
+    // Resolve IDs early (prefer client, fall back to plan row) before charging Square
+    const resolvedCourseId = String(
+      body.course_id || planRow.course_id || "",
+    ).trim();
+    const resolvedPackageId = String(
+      body.package_id || planRow.package_id || "",
+    ).trim();
+    const resolvedSessionId = String(
+      body.session_id || planRow.session_id || "",
+    ).trim();
+
+    if (!resolvedCourseId || resolvedCourseId === "0") {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Course ID is required. Please return to the course page and try again.",
+        },
+        { status: 400 },
+      );
+    }
+
+    if (!resolvedPackageId || resolvedPackageId === "0") {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Package ID is required. Please return to the course page and try again.",
+        },
+        { status: 400 },
+      );
+    }
+
     // Optional consistency check: cadence sent from frontend should match DB
     if (
       String(planRow.package_duration).trim() !== String(body.cadence).trim()
@@ -467,17 +501,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Use DB values from PHP as source of truth when available
-    const resolvedCourseId = String(
-      body.course_id || planRow.course_id || "",
-    ).trim();
-    const resolvedPackageId = String(
-      body.package_id || planRow.package_id || "",
-    ).trim();
-    const resolvedSessionId = String(
-      body.session_id || planRow.session_id || "",
-    ).trim();
-
     // 6) Save to PHP
     const phpSave = await saveSubscriptionToPhp({
       product: body.product,
@@ -487,9 +510,9 @@ export async function POST(req: NextRequest) {
       userName: String(body.userName),
       password: body.password,
       mobile: body.mobile,
-      course_id: resolvedCourseId || undefined,
-      session_id: resolvedSessionId || undefined,
-      package_id: resolvedPackageId || undefined,
+      course_id: resolvedCourseId,
+      session_id: resolvedSessionId,
+      package_id: resolvedPackageId,
       squareSubscriptionId: subscription.id,
       squareCustomerId: customer.id,
       squareCardId: card.id,
