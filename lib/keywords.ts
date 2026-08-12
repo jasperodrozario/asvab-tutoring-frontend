@@ -23,7 +23,8 @@ export type CourseCode =
   | "oar"
   | "hesi-a2"
   | "ati-teas"
-  | "cna";
+  | "cna"
+  | "shsat";
 
 export const COURSE_CODES: readonly CourseCode[] = [
   "asvab",
@@ -34,6 +35,7 @@ export const COURSE_CODES: readonly CourseCode[] = [
   "hesi-a2",
   "ati-teas",
   "cna",
+  "shsat",
 ] as const;
 
 /** Keyword groups for each exam (provided keyword list only). */
@@ -156,6 +158,16 @@ export const COURSE_KEYWORDS: Record<CourseCode, KeywordGroups> = {
     buyerIntent: ["CNA tutor online", "best CNA tutoring program"],
     practiceTest: ["free CNA practice test", "CNA practice test online"],
     predictionTest: ["free CNA prediction test"],
+  },
+  shsat: {
+    main: ["SHSAT tutoring", "SHSAT tutor", "SHSAT prep"],
+    longTail: ["SHSAT exam prep", "SHSAT test prep"],
+    local: ["SHSAT tutor in {city}", "SHSAT tutoring in {city}"],
+    app: [],
+    questionBased: ["SHSAT exam prep"],
+    buyerIntent: ["SHSAT tutor online", "best SHSAT tutoring program"],
+    practiceTest: ["free SHSAT practice test", "SHSAT practice test online"],
+    predictionTest: ["free SHSAT prediction test"],
   },
 };
 

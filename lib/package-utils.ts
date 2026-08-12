@@ -17,6 +17,7 @@ const courseCodeToIdMap: Record<string, string> = {
   "hesi-a2": "56",
   "ati-teas": "57",
   cna: "58",
+  shsat: "59",
 };
 
 export const MILITARY_COURSE_CODES = [
@@ -93,7 +94,8 @@ export function getFriendlyCourseName(courseCode: string): string {
   if (code.includes("hesi")) return "HESI A2";
   if (code.includes("teas")) return "ATI TEAS";
   if (code.includes("cna")) return "CNA";
-  return "Military Prep";
+  if (code.includes("shsat")) return "SHSAT";
+  return "Unknown Course";
 }
 
 export function convertServiceTypeToSubmenu(serviceType: string): string {
