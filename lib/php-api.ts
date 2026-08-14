@@ -26,6 +26,11 @@ import {
   type CourseReadinessResult,
 } from "@/lib/course-readiness";
 import { unstable_cache } from "next/cache";
+import {
+  toStateMathGradeOptions,
+  type StateMathGradeOption,
+  type StateTestPreparationCourseRow,
+} from "@/lib/state-math-test";
 
 export const PHP_API_REVALIDATE_SECONDS = 3600;
 
@@ -985,5 +990,19 @@ export async function fetchFreePredTestCatalog(): Promise<FreePredTestCourse[]> 
   );
 
   return entries.filter((entry): entry is FreePredTestCourse => entry !== null);
+}
+
+export async function fetchStateTestPreparationCourses(): Promise<
+  StateMathGradeOption[]
+> {
+  const result = await postPhpApi<
+    PhpApiSuccess<StateTestPreparationCourseRow[]>
+  >("get-state-test-preparation-courses");
+
+  if (!result?.isSuccess || !Array.isArray(result.data)) {
+    return [];
+  }
+
+  return toStateMathGradeOptions(result.data);
 }
 

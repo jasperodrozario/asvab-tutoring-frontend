@@ -35,6 +35,7 @@ const legacyCourseRedirects = [
   'ati-teas',
   'cna',
   'shsat',
+  'state-math-test-prep',
 ] as const;
 
 const CANONICAL_HOST = 'www.asvab-tutoring.com';

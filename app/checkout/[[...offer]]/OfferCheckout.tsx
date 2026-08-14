@@ -28,6 +28,7 @@ import { convertCourseIdToProduct } from "@/lib/package-utils";
 import { sanitizeMobileInput } from "@/lib/sanitize-mobile-input";
 import type { CheckoutPackageSummaryData } from "@/lib/checkout-package-info";
 import CheckoutPackageSummary from "@/components/checkout/CheckoutPackageSummary";
+import type { StateMathGradeOption } from "@/lib/state-math-test";
 
 type PaymentMode = "one_time" | "subscription";
 type PaymentMethod = "mobile" | "card";
@@ -57,8 +58,12 @@ function looksLikeEmail(email: string) {
 
 export default function OfferCheckout({
   packageSummary = null,
+  stateMathGrades = [],
+  requiresGradeSelection = false,
 }: {
   packageSummary?: CheckoutPackageSummaryData | null;
+  stateMathGrades?: StateMathGradeOption[];
+  requiresGradeSelection?: boolean;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -79,6 +84,8 @@ export default function OfferCheckout({
     if (s.includes("hesi")) return "HESI A2";
     if (s.includes("teas")) return "ATI TEAS";
     if (s.includes("cna")) return "CNA";
+    if (s.includes("shsat")) return "SHSAT";
+    if (s.includes("state-math") || s === "60") return "State Math Test Prep";
     return "ASVAB"; // Default for deals
   }
 
@@ -119,9 +126,15 @@ export default function OfferCheckout({
     last_name: "",
     mobile: "",
     confirm_password: "",
+    grade: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);
+  const [selectedGradeCourseId, setSelectedGradeCourseId] = useState("");
+
+  const resolvedCourseId = requiresGradeSelection
+    ? selectedGradeCourseId
+    : course_id;
   const [emailChecking, setEmailChecking] = useState(false);
   const [emailExists, setEmailExists] = useState(false);
   const [emailCheckMsg, setEmailCheckMsg] = useState("");
@@ -269,7 +282,7 @@ export default function OfferCheckout({
       const body = new URLSearchParams();
       body.append("action", EMAIL_CHECK_ACTION);
       body.append("email", email);
-      if (course_id) body.append("course_id", String(course_id));
+      if (resolvedCourseId) body.append("course_id", String(resolvedCourseId));
       if (session_id) body.append("session_id", String(session_id));
 
       try {
@@ -287,7 +300,7 @@ export default function OfferCheckout({
         };
       }
     },
-    [API_URL, course_id, session_id],
+    [API_URL, resolvedCourseId, session_id],
   );
 
   const runEmailCheck = useCallback(
@@ -467,9 +480,19 @@ export default function OfferCheckout({
       !fieldErrors.last_name &&
       !fieldErrors.mobile &&
       !fieldErrors.confirm_password &&
+      !fieldErrors.grade &&
+      (!requiresGradeSelection || !!selectedGradeCourseId) &&
       !invalidBase
     );
-  }, [agreeTerms, user, fieldErrors, emailReady, invalidBase]);
+  }, [
+    agreeTerms,
+    user,
+    fieldErrors,
+    emailReady,
+    invalidBase,
+    requiresGradeSelection,
+    selectedGradeCourseId,
+  ]);
 
   const cardBlockedByEmail = !emailReady;
 
@@ -501,6 +524,14 @@ export default function OfferCheckout({
       user.password,
     );
 
+    const gradeErr = requiresGradeSelection
+      ? selectedGradeCourseId
+        ? ""
+        : stateMathGrades.length
+          ? "Please select a grade."
+          : "Unable to load grades."
+      : "";
+
     if (!user.email.trim()) {
       setEmailCheckMsg("Email address is required.");
     }
@@ -510,13 +541,15 @@ export default function OfferCheckout({
       lastNameErr ||
       mobileErr ||
       confirmErr ||
-      !user.email.trim()
+      !user.email.trim() ||
+      gradeErr
     ) {
       setFieldErrors({
         first_name: firstNameErr,
         last_name: lastNameErr,
         mobile: mobileErr,
         confirm_password: confirmErr,
+        grade: gradeErr,
       });
       setMobileResult({
         type: "danger",
@@ -558,7 +591,7 @@ export default function OfferCheckout({
     try {
       const body = new URLSearchParams();
       body.append("action", "user-registration-mobile-payment");
-      body.append("course_id", String(course_id));
+      body.append("course_id", String(resolvedCourseId));
       body.append("session_id", String(session_id));
       body.append("package_id", String(package_id));
       body.append("first_name", user.first_name);
@@ -870,7 +903,7 @@ export default function OfferCheckout({
                       <SquarePaymentForm
                         ref={squareFormRef}
                         amount={amountCents}
-                        course_id={course_id}
+                        course_id={resolvedCourseId}
                         session_id={session_id}
                         package_id={package_id}
                         user={user}
@@ -945,6 +978,47 @@ export default function OfferCheckout({
                     </div>
                   )}
                 </div>
+
+                {requiresGradeSelection && (
+                  <div className="mb-2">
+                    <select
+                      className={`form-select ${fieldErrors.grade ? "is-invalid" : ""}`}
+                      name="grade"
+                      value={selectedGradeCourseId}
+                      onChange={(e) => {
+                        setSelectedGradeCourseId(e.target.value);
+                        setFieldErrors((prev) => ({
+                          ...prev,
+                          grade: e.target.value
+                            ? ""
+                            : stateMathGrades.length
+                              ? "Please select a grade."
+                              : "Unable to load grades.",
+                        }));
+                      }}
+                      required
+                    >
+                      <option value="">
+                        {stateMathGrades.length
+                          ? "Select grade"
+                          : "Unable to load grades"}
+                      </option>
+                      {stateMathGrades.map((grade) => (
+                        <option key={grade.course_id} value={grade.course_id}>
+                          {grade.course_name}
+                        </option>
+                      ))}
+                    </select>
+                    {fieldErrors.grade && (
+                      <div
+                        className="invalid-feedback"
+                        style={{ fontSize: 13, fontWeight: 600 }}
+                      >
+                        {fieldErrors.grade}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 <div className="mb-2">
                   <input

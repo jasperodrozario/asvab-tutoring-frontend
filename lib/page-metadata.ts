@@ -139,6 +139,11 @@ export const COURSE_SEO: Record<string, PageSeo> = {
     description:
       "Get expert CNA exam prep, focused study strategies, and proven resources. Enroll in a CNA prep course designed to help you pass with confidence.",
   },
+  "state-math-test-prep": {
+    title: "State Math Test Prep | Grade-Level Math Tutoring",
+    description:
+      "Prepare for state math tests with expert tutoring, grade-level practice, and proven study strategies designed to build confidence and raise scores.",
+  },
 };
 
 export const FREE_PRACTICE_TEST_SEO: Record<string, PageSeo> = {
