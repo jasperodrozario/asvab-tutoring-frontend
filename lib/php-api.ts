@@ -208,7 +208,6 @@ export type CourseAssessmentBundle = {
   details: CourseData | null;
   packagesByService: PackagesByService;
   freePracticeTest: FreePracticeTestResponse | null;
-  freePredictionTest: FreePredTestResponse | null;
 };
 
 function normalizeCourseCode(courseCode: string): string {
@@ -758,21 +757,17 @@ async function loadCourseAssessmentBundle(
 ): Promise<CourseAssessmentBundle> {
   const normalizedCode = normalizeCourseCode(courseCode);
 
-  const [details, packagesByService, freePracticeTest, freePredictionTest] =
-    await Promise.all([
-      requirements.details
-        ? fetchCourseDetailsByCode(normalizedCode)
-        : Promise.resolve(null),
-      requirements.packages
-        ? fetchAllPackageDetailsForCourse(normalizedCode)
-        : Promise.resolve({} as PackagesByService),
-      requirements.freePracticeTest
-        ? fetchFreePracticeTestByCode(normalizedCode)
-        : Promise.resolve(null),
-      requirements.freePredictionTest
-        ? fetchFreePredTestByCode(normalizedCode)
-        : Promise.resolve(null),
-    ]);
+  const [details, packagesByService, freePracticeTest] = await Promise.all([
+    requirements.details
+      ? fetchCourseDetailsByCode(normalizedCode)
+      : Promise.resolve(null),
+    requirements.packages
+      ? fetchAllPackageDetailsForCourse(normalizedCode)
+      : Promise.resolve({} as PackagesByService),
+    requirements.freePracticeTest
+      ? fetchFreePracticeTestByCode(normalizedCode)
+      : Promise.resolve(null),
+  ]);
 
   const readiness = assessCourseReadiness(
     {
@@ -780,7 +775,6 @@ async function loadCourseAssessmentBundle(
       details,
       packagesByService,
       freePracticeTest,
-      freePredictionTest,
     },
     requirements,
   );
@@ -790,7 +784,6 @@ async function loadCourseAssessmentBundle(
     details,
     packagesByService,
     freePracticeTest,
-    freePredictionTest,
   };
 }
 
@@ -961,11 +954,7 @@ export async function fetchFreePredTestCatalog(): Promise<FreePredTestCourse[]> 
 
   const entries = await Promise.all(
     courses.map(async (course) => {
-      const bundle = await getCachedCourseAssessmentBundle(
-        course.course_code,
-        getPublishRequirementsForCourse(course.course_code),
-      );
-      const predTest = bundle.freePredictionTest;
+      const predTest = await fetchFreePredTestByCode(course.course_code);
       const categories = predTest?.data?.categories;
       const questions = predTest?.data?.questions;
 
