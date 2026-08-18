@@ -4,6 +4,10 @@ import { SquareClient, SquareEnvironment, SquareError } from "square";
 import { randomUUID } from "crypto";
 import { Country } from "square";
 import { parseIsVariant } from "@/lib/package-utils";
+import {
+  checkoutEmailAlreadyRegistered,
+  validateCheckoutCourseId,
+} from "@/lib/php-checkout";
 
 export const runtime = "nodejs";
 
@@ -158,6 +162,23 @@ export async function POST(req: NextRequest) {
       throw new Error("Package ID is required.");
     }
 
+    const courseCheck = await validateCheckoutCourseId({
+      course_id: courseId,
+      session_id: sessionId,
+      package_id: packageId,
+      is_variant: body.is_variant,
+    });
+    if (!courseCheck.ok) {
+      throw new Error(courseCheck.message);
+    }
+
+    const emailTaken = await checkoutEmailAlreadyRegistered(body.userEmail);
+    if (emailTaken === true) {
+      throw new Error(
+        "This email address is already registered. Please log in or use a different email.",
+      );
+    }
+
     const amountInCents = parseAmountToCents(body.amount);
     const firstName = body.first_name || body.userName?.split(" ")[0] || "";
     const lastName =
@@ -215,26 +236,41 @@ export async function POST(req: NextRequest) {
 
     if (!subscription?.id) throw new Error("Subscription activation failed.");
 
-    const phpResponse = await saveSubscriptionToPhp({
-      ...body,
-      course_id: courseId,
-      session_id: sessionId,
-      package_id: packageId,
-      is_variant: parseIsVariant(body.is_variant),
-      first_name: firstName,
-      last_name: lastName,
-      amountInCents,
-      squareSubscriptionId: subscription.id,
-      squareCustomerId: customer.id,
-      planVariationId: body.planVariationId,
-    });
+    try {
+      const phpResponse = await saveSubscriptionToPhp({
+        ...body,
+        course_id: courseId,
+        session_id: sessionId,
+        package_id: packageId,
+        is_variant: parseIsVariant(body.is_variant),
+        first_name: firstName,
+        last_name: lastName,
+        amountInCents,
+        squareSubscriptionId: subscription.id,
+        squareCustomerId: customer.id,
+        planVariationId: body.planVariationId,
+      });
 
-    return NextResponse.json({
-      success: true,
-      message: "Subscription created successfully!",
-      subscriptionId: subscription.id,
-      php: phpResponse,
-    });
+      return NextResponse.json({
+        success: true,
+        message: "Subscription created successfully!",
+        subscriptionId: subscription.id,
+        course_id: phpResponse?.course_id ?? courseCheck.course_id,
+        php: phpResponse,
+      });
+    } catch (phpError) {
+      try {
+        await squareClient.subscriptions.cancel({
+          subscriptionId: subscription.id,
+        });
+      } catch (cancelError) {
+        console.error(
+          "[/api/subscribe-ocs-prep] Failed to cancel Square subscription after PHP save error",
+          cancelError,
+        );
+      }
+      throw phpError;
+    }
   } catch (error: any) {
     console.error("ROUTE ERROR:", error);
     const message =

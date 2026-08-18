@@ -5,6 +5,10 @@ import { SquareClient, SquareEnvironment, SquareError } from "square";
 import { randomUUID } from "crypto";
 import { Currency } from "square";
 import { parseIsVariant } from "@/lib/package-utils";
+import {
+  checkoutEmailAlreadyRegistered,
+  validateCheckoutCourseId,
+} from "@/lib/php-checkout";
 
 export const runtime = "nodejs";
 
@@ -418,6 +422,33 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const courseCheck = await validateCheckoutCourseId({
+      course_id: resolvedCourseId,
+      session_id: resolvedSessionId,
+      package_id: resolvedPackageId,
+      is_variant: resolvedIsVariant,
+    });
+    if (!courseCheck.ok) {
+      return NextResponse.json(
+        { success: false, message: courseCheck.message, error: "course_id" },
+        { status: 400 },
+      );
+    }
+
+    const emailTaken = await checkoutEmailAlreadyRegistered(
+      String(body.userEmail),
+    );
+    if (emailTaken === true) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "This email address is already registered. Please log in or use a different email.",
+        },
+        { status: 400 },
+      );
+    }
+
     // Optional consistency check: cadence sent from frontend should match DB
     if (
       String(planRow.package_duration).trim() !== String(body.cadence).trim()
@@ -506,39 +537,68 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 6) Save to PHP
-    const phpSave = await saveSubscriptionToPhp({
-      product: body.product,
-      cadence: body.cadence,
-      amountInCents,
-      userEmail: String(body.userEmail),
-      userName: String(body.userName),
-      password: body.password,
-      mobile: body.mobile,
-      course_id: resolvedCourseId,
-      session_id: resolvedSessionId,
-      package_id: resolvedPackageId,
-      is_variant: resolvedIsVariant,
-      squareSubscriptionId: subscription.id,
-      squareCustomerId: customer.id,
-      squareCardId: card.id,
-      planVariationId,
-      orderTemplateId: order.id,
-    });
-
-    return NextResponse.json({
-      success: true,
-      message:
-        "Your subscription has been created. Access will activate once your first payment is confirmed.",
-      subscriptionId: subscription.id,
-      php: phpSave,
-      plan_data: {
-        session_id: resolvedSessionId,
+    // 6) Save to PHP. If this fails, cancel Square so the customer is not billed.
+    try {
+      const phpSave = await saveSubscriptionToPhp({
+        product: body.product,
+        cadence: body.cadence,
+        amountInCents,
+        userEmail: String(body.userEmail),
+        userName: String(body.userName),
+        password: body.password,
+        mobile: body.mobile,
         course_id: resolvedCourseId,
+        session_id: resolvedSessionId,
         package_id: resolvedPackageId,
-        plan_variation_id: planVariationId,
-      },
-    });
+        is_variant: resolvedIsVariant,
+        squareSubscriptionId: subscription.id,
+        squareCustomerId: customer.id,
+        squareCardId: card.id,
+        planVariationId,
+        orderTemplateId: order.id,
+      });
+
+      return NextResponse.json({
+        success: true,
+        message:
+          "Your subscription has been created. Access will activate once your first payment is confirmed.",
+        subscriptionId: subscription.id,
+        course_id: phpSave?.course_id ?? courseCheck.course_id,
+        php: phpSave,
+        plan_data: {
+          session_id: resolvedSessionId,
+          course_id: resolvedCourseId,
+          package_id: resolvedPackageId,
+          plan_variation_id: planVariationId,
+        },
+      });
+    } catch (phpError) {
+      try {
+        await squareClient.subscriptions.cancel({
+          subscriptionId: subscription.id,
+        });
+      } catch (cancelError) {
+        console.error(
+          "[/api/subscribe] Failed to cancel Square subscription after PHP save error",
+          cancelError,
+        );
+      }
+
+      const phpMessage =
+        phpError instanceof Error
+          ? phpError.message
+          : "We couldn't finish saving your enrollment.";
+
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "We couldn't finish saving your enrollment. The subscription was canceled so you will not be billed. Please try again or contact support.",
+          error: phpMessage,
+        },
+        { status: 500 },
+      );
+    }
   } catch (error: unknown) {
     const message = friendlySquareError(error);
 

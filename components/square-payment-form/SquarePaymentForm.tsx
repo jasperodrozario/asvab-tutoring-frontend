@@ -21,6 +21,8 @@ type User = {
   email: string;
   mobile?: string;
   password?: string;
+  user_id?: string;
+  id?: string;
 };
 
 type PaymentMode = "one_time" | "subscription";
@@ -573,6 +575,8 @@ const SquarePaymentForm = forwardRef<SquarePaymentFormHandle, Props>(
             session_id,
             package_id,
             is_variant,
+            isExistingUser,
+            user_id: user.user_id || user.id || "",
             user,
           }),
           signal: controller.signal,
