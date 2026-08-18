@@ -1,6 +1,7 @@
 // app/api/subscribe-again/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
+import { parseIsVariant } from "@/lib/package-utils";
 
 export const runtime = "nodejs";
 
@@ -553,6 +554,8 @@ export async function POST(req: NextRequest) {
     }
 
     const course_id = safeStr(ctx.data?.course?.course_id || "", 60);
+    const is_variant = parseIsVariant(ctx.data?.course?.is_variant);
+    const main_course_id = safeStr(ctx.data?.course?.main_course_id || "", 60);
     if (!course_id) {
       return json(500, {
         ok: false,
@@ -821,10 +824,13 @@ export async function POST(req: NextRequest) {
         60,
       );
 
-      const resolvedCourseId = safeStr(
-        course_id || planLookup.course_id || "",
-        60,
-      );
+      // Keep subscribe-again's already-mapped asvab course_id for normal
+      // courses. Variant users must re-register with the grade MAIN id.
+      // Do not use planLookup.course_id (session row; ambiguous id space).
+      const resolvedCourseId =
+        is_variant === 1
+          ? main_course_id
+          : safeStr(course_id || "", 60);
 
       if (!resolvedCourseId || resolvedCourseId === "0") {
         return json(400, {
@@ -837,6 +843,7 @@ export async function POST(req: NextRequest) {
       await callPhp({
         action: "web-user-registration-subscription",
         course_id: resolvedCourseId,
+        is_variant,
         user_id: user_id_from_client,
         subscription_date: start_date,
         package_id: package_id,

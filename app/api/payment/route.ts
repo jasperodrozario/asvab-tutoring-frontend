@@ -1,6 +1,7 @@
 // app/api/payment/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { parseIsVariant } from "@/lib/package-utils";
 
 export const runtime = "nodejs";
 
@@ -121,6 +122,7 @@ export async function POST(req: NextRequest) {
     const course_id = body?.course_id;
     const session_id = body?.session_id;
     const package_id = body?.package_id;
+    const is_variant = parseIsVariant(body?.is_variant);
     const user = body?.user || {};
 
     // Get Referral Data from Cookies
@@ -285,6 +287,7 @@ export async function POST(req: NextRequest) {
         course_id: safeStr(course_id ?? "", 50),
         session_id: safeStr(session_id ?? "", 50),
         package_id: safeStr(package_id ?? "", 50),
+        is_variant: String(is_variant),
         payment_source_type: "CARD",
 
         first_name: safeStr(user?.first_name ?? "", 80),

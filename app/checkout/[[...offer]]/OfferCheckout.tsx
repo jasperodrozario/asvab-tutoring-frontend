@@ -24,7 +24,7 @@ import {
   BsEyeSlash,
 } from "react-icons/bs";
 import { CardState } from "@/components/square-payment-form/SquarePaymentForm";
-import { convertCourseIdToProduct } from "@/lib/package-utils";
+import { convertCourseIdToProduct, parseIsVariant } from "@/lib/package-utils";
 import { sanitizeMobileInput } from "@/lib/sanitize-mobile-input";
 import type { CheckoutPackageSummaryData } from "@/lib/checkout-package-info";
 import CheckoutPackageSummary from "@/components/checkout/CheckoutPackageSummary";
@@ -86,6 +86,7 @@ export default function OfferCheckout({
   const course_id = searchParams.get("course_id") || "";
   const session_id = searchParams.get("session_id") || "";
   const package_id = searchParams.get("package_id") || "";
+  const is_variant = parseIsVariant(searchParams.get("is_variant"));
   const offerTitle = searchParams.get("title") || "Special Offer";
   const tutoringType =
     searchParams.get("tutoring_type") || searchParams.get("package_type") || "";
@@ -561,6 +562,7 @@ export default function OfferCheckout({
       body.append("course_id", String(course_id));
       body.append("session_id", String(session_id));
       body.append("package_id", String(package_id));
+      body.append("is_variant", String(is_variant));
       body.append("first_name", user.first_name);
       body.append("last_name", user.last_name);
       body.append("email", user.email);
@@ -873,6 +875,7 @@ export default function OfferCheckout({
                         course_id={course_id}
                         session_id={session_id}
                         package_id={package_id}
+                        is_variant={is_variant}
                         user={user}
                         mode={mode}
                         onPaymentSuccess={(id) => {

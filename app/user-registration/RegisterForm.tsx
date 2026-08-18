@@ -569,6 +569,7 @@ export default function RegisterForm({
         action: "user-registration",
         course_id: courseId,
         session_id: sessionId,
+        is_variant: "0",
         first_name: form.first_name.trim(),
         last_name: form.last_name.trim(),
         email: form.email.trim(),

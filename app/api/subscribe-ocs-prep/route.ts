@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { SquareClient, SquareEnvironment, SquareError } from "square";
 import { randomUUID } from "crypto";
 import { Country } from "square";
+import { parseIsVariant } from "@/lib/package-utils";
 
 export const runtime = "nodejs";
 
@@ -20,6 +21,7 @@ type Payload = {
   course_id?: string;
   session_id?: string;
   package_id?: string;
+  is_variant?: number | string | boolean;
   planVariationId: string;
   postal_code?: string;
   country_code?: string;
@@ -79,6 +81,7 @@ async function saveSubscriptionToPhp(args: any) {
   form.append("course_id", cleanString(args.course_id));
   form.append("session_id", cleanString(args.session_id));
   form.append("package_id", cleanString(args.package_id));
+  form.append("is_variant", String(parseIsVariant(args.is_variant)));
 
   form.append("amount", String(args.amountInCents));
   form.append("currency", "USD");
@@ -217,6 +220,7 @@ export async function POST(req: NextRequest) {
       course_id: courseId,
       session_id: sessionId,
       package_id: packageId,
+      is_variant: parseIsVariant(body.is_variant),
       first_name: firstName,
       last_name: lastName,
       amountInCents,

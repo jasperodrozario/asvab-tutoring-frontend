@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { SquareClient, SquareEnvironment, SquareError } from "square";
 import { randomUUID } from "crypto";
 import { Currency } from "square";
+import { parseIsVariant } from "@/lib/package-utils";
 
 export const runtime = "nodejs";
 
@@ -30,6 +31,7 @@ type Payload = {
   course_id?: string;
   session_id?: string;
   package_id?: string;
+  is_variant?: number | string | boolean;
 };
 
 type PhpPlanRow = {
@@ -214,6 +216,7 @@ async function saveSubscriptionToPhp(args: {
   course_id?: string;
   session_id?: string;
   package_id?: string;
+  is_variant?: 0 | 1;
   squareSubscriptionId: string;
   squareCustomerId: string;
   squareCardId: string;
@@ -250,6 +253,7 @@ async function saveSubscriptionToPhp(args: {
   form.append("course_id", String(args.course_id || "").trim());
   form.append("session_id", String(args.session_id || "").trim());
   form.append("package_id", String(args.package_id || "").trim());
+  form.append("is_variant", String(args.is_variant ?? 0));
 
   const res = await fetch(phpUrl, {
     method: "POST",
@@ -380,10 +384,11 @@ export async function POST(req: NextRequest) {
       String(body.session_id),
     );
 
-    // Resolve IDs early (prefer client, fall back to plan row) before charging Square
-    const resolvedCourseId = String(
-      body.course_id || planRow.course_id || "",
-    ).trim();
+    // Resolve IDs early before charging Square.
+    // Never use planRow.course_id — that comes from asvab_tutor_package_sessions
+    // and is an ambiguous MAIN/ASVAB mix. package_id from the plan row is safe.
+    const resolvedCourseId = String(body.course_id || "").trim();
+    const resolvedIsVariant = parseIsVariant(body.is_variant);
     const resolvedPackageId = String(
       body.package_id || planRow.package_id || "",
     ).trim();
@@ -513,6 +518,7 @@ export async function POST(req: NextRequest) {
       course_id: resolvedCourseId,
       session_id: resolvedSessionId,
       package_id: resolvedPackageId,
+      is_variant: resolvedIsVariant,
       squareSubscriptionId: subscription.id,
       squareCustomerId: customer.id,
       squareCardId: card.id,

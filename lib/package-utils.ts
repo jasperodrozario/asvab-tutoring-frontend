@@ -104,6 +104,15 @@ export function convertCourseCodeToId(courseCode: string): string {
   return courseCodeToIdMap[courseCode.toLowerCase()] ?? courseCode;
 }
 
+export function parseIsVariant(value: unknown): 0 | 1 {
+  if (value === true || value === 1 || value === "1") return 1;
+  const normalized = String(value ?? "")
+    .trim()
+    .toLowerCase();
+  if (normalized === "true" || normalized === "yes") return 1;
+  return 0;
+}
+
 export function convertCourseIdToCode(courseId: string): string {
   const entry = Object.entries(courseCodeToIdMap).find(
     ([, id]) => id === String(courseId),

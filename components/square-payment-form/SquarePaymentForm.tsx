@@ -54,6 +54,7 @@ type Props = {
   session_id: string;
   package_id: string;
   user: User;
+  is_variant?: 0 | 1;
 
   mode?: PaymentMode;
   product?: Product;
@@ -193,6 +194,7 @@ const SquarePaymentForm = forwardRef<SquarePaymentFormHandle, Props>(
       session_id,
       package_id,
       user,
+      is_variant = 0,
       mode = "one_time",
       product,
       cadence,
@@ -531,6 +533,7 @@ const SquarePaymentForm = forwardRef<SquarePaymentFormHandle, Props>(
               course_id,
               session_id,
               package_id,
+              is_variant,
             }),
             signal: controller.signal,
           });
@@ -569,6 +572,7 @@ const SquarePaymentForm = forwardRef<SquarePaymentFormHandle, Props>(
             course_id,
             session_id,
             package_id,
+            is_variant,
             user,
           }),
           signal: controller.signal,

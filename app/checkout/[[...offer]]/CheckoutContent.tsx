@@ -18,7 +18,7 @@ import NextStepCard from "@/components/next-step-card/NextStepCard";
 import { BsEye, BsEyeSlash } from "react-icons/bs";
 import { sanitizeMobileInput } from "@/lib/sanitize-mobile-input";
 
-import { convertCourseIdToProduct } from "@/lib/package-utils";
+import { convertCourseIdToProduct, parseIsVariant } from "@/lib/package-utils";
 import type { CheckoutPackageSummaryData } from "@/lib/checkout-package-info";
 import CheckoutPackageSummary from "@/components/checkout/CheckoutPackageSummary";
 
@@ -124,6 +124,7 @@ export default function CheckoutContent({
   const course_id = searchParams.get("course_id") || "";
   const session_id = searchParams.get("session_id") || "";
   const package_id = searchParams.get("package_id") || "";
+  const is_variant = parseIsVariant(searchParams.get("is_variant"));
 
   const amountCents = useMemo(() => {
     const raw = searchParams.get("amount") ?? "0";
@@ -624,6 +625,7 @@ export default function CheckoutContent({
       body.append("course_id", String(course_id));
       body.append("session_id", String(session_id));
       body.append("package_id", String(package_id));
+      body.append("is_variant", String(is_variant));
       body.append("first_name", user.first_name);
       body.append("last_name", user.last_name);
       body.append("email", user.email);
@@ -873,6 +875,7 @@ export default function CheckoutContent({
                       course_id={course_id}
                       session_id={session_id}
                       package_id={package_id}
+                      is_variant={is_variant}
                       user={user}
                       mode={mode}
                       product={mode === "subscription" ? product : undefined}
