@@ -24,10 +24,16 @@ import {
   BsEyeSlash,
 } from "react-icons/bs";
 import { CardState } from "@/components/square-payment-form/SquarePaymentForm";
-import { convertCourseIdToProduct, parseIsVariant } from "@/lib/package-utils";
+import { convertCourseIdToProduct } from "@/lib/package-utils";
 import { sanitizeMobileInput } from "@/lib/sanitize-mobile-input";
 import type { CheckoutPackageSummaryData } from "@/lib/checkout-package-info";
 import CheckoutPackageSummary from "@/components/checkout/CheckoutPackageSummary";
+import CourseVariantGradeSelect from "@/components/checkout/CourseVariantGradeSelect";
+import {
+  courseRequiresGradeSelection,
+  resolvePaymentCourseIdentity,
+  type CheckoutVariantInfo,
+} from "@/lib/course-variants";
 
 type PaymentMode = "one_time" | "subscription";
 type PaymentMethod = "mobile" | "card";
@@ -57,8 +63,10 @@ function looksLikeEmail(email: string) {
 
 export default function OfferCheckout({
   packageSummary = null,
+  variantInfo = null,
 }: {
   packageSummary?: CheckoutPackageSummaryData | null;
+  variantInfo?: CheckoutVariantInfo | null;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -86,7 +94,23 @@ export default function OfferCheckout({
   const course_id = searchParams.get("course_id") || "";
   const session_id = searchParams.get("session_id") || "";
   const package_id = searchParams.get("package_id") || "";
-  const is_variant = parseIsVariant(searchParams.get("is_variant"));
+  const requiresGrade = courseRequiresGradeSelection(variantInfo);
+  const [selectedGradeMainId, setSelectedGradeMainId] = useState("");
+
+  const paymentIdentity = useMemo(
+    () =>
+      resolvePaymentCourseIdentity({
+        parentCourseId: course_id,
+        selectedGradeMainId,
+        requiresGrade,
+      }),
+    [course_id, selectedGradeMainId, requiresGrade],
+  );
+
+  const is_variant = paymentIdentity.is_variant;
+  const paymentCourseId = requiresGrade
+    ? paymentIdentity.course_id
+    : course_id;
   const offerTitle = searchParams.get("title") || "Special Offer";
   const tutoringType =
     searchParams.get("tutoring_type") || searchParams.get("package_type") || "";
@@ -468,9 +492,18 @@ export default function OfferCheckout({
       !fieldErrors.last_name &&
       !fieldErrors.mobile &&
       !fieldErrors.confirm_password &&
-      !invalidBase
+      !invalidBase &&
+      (!requiresGrade || !!selectedGradeMainId)
     );
-  }, [agreeTerms, user, fieldErrors, emailReady, invalidBase]);
+  }, [
+    agreeTerms,
+    user,
+    fieldErrors,
+    emailReady,
+    invalidBase,
+    requiresGrade,
+    selectedGradeMainId,
+  ]);
 
   const cardBlockedByEmail = !emailReady;
 
@@ -559,7 +592,7 @@ export default function OfferCheckout({
     try {
       const body = new URLSearchParams();
       body.append("action", "user-registration-mobile-payment");
-      body.append("course_id", String(course_id));
+      body.append("course_id", String(paymentCourseId));
       body.append("session_id", String(session_id));
       body.append("package_id", String(package_id));
       body.append("is_variant", String(is_variant));
@@ -872,7 +905,7 @@ export default function OfferCheckout({
                       <SquarePaymentForm
                         ref={squareFormRef}
                         amount={amountCents}
-                        course_id={course_id}
+                        course_id={paymentCourseId}
                         session_id={session_id}
                         package_id={package_id}
                         is_variant={is_variant}
@@ -898,6 +931,15 @@ export default function OfferCheckout({
                 <h5 className="fw-bold mb-3 text-muted">
                   Your Registration Information
                 </h5>
+
+                {requiresGrade && (
+                  <CourseVariantGradeSelect
+                    id="offer-checkout-grade-select"
+                    variants={variantInfo?.variants ?? []}
+                    value={selectedGradeMainId}
+                    onChange={setSelectedGradeMainId}
+                  />
+                )}
 
                 <div className="mb-2">
                   <input

@@ -11,6 +11,12 @@ import {
   type PackageSession,
   type RegistrationCourseWithServices,
 } from "@/lib/php-api";
+import CourseVariantGradeSelect from "@/components/checkout/CourseVariantGradeSelect";
+import {
+  courseRequiresGradeSelection,
+  resolvePaymentCourseIdentity,
+} from "@/lib/course-variants";
+import { parseHasVariants } from "@/lib/package-utils";
 
 type StatusType = "success" | "error" | "info";
 type Status = { type: StatusType; text: string } | null;
@@ -106,6 +112,7 @@ export default function RegisterForm({
   const [courseId, setCourseId] = useState("");
   const [serviceType, setServiceType] = useState(""); // "0" | "1"
   const [sessionId, setSessionId] = useState("");
+  const [selectedGradeMainId, setSelectedGradeMainId] = useState("");
 
   const [agree, setAgree] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -205,6 +212,21 @@ export default function RegisterForm({
   const selectedCourse = useMemo(
     () => courses.find((c) => c.course_id === courseId) || null,
     [courses, courseId],
+  );
+
+  const requiresGrade = courseRequiresGradeSelection({
+    has_variants: parseHasVariants(selectedCourse?.has_variants),
+    variants: selectedCourse?.variants ?? [],
+  });
+
+  const paymentIdentity = useMemo(
+    () =>
+      resolvePaymentCourseIdentity({
+        parentCourseId: courseId,
+        selectedGradeMainId,
+        requiresGrade,
+      }),
+    [courseId, selectedGradeMainId, requiresGrade],
   );
 
   const servicesOptions = useMemo(() => {
@@ -551,6 +573,8 @@ export default function RegisterForm({
 
     if (!courseId)
       return setStatus({ type: "error", text: "Please select a course." });
+    if (requiresGrade && !selectedGradeMainId)
+      return setStatus({ type: "error", text: "Please select a grade." });
     if (serviceType === "")
       return setStatus({ type: "error", text: "Please select a service." });
     if (!sessionId)
@@ -567,9 +591,9 @@ export default function RegisterForm({
       // Registration API call
       const json = (await postForm({
         action: "user-registration",
-        course_id: courseId,
+        course_id: paymentIdentity.course_id,
         session_id: sessionId,
-        is_variant: "0",
+        is_variant: String(paymentIdentity.is_variant),
         first_name: form.first_name.trim(),
         last_name: form.last_name.trim(),
         email: form.email.trim(),
@@ -673,6 +697,7 @@ export default function RegisterForm({
                         value={courseId}
                         onChange={(e) => {
                           setCourseId(e.target.value);
+                          setSelectedGradeMainId("");
                           setServiceType("");
                           setSessionId("");
                           setStatus(null);
@@ -696,6 +721,21 @@ export default function RegisterForm({
                         ))}
                       </select>
                     </div>
+
+                    {requiresGrade && (
+                      <div className="col-12">
+                        <CourseVariantGradeSelect
+                          id="register-grade-select"
+                          variants={selectedCourse?.variants ?? []}
+                          value={selectedGradeMainId}
+                          onChange={(gradeId) => {
+                            setSelectedGradeMainId(gradeId);
+                            setStatus(null);
+                          }}
+                          className="form-select"
+                        />
+                      </div>
+                    )}
 
                     {/* Service */}
                     <div className="col-12">

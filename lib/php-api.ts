@@ -14,6 +14,7 @@ import type { ServiceType } from "@/types/Services";
 import {
   convertCourseCodeToId,
   convertServiceTypeToSubmenu,
+  parseHasVariants,
   submenuToServiceType,
   type PricingSubmenu,
 } from "@/lib/package-utils";
@@ -124,6 +125,11 @@ export type NavCourse = {
   full_form?: string;
   details?: string;
   image_src?: string;
+  has_variants?: 0 | 1 | boolean;
+  variants?: Array<{
+    main_course_id: number | string;
+    course_name: string;
+  }>;
 };
 
 export type NavService = {
@@ -139,6 +145,11 @@ export type StateOption = {
 export type RegistrationCourse = {
   course_id: string;
   name: string;
+  has_variants?: 0 | 1;
+  variants?: Array<{
+    main_course_id: number | string;
+    course_name: string;
+  }>;
 };
 
 export type PackageSession = {
@@ -382,8 +393,14 @@ export async function fetchPackageSessionList(
  * tutoring packages, and preloads package sessions for the registration form.
  */
 export async function fetchRegistrationTutoringCourseList(): Promise<RegistrationTutoringCourseList> {
-  const { courses, services } = await fetchRegistrationCourseList();
+  const [{ courses, services }, allCourses] = await Promise.all([
+    fetchRegistrationCourseList(),
+    fetchAllCoursesRaw(),
+  ]);
   const tutoringServiceTypes = tutoringServiceTypesFromMap(services);
+  const variantsByCourseId = new Map(
+    allCourses.map((course) => [String(course.course_id), course] as const),
+  );
 
   if (courses.length === 0 || tutoringServiceTypes.length === 0) {
     return { courses: [], services, sessionsByCourseService: {} };
@@ -391,7 +408,7 @@ export async function fetchRegistrationTutoringCourseList(): Promise<Registratio
 
   const sessionsByCourseService: Record<string, PackageSession[]> = {};
 
-  const enrichedCourses = (
+  const enrichedCourses: RegistrationCourseWithServices[] = (
     await Promise.all(
       courses.map(async (course) => {
         const availableServiceTypes: string[] = [];
@@ -414,15 +431,27 @@ export async function fetchRegistrationTutoringCourseList(): Promise<Registratio
         if (availableServiceTypes.length === 0) return null;
 
         availableServiceTypes.sort((a, b) => Number(a) - Number(b));
-        return {
-          ...course,
+        const variantMeta = variantsByCourseId.get(String(course.course_id));
+        const variants = Array.isArray(variantMeta?.variants)
+          ? variantMeta.variants
+          : [];
+        const has_variants: 0 | 1 =
+          parseHasVariants(variantMeta?.has_variants) === 1 &&
+          variants.length > 0
+            ? 1
+            : 0;
+
+        const enriched: RegistrationCourseWithServices = {
+          course_id: course.course_id,
+          name: course.name,
           availableServiceTypes,
-        } satisfies RegistrationCourseWithServices;
+          has_variants,
+          variants: has_variants ? variants : [],
+        };
+        return enriched;
       }),
     )
-  ).filter(
-    (course): course is RegistrationCourseWithServices => course !== null,
-  );
+  ).flatMap((course) => (course ? [course] : []));
 
   return {
     courses: enrichedCourses,

@@ -21,6 +21,7 @@ export const KNOWN_ROUTES_FALLBACK_PATHS: readonly string[] = [
   "/courses/hesi-a2",
   "/courses/ati-teas",
   "/courses/cna",
+  "/courses/state-math-test-prep",
   "/courses/asvab/free-practice-test",
   "/courses/afoqt/free-practice-test",
   "/courses/sift/free-practice-test",
@@ -232,6 +233,10 @@ export const KNOWN_ROUTES_FALLBACK_LINKS: readonly { path: string; label: string
   {
     "path": "/courses/cna",
     "label": "CNA Course"
+  },
+  {
+    "path": "/courses/state-math-test-prep",
+    "label": "State Math Course"
   },
   {
     "path": "/free-practice-tests",
@@ -775,6 +780,6 @@ export const KNOWN_ROUTES_FALLBACK_LINKS: readonly { path: string; label: string
   }
 ] as const;
 
-export const COURSE_CODES = ["asvab","afoqt","sift","astb","oar", "hesi-a2", "ati-teas", "cna"] as const;
+export const COURSE_CODES = ["asvab","afoqt","sift","astb","oar", "hesi-a2", "ati-teas", "cna", "state-math-test-prep"] as const;
 export const SERVICE_TYPES = ["1-on-1-tutoring","group-tutoring","self-study"] as const;
 export const STATIC_PAGE_SEGMENTS = ["about-us","how-it-works","faq","sitemap","our-mobile-apps","our-tutors","privacy-policy","terms-of-service","blog","contact-us"] as const;

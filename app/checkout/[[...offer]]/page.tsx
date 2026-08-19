@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import CheckoutContent from "./CheckoutContent";
 import OfferCheckout from "./OfferCheckout";
 import { resolveCheckoutPackageSummary } from "@/lib/checkout-package-info";
+import { resolveCheckoutVariants } from "@/lib/course-variants";
 
 function firstParam(
   value: string | string[] | undefined,
@@ -20,14 +21,18 @@ export default async function CheckoutPage({
   const { offer } = await params;
   const offerSlug = Array.isArray(offer) ? offer[0] : offer;
   const sp = await searchParams;
+  const courseId = firstParam(sp.course_id);
 
-  const packageSummary = await resolveCheckoutPackageSummary({
-    courseId: firstParam(sp.course_id),
-    packageId: firstParam(sp.package_id),
-    mode: firstParam(sp.mode),
-    tutoringType:
-      firstParam(sp.tutoring_type) || firstParam(sp.package_type),
-  });
+  const [packageSummary, variantInfo] = await Promise.all([
+    resolveCheckoutPackageSummary({
+      courseId,
+      packageId: firstParam(sp.package_id),
+      mode: firstParam(sp.mode),
+      tutoringType:
+        firstParam(sp.tutoring_type) || firstParam(sp.package_type),
+    }),
+    resolveCheckoutVariants(courseId),
+  ]);
 
   if (offerSlug === "limited-time-offer") {
     return (
@@ -38,7 +43,10 @@ export default async function CheckoutPage({
           </div>
         }
       >
-        <OfferCheckout packageSummary={packageSummary} />
+        <OfferCheckout
+          packageSummary={packageSummary}
+          variantInfo={variantInfo}
+        />
       </Suspense>
     );
   }
@@ -47,7 +55,10 @@ export default async function CheckoutPage({
     <Suspense
       fallback={<div className="container py-5">Loading checkout…</div>}
     >
-      <CheckoutContent packageSummary={packageSummary} />
+      <CheckoutContent
+        packageSummary={packageSummary}
+        variantInfo={variantInfo}
+      />
     </Suspense>
   );
 }

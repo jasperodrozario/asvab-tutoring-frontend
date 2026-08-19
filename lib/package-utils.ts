@@ -17,6 +17,7 @@ const courseCodeToIdMap: Record<string, string> = {
   "hesi-a2": "56",
   "ati-teas": "57",
   cna: "58",
+  "state-math-test-prep": "60",
 };
 
 export const MILITARY_COURSE_CODES = [
@@ -93,6 +94,7 @@ export function getFriendlyCourseName(courseCode: string): string {
   if (code.includes("hesi")) return "HESI A2";
   if (code.includes("teas")) return "ATI TEAS";
   if (code.includes("cna")) return "CNA";
+  if (code.includes("state-math")) return "State Math";
   return "Military Prep";
 }
 
@@ -111,6 +113,10 @@ export function parseIsVariant(value: unknown): 0 | 1 {
     .toLowerCase();
   if (normalized === "true" || normalized === "yes") return 1;
   return 0;
+}
+
+export function parseHasVariants(value: unknown): 0 | 1 {
+  return parseIsVariant(value);
 }
 
 export function convertCourseIdToCode(courseId: string): string {

@@ -18,9 +18,15 @@ import NextStepCard from "@/components/next-step-card/NextStepCard";
 import { BsEye, BsEyeSlash } from "react-icons/bs";
 import { sanitizeMobileInput } from "@/lib/sanitize-mobile-input";
 
-import { convertCourseIdToProduct, parseIsVariant } from "@/lib/package-utils";
+import { convertCourseIdToProduct } from "@/lib/package-utils";
 import type { CheckoutPackageSummaryData } from "@/lib/checkout-package-info";
 import CheckoutPackageSummary from "@/components/checkout/CheckoutPackageSummary";
+import CourseVariantGradeSelect from "@/components/checkout/CourseVariantGradeSelect";
+import {
+  courseRequiresGradeSelection,
+  resolvePaymentCourseIdentity,
+  type CheckoutVariantInfo,
+} from "@/lib/course-variants";
 
 type PaymentMode = "one_time" | "subscription";
 type Product =
@@ -112,8 +118,10 @@ function looksLikeEmail(email: string) {
 
 export default function CheckoutContent({
   packageSummary = null,
+  variantInfo = null,
 }: {
   packageSummary?: CheckoutPackageSummaryData | null;
+  variantInfo?: CheckoutVariantInfo | null;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -124,7 +132,24 @@ export default function CheckoutContent({
   const course_id = searchParams.get("course_id") || "";
   const session_id = searchParams.get("session_id") || "";
   const package_id = searchParams.get("package_id") || "";
-  const is_variant = parseIsVariant(searchParams.get("is_variant"));
+  const requiresGrade = courseRequiresGradeSelection(variantInfo);
+  const [selectedGradeMainId, setSelectedGradeMainId] = useState("");
+
+  const paymentIdentity = useMemo(
+    () =>
+      resolvePaymentCourseIdentity({
+        parentCourseId: course_id,
+        selectedGradeMainId,
+        requiresGrade,
+      }),
+    [course_id, selectedGradeMainId, requiresGrade],
+  );
+
+  // Trust server-derived variant metadata, not URL query params.
+  const is_variant = paymentIdentity.is_variant;
+  const paymentCourseId = requiresGrade
+    ? paymentIdentity.course_id
+    : course_id;
 
   const amountCents = useMemo(() => {
     const raw = searchParams.get("amount") ?? "0";
@@ -545,9 +570,18 @@ export default function CheckoutContent({
       !fieldErrors.last_name &&
       !fieldErrors.mobile &&
       !fieldErrors.confirm_password &&
-      !invalidBase
+      !invalidBase &&
+      (!requiresGrade || !!selectedGradeMainId)
     );
-  }, [agreeTerms, user, fieldErrors, emailReady, invalidBase]);
+  }, [
+    agreeTerms,
+    user,
+    fieldErrors,
+    emailReady,
+    invalidBase,
+    requiresGrade,
+    selectedGradeMainId,
+  ]);
 
   const submitMobilePayment = async () => {
     setMobileResult(null);
@@ -622,7 +656,7 @@ export default function CheckoutContent({
     try {
       const body = new URLSearchParams();
       body.append("action", "user-registration-mobile-payment");
-      body.append("course_id", String(course_id));
+      body.append("course_id", String(paymentCourseId));
       body.append("session_id", String(session_id));
       body.append("package_id", String(package_id));
       body.append("is_variant", String(is_variant));
@@ -872,7 +906,7 @@ export default function CheckoutContent({
                     <SquarePaymentForm
                       ref={squareFormRef}
                       amount={amountCents}
-                      course_id={course_id}
+                      course_id={paymentCourseId}
                       session_id={session_id}
                       package_id={package_id}
                       is_variant={is_variant}
@@ -922,6 +956,14 @@ export default function CheckoutContent({
               <h5 className="fw-bold mb-3 text-muted">
                 Your Registration Information
               </h5>
+
+              {requiresGrade && (
+                <CourseVariantGradeSelect
+                  variants={variantInfo?.variants ?? []}
+                  value={selectedGradeMainId}
+                  onChange={setSelectedGradeMainId}
+                />
+              )}
 
               <div className="mb-2">
                 <input
