@@ -610,6 +610,8 @@ function getCourseIdFromCode(courseCode: string): string {
       return "33";
     case "cna":
       return "34";
+    case "shsat":
+      return "30";
     default:
       return "";
   }
