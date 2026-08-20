@@ -35,7 +35,8 @@ type Product =
   | "HESI A2"
   | "ATI TEAS"
   | "CNA"
-  | "SHSAT";
+  | "SHSAT"
+  | "State Math Test Prep";
 type Cadence = "1M" | "3M" | "6M" | "12M";
 
 export type CardState = {
@@ -77,7 +78,9 @@ function isProduct(x: unknown): x is Product {
     x === "OAR" ||
     x === "HESI A2" ||
     x === "ATI TEAS" ||
-    x === "CNA"
+    x === "CNA" ||
+    x === "SHSAT" ||
+    x === "State Math Test Prep"
   );
 }
 

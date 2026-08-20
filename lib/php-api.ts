@@ -612,6 +612,8 @@ function getCourseIdFromCode(courseCode: string): string {
       return "34";
     case "shsat":
       return "30";
+    case "state-math-test-prep":
+      return "60";
     default:
       return "";
   }

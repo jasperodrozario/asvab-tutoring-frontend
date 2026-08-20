@@ -1,4 +1,4 @@
-/** Reference list of known static routes (130 paths). */
+/** Reference list of known static routes (166 paths). */
 export const KNOWN_ROUTES_FALLBACK_PATHS: readonly string[] = [
   "/",
   "/about-us",
@@ -21,17 +21,22 @@ export const KNOWN_ROUTES_FALLBACK_PATHS: readonly string[] = [
   "/courses/hesi-a2",
   "/courses/ati-teas",
   "/courses/cna",
+  "/courses/shsat",
   "/courses/state-math-test-prep",
   "/courses/asvab/free-practice-test",
   "/courses/afoqt/free-practice-test",
   "/courses/sift/free-practice-test",
   "/courses/astb/free-practice-test",
   "/courses/oar/free-practice-test",
+  "/courses/shsat/free-practice-test",
+  "/courses/state-math-test-prep/free-practice-test",
   "/courses/asvab/free-prediction-test",
   "/courses/afoqt/free-prediction-test",
   "/courses/sift/free-prediction-test",
   "/courses/astb/free-prediction-test",
   "/courses/oar/free-prediction-test",
+  "/courses/shsat/free-prediction-test",
+  "/courses/state-math-test-prep/free-prediction-test",
   "/services/1-on-1-tutoring",
   "/pricing/1-on-1-tutoring",
   "/services/group-tutoring",
@@ -62,6 +67,12 @@ export const KNOWN_ROUTES_FALLBACK_PATHS: readonly string[] = [
   "/package-details/self-study/hesi-a2",
   "/package-details/self-study/ati-teas",
   "/package-details/self-study/cna",
+  "/package-details/1-on-1-tutoring/shsat",
+  "/package-details/1-on-1-tutoring/state-math-test-prep",
+  "/package-details/group-tutoring/shsat",
+  "/package-details/group-tutoring/state-math-test-prep",
+  "/package-details/self-study/shsat",
+  "/package-details/self-study/state-math-test-prep",
   "/blog-detail/110/why-it-is-important-to-attempt-asvab-test",
   "/blog-detail/31/top-factors-to-consider-while-selecting-an-asvab-training-center",
   "/blog-detail/36/what-difference-does-it-make-to-an-aspirant-by-joining-the-asvab-training-course",
@@ -235,8 +246,12 @@ export const KNOWN_ROUTES_FALLBACK_LINKS: readonly { path: string; label: string
     "label": "CNA Course"
   },
   {
+    "path": "/courses/shsat",
+    "label": "SHSAT Course"
+  },
+  {
     "path": "/courses/state-math-test-prep",
-    "label": "State Math Course"
+    "label": "State Math Test Prep Course"
   },
   {
     "path": "/free-practice-tests",
@@ -267,6 +282,14 @@ export const KNOWN_ROUTES_FALLBACK_LINKS: readonly { path: string; label: string
     "label": "Free OAR Practice Test"
   },
   {
+    "path": "/courses/shsat/free-practice-test",
+    "label": "Free SHSAT Practice Test"
+  },
+  {
+    "path": "/courses/state-math-test-prep/free-practice-test",
+    "label": "Free State Math Test Prep Practice Test"
+  },
+  {
     "path": "/courses/asvab/free-prediction-test",
     "label": "Free ASVAB AFQT Prediction Test"
   },
@@ -285,6 +308,14 @@ export const KNOWN_ROUTES_FALLBACK_LINKS: readonly { path: string; label: string
   {
     "path": "/courses/oar/free-prediction-test",
     "label": "Free OAR Prediction Test"
+  },
+  {
+    "path": "/courses/shsat/free-prediction-test",
+    "label": "Free SHSAT Prediction Test"
+  },
+  {
+    "path": "/courses/state-math-test-prep/free-prediction-test",
+    "label": "Free State Math Test Prep Prediction Test"
   },
   {
     "path": "/services/1-on-1-tutoring",
@@ -405,6 +436,30 @@ export const KNOWN_ROUTES_FALLBACK_LINKS: readonly { path: string; label: string
   {
     "path": "/package-details/self-study/cna",
     "label": "Self Study — CNA"
+  },
+  {
+    "path": "/package-details/1-on-1-tutoring/shsat",
+    "label": "1 On 1 Tutoring — SHSAT"
+  },
+  {
+    "path": "/package-details/1-on-1-tutoring/state-math-test-prep",
+    "label": "1 On 1 Tutoring — State Math Test Prep"
+  },
+  {
+    "path": "/package-details/group-tutoring/shsat",
+    "label": "Group Tutoring — SHSAT"
+  },
+  {
+    "path": "/package-details/group-tutoring/state-math-test-prep",
+    "label": "Group Tutoring — State Math Test Prep"
+  },
+  {
+    "path": "/package-details/self-study/shsat",
+    "label": "Self Study — SHSAT"
+  },
+  {
+    "path": "/package-details/self-study/state-math-test-prep",
+    "label": "Self Study — State Math Test Prep"
   },
   {
     "path": "/blog-detail/110/why-it-is-important-to-attempt-asvab-test",

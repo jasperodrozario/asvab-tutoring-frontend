@@ -87,6 +87,8 @@ export default function OfferCheckout({
     if (s.includes("hesi")) return "HESI A2";
     if (s.includes("teas")) return "ATI TEAS";
     if (s.includes("cna")) return "CNA";
+    if (s.includes("shsat")) return "SHSAT";
+    if (s.includes("state-math-test-prep")) return "State Math Test Prep";
     return "ASVAB"; // Default for deals
   }
 
