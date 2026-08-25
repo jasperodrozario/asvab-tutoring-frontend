@@ -98,6 +98,7 @@ export default function OfferCheckout({
   const package_id = searchParams.get("package_id") || "";
   const requiresGrade = courseRequiresGradeSelection(variantInfo);
   const [selectedGradeMainId, setSelectedGradeMainId] = useState("");
+  const [showGradeError, setShowGradeError] = useState(false);
 
   const paymentIdentity = useMemo(
     () =>
@@ -517,6 +518,15 @@ export default function OfferCheckout({
 
   const submitMobilePayment = async () => {
     setMobileResult(null);
+
+    if (requiresGrade && !selectedGradeMainId) {
+      setShowGradeError(true);
+      setMobileResult({
+        type: "danger",
+        text: "Please select a grade before continuing.",
+      });
+      return;
+    }
 
     if (!agreeTerms) {
       setMobileResult({
@@ -939,7 +949,11 @@ export default function OfferCheckout({
                     id="offer-checkout-grade-select"
                     variants={variantInfo?.variants ?? []}
                     value={selectedGradeMainId}
-                    onChange={setSelectedGradeMainId}
+                    onChange={(gradeId) => {
+                      setSelectedGradeMainId(gradeId);
+                      if (gradeId) setShowGradeError(false);
+                    }}
+                    showError={showGradeError}
                   />
                 )}
 
@@ -1181,7 +1195,13 @@ export default function OfferCheckout({
                     <button
                       type="button"
                       className="btn btn-primary-custom mt-2 px-5 py-2 d-block mx-auto"
-                      onClick={() => squareFormRef.current?.submitPayment()}
+                      onClick={() => {
+                        if (requiresGrade && !selectedGradeMainId) {
+                          setShowGradeError(true);
+                          return;
+                        }
+                        squareFormRef.current?.submitPayment();
+                      }}
                       disabled={
                         cardState.initializing ||
                         cardState.paying ||

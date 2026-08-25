@@ -113,6 +113,7 @@ export default function RegisterForm({
   const [serviceType, setServiceType] = useState(""); // "0" | "1"
   const [sessionId, setSessionId] = useState("");
   const [selectedGradeMainId, setSelectedGradeMainId] = useState("");
+  const [showGradeError, setShowGradeError] = useState(false);
 
   const [agree, setAgree] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -573,8 +574,10 @@ export default function RegisterForm({
 
     if (!courseId)
       return setStatus({ type: "error", text: "Please select a course." });
-    if (requiresGrade && !selectedGradeMainId)
+    if (requiresGrade && !selectedGradeMainId) {
+      setShowGradeError(true);
       return setStatus({ type: "error", text: "Please select a grade." });
+    }
     if (serviceType === "")
       return setStatus({ type: "error", text: "Please select a service." });
     if (!sessionId)
@@ -730,9 +733,11 @@ export default function RegisterForm({
                           value={selectedGradeMainId}
                           onChange={(gradeId) => {
                             setSelectedGradeMainId(gradeId);
+                            if (gradeId) setShowGradeError(false);
                             setStatus(null);
                           }}
                           className="form-select"
+                          showError={showGradeError}
                         />
                       </div>
                     )}

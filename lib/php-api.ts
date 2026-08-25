@@ -909,10 +909,17 @@ export async function fetchPublishablePricingPackages(
       const publishable = await isCoursePublishable(pkg.course_code, requirements);
       if (!publishable) return null;
 
-      const bundle = await getCachedCourseAssessmentBundle(
+      // Pricing pages need service-specific packages even for force-publishable
+      // courses. Force-publishable readiness sets packages=false and would leave
+      // packagesByService empty, incorrectly filtering the course out.
+      const readinessRequirements = getPublishRequirementsForCourse(
         pkg.course_code,
-        getPublishRequirementsForCourse(pkg.course_code, requirements),
+        requirements,
       );
+      const bundle = await getCachedCourseAssessmentBundle(pkg.course_code, {
+        ...readinessRequirements,
+        packages: true,
+      });
       if (!hasPackagesForService(bundle.packagesByService, serviceType)) {
         return null;
       }
