@@ -35,6 +35,7 @@ export const DEFAULT_PUBLISH_REQUIREMENTS: CourseReadinessRequirements = {
  * Example: new Set(["shsat", "cna"])
  */
 const FORCE_PUBLISHABLE_COURSE_CODES = new Set<string>([
+  "cna",
   "shsat",
   "state-math-test-prep",
 ]);
