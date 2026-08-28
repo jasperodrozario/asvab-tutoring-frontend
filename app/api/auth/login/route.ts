@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
       success: true,
       message: result.data.message,
       portalUrl: result.data.portalUrl,
+      paidUser: result.data.paidUser,
       user: result.data.user,
     });
   } catch (err) {

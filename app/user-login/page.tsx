@@ -31,6 +31,7 @@ export default function LoginPage() {
     e.preventDefault();
     setStatus(null);
     setSubmitting(true);
+    let redirecting = false;
 
     try {
       const response = await fetch("/api/auth/login", {
@@ -45,8 +46,17 @@ export default function LoginPage() {
       const result = await response.json();
 
       if (response.ok && result?.success) {
+        const portalUrl = String(result.portalUrl || "").trim();
+        if (result.paidUser) {
+          redirecting = true;
+          window.location.href =
+            portalUrl ||
+            process.env.NEXT_PUBLIC_RESOURCES_URL ||
+            "https://test-prep.asvab-tutoring.com/";
+          return;
+        }
         setChoice({
-          portalUrl: String(result.portalUrl || ""),
+          portalUrl,
           user: result.user,
         });
         setStatus({
@@ -64,7 +74,7 @@ export default function LoginPage() {
       console.error(err);
       setStatus({ type: "error", text: "Failed to connect to the server." });
     } finally {
-      setSubmitting(false);
+      if (!redirecting) setSubmitting(false);
     }
   };
 

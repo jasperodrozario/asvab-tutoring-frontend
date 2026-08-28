@@ -40,9 +40,14 @@ export type PhpLoginSuccess = {
   auth_token: string;
   user_id: number;
   portalUrl: string;
+  paidUser: boolean;
   user: AuthUser;
   message: string;
 };
+
+function parsePhpPaidUser(value: unknown): boolean {
+  return value === true || value === 1 || value === "1" || value === "true";
+}
 
 export async function phpUserLogin(
   email: string,
@@ -106,6 +111,7 @@ export async function phpUserLogin(
       auth_token: authToken,
       user_id,
       portalUrl: String(json.url || ""),
+      paidUser: parsePhpPaidUser(json.paid_user),
       message: String(json.message || "Login successful."),
       user: {
         user_id,
