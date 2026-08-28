@@ -126,6 +126,13 @@ export async function phpUserLogin(
 export async function phpAuthTokenLookup(
   auth_token: string,
 ): Promise<AuthUser | null> {
+  const detailed = await phpAuthTokenLookupDetailed(auth_token);
+  return detailed?.user ?? null;
+}
+
+export async function phpAuthTokenLookupDetailed(
+  auth_token: string,
+): Promise<{ user: AuthUser; portalUrl: string } | null> {
   const { ok, json } = await postPhp({
     action: "auth-token-lookup",
     auth_token,
@@ -137,10 +144,13 @@ export async function phpAuthTokenLookup(
   if (!user_id) return null;
 
   return {
-    user_id,
-    first_name: String(json.user.first_name ?? ""),
-    last_name: String(json.user.last_name ?? ""),
-    email: String(json.user.email ?? ""),
-    square_customer_id: String(json.user.square_customer_id ?? ""),
+    user: {
+      user_id,
+      first_name: String(json.user.first_name ?? ""),
+      last_name: String(json.user.last_name ?? ""),
+      email: String(json.user.email ?? ""),
+      square_customer_id: String(json.user.square_customer_id ?? ""),
+    },
+    portalUrl: String(json.url ?? "").trim(),
   };
 }

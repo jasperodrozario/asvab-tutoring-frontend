@@ -19,7 +19,7 @@ type AuthContextValue = {
   loggingOut: boolean;
   setUser: (user: AuthUser | null) => void;
   refresh: () => Promise<boolean>;
-  logout: () => Promise<void>;
+  logout: (redirectTo?: string) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -122,7 +122,7 @@ export function AuthProvider({
     if (next) setLoaded(true);
   }, []);
 
-  const logout = useCallback(async () => {
+  const logout = useCallback(async (redirectTo = "/") => {
     setLoggingOut(true);
     try {
       await fetch("/api/auth/logout", { method: "POST" });
@@ -131,7 +131,7 @@ export function AuthProvider({
     } finally {
       applyMe({ user: null, authToken: null });
       setLoggingOut(false);
-      window.location.href = "/";
+      window.location.href = redirectTo || "/";
     }
   }, [applyMe]);
 

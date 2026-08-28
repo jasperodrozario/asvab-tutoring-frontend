@@ -1,5 +1,6 @@
 import Link from "next/link";
 import NextStepCard from "@/components/next-step-card/NextStepCard";
+import { STUDY_PORTAL_HREF } from "@/lib/portal-login";
 
 type Method = "mobile" | "card";
 
@@ -128,10 +129,7 @@ export default async function ThankYouPage({
                 <div className="d-flex flex-column flex-sm-row gap-2">
                   {buyMore ? (
                     <a
-                      href={
-                        process.env.NEXT_PUBLIC_RESOURCES_URL ||
-                        "https://test-prep.asvab-tutoring.com/"
-                      }
+                      href={STUDY_PORTAL_HREF}
                       className="btn btn-primary-custom flex-fill text-center"
                       style={{ padding: "12px 14px" }}
                     >

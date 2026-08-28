@@ -20,6 +20,7 @@ import {
   groupCoursesByCategory,
 } from "@/lib/package-utils";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { STUDY_PORTAL_HREF } from "@/lib/portal-login";
 import type { AuthUser } from "@/lib/auth-session";
 
 type Course = {
@@ -356,10 +357,6 @@ export default function Navbar({
   const [isFreePracticeOpen, setIsFreePracticeOpen] = useState(false);
   const [isFreePredictionOpen, setIsFreePredictionOpen] = useState(false);
   const { user: authUser, loggingOut, logout } = useAuth();
-
-  const studyPortalUrl =
-    process.env.NEXT_PUBLIC_RESOURCES_URL?.replace(/\/$/, "") ||
-    "https://test-prep.asvab-tutoring.com";
 
   const handleLogout = async () => {
     handleLinkClick();
@@ -890,7 +887,7 @@ export default function Navbar({
                 <>
                   <li className="nav-item">
                     <a
-                      href={studyPortalUrl}
+                      href={STUDY_PORTAL_HREF}
                       className="btn btn-outline-light d-flex align-items-center gap-2 px-3"
                     >
                       <FaBookOpen /> Study
@@ -903,7 +900,7 @@ export default function Navbar({
                       onClick={handleLogout}
                       disabled={loggingOut}
                     >
-                      <FaSignOutAlt /> {loggingOut ? "…" : "Logout"}
+                      <FaSignOutAlt /> {loggingOut ? "…" : "Log out"}
                     </button>
                   </li>
                   <li className="nav-item d-flex align-items-center">
@@ -1101,7 +1098,7 @@ export default function Navbar({
               <>
                 <li className="nav-item">
                   <a
-                    href={studyPortalUrl}
+                    href={STUDY_PORTAL_HREF}
                     className="nav-link text-white"
                     onClick={handleLinkClick}
                   >
@@ -1115,7 +1112,7 @@ export default function Navbar({
                     onClick={handleLogout}
                     disabled={loggingOut}
                   >
-                    <FaSignOutAlt /> {loggingOut ? "…" : "Logout"}
+                    <FaSignOutAlt /> {loggingOut ? "…" : "Log out"}
                   </button>
                 </li>
                 <li className="nav-item d-flex align-items-center py-2">

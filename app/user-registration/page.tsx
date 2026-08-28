@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { fetchRegistrationTutoringCourseList } from "@/lib/php-api";
-import RegisterForm from "./RegisterForm";
+import RegisterPageClient from "./RegisterPageClient";
 
 export const metadata: Metadata = {
   title: "Create Account | ASVAB Tutoring",
@@ -15,7 +15,7 @@ export default async function RegisterPage() {
     await fetchRegistrationTutoringCourseList();
 
   return (
-    <RegisterForm
+    <RegisterPageClient
       initialCourses={courses}
       initialServices={services}
       initialSessionsByCourseService={sessionsByCourseService}

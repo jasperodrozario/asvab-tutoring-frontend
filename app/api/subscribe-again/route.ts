@@ -438,7 +438,7 @@ export async function GET(req: NextRequest) {
     if (!auth_token || !user_id) {
       return json(400, {
         ok: false,
-        message: "Please sign in again and try once more.",
+        message: "Please log in again and try once more.",
       });
     }
 
@@ -652,7 +652,7 @@ export async function POST(req: NextRequest) {
     ) {
       return json(401, {
         ok: false,
-        message: "Your session has expired. Please sign in again.",
+        message: "Your session has expired. Please log in again.",
       });
     }
 
@@ -660,7 +660,7 @@ export async function POST(req: NextRequest) {
     if (user_id !== user_id_from_client) {
       return json(401, {
         ok: false,
-        message: "Your session has expired. Please sign in again.",
+        message: "Your session has expired. Please log in again.",
       });
     }
 

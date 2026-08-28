@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BsEye, BsEyeSlash } from "react-icons/bs";
 import { useAuth } from "@/components/auth/AuthProvider";
+import AlreadySignedInCard from "@/components/auth/AlreadySignedInCard";
+import { resolvePortalLoginUrl, STUDY_PORTAL_HREF } from "@/lib/portal-login";
 
 type LoginStatus = { type: "success" | "error"; text: string } | null;
 
@@ -22,7 +24,7 @@ type PostLoginChoice = {
 
 export default function LoginPage() {
   const router = useRouter();
-  const { setUser, refresh } = useAuth();
+  const { user, setUser, refresh, loggingOut, logout } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -56,10 +58,7 @@ export default function LoginPage() {
         const portalUrl = String(result.portalUrl || "").trim();
         if (result.paidUser) {
           redirecting = true;
-          window.location.href =
-            portalUrl ||
-            process.env.NEXT_PUBLIC_RESOURCES_URL ||
-            "https://test-prep.asvab-tutoring.com/";
+          window.location.href = resolvePortalLoginUrl(portalUrl);
           return;
         }
         setChoice({
@@ -91,14 +90,23 @@ export default function LoginPage() {
 
   const goToPortal = () => {
     const url = choice?.portalUrl?.trim();
-    if (url) {
-      window.location.href = url;
-      return;
-    }
-    window.location.href =
-      process.env.NEXT_PUBLIC_RESOURCES_URL ||
-      "https://test-prep.asvab-tutoring.com/";
+    window.location.href = url
+      ? resolvePortalLoginUrl(url)
+      : STUDY_PORTAL_HREF;
   };
+
+  if (user && !choice && !submitting) {
+    return (
+      <AlreadySignedInCard
+        variant="login"
+        user={user}
+        loggingOut={loggingOut}
+        onLogout={() => {
+          void logout("/user-login");
+        }}
+      />
+    );
+  }
 
   return (
     <section
@@ -188,7 +196,7 @@ export default function LoginPage() {
                         padding: "12px 14px",
                       }}
                     >
-                      Continue to Study Portal
+                      Continue studying
                     </button>
                   </div>
                 ) : (
