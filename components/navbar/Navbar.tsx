@@ -38,6 +38,46 @@ type NavAuthUser = {
   email: string;
 };
 
+function firstInitial(value: string): string {
+  const match = value.trim().match(/[\p{L}\p{N}]/u);
+  return match ? match[0].toUpperCase() : "";
+}
+
+function userInitials(user: NavAuthUser): string {
+  const first = firstInitial(user.first_name);
+  const last = firstInitial(user.last_name);
+  if (first && last) return `${first}${last}`;
+  if (first) {
+    const parts = user.first_name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) {
+      const second = firstInitial(parts[parts.length - 1]);
+      if (second) return `${first}${second}`;
+    }
+    return user.first_name.trim().slice(0, 2).toUpperCase() || first;
+  }
+  if (last) return user.last_name.trim().slice(0, 2).toUpperCase() || last;
+  const local = user.email.split("@")[0] || "";
+  return local.slice(0, 2).toUpperCase() || "?";
+}
+
+function userFullName(user: NavAuthUser): string {
+  return `${user.first_name} ${user.last_name}`.trim() || user.email || "Account";
+}
+
+function NavbarUserAvatar({ user }: { user: NavAuthUser }) {
+  const fullName = userFullName(user);
+  return (
+    <span
+      className="navbar-user-avatar"
+      title={fullName}
+      aria-label={fullName}
+      role="img"
+    >
+      {userInitials(user)}
+    </span>
+  );
+}
+
 function orderedCourses(courses: Course[]): Course[] {
   const { militaryTestPrep, healthcareTestPrep, academicTestPrep } =
     groupCoursesByCategory(courses);
@@ -364,11 +404,6 @@ export default function Navbar({
       window.location.href = "/";
     }
   };
-
-  const displayName =
-    authUser?.first_name?.trim() ||
-    authUser?.email?.split("@")[0] ||
-    "Account";
 
   const getServiceSlug = (serviceId: string) => {
     switch (serviceId) {
@@ -892,14 +927,6 @@ export default function Navbar({
               {/* LOGIN / ACCOUNT */}
               {authLoaded && authUser ? (
                 <>
-                  <li className="nav-item d-flex align-items-center">
-                    <span
-                      className="text-white small px-2"
-                      style={{ opacity: 0.9 }}
-                    >
-                      Hi, {displayName}
-                    </span>
-                  </li>
                   <li className="nav-item">
                     <a
                       href={studyPortalUrl}
@@ -917,6 +944,9 @@ export default function Navbar({
                     >
                       <FaSignOutAlt /> {loggingOut ? "…" : "Logout"}
                     </button>
+                  </li>
+                  <li className="nav-item d-flex align-items-center">
+                    <NavbarUserAvatar user={authUser} />
                   </li>
                 </>
               ) : (
@@ -1109,9 +1139,6 @@ export default function Navbar({
             {authLoaded && authUser ? (
               <>
                 <li className="nav-item">
-                  <span className="nav-link text-white">Hi, {displayName}</span>
-                </li>
-                <li className="nav-item">
                   <a
                     href={studyPortalUrl}
                     className="nav-link text-white"
@@ -1129,6 +1156,9 @@ export default function Navbar({
                   >
                     <FaSignOutAlt /> {loggingOut ? "…" : "Logout"}
                   </button>
+                </li>
+                <li className="nav-item d-flex align-items-center py-2">
+                  <NavbarUserAvatar user={authUser} />
                 </li>
               </>
             ) : (

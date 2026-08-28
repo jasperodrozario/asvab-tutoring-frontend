@@ -1576,4 +1576,27 @@ h2 .course-full-form {
   nav.navbar .navbar-nav .nav-link .fs-6 {
     font-size: 0.75rem !important;
   }
+
+  nav.navbar .navbar-user-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 0.7rem;
+  }
+}
+
+.navbar-user-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  flex-shrink: 0;
+  user-select: none;
 }
