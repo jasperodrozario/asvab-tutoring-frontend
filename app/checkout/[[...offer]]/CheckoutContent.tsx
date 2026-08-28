@@ -27,6 +27,7 @@ import {
   resolvePaymentCourseIdentity,
   type CheckoutVariantInfo,
 } from "@/lib/course-variants";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 type PaymentMode = "one_time" | "subscription";
 type Product =
@@ -182,47 +183,37 @@ export default function CheckoutContent({
     return "1M";
   }, [searchParams]);
 
+  const { user: sessionUser, authToken: sessionToken, loaded: authReady } =
+    useAuth();
+
   const [user, setUser] = useState({
-    first_name: "",
-    last_name: "",
-    email: "",
+    first_name: sessionUser?.first_name || "",
+    last_name: sessionUser?.last_name || "",
+    email: sessionUser?.email || "",
     mobile: "",
     password: "",
     confirm_password: "",
-    user_id: "",
+    user_id: sessionUser ? String(sessionUser.user_id) : "",
   });
 
-  const [authToken, setAuthToken] = useState("");
-  const [authLoaded, setAuthLoaded] = useState(false);
+  const [authToken, setAuthToken] = useState(sessionToken ?? "");
+  const [authLoaded, setAuthLoaded] = useState(authReady);
   const isAuthenticated = !!authToken && !!user.user_id;
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch("/api/auth/me", { cache: "no-store" });
-        const data = await res.json().catch(() => null);
-        if (cancelled) return;
-        if (res.ok && data?.authenticated && data?.user && data?.auth_token) {
-          setAuthToken(String(data.auth_token));
-          setUser((prev) => ({
-            ...prev,
-            first_name: String(data.user.first_name || ""),
-            last_name: String(data.user.last_name || ""),
-            email: String(data.user.email || ""),
-            user_id: String(data.user.user_id || ""),
-          }));
-        }
-      } catch {
-        // guest checkout
-      } finally {
-        if (!cancelled) setAuthLoaded(true);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    if (!authReady) return;
+    if (sessionUser && sessionToken) {
+      setAuthToken(sessionToken);
+      setUser((prev) => ({
+        ...prev,
+        first_name: String(sessionUser.first_name || ""),
+        last_name: String(sessionUser.last_name || ""),
+        email: String(sessionUser.email || ""),
+        user_id: String(sessionUser.user_id || ""),
+      }));
+    }
+    setAuthLoaded(true);
+  }, [authReady, sessionUser, sessionToken]);
 
   const [fieldErrors, setFieldErrors] = useState({
     first_name: "",

@@ -19,6 +19,8 @@ import {
   COURSE_CATEGORY_LABELS,
   groupCoursesByCategory,
 } from "@/lib/package-utils";
+import { useAuth } from "@/components/auth/AuthProvider";
+import type { AuthUser } from "@/lib/auth-session";
 
 type Course = {
   course_id: string;
@@ -31,19 +33,12 @@ type Service = {
   course_name: string;
 };
 
-type NavAuthUser = {
-  user_id: number;
-  first_name: string;
-  last_name: string;
-  email: string;
-};
-
 function firstInitial(value: string): string {
   const match = value.trim().match(/[\p{L}\p{N}]/u);
   return match ? match[0].toUpperCase() : "";
 }
 
-function userInitials(user: NavAuthUser): string {
+function userInitials(user: AuthUser): string {
   const first = firstInitial(user.first_name);
   const last = firstInitial(user.last_name);
   if (first && last) return `${first}${last}`;
@@ -60,11 +55,11 @@ function userInitials(user: NavAuthUser): string {
   return local.slice(0, 2).toUpperCase() || "?";
 }
 
-function userFullName(user: NavAuthUser): string {
+function userFullName(user: AuthUser): string {
   return `${user.first_name} ${user.last_name}`.trim() || user.email || "Account";
 }
 
-function NavbarUserAvatar({ user }: { user: NavAuthUser }) {
+function NavbarUserAvatar({ user }: { user: AuthUser }) {
   const fullName = userFullName(user);
   return (
     <span
@@ -360,49 +355,15 @@ export default function Navbar({
   const [isFreeTestsOpen, setIsFreeTestsOpen] = useState(false);
   const [isFreePracticeOpen, setIsFreePracticeOpen] = useState(false);
   const [isFreePredictionOpen, setIsFreePredictionOpen] = useState(false);
-  const [authUser, setAuthUser] = useState<NavAuthUser | null>(null);
-  const [authLoaded, setAuthLoaded] = useState(false);
-  const [loggingOut, setLoggingOut] = useState(false);
+  const { user: authUser, loggingOut, logout } = useAuth();
 
   const studyPortalUrl =
     process.env.NEXT_PUBLIC_RESOURCES_URL?.replace(/\/$/, "") ||
     "https://test-prep.asvab-tutoring.com";
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch("/api/auth/me", { cache: "no-store" });
-        const data = await res.json().catch(() => null);
-        if (cancelled) return;
-        if (res.ok && data?.authenticated && data?.user) {
-          setAuthUser(data.user as NavAuthUser);
-        } else {
-          setAuthUser(null);
-        }
-      } catch {
-        if (!cancelled) setAuthUser(null);
-      } finally {
-        if (!cancelled) setAuthLoaded(true);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   const handleLogout = async () => {
-    setLoggingOut(true);
-    try {
-      await fetch("/api/auth/logout", { method: "POST" });
-    } catch {
-      // ignore
-    } finally {
-      setAuthUser(null);
-      setLoggingOut(false);
-      handleLinkClick();
-      window.location.href = "/";
-    }
+    handleLinkClick();
+    await logout();
   };
 
   const getServiceSlug = (serviceId: string) => {
@@ -925,7 +886,7 @@ export default function Navbar({
                     </Link>
                   </li> */}
               {/* LOGIN / ACCOUNT */}
-              {authLoaded && authUser ? (
+              {authUser ? (
                 <>
                   <li className="nav-item">
                     <a
@@ -1136,7 +1097,7 @@ export default function Navbar({
               </Link>
             </li>
 
-            {authLoaded && authUser ? (
+            {authUser ? (
               <>
                 <li className="nav-item">
                   <a

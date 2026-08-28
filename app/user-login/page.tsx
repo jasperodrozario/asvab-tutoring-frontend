@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { BsEye, BsEyeSlash } from "react-icons/bs";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 type LoginStatus = { type: "success" | "error"; text: string } | null;
 
@@ -19,6 +21,8 @@ type PostLoginChoice = {
 };
 
 export default function LoginPage() {
+  const router = useRouter();
+  const { setUser, refresh } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -46,6 +50,9 @@ export default function LoginPage() {
       const result = await response.json();
 
       if (response.ok && result?.success) {
+        if (result.user) setUser(result.user);
+        await refresh();
+
         const portalUrl = String(result.portalUrl || "").trim();
         if (result.paidUser) {
           redirecting = true;
@@ -79,7 +86,7 @@ export default function LoginPage() {
   };
 
   const stayOnSite = () => {
-    window.location.href = "/";
+    router.push("/");
   };
 
   const goToPortal = () => {
