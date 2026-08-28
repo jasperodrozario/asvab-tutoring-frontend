@@ -189,7 +189,40 @@ export default function CheckoutContent({
     mobile: "",
     password: "",
     confirm_password: "",
+    user_id: "",
   });
+
+  const [authToken, setAuthToken] = useState("");
+  const [authLoaded, setAuthLoaded] = useState(false);
+  const isAuthenticated = !!authToken && !!user.user_id;
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/auth/me", { cache: "no-store" });
+        const data = await res.json().catch(() => null);
+        if (cancelled) return;
+        if (res.ok && data?.authenticated && data?.user && data?.auth_token) {
+          setAuthToken(String(data.auth_token));
+          setUser((prev) => ({
+            ...prev,
+            first_name: String(data.user.first_name || ""),
+            last_name: String(data.user.last_name || ""),
+            email: String(data.user.email || ""),
+            user_id: String(data.user.user_id || ""),
+          }));
+        }
+      } catch {
+        // guest checkout
+      } finally {
+        if (!cancelled) setAuthLoaded(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const [fieldErrors, setFieldErrors] = useState({
     first_name: "",
@@ -543,6 +576,7 @@ export default function CheckoutContent({
   const [agreeTerms, setAgreeTerms] = useState(false);
 
   const emailReady = useMemo(() => {
+    if (isAuthenticated) return true;
     const normalized = normalizeEmail(user.email);
     if (!normalized || !looksLikeEmail(user.email)) return false;
     if (emailChecking || emailExists) return false;
@@ -550,6 +584,7 @@ export default function CheckoutContent({
     if (normalized !== lastCheckedEmail) return false;
     return true;
   }, [
+    isAuthenticated,
     user.email,
     emailChecking,
     emailExists,
@@ -558,6 +593,18 @@ export default function CheckoutContent({
   ]);
 
   const canSubmit = useMemo(() => {
+    if (isAuthenticated) {
+      return (
+        agreeTerms &&
+        !!user.first_name.trim() &&
+        !!user.last_name.trim() &&
+        !!user.email.trim() &&
+        !!user.user_id &&
+        !!authToken &&
+        !invalidBase &&
+        (!requiresGrade || !!selectedGradeMainId)
+      );
+    }
     return (
       agreeTerms &&
       !!user.first_name.trim() &&
@@ -575,6 +622,8 @@ export default function CheckoutContent({
       (!requiresGrade || !!selectedGradeMainId)
     );
   }, [
+    isAuthenticated,
+    authToken,
     agreeTerms,
     user,
     fieldErrors,
@@ -607,30 +656,38 @@ export default function CheckoutContent({
     setEmailTouched(true);
     setEmailBlurred(true);
 
-    const firstNameErr = validateFirstName(user.first_name);
-    const lastNameErr = validateLastName(user.last_name);
-    const mobileErr = validateMobile(user.mobile);
-    const confirmErr = validateConfirmPassword(
-      user.confirm_password,
-      user.password,
-    );
+    if (!isAuthenticated) {
+      const firstNameErr = validateFirstName(user.first_name);
+      const lastNameErr = validateLastName(user.last_name);
+      const mobileErr = validateMobile(user.mobile);
+      const confirmErr = validateConfirmPassword(
+        user.confirm_password,
+        user.password,
+      );
 
-    if (!user.email.trim()) {
-      setEmailCheckMsg("Email address is required.");
-    }
+      if (!user.email.trim()) {
+        setEmailCheckMsg("Email address is required.");
+      }
 
-    if (firstNameErr || lastNameErr || mobileErr || confirmErr || !user.email.trim()) {
-      setFieldErrors({
-        first_name: firstNameErr,
-        last_name: lastNameErr,
-        mobile: mobileErr,
-        confirm_password: confirmErr,
-      });
-      setMobileResult({
-        type: "danger",
-        text: "Please fix all the errors in the form before submitting.",
-      });
-      return;
+      if (
+        firstNameErr ||
+        lastNameErr ||
+        mobileErr ||
+        confirmErr ||
+        !user.email.trim()
+      ) {
+        setFieldErrors({
+          first_name: firstNameErr,
+          last_name: lastNameErr,
+          mobile: mobileErr,
+          confirm_password: confirmErr,
+        });
+        setMobileResult({
+          type: "danger",
+          text: "Please fix all the errors in the form before submitting.",
+        });
+        return;
+      }
     }
 
     if (!canSubmit) {
@@ -641,24 +698,26 @@ export default function CheckoutContent({
       return;
     }
 
-    if (normalizeEmail(user.email) !== lastCheckedEmail) {
-      await runEmailCheck(user.email);
-    }
+    if (!isAuthenticated) {
+      if (normalizeEmail(user.email) !== lastCheckedEmail) {
+        await runEmailCheck(user.email);
+      }
 
-    if (emailChecking) {
-      setMobileResult({
-        type: "info",
-        text: "We are checking your email. Please wait a moment and try again.",
-      });
-      return;
-    }
+      if (emailChecking) {
+        setMobileResult({
+          type: "info",
+          text: "We are checking your email. Please wait a moment and try again.",
+        });
+        return;
+      }
 
-    if (emailExists) {
-      setMobileResult({
-        type: "danger",
-        text: emailCheckMsg || "This email address is already registered.",
-      });
-      return;
+      if (emailExists) {
+        setMobileResult({
+          type: "danger",
+          text: emailCheckMsg || "This email address is already registered.",
+        });
+        return;
+      }
     }
 
     setMobileSubmitting(true);
@@ -678,6 +737,10 @@ export default function CheckoutContent({
       body.append("amount", String(amountCents));
       body.append("currency", "USD");
       body.append("created_at", todayYYYYMMDD());
+      if (authToken) {
+        body.append("auth_token", authToken);
+        body.append("user_id", user.user_id);
+      }
 
       const res = await fetch(API_URL, {
         method: "POST",
@@ -764,7 +827,7 @@ export default function CheckoutContent({
   const showPaymentMethodChooser = mode !== "subscription";
   const showMobileUI = showPaymentMethodChooser && paymentMethod === "mobile";
   const showCardUI = mode === "subscription" || paymentMethod === "card";
-  const cardBlockedByEmail = !emailReady;
+  const cardBlockedByEmail = !isAuthenticated && !emailReady;
 
   return (
     <div className="container pb-5" style={{ maxWidth: 1100, paddingTop: 33 }}>
@@ -924,6 +987,8 @@ export default function CheckoutContent({
                       mode={mode}
                       product={mode === "subscription" ? product : undefined}
                       cadence={mode === "subscription" ? cadence : undefined}
+                      isExistingUser={isAuthenticated}
+                      auth_token={authToken}
                       onPaymentSuccess={(id?: string) => {
                         let q = id
                           ? `?method=card&id=${encodeURIComponent(id)}`
@@ -964,7 +1029,9 @@ export default function CheckoutContent({
           <div className="card shadow-sm border-0 w-100">
             <div className="card-body p-4 d-flex flex-column">
               <h5 className="fw-bold mb-3 text-muted">
-                Your Registration Information
+                {isAuthenticated
+                  ? "Your Account"
+                  : "Your Registration Information"}
               </h5>
 
               {requiresGrade && (
@@ -979,6 +1046,29 @@ export default function CheckoutContent({
                 />
               )}
 
+              {isAuthenticated ? (
+                <div
+                  className="mb-3 p-3 rounded"
+                  style={{
+                    background: "rgba(0,35,65,0.05)",
+                    border: "1px solid rgba(0,35,65,0.12)",
+                  }}
+                >
+                  <div className="fw-semibold" style={{ color: "#002341" }}>
+                    Logged in as{" "}
+                    {user.first_name || user.last_name
+                      ? `${user.first_name} ${user.last_name}`.trim()
+                      : user.email}
+                  </div>
+                  <div className="small text-muted mt-1">{user.email}</div>
+                  {!authLoaded ? null : (
+                    <div className="small text-muted mt-2">
+                      Registration is not required for this purchase.
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <>
               <div className="mb-2">
                 <input
                   className={`form-control ${fieldErrors.first_name ? "is-invalid" : ""}`}
@@ -1165,16 +1255,19 @@ export default function CheckoutContent({
                 )}
               </div>
 
+              <div className="mt-3 small text-muted">
+                We’ll use your email for purchase confirmation and account
+                access.
+              </div>
+                </>
+              )}
+
               {mode === "subscription" && subscriptionInvalid && (
                 <div className="alert alert-danger mt-3 mb-0 py-2">
                   Invalid subscription parameters.
                 </div>
               )}
 
-              <div className="mt-3 small text-muted">
-                We’ll use your email for purchase confirmation and account
-                access.
-              </div>
               <TermsCheckbox />
 
               {paymentMethod === "mobile" ? (

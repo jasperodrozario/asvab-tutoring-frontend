@@ -64,6 +64,7 @@ type Props = {
   product?: Product;
   cadence?: Cadence;
   isExistingUser?: boolean;
+  auth_token?: string;
 
   onPaymentSuccess?: (paymentId?: string) => void;
   onStateChange?: (state: CardState) => void;
@@ -205,6 +206,7 @@ const SquarePaymentForm = forwardRef<SquarePaymentFormHandle, Props>(
       product,
       cadence,
       isExistingUser = false,
+      auth_token = "",
       onPaymentSuccess,
       onStateChange,
     }: Props,
@@ -540,6 +542,9 @@ const SquarePaymentForm = forwardRef<SquarePaymentFormHandle, Props>(
               session_id,
               package_id,
               is_variant,
+              isExistingUser,
+              user_id: user.user_id || user.id || "",
+              auth_token: auth_token || "",
             }),
             signal: controller.signal,
           });
@@ -581,6 +586,7 @@ const SquarePaymentForm = forwardRef<SquarePaymentFormHandle, Props>(
             is_variant,
             isExistingUser,
             user_id: user.user_id || user.id || "",
+            auth_token: auth_token || "",
             user,
           }),
           signal: controller.signal,

@@ -11,6 +11,8 @@ import {
   FaCaretRight,
   FaSignInAlt,
   FaUserPlus,
+  FaSignOutAlt,
+  FaBookOpen,
 } from "react-icons/fa";
 import { useState, useEffect, useRef } from "react";
 import {
@@ -27,6 +29,13 @@ type Course = {
 type Service = {
   service_id: string;
   course_name: string;
+};
+
+type NavAuthUser = {
+  user_id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
 };
 
 function orderedCourses(courses: Course[]): Course[] {
@@ -311,6 +320,55 @@ export default function Navbar({
   const [isFreeTestsOpen, setIsFreeTestsOpen] = useState(false);
   const [isFreePracticeOpen, setIsFreePracticeOpen] = useState(false);
   const [isFreePredictionOpen, setIsFreePredictionOpen] = useState(false);
+  const [authUser, setAuthUser] = useState<NavAuthUser | null>(null);
+  const [authLoaded, setAuthLoaded] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  const studyPortalUrl =
+    process.env.NEXT_PUBLIC_RESOURCES_URL?.replace(/\/$/, "") ||
+    "https://test-prep.asvab-tutoring.com";
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/auth/me", { cache: "no-store" });
+        const data = await res.json().catch(() => null);
+        if (cancelled) return;
+        if (res.ok && data?.authenticated && data?.user) {
+          setAuthUser(data.user as NavAuthUser);
+        } else {
+          setAuthUser(null);
+        }
+      } catch {
+        if (!cancelled) setAuthUser(null);
+      } finally {
+        if (!cancelled) setAuthLoaded(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {
+      // ignore
+    } finally {
+      setAuthUser(null);
+      setLoggingOut(false);
+      handleLinkClick();
+      window.location.href = "/";
+    }
+  };
+
+  const displayName =
+    authUser?.first_name?.trim() ||
+    authUser?.email?.split("@")[0] ||
+    "Account";
 
   const getServiceSlug = (serviceId: string) => {
     switch (serviceId) {
@@ -831,25 +889,57 @@ export default function Navbar({
                       ONLINE STUDY
                     </Link>
                   </li> */}
-              {/* LOGIN */}
-              <li className="nav-item">
-                <Link
-                  href="/user-login"
-                  className="btn btn-outline-light d-flex align-items-center gap-2 px-3"
-                >
-                  <FaSignInAlt /> Login
-                </Link>
-              </li>
+              {/* LOGIN / ACCOUNT */}
+              {authLoaded && authUser ? (
+                <>
+                  <li className="nav-item d-flex align-items-center">
+                    <span
+                      className="text-white small px-2"
+                      style={{ opacity: 0.9 }}
+                    >
+                      Hi, {displayName}
+                    </span>
+                  </li>
+                  <li className="nav-item">
+                    <a
+                      href={studyPortalUrl}
+                      className="btn btn-outline-light d-flex align-items-center gap-2 px-3"
+                    >
+                      <FaBookOpen /> Study
+                    </a>
+                  </li>
+                  <li className="nav-item">
+                    <button
+                      type="button"
+                      className="btn btn-outline-light d-flex align-items-center gap-2 px-3"
+                      onClick={handleLogout}
+                      disabled={loggingOut}
+                    >
+                      <FaSignOutAlt /> {loggingOut ? "…" : "Logout"}
+                    </button>
+                  </li>
+                </>
+              ) : (
+                <>
+                  <li className="nav-item">
+                    <Link
+                      href="/user-login"
+                      className="btn btn-outline-light d-flex align-items-center gap-2 px-3"
+                    >
+                      <FaSignInAlt /> Login
+                    </Link>
+                  </li>
 
-              {/* REGISTER */}
-              <li className="nav-item">
-                <Link
-                  href="/user-registration"
-                  className="btn btn-outline-light d-flex align-items-center gap-2 px-3"
-                >
-                  <FaUserPlus /> Register
-                </Link>
-              </li>
+                  <li className="nav-item">
+                    <Link
+                      href="/user-registration"
+                      className="btn btn-outline-light d-flex align-items-center gap-2 px-3"
+                    >
+                      <FaUserPlus /> Register
+                    </Link>
+                  </li>
+                </>
+              )}
             </ul>
           </div>
         </div>
@@ -1016,25 +1106,54 @@ export default function Navbar({
               </Link>
             </li>
 
-            <li className="nav-item">
-              <Link
-                href="/user-login"
-                className="nav-link text-white"
-                onClick={handleLinkClick}
-              >
-                <FaSignInAlt /> Login
-              </Link>
-            </li>
+            {authLoaded && authUser ? (
+              <>
+                <li className="nav-item">
+                  <span className="nav-link text-white">Hi, {displayName}</span>
+                </li>
+                <li className="nav-item">
+                  <a
+                    href={studyPortalUrl}
+                    className="nav-link text-white"
+                    onClick={handleLinkClick}
+                  >
+                    <FaBookOpen /> Study
+                  </a>
+                </li>
+                <li className="nav-item">
+                  <button
+                    type="button"
+                    className="nav-link text-white btn btn-link text-start p-0"
+                    onClick={handleLogout}
+                    disabled={loggingOut}
+                  >
+                    <FaSignOutAlt /> {loggingOut ? "…" : "Logout"}
+                  </button>
+                </li>
+              </>
+            ) : (
+              <>
+                <li className="nav-item">
+                  <Link
+                    href="/user-login"
+                    className="nav-link text-white"
+                    onClick={handleLinkClick}
+                  >
+                    <FaSignInAlt /> Login
+                  </Link>
+                </li>
 
-            <li className="nav-item">
-              <Link
-                href="/user-registration"
-                className="nav-link text-white"
-                onClick={handleLinkClick}
-              >
-                <FaUserPlus /> Register
-              </Link>
-            </li>
+                <li className="nav-item">
+                  <Link
+                    href="/user-registration"
+                    className="nav-link text-white"
+                    onClick={handleLinkClick}
+                  >
+                    <FaUserPlus /> Register
+                  </Link>
+                </li>
+              </>
+            )}
           </ul>
         </div>
       )}

@@ -9,6 +9,8 @@ import {
   checkoutEmailAlreadyRegistered,
   validateCheckoutCourseId,
 } from "@/lib/php-checkout";
+import { phpAuthTokenLookup } from "@/lib/auth-php";
+import { getSession } from "@/lib/auth-session";
 
 export const runtime = "nodejs";
 
@@ -38,6 +40,9 @@ type Payload = {
   session_id?: string;
   package_id?: string;
   is_variant?: number | string | boolean;
+  isExistingUser?: boolean | string;
+  user_id?: string;
+  auth_token?: string;
 };
 
 type PhpPlanRow = {
@@ -230,6 +235,9 @@ async function saveSubscriptionToPhp(args: {
   squareCardId: string;
   planVariationId: string;
   orderTemplateId: string;
+  auth_token?: string;
+  user_id?: string;
+  isExistingUser?: boolean;
 }) {
   const phpUrl = process.env.NEXT_PUBLIC_PHP_API_URL!;
   const phpSecret = (process.env.INTERNAL_API_SECRET || "").trim();
@@ -262,6 +270,13 @@ async function saveSubscriptionToPhp(args: {
   form.append("session_id", String(args.session_id || "").trim());
   form.append("package_id", String(args.package_id || "").trim());
   form.append("is_variant", String(args.is_variant ?? 0));
+
+  if (args.auth_token) {
+    form.append("auth_token", args.auth_token);
+  }
+  if (args.user_id) {
+    form.append("user_id", args.user_id);
+  }
 
   const res = await fetch(phpUrl, {
     method: "POST",
@@ -439,18 +454,60 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const emailTaken = await checkoutEmailAlreadyRegistered(
-      String(body.userEmail),
-    );
-    if (emailTaken === true) {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            "This email address is already registered. Please log in or use a different email.",
-        },
-        { status: 400 },
+    const session = await getSession();
+    const auth_token = String(
+      session?.auth_token || body.auth_token || "",
+    ).trim();
+    let resolvedUserId = String(body.user_id || "").trim();
+    let isExistingUser =
+      body.isExistingUser === true ||
+      body.isExistingUser === "true" ||
+      !!resolvedUserId;
+
+    if (auth_token) {
+      const lookedUp = await phpAuthTokenLookup(auth_token);
+      if (!lookedUp) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Your session has expired. Please log in again.",
+          },
+          { status: 401 },
+        );
+      }
+      if (session && lookedUp.user_id !== session.user_id) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Your session has expired. Please log in again.",
+          },
+          { status: 401 },
+        );
+      }
+      resolvedUserId = String(lookedUp.user_id);
+      isExistingUser = true;
+      body.userEmail = lookedUp.email || body.userEmail;
+      if (!body.userName?.trim()) {
+        body.userName =
+          `${lookedUp.first_name} ${lookedUp.last_name}`.trim() ||
+          lookedUp.email;
+      }
+    }
+
+    if (!isExistingUser) {
+      const emailTaken = await checkoutEmailAlreadyRegistered(
+        String(body.userEmail),
       );
+      if (emailTaken === true) {
+        return NextResponse.json(
+          {
+            success: false,
+            message:
+              "This email address is already registered. Please log in or use a different email.",
+          },
+          { status: 400 },
+        );
+      }
     }
 
     // Optional consistency check: cadence sent from frontend should match DB
@@ -560,6 +617,9 @@ export async function POST(req: NextRequest) {
         squareCardId: card.id,
         planVariationId,
         orderTemplateId: order.id,
+        auth_token: auth_token || undefined,
+        user_id: resolvedUserId || undefined,
+        isExistingUser,
       });
 
       return NextResponse.json({

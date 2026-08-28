@@ -6,6 +6,8 @@ import {
   checkoutEmailAlreadyRegistered,
   validateCheckoutCourseId,
 } from "@/lib/php-checkout";
+import { phpAuthTokenLookup } from "@/lib/auth-php";
+import { getSession } from "@/lib/auth-session";
 
 export const runtime = "nodejs";
 
@@ -168,10 +170,39 @@ export async function POST(req: NextRequest) {
       body?.user_id ?? user?.user_id ?? user?.id ?? "",
       50,
     );
-    const isExistingUser =
+    const bodyAuthToken = safeStr(body?.auth_token ?? "", 200);
+    const session = await getSession();
+    const auth_token = session?.auth_token || bodyAuthToken;
+
+    let resolvedUserId = postedUserId;
+    let isExistingUser =
       body?.isExistingUser === true ||
       body?.isExistingUser === "true" ||
       postedUserId !== "";
+
+    if (auth_token) {
+      const lookedUp = await phpAuthTokenLookup(auth_token);
+      if (!lookedUp) {
+        return json(401, {
+          success: false,
+          error: "Your session has expired. Please log in again.",
+          message: "Your session has expired. Please log in again.",
+        });
+      }
+      if (session && lookedUp.user_id !== session.user_id) {
+        return json(401, {
+          success: false,
+          error: "Your session has expired. Please log in again.",
+          message: "Your session has expired. Please log in again.",
+        });
+      }
+      resolvedUserId = String(lookedUp.user_id);
+      isExistingUser = true;
+      user.first_name = user.first_name || lookedUp.first_name;
+      user.last_name = user.last_name || lookedUp.last_name;
+      user.email = user.email || lookedUp.email;
+      user.user_id = resolvedUserId;
+    }
 
     // Get Referral Data from Cookies
     const cookieStore = await cookies();
@@ -409,7 +440,8 @@ export async function POST(req: NextRequest) {
       email: safeStr(user?.email ?? "", 120),
       mobile: safeStr(user?.mobile ?? "", 40),
       password: safeStr(user?.password ?? "", 200),
-      user_id: postedUserId,
+      user_id: resolvedUserId,
+      auth_token: auth_token,
 
       // Referral Data
       ref_code: safeStr(ref_code, 50),

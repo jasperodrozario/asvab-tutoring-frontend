@@ -173,7 +173,7 @@ export default function BuyMoreSessionsClient() {
         setSelectedPackage(previous || scopedPackages[0] || null);
       } catch (err) {
         setApiError(
-          "A network error occurred. Please ensure you are connected and logged in.",
+          "Something went wrong. Please try again later.",
         );
       } finally {
         setLoading(false);
@@ -348,6 +348,7 @@ export default function BuyMoreSessionsClient() {
                   user={user as any}
                   mode="one_time"
                   isExistingUser={true}
+                  auth_token={auth_token}
                   onPaymentSuccess={(pid) => {
                     const pkgId = selectedPackage?.package_id || "";
                     let q = pid
