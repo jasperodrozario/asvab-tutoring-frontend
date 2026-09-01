@@ -1,5 +1,6 @@
 import Link from "next/link";
 import NextStepCard from "@/components/next-step-card/NextStepCard";
+import { getSession } from "@/lib/auth-session";
 import { STUDY_PORTAL_HREF } from "@/lib/portal-login";
 
 type Method = "mobile" | "card";
@@ -30,16 +31,20 @@ export default async function ThankYouPage({
       : "";
 
   const buyMore = params.buy_more === "1";
+  const isLoggedIn = await getSession()
+    .then((session) => !!session)
+    .catch(() => false);
+  const canStartStudy = isLoggedIn || buyMore;
 
   const title = buyMore
     ? "Payment Successful"
-    : method === "mobile"
+    : method === "mobile" && !isLoggedIn
       ? "Registration Completed"
       : "Payment Successful";
 
   const subtitle = buyMore
     ? "Thanks! Your package purchase has been completed."
-    : method === "mobile"
+    : method === "mobile" && !isLoggedIn
       ? "Thanks! Your registration is complete."
       : "Thanks! Your payment has been completed.";
 
@@ -52,6 +57,17 @@ export default async function ThankYouPage({
 
       <p className="mb-0" style={{ fontSize: 16, lineHeight: 1.6 }}>
         You can now return to the portal and continue your learning.
+      </p>
+    </>
+  ) : canStartStudy ? (
+    <>
+      <p className="mb-3" style={{ fontSize: 16, lineHeight: 1.6 }}>
+        Congratulations, your purchase has been completed successfully. Access
+        has been added to your account.
+      </p>
+
+      <p className="mb-0" style={{ fontSize: 16, lineHeight: 1.6 }}>
+        You can start studying now.
       </p>
     </>
   ) : (
@@ -127,13 +143,13 @@ export default async function ThankYouPage({
                 <NextStepCard service={service} className={"mb-4"} />
 
                 <div className="d-flex flex-column flex-sm-row gap-2">
-                  {buyMore ? (
+                  {canStartStudy ? (
                     <a
                       href={STUDY_PORTAL_HREF}
                       className="btn btn-primary-custom flex-fill text-center"
                       style={{ padding: "12px 14px" }}
                     >
-                      Go to Study Portal
+                      Start Studying Now
                     </a>
                   ) : (
                     <Link
