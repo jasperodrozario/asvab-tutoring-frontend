@@ -64,6 +64,16 @@ export function encodeSession(session: Omit<AuthSession, "exp">): string {
   return `${payloadB64}.${sign(payloadB64)}`;
 }
 
+export function sessionCookieOptions() {
+  return {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax" as const,
+    path: "/",
+    maxAge: SESSION_DAYS * 24 * 60 * 60,
+  };
+}
+
 export function decodeSession(raw: string | undefined | null): AuthSession | null {
   if (!raw || !raw.includes(".")) return null;
   const [payloadB64, sig] = raw.split(".");
@@ -110,13 +120,7 @@ export async function setSession(session: {
   user_id: number;
 }): Promise<void> {
   const store = await cookies();
-  store.set(SESSION_COOKIE, encodeSession(session), {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: SESSION_DAYS * 24 * 60 * 60,
-  });
+  store.set(SESSION_COOKIE, encodeSession(session), sessionCookieOptions());
 }
 
 export async function clearSession(): Promise<void> {
