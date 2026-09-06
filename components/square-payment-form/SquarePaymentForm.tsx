@@ -32,7 +32,8 @@ type Product =
   | "OAR"
   | "HESI A2"
   | "ATI TEAS"
-  | "CNA";
+  | "CNA"
+  | "SHSAT";
 type Cadence = "1M" | "3M" | "6M" | "12M";
 
 export type CardState = {

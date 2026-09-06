@@ -28,19 +28,38 @@ export const DEFAULT_PUBLISH_REQUIREMENTS: CourseReadinessRequirements = {
   mappedCourseId: true,
 };
 
-/** Temporary: CNA publishes with practice test only until prediction test content exists. */
-const COURSES_WITHOUT_PREDICTION_TEST = new Set(["cna"]);
+/**
+ * Testing only: course codes listed here skip all publish readiness checks
+ * and are treated as publishable. Keep empty in production.
+ *
+ * Example: new Set(["shsat", "cna"])
+ */
+const FORCE_PUBLISHABLE_COURSE_CODES = new Set<string>(["shsat"]);
+
+const NO_PUBLISH_REQUIREMENTS: CourseReadinessRequirements = {
+  details: false,
+  packages: false,
+  freePracticeTest: false,
+  freePredictionTest: false,
+  mappedCourseId: false,
+};
 
 export function normalizeCourseCodeForReadiness(courseCode: string): string {
   return courseCode.replace(/-tutor$/, "").toLowerCase();
+}
+
+export function isForcePublishableCourse(courseCode: string): boolean {
+  return FORCE_PUBLISHABLE_COURSE_CODES.has(
+    normalizeCourseCodeForReadiness(courseCode),
+  );
 }
 
 export function getPublishRequirementsForCourse(
   courseCode: string,
   base: CourseReadinessRequirements = DEFAULT_PUBLISH_REQUIREMENTS,
 ): CourseReadinessRequirements {
-  if (COURSES_WITHOUT_PREDICTION_TEST.has(normalizeCourseCodeForReadiness(courseCode))) {
-    return { ...base, freePredictionTest: false };
+  if (isForcePublishableCourse(courseCode)) {
+    return NO_PUBLISH_REQUIREMENTS;
   }
 
   return base;

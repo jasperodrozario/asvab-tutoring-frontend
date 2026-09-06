@@ -16,6 +16,10 @@ export const courseCodeToNumeric: Record<string, string> = {
   sift: "52",
   astb: "53",
   oar: "54",
+  "hesi-a2": "56",
+  "ati-teas": "57",
+  cna: "58",
+  shsat: "59",
 };
 
 export const numericToCourseCode: Record<string, string> = {
@@ -24,6 +28,10 @@ export const numericToCourseCode: Record<string, string> = {
   "52": "sift",
   "53": "astb",
   "54": "oar",
+  "56": "hesi-a2",
+  "57": "ati-teas",
+  "58": "cna",
+  "59": "shsat",
 };
 
 export function toSubmenu(serviceType: string): "one" | "group" | "subscribe" | null {
