@@ -1,7 +1,5 @@
 import type { CourseData, FreePracticeTestResponse } from "@/lib/course-types";
 import { isFreeTestReady } from "@/lib/course-types";
-import type { FreePredTestResponse } from "@/lib/prediction-test-types";
-import { isFreePredTestReady } from "@/lib/prediction-test-types";
 import type { PackagesByService } from "@/lib/package-types";
 import type { ServiceType } from "@/types/Services";
 import { convertCourseCodeToId } from "@/lib/package-utils";
@@ -16,7 +14,6 @@ export type CourseReadinessRequirements = {
   details: boolean;
   packages: boolean;
   freePracticeTest: boolean;
-  freePredictionTest: boolean;
   mappedCourseId: boolean;
 };
 
@@ -24,7 +21,6 @@ export const DEFAULT_PUBLISH_REQUIREMENTS: CourseReadinessRequirements = {
   details: true,
   packages: true,
   freePracticeTest: true,
-  freePredictionTest: true,
   mappedCourseId: true,
 };
 
@@ -34,13 +30,15 @@ export const DEFAULT_PUBLISH_REQUIREMENTS: CourseReadinessRequirements = {
  *
  * Example: new Set(["shsat", "cna"])
  */
-const FORCE_PUBLISHABLE_COURSE_CODES = new Set<string>(["shsat"]);
+const FORCE_PUBLISHABLE_COURSE_CODES = new Set<string>([
+  "shsat",
+  "state-math-test-prep",
+]);
 
 const NO_PUBLISH_REQUIREMENTS: CourseReadinessRequirements = {
   details: false,
   packages: false,
   freePracticeTest: false,
-  freePredictionTest: false,
   mappedCourseId: false,
 };
 
@@ -70,7 +68,6 @@ export type CourseReadinessInput = {
   details?: CourseData | null;
   packagesByService?: PackagesByService;
   freePracticeTest?: FreePracticeTestResponse | null;
-  freePredictionTest?: FreePredTestResponse | null;
 };
 
 export type CourseReadinessResult = {
@@ -131,15 +128,6 @@ export function hasFreePracticeTestReady(
   );
 }
 
-export function hasFreePredictionTestReady(
-  response?: FreePredTestResponse | null,
-): boolean {
-  return isFreePredTestReady(
-    response?.data?.categories,
-    response?.data?.questions,
-  );
-}
-
 export function assessCourseReadiness(
   input: CourseReadinessInput,
   requirements: CourseReadinessRequirements = DEFAULT_PUBLISH_REQUIREMENTS,
@@ -171,13 +159,6 @@ export function assessCourseReadiness(
     !hasFreePracticeTestReady(input.freePracticeTest)
   ) {
     missing.push("free_practice_test");
-  }
-
-  if (
-    requirements.freePredictionTest &&
-    !hasFreePredictionTestReady(input.freePredictionTest)
-  ) {
-    missing.push("free_prediction_test");
   }
 
   if (requirements.mappedCourseId && !hasMappedCourseId(input.courseCode)) {

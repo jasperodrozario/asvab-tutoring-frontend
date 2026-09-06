@@ -16,7 +16,8 @@ type Product =
   | "HESI A2"
   | "ATI TEAS"
   | "CNA"
-  | "SHSAT";
+  | "SHSAT"
+  | "State Math Test Prep";
 type Cadence = "1M" | "3M" | "6M" | "12M";
 
 type Payload = {
@@ -100,6 +101,8 @@ function isProduct(x: unknown): x is Product {
     "HESI A2",
     "ATI TEAS",
     "CNA",
+    "SHSAT",
+    "State Math Test Prep",
   ].includes(String(x));
 }
 

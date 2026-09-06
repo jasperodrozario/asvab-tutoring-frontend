@@ -2,6 +2,11 @@ import { Suspense } from "react";
 import CheckoutContent from "./CheckoutContent";
 import OfferCheckout from "./OfferCheckout";
 import { resolveCheckoutPackageSummary } from "@/lib/checkout-package-info";
+import { fetchStateTestPreparationCourses } from "@/lib/php-api";
+import {
+  isStateMathTestPrepCheckoutCourse,
+  isStateMathTestPrepProduct,
+} from "@/lib/state-math-test";
 
 function firstParam(
   value: string | string[] | undefined,
@@ -21,13 +26,23 @@ export default async function CheckoutPage({
   const offerSlug = Array.isArray(offer) ? offer[0] : offer;
   const sp = await searchParams;
 
-  const packageSummary = await resolveCheckoutPackageSummary({
-    courseId: firstParam(sp.course_id),
-    packageId: firstParam(sp.package_id),
-    mode: firstParam(sp.mode),
-    tutoringType:
-      firstParam(sp.tutoring_type) || firstParam(sp.package_type),
-  });
+  const courseId = firstParam(sp.course_id);
+  const requiresGradeSelection =
+    isStateMathTestPrepCheckoutCourse(courseId) ||
+    isStateMathTestPrepProduct(firstParam(sp.product));
+
+  const [packageSummary, stateMathGrades] = await Promise.all([
+    resolveCheckoutPackageSummary({
+      courseId,
+      packageId: firstParam(sp.package_id),
+      mode: firstParam(sp.mode),
+      tutoringType:
+        firstParam(sp.tutoring_type) || firstParam(sp.package_type),
+    }),
+    requiresGradeSelection
+      ? fetchStateTestPreparationCourses()
+      : Promise.resolve([]),
+  ]);
 
   if (offerSlug === "limited-time-offer") {
     return (
@@ -38,7 +53,11 @@ export default async function CheckoutPage({
           </div>
         }
       >
-        <OfferCheckout packageSummary={packageSummary} />
+        <OfferCheckout
+          packageSummary={packageSummary}
+          stateMathGrades={stateMathGrades}
+          requiresGradeSelection={requiresGradeSelection}
+        />
       </Suspense>
     );
   }
@@ -47,7 +66,11 @@ export default async function CheckoutPage({
     <Suspense
       fallback={<div className="container py-5">Loading checkout…</div>}
     >
-      <CheckoutContent packageSummary={packageSummary} />
+      <CheckoutContent
+        packageSummary={packageSummary}
+        stateMathGrades={stateMathGrades}
+        requiresGradeSelection={requiresGradeSelection}
+      />
     </Suspense>
   );
 }

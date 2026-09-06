@@ -775,6 +775,6 @@ export const KNOWN_ROUTES_FALLBACK_LINKS: readonly { path: string; label: string
   }
 ] as const;
 
-export const COURSE_CODES = ["asvab","afoqt","sift","astb","oar", "hesi-a2", "ati-teas", "cna", "shsat"] as const;
+export const COURSE_CODES = ["asvab","afoqt","sift","astb","oar", "hesi-a2", "ati-teas", "cna", "shsat", "state-math-test-prep"] as const;
 export const SERVICE_TYPES = ["1-on-1-tutoring","group-tutoring","self-study"] as const;
 export const STATIC_PAGE_SEGMENTS = ["about-us","how-it-works","faq","sitemap","our-mobile-apps","our-tutors","privacy-policy","terms-of-service","blog","contact-us"] as const;

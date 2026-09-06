@@ -18,6 +18,7 @@ const courseCodeToIdMap: Record<string, string> = {
   "ati-teas": "57",
   cna: "58",
   shsat: "59",
+  "state-math-test-prep": "60",
 };
 
 export const MILITARY_COURSE_CODES = [
@@ -29,6 +30,8 @@ export const MILITARY_COURSE_CODES = [
 ] as const;
 
 export const MEDICAL_COURSE_CODES = ["hesi-a2", "ati-teas", "cna"] as const;
+
+export const ACADEMIC_COURSE_CODES = ["state-math-test-prep", "shsat"] as const;
 
 
 export type CourseCategory =
@@ -95,6 +98,9 @@ export function getFriendlyCourseName(courseCode: string): string {
   if (code.includes("teas")) return "ATI TEAS";
   if (code.includes("cna")) return "CNA";
   if (code.includes("shsat")) return "SHSAT";
+  if (code.includes("state-math") || code === "state-math-test-prep") {
+    return "State Math Test Prep";
+  }
   return "Unknown Course";
 }
 

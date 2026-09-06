@@ -24,7 +24,8 @@ export type CourseCode =
   | "hesi-a2"
   | "ati-teas"
   | "cna"
-  | "shsat";
+  | "shsat"
+  | "state-math-test-prep";
 
 export const COURSE_CODES: readonly CourseCode[] = [
   "asvab",
@@ -36,6 +37,7 @@ export const COURSE_CODES: readonly CourseCode[] = [
   "ati-teas",
   "cna",
   "shsat",
+  "state-math-test-prep",
 ] as const;
 
 /** Keyword groups for each exam (provided keyword list only). */
@@ -168,6 +170,29 @@ export const COURSE_KEYWORDS: Record<CourseCode, KeywordGroups> = {
     buyerIntent: ["SHSAT tutor online", "best SHSAT tutoring program"],
     practiceTest: ["free SHSAT practice test", "SHSAT practice test online"],
     predictionTest: ["free SHSAT prediction test"],
+  },
+  "state-math-test-prep": {
+    main: [
+      "State Math Test Prep",
+      "state math tutoring",
+      "state math test prep",
+    ],
+    longTail: ["state math exam prep", "grade level math test prep"],
+    local: [
+      "state math tutor in {city}",
+      "state math test prep in {city}",
+    ],
+    app: [],
+    questionBased: ["state math exam prep"],
+    buyerIntent: [
+      "state math tutor online",
+      "best state math test prep",
+    ],
+    practiceTest: [
+      "free state math practice test",
+      "state math practice test online",
+    ],
+    predictionTest: ["free state math prediction test"],
   },
 };
 
