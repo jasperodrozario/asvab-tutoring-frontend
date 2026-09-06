@@ -18,8 +18,11 @@ export default function Welcome({
 }: Props) {
   return (
     <>
-      {/* Hero Section — static shell is a Server Component for faster first paint */}
-      <div className="min-vh-100 d-flex align-items-lg-center align-items-start bg-hero text-white py-5 px-3">
+      {/*
+        Desktop: heading + video | form side-by-side in one viewport.
+        Mobile: primary column fills the first viewport; form stacks below the fold.
+      */}
+      <div className="d-flex align-items-lg-center bg-hero text-white px-3">
         <Image
           src="/images/asvab-bg.webp"
           alt=""
@@ -31,8 +34,8 @@ export default function Welcome({
           quality={70}
         />
         <div className="container hero-content">
-          <div className="row align-items-center g-5">
-            <div className="col-lg-6 text-center">
+          <div className="row align-items-center g-4 g-lg-5">
+            <div className="col-lg-6 text-center hero-primary-col">
               <h1 className="display-5 fw-bold">
                 Welcome To <br />
                 <span className="primary-color-custom">ASVAB Tutoring</span>
@@ -46,7 +49,7 @@ export default function Welcome({
               <HeroPromoVideo />
             </div>
 
-            <div className="col-lg-6">
+            <div className="col-lg-6 hero-form-col">
               <TutorRequestForm initialStates={initialStates} />
             </div>
           </div>
