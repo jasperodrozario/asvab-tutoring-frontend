@@ -63,6 +63,10 @@ export function getCourseCategory(courseCode: string): CourseCategory {
   return "academic test prep";
 }
 
+export function getCourseCategorySelectPrompt(category: CourseCategory): string {
+  return `Select a ${category} course`;
+}
+
 export function groupCoursesByCategory<T extends { course_code: string }>(
   courses: readonly T[],
 ): {

@@ -2,7 +2,6 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { BsEye, BsEyeSlash } from "react-icons/bs";
 import { sanitizeMobileInput } from "@/lib/sanitize-mobile-input";
 import { postPhpBrowser } from "@/lib/php-browser";
@@ -16,7 +15,14 @@ import {
   courseRequiresGradeSelection,
   resolvePaymentCourseIdentity,
 } from "@/lib/course-variants";
-import { parseHasVariants } from "@/lib/package-utils";
+import {
+  parseHasVariants,
+  groupCoursesByCategory,
+  COURSE_CATEGORY_ORDER,
+  getCourseCategorySelectPrompt,
+  convertCourseIdToCode,
+} from "@/lib/package-utils";
+import { resolvePortalLoginUrl } from "@/lib/portal-login";
 
 type StatusType = "success" | "error" | "info";
 type Status = { type: StatusType; text: string } | null;
@@ -92,8 +98,6 @@ export default function RegisterForm({
   initialServices = {},
   initialSessionsByCourseService = {},
 }: Props) {
-  const router = useRouter();
-
   const [form, setForm] = useState({
     first_name: "",
     last_name: "",
@@ -115,17 +119,15 @@ export default function RegisterForm({
   const [selectedGradeMainId, setSelectedGradeMainId] = useState("");
   const [showGradeError, setShowGradeError] = useState(false);
 
+  const [purchaseStatus, setPurchaseStatus] = useState<"not_purchased" | "already_purchased">("not_purchased");
+  const hasPurchase = purchaseStatus === "already_purchased";
+
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+
   const [agree, setAgree] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [status, setStatus] = useState<Status>(
-    initialCourses.length === 0
-      ? {
-          type: "error",
-          text: "Failed to load course list. Please refresh and try again.",
-        }
-      : null,
-  );
+  const [status, setStatus] = useState<Status>(null);
   const [fieldErrors, setFieldErrors] = useState({
     first_name: "",
     last_name: "",
@@ -214,6 +216,26 @@ export default function RegisterForm({
     () => courses.find((c) => c.course_id === courseId) || null,
     [courses, courseId],
   );
+
+  const groupedRegistrationCourses = useMemo(() => {
+    const grouped = groupCoursesByCategory(
+      courses.map((course) => ({
+        ...course,
+        course_code:
+          course.course_code || convertCourseIdToCode(course.course_id),
+      })),
+    );
+
+    return COURSE_CATEGORY_ORDER.map((category) => ({
+      category,
+      items:
+        category === "military test prep"
+          ? grouped.militaryTestPrep
+          : category === "healthcare test prep"
+            ? grouped.healthcareTestPrep
+            : grouped.academicTestPrep,
+    })).filter((group) => group.items.length > 0);
+  }, [courses]);
 
   const requiresGrade = courseRequiresGradeSelection({
     has_variants: parseHasVariants(selectedCourse?.has_variants),
@@ -475,7 +497,7 @@ export default function RegisterForm({
   ]);
 
   const canSubmit = useMemo(() => {
-    return (
+    const userFieldsOk =
       !!form.first_name.trim() &&
       !!form.last_name.trim() &&
       emailReady &&
@@ -487,12 +509,15 @@ export default function RegisterForm({
       !fieldErrors.last_name &&
       !fieldErrors.mobile &&
       !fieldErrors.confirm_password &&
-      !!courseId &&
-      serviceType !== "" &&
-      !!sessionId &&
       agree &&
-      !submitting
-    );
+      !submitting;
+
+    if (!userFieldsOk) return false;
+
+    if (hasPurchase) {
+      return !!courseId && serviceType !== "" && !!sessionId;
+    }
+    return true;
   }, [
     form,
     fieldErrors,
@@ -502,6 +527,7 @@ export default function RegisterForm({
     agree,
     submitting,
     emailReady,
+    hasPurchase,
   ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -572,16 +598,18 @@ export default function RegisterForm({
       return;
     }
 
-    if (!courseId)
-      return setStatus({ type: "error", text: "Please select a course." });
-    if (requiresGrade && !selectedGradeMainId) {
-      setShowGradeError(true);
-      return setStatus({ type: "error", text: "Please select a grade." });
+    if (hasPurchase) {
+      if (!courseId)
+        return setStatus({ type: "error", text: "Please select a course." });
+      if (requiresGrade && !selectedGradeMainId) {
+        setShowGradeError(true);
+        return setStatus({ type: "error", text: "Please select a grade." });
+      }
+      if (serviceType === "")
+        return setStatus({ type: "error", text: "Please select a service." });
+      if (!sessionId)
+        return setStatus({ type: "error", text: "Please select a package." });
     }
-    if (serviceType === "")
-      return setStatus({ type: "error", text: "Please select a service." });
-    if (!sessionId)
-      return setStatus({ type: "error", text: "Please select a package." });
     if (!agree)
       return setStatus({
         type: "error",
@@ -591,26 +619,56 @@ export default function RegisterForm({
     try {
       setSubmitting(true);
 
-      // Registration API call
-      const json = (await postForm({
+      // Build POST body — omit course/session when not purchased
+      const body: Record<string, string> = {
         action: "user-registration",
-        course_id: paymentIdentity.course_id,
-        session_id: sessionId,
-        is_variant: String(paymentIdentity.is_variant),
         first_name: form.first_name.trim(),
         last_name: form.last_name.trim(),
         email: form.email.trim(),
         password: form.password,
         mobile: form.mobile.trim(),
-        amount: selectedSession?.price ? String(selectedSession.price) : "",
         payment_source_type: "mobile",
         currency: "usd",
-        // If backend requires it:
-        // service_type: serviceType,
-      })) as { status?: number; isSuccess?: boolean; message?: string };
+      };
+
+      if (hasPurchase) {
+        body.course_id = paymentIdentity.course_id;
+        body.session_id = sessionId;
+        body.is_variant = String(paymentIdentity.is_variant);
+        if (selectedSession?.price) body.amount = String(selectedSession.price);
+      }
+
+      const json = (await postForm(body)) as {
+        status?: number;
+        isSuccess?: boolean;
+        message?: string;
+      };
 
       if (json?.status === 200 && json?.isSuccess) {
-        router.push("/thank-you?method=mobile");
+        if (hasPurchase) {
+          // Auto-login then redirect to study portal
+          const portalUrl = process.env.NEXT_PUBLIC_RESOURCES_URL || "";
+          try {
+            const loginRes = await fetch("/api/auth/login", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                email: form.email.trim(),
+                password: form.password,
+              }),
+            });
+            const loginData = await loginRes.json();
+            const url = String(loginData?.portalUrl || portalUrl).trim();
+            window.location.href = resolvePortalLoginUrl(url);
+          } catch {
+            window.location.href = resolvePortalLoginUrl(portalUrl);
+          }
+          return;
+        }
+
+        // Free registration — show in-page success panel
+        setRegistrationSuccess(true);
+        setStatus(null);
         return;
       }
 
@@ -654,6 +712,34 @@ export default function RegisterForm({
               </div>
 
               <div className="card-body">
+                {registrationSuccess ? (
+                  <div className="text-center py-4">
+                    <div
+                      className="mb-3"
+                      style={{ fontSize: 48 }}
+                    >
+                      ✅
+                    </div>
+                    <h4 className="fw-bold mb-2" style={{ color: "#002341" }}>
+                      Account created!
+                    </h4>
+                    <p className="mb-4" style={{ color: "#002341", opacity: 0.85 }}>
+                      Your account has been created. Log in on the marketing site to browse courses and make a purchase.
+                    </p>
+                    <Link
+                      href="/user-login"
+                      className="btn fw-bold"
+                      style={{
+                        background: "#f2a155",
+                        color: "#002341",
+                        borderRadius: 12,
+                        padding: "12px 24px",
+                      }}
+                    >
+                      Go to Login
+                    </Link>
+                  </div>
+                ) : (<>
                 <p
                   className="mb-3 small"
                   style={{
@@ -671,8 +757,9 @@ export default function RegisterForm({
                   >
                     Note:
                   </span>{" "}
-                  You must purchase a package before or after registration to
-                  get access to your course and study materials.
+                  {hasPurchase
+                    ? "Register to get access to your purchased course and study materials."
+                    : "You can purchase a package after registration to get access to your course and study materials."}
                 </p>
 
                 {status && (
@@ -691,7 +778,43 @@ export default function RegisterForm({
                 )}
 
                 <form onSubmit={handleSubmit}>
-                  {/* 2 dropdowns */}
+                  {/* Purchase status radios */}
+                  <div className="mb-3">
+                    <label className="fw-semibold d-block mb-2" style={{ color: "#002341" }}>
+                      Have you already made a purchase?
+                    </label>
+                    <div className="d-flex gap-3">
+                      <div className="form-check">
+                        <input
+                          className="form-check-input"
+                          type="radio"
+                          name="purchaseStatus"
+                          id="ps-no"
+                          checked={purchaseStatus === "not_purchased"}
+                          onChange={() => setPurchaseStatus("not_purchased")}
+                        />
+                        <label className="form-check-label" htmlFor="ps-no">
+                          Not yet
+                        </label>
+                      </div>
+                      <div className="form-check">
+                        <input
+                          className="form-check-input"
+                          type="radio"
+                          name="purchaseStatus"
+                          id="ps-yes"
+                          checked={purchaseStatus === "already_purchased"}
+                          onChange={() => setPurchaseStatus("already_purchased")}
+                        />
+                        <label className="form-check-label" htmlFor="ps-yes">
+                          Already purchased
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Package selection — only when already purchased */}
+                  {hasPurchase && (
                   <div className="row g-2 mb-3">
                     {/* Course */}
                     <div className="col-12">
@@ -717,10 +840,17 @@ export default function RegisterForm({
                             ? "Courses unavailable"
                             : "Select a course"}
                         </option>
-                        {courses.map((c) => (
-                          <option key={c.course_id} value={c.course_id}>
-                            {c.name}
-                          </option>
+                        {groupedRegistrationCourses.map((group) => (
+                          <optgroup
+                            key={group.category}
+                            label={`\u00A0\u00A0\u00A0${getCourseCategorySelectPrompt(group.category)}`}
+                          >
+                            {group.items.map((c) => (
+                              <option key={c.course_id} value={c.course_id}>
+                                {c.name}
+                              </option>
+                            ))}
+                          </optgroup>
                         ))}
                       </select>
                     </div>
@@ -737,6 +867,12 @@ export default function RegisterForm({
                             setStatus(null);
                           }}
                           className="form-select"
+                          containerClassName="mb-0"
+                          style={{
+                            borderRadius: 10,
+                            borderColor: "rgba(0,35,65,0.20)",
+                            padding: "12px 12px",
+                          }}
                           showError={showGradeError}
                         />
                       </div>
@@ -819,6 +955,7 @@ export default function RegisterForm({
                       )}
                     </div>
                   </div>
+                  )}
 
                   {/* Names */}
                   <div className="row g-2 mb-3">
@@ -1162,6 +1299,7 @@ export default function RegisterForm({
                     </Link>
                   </div>
                 </form>
+                </>)}
               </div>
             </div>
 

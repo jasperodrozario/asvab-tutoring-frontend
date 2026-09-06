@@ -13,6 +13,7 @@ import type {
 import type { ServiceType } from "@/types/Services";
 import {
   convertCourseCodeToId,
+  convertCourseIdToCode,
   convertServiceTypeToSubmenu,
   parseHasVariants,
   submenuToServiceType,
@@ -161,6 +162,7 @@ export type PackageSession = {
 
 export type RegistrationCourseWithServices = RegistrationCourse & {
   availableServiceTypes: string[];
+  course_code: string;
 };
 
 export type RegistrationCourseList = {
@@ -444,6 +446,9 @@ export async function fetchRegistrationTutoringCourseList(): Promise<Registratio
         const enriched: RegistrationCourseWithServices = {
           course_id: course.course_id,
           name: course.name,
+          course_code:
+            String(variantMeta?.course_code || "").trim() ||
+            convertCourseIdToCode(course.course_id),
           availableServiceTypes,
           has_variants,
           variants: has_variants ? variants : [],

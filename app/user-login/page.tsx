@@ -6,21 +6,9 @@ import { useRouter } from "next/navigation";
 import { BsEye, BsEyeSlash } from "react-icons/bs";
 import { useAuth } from "@/components/auth/AuthProvider";
 import AlreadySignedInCard from "@/components/auth/AlreadySignedInCard";
-import { resolvePortalLoginUrl, STUDY_PORTAL_HREF } from "@/lib/portal-login";
+import { resolvePortalLoginUrl } from "@/lib/portal-login";
 
 type LoginStatus = { type: "success" | "error"; text: string } | null;
-
-type AuthUser = {
-  user_id: number;
-  first_name: string;
-  last_name: string;
-  email: string;
-};
-
-type PostLoginChoice = {
-  portalUrl: string;
-  user: AuthUser;
-};
 
 export default function LoginPage() {
   const router = useRouter();
@@ -31,7 +19,6 @@ export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [status, setStatus] = useState<LoginStatus>(null);
-  const [choice, setChoice] = useState<PostLoginChoice | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,14 +48,10 @@ export default function LoginPage() {
           window.location.href = resolvePortalLoginUrl(portalUrl);
           return;
         }
-        setChoice({
-          portalUrl,
-          user: result.user,
-        });
-        setStatus({
-          type: "success",
-          text: result?.message || "Login successful.",
-        });
+        // Unpaid user — redirect home (session cookie already set)
+        redirecting = true;
+        router.push("/");
+        return;
       } else {
         setStatus({
           type: "error",
@@ -84,18 +67,7 @@ export default function LoginPage() {
     }
   };
 
-  const stayOnSite = () => {
-    router.push("/");
-  };
-
-  const goToPortal = () => {
-    const url = choice?.portalUrl?.trim();
-    window.location.href = url
-      ? resolvePortalLoginUrl(url)
-      : STUDY_PORTAL_HREF;
-  };
-
-  if (user && !choice && !submitting) {
+  if (user && !submitting) {
     return (
       <AlreadySignedInCard
         variant="login"
@@ -136,13 +108,9 @@ export default function LoginPage() {
                   color: "white",
                 }}
               >
-                <h3 className="mb-1 fw-bold">
-                  {choice ? "You're logged in" : "Login"}
-                </h3>
+                <h3 className="mb-1 fw-bold">Login</h3>
                 <p className="mb-0" style={{ opacity: 0.85 }}>
-                  {choice
-                    ? "Choose where to continue."
-                    : "Access your account and continue your preparation."}
+                  Access your account and continue your preparation.
                 </p>
               </div>
 
@@ -160,47 +128,7 @@ export default function LoginPage() {
                   </div>
                 )}
 
-                {choice ? (
-                  <div>
-                    <p className="mb-4" style={{ color: "#002341" }}>
-                      Welcome
-                      {choice.user?.first_name
-                        ? `, ${choice.user.first_name}`
-                        : ""}
-                      . Stay on this site to browse and checkout, or continue to
-                      the Study Portal for lessons and practice tests.
-                    </p>
-
-                    <button
-                      type="button"
-                      className="btn w-100 fw-bold mb-3"
-                      onClick={stayOnSite}
-                      style={{
-                        background: "#f2a155",
-                        color: "#002341",
-                        borderRadius: 12,
-                        padding: "12px 14px",
-                      }}
-                    >
-                      Stay on website
-                    </button>
-
-                    <button
-                      type="button"
-                      className="btn w-100 fw-bold"
-                      onClick={goToPortal}
-                      style={{
-                        background: "#002341",
-                        color: "white",
-                        borderRadius: 12,
-                        padding: "12px 14px",
-                      }}
-                    >
-                      Continue studying
-                    </button>
-                  </div>
-                ) : (
-                  <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit}>
                     <div className="mb-3">
                       <label
                         className="form-label fw-semibold"
@@ -319,8 +247,7 @@ export default function LoginPage() {
                         Register
                       </Link>
                     </div>
-                  </form>
-                )}
+                </form>
               </div>
             </div>
 
