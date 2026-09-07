@@ -21,7 +21,13 @@ import { sanitizeMobileInput } from "@/lib/sanitize-mobile-input";
 import { convertCourseIdToProduct } from "@/lib/package-utils";
 import type { CheckoutPackageSummaryData } from "@/lib/checkout-package-info";
 import CheckoutPackageSummary from "@/components/checkout/CheckoutPackageSummary";
-import type { StateMathGradeOption } from "@/lib/state-math-test";
+import CourseVariantGradeSelect from "@/components/checkout/CourseVariantGradeSelect";
+import {
+  courseRequiresGradeSelection,
+  resolvePaymentCourseIdentity,
+  type CheckoutVariantInfo,
+} from "@/lib/course-variants";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 type PaymentMode = "one_time" | "subscription";
 type Product =
@@ -81,7 +87,7 @@ function inferProductFromCourseId(courseId: string): Product | "" {
   if (s.includes("teas")) return "ATI TEAS";
   if (s.includes("cna")) return "CNA";
   if (s.includes("shsat")) return "SHSAT";
-  if (s.includes("state-math") || s === "60") return "State Math Test Prep";
+  if (s.includes("state-math-test-prep") || s === "60") return "State Math Test Prep";
   return "";
 }
 
@@ -119,12 +125,10 @@ function looksLikeEmail(email: string) {
 
 export default function CheckoutContent({
   packageSummary = null,
-  stateMathGrades = [],
-  requiresGradeSelection = false,
+  variantInfo = null,
 }: {
   packageSummary?: CheckoutPackageSummaryData | null;
-  stateMathGrades?: StateMathGradeOption[];
-  requiresGradeSelection?: boolean;
+  variantInfo?: CheckoutVariantInfo | null;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -135,6 +139,25 @@ export default function CheckoutContent({
   const course_id = searchParams.get("course_id") || "";
   const session_id = searchParams.get("session_id") || "";
   const package_id = searchParams.get("package_id") || "";
+  const requiresGrade = courseRequiresGradeSelection(variantInfo);
+  const [selectedGradeMainId, setSelectedGradeMainId] = useState("");
+  const [showGradeError, setShowGradeError] = useState(false);
+
+  const paymentIdentity = useMemo(
+    () =>
+      resolvePaymentCourseIdentity({
+        parentCourseId: course_id,
+        selectedGradeMainId,
+        requiresGrade,
+      }),
+    [course_id, selectedGradeMainId, requiresGrade],
+  );
+
+  // Trust server-derived variant metadata, not URL query params.
+  const is_variant = paymentIdentity.is_variant;
+  const paymentCourseId = requiresGrade
+    ? paymentIdentity.course_id
+    : course_id;
 
   const amountCents = useMemo(() => {
     const raw = searchParams.get("amount") ?? "0";
@@ -166,29 +189,46 @@ export default function CheckoutContent({
     return "1M";
   }, [searchParams]);
 
+  const { user: sessionUser, authToken: sessionToken, loaded: authReady } =
+    useAuth();
+
   const [user, setUser] = useState({
-    first_name: "",
-    last_name: "",
-    email: "",
+    first_name: sessionUser?.first_name || "",
+    last_name: sessionUser?.last_name || "",
+    email: sessionUser?.email || "",
     mobile: "",
     password: "",
     confirm_password: "",
+    user_id: sessionUser ? String(sessionUser.user_id) : "",
   });
+
+  const [authToken, setAuthToken] = useState(sessionToken ?? "");
+  const [authLoaded, setAuthLoaded] = useState(authReady);
+  const isAuthenticated = !!authToken && !!user.user_id;
+
+  useEffect(() => {
+    if (!authReady) return;
+    if (sessionUser && sessionToken) {
+      setAuthToken(sessionToken);
+      setUser((prev) => ({
+        ...prev,
+        first_name: String(sessionUser.first_name || ""),
+        last_name: String(sessionUser.last_name || ""),
+        email: String(sessionUser.email || ""),
+        user_id: String(sessionUser.user_id || ""),
+      }));
+    }
+    setAuthLoaded(true);
+  }, [authReady, sessionUser, sessionToken]);
 
   const [fieldErrors, setFieldErrors] = useState({
     first_name: "",
     last_name: "",
     mobile: "",
     confirm_password: "",
-    grade: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);
-  const [selectedGradeCourseId, setSelectedGradeCourseId] = useState("");
-
-  const resolvedCourseId = requiresGradeSelection
-    ? selectedGradeCourseId
-    : course_id;
 
   const validateFirstName = (firstName: string) => {
     if (!firstName.trim()) return "First name is required.";
@@ -320,7 +360,7 @@ export default function CheckoutContent({
       const body = new URLSearchParams();
       body.append("action", EMAIL_CHECK_ACTION);
       body.append("email", email);
-      if (resolvedCourseId) body.append("course_id", String(resolvedCourseId));
+      if (course_id) body.append("course_id", String(course_id));
       if (session_id) body.append("session_id", String(session_id));
 
       try {
@@ -338,7 +378,7 @@ export default function CheckoutContent({
         };
       }
     },
-    [API_URL, resolvedCourseId, session_id],
+    [API_URL, course_id, session_id],
   );
 
   const runEmailCheck = useCallback(
@@ -533,6 +573,7 @@ export default function CheckoutContent({
   const [agreeTerms, setAgreeTerms] = useState(false);
 
   const emailReady = useMemo(() => {
+    if (isAuthenticated) return true;
     const normalized = normalizeEmail(user.email);
     if (!normalized || !looksLikeEmail(user.email)) return false;
     if (emailChecking || emailExists) return false;
@@ -540,6 +581,7 @@ export default function CheckoutContent({
     if (normalized !== lastCheckedEmail) return false;
     return true;
   }, [
+    isAuthenticated,
     user.email,
     emailChecking,
     emailExists,
@@ -548,6 +590,18 @@ export default function CheckoutContent({
   ]);
 
   const canSubmit = useMemo(() => {
+    if (isAuthenticated) {
+      return (
+        agreeTerms &&
+        !!user.first_name.trim() &&
+        !!user.last_name.trim() &&
+        !!user.email.trim() &&
+        !!user.user_id &&
+        !!authToken &&
+        !invalidBase &&
+        (!requiresGrade || !!selectedGradeMainId)
+      );
+    }
     return (
       agreeTerms &&
       !!user.first_name.trim() &&
@@ -561,22 +615,32 @@ export default function CheckoutContent({
       !fieldErrors.last_name &&
       !fieldErrors.mobile &&
       !fieldErrors.confirm_password &&
-      !fieldErrors.grade &&
-      (!requiresGradeSelection || !!selectedGradeCourseId) &&
-      !invalidBase
+      !invalidBase &&
+      (!requiresGrade || !!selectedGradeMainId)
     );
   }, [
+    isAuthenticated,
+    authToken,
     agreeTerms,
     user,
     fieldErrors,
     emailReady,
     invalidBase,
-    requiresGradeSelection,
-    selectedGradeCourseId,
+    requiresGrade,
+    selectedGradeMainId,
   ]);
 
   const submitMobilePayment = async () => {
     setMobileResult(null);
+
+    if (requiresGrade && !selectedGradeMainId) {
+      setShowGradeError(true);
+      setMobileResult({
+        type: "danger",
+        text: "Please select a grade before continuing.",
+      });
+      return;
+    }
 
     if (!agreeTerms) {
       setMobileResult({
@@ -589,46 +653,38 @@ export default function CheckoutContent({
     setEmailTouched(true);
     setEmailBlurred(true);
 
-    const firstNameErr = validateFirstName(user.first_name);
-    const lastNameErr = validateLastName(user.last_name);
-    const mobileErr = validateMobile(user.mobile);
-    const confirmErr = validateConfirmPassword(
-      user.confirm_password,
-      user.password,
-    );
+    if (!isAuthenticated) {
+      const firstNameErr = validateFirstName(user.first_name);
+      const lastNameErr = validateLastName(user.last_name);
+      const mobileErr = validateMobile(user.mobile);
+      const confirmErr = validateConfirmPassword(
+        user.confirm_password,
+        user.password,
+      );
 
-    const gradeErr = requiresGradeSelection
-      ? selectedGradeCourseId
-        ? ""
-        : stateMathGrades.length
-          ? "Please select a grade."
-          : "Unable to load grades."
-      : "";
+      if (!user.email.trim()) {
+        setEmailCheckMsg("Email address is required.");
+      }
 
-    if (!user.email.trim()) {
-      setEmailCheckMsg("Email address is required.");
-    }
-
-    if (
-      firstNameErr ||
-      lastNameErr ||
-      mobileErr ||
-      confirmErr ||
-      !user.email.trim() ||
-      gradeErr
-    ) {
-      setFieldErrors({
-        first_name: firstNameErr,
-        last_name: lastNameErr,
-        mobile: mobileErr,
-        confirm_password: confirmErr,
-        grade: gradeErr,
-      });
-      setMobileResult({
-        type: "danger",
-        text: "Please fix all the errors in the form before submitting.",
-      });
-      return;
+      if (
+        firstNameErr ||
+        lastNameErr ||
+        mobileErr ||
+        confirmErr ||
+        !user.email.trim()
+      ) {
+        setFieldErrors({
+          first_name: firstNameErr,
+          last_name: lastNameErr,
+          mobile: mobileErr,
+          confirm_password: confirmErr,
+        });
+        setMobileResult({
+          type: "danger",
+          text: "Please fix all the errors in the form before submitting.",
+        });
+        return;
+      }
     }
 
     if (!canSubmit) {
@@ -639,24 +695,26 @@ export default function CheckoutContent({
       return;
     }
 
-    if (normalizeEmail(user.email) !== lastCheckedEmail) {
-      await runEmailCheck(user.email);
-    }
+    if (!isAuthenticated) {
+      if (normalizeEmail(user.email) !== lastCheckedEmail) {
+        await runEmailCheck(user.email);
+      }
 
-    if (emailChecking) {
-      setMobileResult({
-        type: "info",
-        text: "We are checking your email. Please wait a moment and try again.",
-      });
-      return;
-    }
+      if (emailChecking) {
+        setMobileResult({
+          type: "info",
+          text: "We are checking your email. Please wait a moment and try again.",
+        });
+        return;
+      }
 
-    if (emailExists) {
-      setMobileResult({
-        type: "danger",
-        text: emailCheckMsg || "This email address is already registered.",
-      });
-      return;
+      if (emailExists) {
+        setMobileResult({
+          type: "danger",
+          text: emailCheckMsg || "This email address is already registered.",
+        });
+        return;
+      }
     }
 
     setMobileSubmitting(true);
@@ -664,9 +722,10 @@ export default function CheckoutContent({
     try {
       const body = new URLSearchParams();
       body.append("action", "user-registration-mobile-payment");
-      body.append("course_id", String(resolvedCourseId));
+      body.append("course_id", String(paymentCourseId));
       body.append("session_id", String(session_id));
       body.append("package_id", String(package_id));
+      body.append("is_variant", String(is_variant));
       body.append("first_name", user.first_name);
       body.append("last_name", user.last_name);
       body.append("email", user.email);
@@ -675,6 +734,10 @@ export default function CheckoutContent({
       body.append("amount", String(amountCents));
       body.append("currency", "USD");
       body.append("created_at", todayYYYYMMDD());
+      if (authToken) {
+        body.append("auth_token", authToken);
+        body.append("user_id", user.user_id);
+      }
 
       const res = await fetch(API_URL, {
         method: "POST",
@@ -761,7 +824,7 @@ export default function CheckoutContent({
   const showPaymentMethodChooser = mode !== "subscription";
   const showMobileUI = showPaymentMethodChooser && paymentMethod === "mobile";
   const showCardUI = mode === "subscription" || paymentMethod === "card";
-  const cardBlockedByEmail = !emailReady;
+  const cardBlockedByEmail = !isAuthenticated && !emailReady;
 
   return (
     <div className="container pb-5" style={{ maxWidth: 1100, paddingTop: 33 }}>
@@ -913,13 +976,16 @@ export default function CheckoutContent({
                     <SquarePaymentForm
                       ref={squareFormRef}
                       amount={amountCents}
-                      course_id={resolvedCourseId}
+                      course_id={paymentCourseId}
                       session_id={session_id}
                       package_id={package_id}
+                      is_variant={is_variant}
                       user={user}
                       mode={mode}
                       product={mode === "subscription" ? product : undefined}
                       cadence={mode === "subscription" ? cadence : undefined}
+                      isExistingUser={isAuthenticated}
+                      auth_token={authToken}
                       onPaymentSuccess={(id?: string) => {
                         let q = id
                           ? `?method=card&id=${encodeURIComponent(id)}`
@@ -960,9 +1026,46 @@ export default function CheckoutContent({
           <div className="card shadow-sm border-0 w-100">
             <div className="card-body p-4 d-flex flex-column">
               <h5 className="fw-bold mb-3 text-muted">
-                Your Registration Information
+                {isAuthenticated
+                  ? "Your Account"
+                  : "Your Registration Information"}
               </h5>
 
+              {requiresGrade && (
+                <CourseVariantGradeSelect
+                  variants={variantInfo?.variants ?? []}
+                  value={selectedGradeMainId}
+                  onChange={(gradeId) => {
+                    setSelectedGradeMainId(gradeId);
+                    if (gradeId) setShowGradeError(false);
+                  }}
+                  showError={showGradeError}
+                />
+              )}
+
+              {isAuthenticated ? (
+                <div
+                  className="mb-3 p-3 rounded"
+                  style={{
+                    background: "rgba(0,35,65,0.05)",
+                    border: "1px solid rgba(0,35,65,0.12)",
+                  }}
+                >
+                  <div className="fw-semibold" style={{ color: "#002341" }}>
+                    Logged in as{" "}
+                    {user.first_name || user.last_name
+                      ? `${user.first_name} ${user.last_name}`.trim()
+                      : user.email}
+                  </div>
+                  <div className="small text-muted mt-1">{user.email}</div>
+                  {!authLoaded ? null : (
+                    <div className="small text-muted mt-2">
+                      Registration is not required for this purchase.
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <>
               <div className="mb-2">
                 <input
                   className={`form-control ${fieldErrors.first_name ? "is-invalid" : ""}`}
@@ -1012,47 +1115,6 @@ export default function CheckoutContent({
                   </div>
                 )}
               </div>
-
-              {requiresGradeSelection && (
-                <div className="mb-2">
-                  <select
-                    className={`form-select ${fieldErrors.grade ? "is-invalid" : ""}`}
-                    name="grade"
-                    value={selectedGradeCourseId}
-                    onChange={(e) => {
-                      setSelectedGradeCourseId(e.target.value);
-                      setFieldErrors((prev) => ({
-                        ...prev,
-                        grade: e.target.value
-                          ? ""
-                          : stateMathGrades.length
-                            ? "Please select a grade."
-                            : "Unable to load grades.",
-                      }));
-                    }}
-                    required
-                  >
-                    <option value="">
-                      {stateMathGrades.length
-                        ? "Select grade"
-                        : "Unable to load grades"}
-                    </option>
-                    {stateMathGrades.map((grade) => (
-                      <option key={grade.course_id} value={grade.course_id}>
-                        {grade.course_name}
-                      </option>
-                    ))}
-                  </select>
-                  {fieldErrors.grade && (
-                    <div
-                      className="invalid-feedback"
-                      style={{ fontSize: 13, fontWeight: 600 }}
-                    >
-                      {fieldErrors.grade}
-                    </div>
-                  )}
-                </div>
-              )}
 
               <div className="mb-2">
                 <input
@@ -1190,16 +1252,19 @@ export default function CheckoutContent({
                 )}
               </div>
 
+              <div className="mt-3 small text-muted">
+                We’ll use your email for purchase confirmation and account
+                access.
+              </div>
+                </>
+              )}
+
               {mode === "subscription" && subscriptionInvalid && (
                 <div className="alert alert-danger mt-3 mb-0 py-2">
                   Invalid subscription parameters.
                 </div>
               )}
 
-              <div className="mt-3 small text-muted">
-                We’ll use your email for purchase confirmation and account
-                access.
-              </div>
               <TermsCheckbox />
 
               {paymentMethod === "mobile" ? (
@@ -1227,7 +1292,13 @@ export default function CheckoutContent({
                   <button
                     type="button"
                     className="btn btn-primary-custom mt-2 px-5 py-2 d-block mx-auto"
-                    onClick={() => squareFormRef.current?.submitPayment()}
+                    onClick={() => {
+                      if (requiresGrade && !selectedGradeMainId) {
+                        setShowGradeError(true);
+                        return;
+                      }
+                      squareFormRef.current?.submitPayment();
+                    }}
                     disabled={
                       cardState.initializing ||
                       cardState.paying ||

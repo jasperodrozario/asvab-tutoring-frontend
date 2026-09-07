@@ -36,6 +36,8 @@ type ContextResponse = {
   course?: {
     course_id: string;
     course_name?: string;
+    is_variant?: 0 | 1;
+    main_course_id?: string;
   };
 
   package?: {

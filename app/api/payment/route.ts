@@ -1,6 +1,13 @@
 // app/api/payment/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { parseIsVariant } from "@/lib/package-utils";
+import {
+  checkoutEmailAlreadyRegistered,
+  validateCheckoutCourseId,
+} from "@/lib/php-checkout";
+import { phpAuthTokenLookup } from "@/lib/auth-php";
+import { getSession } from "@/lib/auth-session";
 
 export const runtime = "nodejs";
 
@@ -80,6 +87,42 @@ function getUserSafeSquareMessage(squareData: any): string {
   return "Payment failed. Please try again or use a different card. If the issue continues, contact support.";
 }
 
+async function refundSquarePayment(args: {
+  accessToken: string;
+  environment: string;
+  squareVersion: string;
+  paymentId: string;
+  amountCents: number;
+}): Promise<boolean> {
+  try {
+    const refundRes = await fetch(
+      `${getSquareBaseUrl(args.environment)}/v2/refunds`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${args.accessToken}`,
+          "Square-Version": args.squareVersion,
+        },
+        body: JSON.stringify({
+          idempotency_key: crypto.randomUUID(),
+          payment_id: args.paymentId,
+          amount_money: {
+            amount: args.amountCents,
+            currency: "USD",
+          },
+          reason: "Enrollment could not be completed",
+        }),
+        cache: "no-store",
+      },
+    );
+    return refundRes.ok;
+  } catch (err) {
+    console.error("[/api/payment] Refund request failed", err);
+    return false;
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const {
@@ -118,10 +161,48 @@ export async function POST(req: NextRequest) {
 
     const sourceId = getSourceId(body?.sourceId);
     const amount = body?.amount;
-    const course_id = body?.course_id;
-    const session_id = body?.session_id;
-    const package_id = body?.package_id;
+    const course_id = safeStr(body?.course_id ?? "", 50);
+    const session_id = safeStr(body?.session_id ?? "", 50);
+    const package_id = safeStr(body?.package_id ?? "", 50);
+    const is_variant = parseIsVariant(body?.is_variant);
     const user = body?.user || {};
+    const postedUserId = safeStr(
+      body?.user_id ?? user?.user_id ?? user?.id ?? "",
+      50,
+    );
+    const bodyAuthToken = safeStr(body?.auth_token ?? "", 200);
+    const session = await getSession();
+    const auth_token = session?.auth_token || bodyAuthToken;
+
+    let resolvedUserId = postedUserId;
+    let isExistingUser =
+      body?.isExistingUser === true ||
+      body?.isExistingUser === "true" ||
+      postedUserId !== "";
+
+    if (auth_token) {
+      const lookedUp = await phpAuthTokenLookup(auth_token);
+      if (!lookedUp) {
+        return json(401, {
+          success: false,
+          error: "Your session has expired. Please log in again.",
+          message: "Your session has expired. Please log in again.",
+        });
+      }
+      if (session && lookedUp.user_id !== session.user_id) {
+        return json(401, {
+          success: false,
+          error: "Your session has expired. Please log in again.",
+          message: "Your session has expired. Please log in again.",
+        });
+      }
+      resolvedUserId = String(lookedUp.user_id);
+      isExistingUser = true;
+      user.first_name = user.first_name || lookedUp.first_name;
+      user.last_name = user.last_name || lookedUp.last_name;
+      user.email = user.email || lookedUp.email;
+      user.user_id = resolvedUserId;
+    }
 
     // Get Referral Data from Cookies
     const cookieStore = await cookies();
@@ -148,6 +229,74 @@ export async function POST(req: NextRequest) {
     }
 
     const amountCentsInt = Math.round(amountCents);
+
+    if (!course_id || course_id === "0") {
+      return json(400, {
+        success: false,
+        error:
+          "Course ID is required. Please return to the course page and try again.",
+        message:
+          "Course ID is required. Please return to the course page and try again.",
+      });
+    }
+
+    if (!session_id || session_id === "0") {
+      return json(400, {
+        success: false,
+        error: "Session ID is required.",
+        message: "Session ID is required.",
+      });
+    }
+
+    if (!package_id || package_id === "0") {
+      return json(400, {
+        success: false,
+        error:
+          "Package ID is required. Please return to the course page and try again.",
+        message:
+          "Package ID is required. Please return to the course page and try again.",
+      });
+    }
+
+    if (!phpApiUrl) {
+      console.error("[/api/payment] Missing PHP_API_URL");
+      return json(500, {
+        success: false,
+        error:
+          "Enrollment service is not configured properly. Please contact support.",
+        message:
+          "Enrollment service is not configured properly. Please contact support.",
+      });
+    }
+
+    const courseCheck = await validateCheckoutCourseId({
+      course_id,
+      session_id,
+      package_id,
+      is_variant,
+    });
+    if (!courseCheck.ok) {
+      return json(400, {
+        success: false,
+        error: courseCheck.message,
+        message: courseCheck.message,
+      });
+    }
+
+    if (!isExistingUser) {
+      const emailTaken = await checkoutEmailAlreadyRegistered(
+        safeStr(user?.email ?? "", 120),
+      );
+      if (emailTaken === true) {
+        return json(400, {
+          success: false,
+          error:
+            "This email address is already registered. Please log in or use a different email.",
+          message:
+            "This email address is already registered. Please log in or use a different email.",
+        });
+      }
+    }
 
     // 1) Create Customer permanently in Square
     let customerId: string | undefined = undefined;
@@ -267,82 +416,94 @@ export async function POST(req: NextRequest) {
     }
 
     let registrationSuccess = false;
+    let registrationResponse: any = null;
 
-    if (!phpApiUrl) {
-      console.error("[/api/payment] Missing PHP_API_URL");
-    } else {
-      const amountDollars = (amountCentsInt / 100).toString();
+    const amountDollars = (amountCentsInt / 100).toString();
 
-      const phpParams = new URLSearchParams({
-        action: "user-registration-one-time-square-payment",
-        internal_api_secret: internalApiSecret,
-        payment_status: "COMPLETED",
-        order_id: safeStr(payment?.order_id || payment?.id || "", 120),
-        payment_id: safeStr(payment?.id || "", 120),
-        amount: amountDollars,
-        currency: "USD",
-        created_at: new Date().toISOString(),
-        course_id: safeStr(course_id ?? "", 50),
-        session_id: safeStr(session_id ?? "", 50),
-        package_id: safeStr(package_id ?? "", 50),
-        payment_source_type: "CARD",
+    const phpParams = new URLSearchParams({
+      action: "user-registration-one-time-square-payment",
+      internal_api_secret: internalApiSecret,
+      payment_status: "COMPLETED",
+      order_id: safeStr(payment?.order_id || payment?.id || "", 120),
+      payment_id: safeStr(payment?.id || "", 120),
+      amount: amountDollars,
+      currency: "USD",
+      created_at: new Date().toISOString(),
+      course_id,
+      session_id,
+      package_id,
+      is_variant: String(is_variant),
+      payment_source_type: "CARD",
 
-        first_name: safeStr(user?.first_name ?? "", 80),
-        last_name: safeStr(user?.last_name ?? "", 80),
-        email: safeStr(user?.email ?? "", 120),
-        mobile: safeStr(user?.mobile ?? "", 40),
-        password: safeStr(user?.password ?? "", 200),
+      first_name: safeStr(user?.first_name ?? "", 80),
+      last_name: safeStr(user?.last_name ?? "", 80),
+      email: safeStr(user?.email ?? "", 120),
+      mobile: safeStr(user?.mobile ?? "", 40),
+      password: safeStr(user?.password ?? "", 200),
+      user_id: resolvedUserId,
+      auth_token: auth_token,
 
-        // Referral Data
-        ref_code: safeStr(ref_code, 50),
-        ref_type: safeStr(ref_type, 50),
+      // Referral Data
+      ref_code: safeStr(ref_code, 50),
+      ref_type: safeStr(ref_type, 50),
+    });
+
+    try {
+      const phpRes = await fetch(phpApiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+          Accept: "application/json,text/plain,*/*",
+          ...(internalApiSecret ? { "X-ASVAB-SECRET": internalApiSecret } : {}),
+        },
+        body: phpParams.toString(),
+        cache: "no-store",
       });
 
+      const phpText = await phpRes.text();
+
       try {
-        const phpRes = await fetch(phpApiUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-            Accept: "application/json,text/plain,*/*",
-          },
-          body: phpParams.toString(),
-          cache: "no-store",
-        });
-
-        const phpText = await phpRes.text();
-
-        let registrationResponse: any = null;
-        try {
-          registrationResponse = phpText ? JSON.parse(phpText) : null;
-        } catch {
-          console.error("[/api/payment] Unable to parse PHP response");
-          registrationResponse = {
-            raw: phpText?.slice?.(0, 2000) || "",
-          };
-        }
-
-        registrationSuccess =
-          phpRes.ok &&
-          (registrationResponse?.isSuccess === true ||
-            registrationResponse?.ok === true ||
-            registrationResponse?.success === true ||
-            registrationResponse?.status === 200);
+        registrationResponse = phpText ? JSON.parse(phpText) : null;
       } catch {
-        console.error("[/api/payment] PHP registration request failed");
-        registrationSuccess = false;
+        console.error("[/api/payment] Unable to parse PHP response");
+        registrationResponse = {
+          raw: phpText?.slice?.(0, 2000) || "",
+        };
       }
+
+      registrationSuccess =
+        phpRes.ok &&
+        (registrationResponse?.isSuccess === true ||
+          registrationResponse?.ok === true ||
+          registrationResponse?.success === true ||
+          registrationResponse?.status === 200);
+    } catch {
+      console.error("[/api/payment] PHP registration request failed");
+      registrationSuccess = false;
     }
 
     if (!registrationSuccess) {
-      return json(200, {
-        success: true,
-        error: "",
-        message:
-          "Payment received successfully. We’re finalizing your enrollment now. If access doesn’t appear soon, please contact support with your payment ID.",
+      const refunded = await refundSquarePayment({
+        accessToken,
+        environment,
+        squareVersion,
+        paymentId: safeStr(payment?.id || "", 120),
+        amountCents: amountCentsInt,
+      });
+
+      return json(500, {
+        success: false,
+        error: refunded
+          ? "We couldn't finish your enrollment. Your payment has been refunded. Please try again or contact support."
+          : "We couldn't finish your enrollment after payment. Please contact support with your payment ID.",
+        message: refunded
+          ? "We couldn't finish your enrollment. Your payment has been refunded. Please try again or contact support."
+          : "We couldn't finish your enrollment after payment. Please contact support with your payment ID.",
         squareStatus,
         payment_id: payment?.id || "",
         paymentId: payment?.id || "",
         registrationSuccess: false,
+        refunded,
       });
     }
 
@@ -354,6 +515,8 @@ export async function POST(req: NextRequest) {
       payment_id: payment?.id || "",
       paymentId: payment?.id || "",
       registrationSuccess: true,
+      course_id: registrationResponse?.course_id ?? courseCheck.course_id,
+      php: registrationResponse,
     });
   } catch {
     console.error("[/api/payment] Fatal error");

@@ -57,10 +57,17 @@ export interface UserFeedback {
   created_at?: string;
 }
 
+export interface CourseVariantOption {
+  main_course_id: number | string;
+  course_name: string;
+}
+
 export interface CourseData {
   status: number;
   isSuccess: boolean;
   message: string;
+  course_id?: number | string;
+  course_code?: string;
   course_name?: string;
   full_form: string;
   course_header?: string;
@@ -74,6 +81,8 @@ export interface CourseData {
   user_feedbacks?: UserFeedback[];
   total_ques?: number;
   image_src?: string;
+  has_variants?: 0 | 1 | boolean;
+  variants?: CourseVariantOption[];
 }
 
 export interface CourseOverviewVideo {

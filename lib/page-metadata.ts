@@ -139,10 +139,15 @@ export const COURSE_SEO: Record<string, PageSeo> = {
     description:
       "Get expert CNA exam prep, focused study strategies, and proven resources. Enroll in a CNA prep course designed to help you pass with confidence.",
   },
-  "state-math-test-prep": {
-    title: "State Math Test Prep | Grade-Level Math Tutoring",
+  shsat: {
+    title: "SHSAT Tutor | SHSAT Math Prep | SHSAT Exam Prep",
     description:
-      "Prepare for state math tests with expert tutoring, grade-level practice, and proven study strategies designed to build confidence and raise scores.",
+      "Get expert SHSAT tutoring, focused math preparation, and proven study strategies. Enroll in a SHSAT prep course designed to maximize your score.",
+  },
+  "state-math-test-prep": {
+    title: "State Math Test Prep Tutor | State Math Test Prep Math Prep | State Math Test Prep Exam Prep",
+    description:
+      "Get expert State Math Test Prep tutoring, focused math preparation, and proven study strategies. Enroll in a State Math Test Prep prep course designed to maximize your score.",
   },
 };
 
@@ -186,6 +191,16 @@ export const FREE_PRACTICE_TEST_SEO: Record<string, PageSeo> = {
     title: "Free CNA Practice Test Online 2026 | ASVAB Tutoring",
     description:
       "Take our free online CNA practice test 2026. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.",
+  },
+  shsat: {
+    title: "Free SHSAT Practice Test Online 2026 | ASVAB Tutoring",
+    description:
+      "Take our free online SHSAT practice test 2026. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.",
+  },
+  "state-math-test-prep": {
+    title: "Free State Math Test Prep Practice Test Online 2026 | ASVAB Tutoring",
+    description:
+      "Take our free online State Math Test Prep practice test 2026. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.",
   },
 };
 
@@ -235,6 +250,16 @@ export const FREE_PREDICTION_TEST_SEO: Record<string, PageSeo> = {
     title: "Free CNA Prediction Test Online 2026 | ASVAB Tutoring",
     description:
       "Take our free online CNA prediction test. Complete all sections to receive your predicted score and section results.",
+  },
+  shsat: {
+    title: "Free SHSAT Prediction Test Online 2026 | ASVAB Tutoring",
+    description:
+      "Take our free online SHSAT prediction test. Complete all sections to receive your predicted score and section results.",
+  },
+  "state-math-test-prep": {
+    title: "Free State Math Test Prep Prediction Test Online 2026 | ASVAB Tutoring",
+    description:
+      "Take our free online State Math Test Prep prediction test. Complete all sections to receive your predicted score and section results.",
   },
 };
 
@@ -335,6 +360,16 @@ export const PACKAGE_SEO: Record<string, Record<string, PageSeo>> = {
       description:
         "Explore our affordable 1-on-1 tutoring sessions for CNA test preparation. Get expert help tailored to your needs and boost your scores.",
     },
+    shsat: {
+      title: "1-on-1 Tutoring Sessions Price for SHSAT Test Prep",
+      description:
+        "Explore our affordable 1-on-1 tutoring sessions for SHSAT test preparation. Get expert help tailored to your needs and boost your scores.",
+    },
+    "state-math-test-prep": {
+      title: "1-on-1 Tutoring Sessions Price for State Math Test Prep Test Prep",
+      description:
+        "Explore our affordable 1-on-1 tutoring sessions for State Math Test Prep test preparation. Get expert help tailored to your needs and boost your scores.",
+    },
   },
   "group-tutoring": {
     asvab: {
@@ -376,6 +411,16 @@ export const PACKAGE_SEO: Record<string, Record<string, PageSeo>> = {
       title: "Group Tutoring Sessions Price for CNA Test Prep",
       description:
         "Discover affordable group tutoring sessions for CNA Test Prep. Boost your scores with expert guidance and collaborative learning today!",
+    },
+    shsat: {
+      title: "Group Tutoring Sessions Price for SHSAT Test Prep",
+      description:
+        "Discover affordable group tutoring sessions for SHSAT Test Prep. Boost your scores with expert guidance and collaborative learning today!",
+    },
+    "state-math-test-prep": {
+      title: "Group Tutoring Sessions Price for State Math Test Prep Test Prep",
+      description:
+        "Discover affordable group tutoring sessions for State Math Test Prep test preparation. Get expert help tailored to your needs and boost your scores.",
     },
   },
 };

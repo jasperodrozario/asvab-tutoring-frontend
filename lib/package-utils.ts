@@ -65,6 +65,10 @@ export function getCourseCategory(courseCode: string): CourseCategory {
   return "academic test prep";
 }
 
+export function getCourseCategorySelectPrompt(category: CourseCategory): string {
+  return `Select a ${category} course`;
+}
+
 export function groupCoursesByCategory<T extends { course_code: string }>(
   courses: readonly T[],
 ): {
@@ -98,9 +102,7 @@ export function getFriendlyCourseName(courseCode: string): string {
   if (code.includes("teas")) return "ATI TEAS";
   if (code.includes("cna")) return "CNA";
   if (code.includes("shsat")) return "SHSAT";
-  if (code.includes("state-math") || code === "state-math-test-prep") {
-    return "State Math Test Prep";
-  }
+  if (code.includes("state-math-test-prep")) return "State Math Test Prep";
   return "Unknown Course";
 }
 
@@ -110,6 +112,19 @@ export function convertServiceTypeToSubmenu(serviceType: string): string {
 
 export function convertCourseCodeToId(courseCode: string): string {
   return courseCodeToIdMap[courseCode.toLowerCase()] ?? courseCode;
+}
+
+export function parseIsVariant(value: unknown): 0 | 1 {
+  if (value === true || value === 1 || value === "1") return 1;
+  const normalized = String(value ?? "")
+    .trim()
+    .toLowerCase();
+  if (normalized === "true" || normalized === "yes") return 1;
+  return 0;
+}
+
+export function parseHasVariants(value: unknown): 0 | 1 {
+  return parseIsVariant(value);
 }
 
 export function convertCourseIdToCode(courseId: string): string {

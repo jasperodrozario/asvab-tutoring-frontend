@@ -3,7 +3,9 @@ import Script from "next/script";
 import Navbar from "@/components/navbar/Navbar";
 import Footer from "@/components/footer/Footer";
 import ScrollToTop from "@/components/scroll-to-top/ScrollToTop";
+import { AuthProvider } from "@/components/auth/AuthProvider";
 import { fetchNavServices, fetchPublishableCourses, fetchFreePracticeTestCatalog, fetchFreePredTestCatalog } from "@/lib/php-api";
+import { getSession } from "@/lib/auth-session";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "./globals.css";
@@ -25,12 +27,15 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [courses, services, practiceCatalog, predictionCatalog] =
+  const [courses, services, practiceCatalog, predictionCatalog, hasSession] =
     await Promise.all([
       fetchPublishableCourses(),
       fetchNavServices(),
       fetchFreePracticeTestCatalog(),
       fetchFreePredTestCatalog(),
+      getSession()
+        .then((session) => !!session)
+        .catch(() => false),
     ]);
 
   const courseByCode = new Map(
@@ -58,15 +63,17 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body suppressHydrationWarning={true}>
-        <ScrollToTop />
-        <Navbar
-          courses={courses}
-          services={services}
-          freePracticeCourses={freePracticeCourses}
-          freePredictionCourses={freePredictionCourses}
-        />
-        <main className="site-main">{children}</main>
-        <Footer />
+        <AuthProvider hasSession={hasSession}>
+          <ScrollToTop />
+          <Navbar
+            courses={courses}
+            services={services}
+            freePracticeCourses={freePracticeCourses}
+            freePredictionCourses={freePredictionCourses}
+          />
+          <main className="site-main">{children}</main>
+          <Footer />
+        </AuthProvider>
 
         {/* Google Analytics Implementation */}
         <Script

@@ -21,6 +21,8 @@ type User = {
   email: string;
   mobile?: string;
   password?: string;
+  user_id?: string;
+  id?: string;
 };
 
 type PaymentMode = "one_time" | "subscription";
@@ -56,11 +58,13 @@ type Props = {
   session_id: string;
   package_id: string;
   user: User;
+  is_variant?: 0 | 1;
 
   mode?: PaymentMode;
   product?: Product;
   cadence?: Cadence;
   isExistingUser?: boolean;
+  auth_token?: string;
 
   onPaymentSuccess?: (paymentId?: string) => void;
   onStateChange?: (state: CardState) => void;
@@ -197,10 +201,12 @@ const SquarePaymentForm = forwardRef<SquarePaymentFormHandle, Props>(
       session_id,
       package_id,
       user,
+      is_variant = 0,
       mode = "one_time",
       product,
       cadence,
       isExistingUser = false,
+      auth_token = "",
       onPaymentSuccess,
       onStateChange,
     }: Props,
@@ -535,6 +541,10 @@ const SquarePaymentForm = forwardRef<SquarePaymentFormHandle, Props>(
               course_id,
               session_id,
               package_id,
+              is_variant,
+              isExistingUser,
+              user_id: user.user_id || user.id || "",
+              auth_token: auth_token || "",
             }),
             signal: controller.signal,
           });
@@ -573,6 +583,10 @@ const SquarePaymentForm = forwardRef<SquarePaymentFormHandle, Props>(
             course_id,
             session_id,
             package_id,
+            is_variant,
+            isExistingUser,
+            user_id: user.user_id || user.id || "",
+            auth_token: auth_token || "",
             user,
           }),
           signal: controller.signal,

@@ -172,27 +172,14 @@ export const COURSE_KEYWORDS: Record<CourseCode, KeywordGroups> = {
     predictionTest: ["free SHSAT prediction test"],
   },
   "state-math-test-prep": {
-    main: [
-      "State Math Test Prep",
-      "state math tutoring",
-      "state math test prep",
-    ],
-    longTail: ["state math exam prep", "grade level math test prep"],
-    local: [
-      "state math tutor in {city}",
-      "state math test prep in {city}",
-    ],
+    main: ["State Math Test Prep tutoring", "State Math Test Prep tutor", "State Math Test Prep prep"],
+    longTail: ["State Math Test Prep exam prep", "State Math Test Prep test prep"],
+    local: ["State Math Test Prep tutor in {city}", "State Math Test Prep tutoring in {city}"],
     app: [],
-    questionBased: ["state math exam prep"],
-    buyerIntent: [
-      "state math tutor online",
-      "best state math test prep",
-    ],
-    practiceTest: [
-      "free state math practice test",
-      "state math practice test online",
-    ],
-    predictionTest: ["free state math prediction test"],
+    questionBased: ["State Math Test Prep exam prep"],
+    buyerIntent: ["State Math Test Prep tutor online", "best State Math Test Prep tutoring program"],
+    practiceTest: ["free State Math Test Prep practice test", "State Math Test Prep practice test online"],
+    predictionTest: ["free State Math Test Prep prediction test"],
   },
 };
 

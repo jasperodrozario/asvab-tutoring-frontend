@@ -2,11 +2,7 @@ import { Suspense } from "react";
 import CheckoutContent from "./CheckoutContent";
 import OfferCheckout from "./OfferCheckout";
 import { resolveCheckoutPackageSummary } from "@/lib/checkout-package-info";
-import { fetchStateTestPreparationCourses } from "@/lib/php-api";
-import {
-  isStateMathTestPrepCheckoutCourse,
-  isStateMathTestPrepProduct,
-} from "@/lib/state-math-test";
+import { resolveCheckoutVariants } from "@/lib/course-variants";
 
 function firstParam(
   value: string | string[] | undefined,
@@ -25,13 +21,9 @@ export default async function CheckoutPage({
   const { offer } = await params;
   const offerSlug = Array.isArray(offer) ? offer[0] : offer;
   const sp = await searchParams;
-
   const courseId = firstParam(sp.course_id);
-  const requiresGradeSelection =
-    isStateMathTestPrepCheckoutCourse(courseId) ||
-    isStateMathTestPrepProduct(firstParam(sp.product));
 
-  const [packageSummary, stateMathGrades] = await Promise.all([
+  const [packageSummary, variantInfo] = await Promise.all([
     resolveCheckoutPackageSummary({
       courseId,
       packageId: firstParam(sp.package_id),
@@ -39,9 +31,7 @@ export default async function CheckoutPage({
       tutoringType:
         firstParam(sp.tutoring_type) || firstParam(sp.package_type),
     }),
-    requiresGradeSelection
-      ? fetchStateTestPreparationCourses()
-      : Promise.resolve([]),
+    resolveCheckoutVariants(courseId),
   ]);
 
   if (offerSlug === "limited-time-offer") {
@@ -55,8 +45,7 @@ export default async function CheckoutPage({
       >
         <OfferCheckout
           packageSummary={packageSummary}
-          stateMathGrades={stateMathGrades}
-          requiresGradeSelection={requiresGradeSelection}
+          variantInfo={variantInfo}
         />
       </Suspense>
     );
@@ -68,8 +57,7 @@ export default async function CheckoutPage({
     >
       <CheckoutContent
         packageSummary={packageSummary}
-        stateMathGrades={stateMathGrades}
-        requiresGradeSelection={requiresGradeSelection}
+        variantInfo={variantInfo}
       />
     </Suspense>
   );

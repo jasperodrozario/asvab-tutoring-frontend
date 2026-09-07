@@ -11,12 +11,17 @@ import {
   FaCaretRight,
   FaSignInAlt,
   FaUserPlus,
+  FaSignOutAlt,
+  FaBookOpen,
 } from "react-icons/fa";
 import { useState, useEffect, useRef } from "react";
 import {
   COURSE_CATEGORY_LABELS,
   groupCoursesByCategory,
 } from "@/lib/package-utils";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { STUDY_PORTAL_HREF } from "@/lib/portal-login";
+import type { AuthUser } from "@/lib/auth-session";
 
 type Course = {
   course_id: string;
@@ -28,6 +33,46 @@ type Service = {
   service_id: string;
   course_name: string;
 };
+
+function firstInitial(value: string): string {
+  const match = value.trim().match(/[\p{L}\p{N}]/u);
+  return match ? match[0].toUpperCase() : "";
+}
+
+function userInitials(user: AuthUser): string {
+  const first = firstInitial(user.first_name);
+  const last = firstInitial(user.last_name);
+  if (first && last) return `${first}${last}`;
+  if (first) {
+    const parts = user.first_name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) {
+      const second = firstInitial(parts[parts.length - 1]);
+      if (second) return `${first}${second}`;
+    }
+    return user.first_name.trim().slice(0, 2).toUpperCase() || first;
+  }
+  if (last) return user.last_name.trim().slice(0, 2).toUpperCase() || last;
+  const local = user.email.split("@")[0] || "";
+  return local.slice(0, 2).toUpperCase() || "?";
+}
+
+function userFullName(user: AuthUser): string {
+  return `${user.first_name} ${user.last_name}`.trim() || user.email || "Account";
+}
+
+function NavbarUserAvatar({ user }: { user: AuthUser }) {
+  const fullName = userFullName(user);
+  return (
+    <span
+      className="navbar-user-avatar"
+      title={fullName}
+      aria-label={fullName}
+      role="img"
+    >
+      {userInitials(user)}
+    </span>
+  );
+}
 
 function orderedCourses(courses: Course[]): Course[] {
   const { militaryTestPrep, healthcareTestPrep, academicTestPrep } =
@@ -311,6 +356,12 @@ export default function Navbar({
   const [isFreeTestsOpen, setIsFreeTestsOpen] = useState(false);
   const [isFreePracticeOpen, setIsFreePracticeOpen] = useState(false);
   const [isFreePredictionOpen, setIsFreePredictionOpen] = useState(false);
+  const { user: authUser, loggingOut, logout } = useAuth();
+
+  const handleLogout = async () => {
+    handleLinkClick();
+    await logout();
+  };
 
   const getServiceSlug = (serviceId: string) => {
     switch (serviceId) {
@@ -831,25 +882,52 @@ export default function Navbar({
                       ONLINE STUDY
                     </Link>
                   </li> */}
-              {/* LOGIN */}
-              <li className="nav-item">
-                <Link
-                  href="/user-login"
-                  className="btn btn-outline-light d-flex align-items-center gap-2 px-3"
-                >
-                  <FaSignInAlt /> Login
-                </Link>
-              </li>
+              {/* LOGIN / ACCOUNT */}
+              {authUser ? (
+                <>
+                  <li className="nav-item">
+                    <a
+                      href={STUDY_PORTAL_HREF}
+                      className="btn btn-outline-light d-flex align-items-center gap-2 px-3"
+                    >
+                      <FaBookOpen /> Study
+                    </a>
+                  </li>
+                  <li className="nav-item">
+                    <button
+                      type="button"
+                      className="btn btn-outline-light d-flex align-items-center gap-2 px-3"
+                      onClick={handleLogout}
+                      disabled={loggingOut}
+                    >
+                      <FaSignOutAlt /> {loggingOut ? "…" : "Log out"}
+                    </button>
+                  </li>
+                  <li className="nav-item d-flex align-items-center">
+                    <NavbarUserAvatar user={authUser} />
+                  </li>
+                </>
+              ) : (
+                <>
+                  <li className="nav-item">
+                    <Link
+                      href="/user-login"
+                      className="btn btn-outline-light d-flex align-items-center gap-2 px-3"
+                    >
+                      <FaSignInAlt /> Login
+                    </Link>
+                  </li>
 
-              {/* REGISTER */}
-              <li className="nav-item">
-                <Link
-                  href="/user-registration"
-                  className="btn btn-outline-light d-flex align-items-center gap-2 px-3"
-                >
-                  <FaUserPlus /> Register
-                </Link>
-              </li>
+                  <li className="nav-item">
+                    <Link
+                      href="/user-registration"
+                      className="btn btn-outline-light d-flex align-items-center gap-2 px-3"
+                    >
+                      <FaUserPlus /> Register
+                    </Link>
+                  </li>
+                </>
+              )}
             </ul>
           </div>
         </div>
@@ -1016,25 +1094,54 @@ export default function Navbar({
               </Link>
             </li>
 
-            <li className="nav-item">
-              <Link
-                href="/user-login"
-                className="nav-link text-white"
-                onClick={handleLinkClick}
-              >
-                <FaSignInAlt /> Login
-              </Link>
-            </li>
+            {authUser ? (
+              <>
+                <li className="nav-item">
+                  <a
+                    href={STUDY_PORTAL_HREF}
+                    className="nav-link text-white"
+                    onClick={handleLinkClick}
+                  >
+                    <FaBookOpen /> Study
+                  </a>
+                </li>
+                <li className="nav-item">
+                  <button
+                    type="button"
+                    className="nav-link text-white btn btn-link text-start p-0"
+                    onClick={handleLogout}
+                    disabled={loggingOut}
+                  >
+                    <FaSignOutAlt /> {loggingOut ? "…" : "Log out"}
+                  </button>
+                </li>
+                <li className="nav-item d-flex align-items-center py-2">
+                  <NavbarUserAvatar user={authUser} />
+                </li>
+              </>
+            ) : (
+              <>
+                <li className="nav-item">
+                  <Link
+                    href="/user-login"
+                    className="nav-link text-white"
+                    onClick={handleLinkClick}
+                  >
+                    <FaSignInAlt /> Login
+                  </Link>
+                </li>
 
-            <li className="nav-item">
-              <Link
-                href="/user-registration"
-                className="nav-link text-white"
-                onClick={handleLinkClick}
-              >
-                <FaUserPlus /> Register
-              </Link>
-            </li>
+                <li className="nav-item">
+                  <Link
+                    href="/user-registration"
+                    className="nav-link text-white"
+                    onClick={handleLinkClick}
+                  >
+                    <FaUserPlus /> Register
+                  </Link>
+                </li>
+              </>
+            )}
           </ul>
         </div>
       )}

@@ -13,7 +13,9 @@ import type {
 import type { ServiceType } from "@/types/Services";
 import {
   convertCourseCodeToId,
+  convertCourseIdToCode,
   convertServiceTypeToSubmenu,
+  parseHasVariants,
   submenuToServiceType,
   type PricingSubmenu,
 } from "@/lib/package-utils";
@@ -129,6 +131,11 @@ export type NavCourse = {
   full_form?: string;
   details?: string;
   image_src?: string;
+  has_variants?: 0 | 1 | boolean;
+  variants?: Array<{
+    main_course_id: number | string;
+    course_name: string;
+  }>;
 };
 
 export type NavService = {
@@ -144,6 +151,11 @@ export type StateOption = {
 export type RegistrationCourse = {
   course_id: string;
   name: string;
+  has_variants?: 0 | 1;
+  variants?: Array<{
+    main_course_id: number | string;
+    course_name: string;
+  }>;
 };
 
 export type PackageSession = {
@@ -155,6 +167,7 @@ export type PackageSession = {
 
 export type RegistrationCourseWithServices = RegistrationCourse & {
   availableServiceTypes: string[];
+  course_code: string;
 };
 
 export type RegistrationCourseList = {
@@ -386,8 +399,14 @@ export async function fetchPackageSessionList(
  * tutoring packages, and preloads package sessions for the registration form.
  */
 export async function fetchRegistrationTutoringCourseList(): Promise<RegistrationTutoringCourseList> {
-  const { courses, services } = await fetchRegistrationCourseList();
+  const [{ courses, services }, allCourses] = await Promise.all([
+    fetchRegistrationCourseList(),
+    fetchAllCoursesRaw(),
+  ]);
   const tutoringServiceTypes = tutoringServiceTypesFromMap(services);
+  const variantsByCourseId = new Map(
+    allCourses.map((course) => [String(course.course_id), course] as const),
+  );
 
   if (courses.length === 0 || tutoringServiceTypes.length === 0) {
     return { courses: [], services, sessionsByCourseService: {} };
@@ -395,7 +414,7 @@ export async function fetchRegistrationTutoringCourseList(): Promise<Registratio
 
   const sessionsByCourseService: Record<string, PackageSession[]> = {};
 
-  const enrichedCourses = (
+  const enrichedCourses: RegistrationCourseWithServices[] = (
     await Promise.all(
       courses.map(async (course) => {
         const availableServiceTypes: string[] = [];
@@ -418,15 +437,30 @@ export async function fetchRegistrationTutoringCourseList(): Promise<Registratio
         if (availableServiceTypes.length === 0) return null;
 
         availableServiceTypes.sort((a, b) => Number(a) - Number(b));
-        return {
-          ...course,
+        const variantMeta = variantsByCourseId.get(String(course.course_id));
+        const variants = Array.isArray(variantMeta?.variants)
+          ? variantMeta.variants
+          : [];
+        const has_variants: 0 | 1 =
+          parseHasVariants(variantMeta?.has_variants) === 1 &&
+          variants.length > 0
+            ? 1
+            : 0;
+
+        const enriched: RegistrationCourseWithServices = {
+          course_id: course.course_id,
+          name: course.name,
+          course_code:
+            String(variantMeta?.course_code || "").trim() ||
+            convertCourseIdToCode(course.course_id),
           availableServiceTypes,
-        } satisfies RegistrationCourseWithServices;
+          has_variants,
+          variants: has_variants ? variants : [],
+        };
+        return enriched;
       }),
     )
-  ).filter(
-    (course): course is RegistrationCourseWithServices => course !== null,
-  );
+  ).flatMap((course) => (course ? [course] : []));
 
   return {
     courses: enrichedCourses,
@@ -587,6 +621,8 @@ function getCourseIdFromCode(courseCode: string): string {
       return "34";
     case "shsat":
       return "30";
+    case "state-math-test-prep":
+      return "60";
     default:
       return "";
   }
@@ -876,10 +912,17 @@ export async function fetchPublishablePricingPackages(
       const publishable = await isCoursePublishable(pkg.course_code, requirements);
       if (!publishable) return null;
 
-      const bundle = await getCachedCourseAssessmentBundle(
+      // Pricing pages need service-specific packages even for force-publishable
+      // courses. Force-publishable readiness sets packages=false and would leave
+      // packagesByService empty, incorrectly filtering the course out.
+      const readinessRequirements = getPublishRequirementsForCourse(
         pkg.course_code,
-        getPublishRequirementsForCourse(pkg.course_code, requirements),
+        requirements,
       );
+      const bundle = await getCachedCourseAssessmentBundle(pkg.course_code, {
+        ...readinessRequirements,
+        packages: true,
+      });
       if (!hasPackagesForService(bundle.packagesByService, serviceType)) {
         return null;
       }
