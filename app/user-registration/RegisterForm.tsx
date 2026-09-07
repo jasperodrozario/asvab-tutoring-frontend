@@ -119,7 +119,7 @@ export default function RegisterForm({
   const [selectedGradeMainId, setSelectedGradeMainId] = useState("");
   const [showGradeError, setShowGradeError] = useState(false);
 
-  const [purchaseStatus, setPurchaseStatus] = useState<"not_purchased" | "already_purchased">("not_purchased");
+  const [purchaseStatus, setPurchaseStatus] = useState<"not_purchased" | "already_purchased">("already_purchased");
   const hasPurchase = purchaseStatus === "already_purchased";
 
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
@@ -789,12 +789,12 @@ export default function RegisterForm({
                           className="form-check-input"
                           type="radio"
                           name="purchaseStatus"
-                          id="ps-no"
-                          checked={purchaseStatus === "not_purchased"}
-                          onChange={() => setPurchaseStatus("not_purchased")}
+                          id="ps-yes"
+                          checked={purchaseStatus === "already_purchased"}
+                          onChange={() => setPurchaseStatus("already_purchased")}
                         />
-                        <label className="form-check-label" htmlFor="ps-no">
-                          Not yet
+                        <label className="form-check-label" htmlFor="ps-yes">
+                          Already purchased
                         </label>
                       </div>
                       <div className="form-check">
@@ -802,12 +802,12 @@ export default function RegisterForm({
                           className="form-check-input"
                           type="radio"
                           name="purchaseStatus"
-                          id="ps-yes"
-                          checked={purchaseStatus === "already_purchased"}
-                          onChange={() => setPurchaseStatus("already_purchased")}
+                          id="ps-no"
+                          checked={purchaseStatus === "not_purchased"}
+                          onChange={() => setPurchaseStatus("not_purchased")}
                         />
-                        <label className="form-check-label" htmlFor="ps-yes">
-                          Already purchased
+                        <label className="form-check-label" htmlFor="ps-no">
+                          Not yet
                         </label>
                       </div>
                     </div>
