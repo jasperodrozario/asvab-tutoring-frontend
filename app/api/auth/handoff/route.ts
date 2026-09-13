@@ -5,6 +5,10 @@ import {
   encodeSession,
   sessionCookieOptions,
 } from "@/lib/auth-session";
+import {
+  getPublicRequestOrigin,
+  publicRequestUrl,
+} from "@/lib/public-origin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,8 +26,8 @@ function isAllowedPath(pathname: string): boolean {
   );
 }
 
-function safeNext(raw: string | null, requestUrl: string): URL {
-  const fallback = new URL(DEFAULT_NEXT, requestUrl);
+function safeNext(raw: string | null, origin: string): URL {
+  const fallback = new URL(DEFAULT_NEXT, origin);
   if (!raw) return fallback;
 
   const value = raw.trim();
@@ -37,8 +41,8 @@ function safeNext(raw: string | null, requestUrl: string): URL {
   }
 
   try {
-    const resolved = new URL(value, requestUrl);
-    if (resolved.origin !== new URL(requestUrl).origin) return fallback;
+    const resolved = new URL(value, origin);
+    if (resolved.origin !== new URL(origin).origin) return fallback;
     if (!isAllowedPath(resolved.pathname)) return fallback;
     return resolved;
   } catch {
@@ -53,7 +57,8 @@ function redirectNoStore(url: URL): NextResponse {
 }
 
 export async function GET(req: NextRequest) {
-  const loginUrl = new URL("/user-login", req.url);
+  const origin = getPublicRequestOrigin(req);
+  const loginUrl = publicRequestUrl("/user-login", req);
 
   try {
     const auth_token = String(
@@ -70,7 +75,7 @@ export async function GET(req: NextRequest) {
     }
 
     const dest = redirectNoStore(
-      safeNext(req.nextUrl.searchParams.get("next"), req.url),
+      safeNext(req.nextUrl.searchParams.get("next"), origin),
     );
     dest.cookies.set(
       SESSION_COOKIE,

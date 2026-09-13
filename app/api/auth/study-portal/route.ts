@@ -2,22 +2,29 @@ import { NextRequest, NextResponse } from "next/server";
 import { phpAuthTokenLookupDetailed } from "@/lib/auth-php";
 import { getSession } from "@/lib/auth-session";
 import { resolvePortalLoginUrl } from "@/lib/portal-login";
+import { publicRequestUrl } from "@/lib/public-origin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+function redirectNoStore(url: URL | string): NextResponse {
+  const res = NextResponse.redirect(url);
+  res.headers.set("Cache-Control", "no-store");
+  return res;
+}
+
 export async function GET(req: NextRequest) {
-  const loginUrl = new URL("/user-login", req.url);
+  const loginUrl = publicRequestUrl("/user-login", req);
 
   try {
     const session = await getSession();
     if (!session) {
-      return NextResponse.redirect(loginUrl);
+      return redirectNoStore(loginUrl);
     }
 
     const lookedUp = await phpAuthTokenLookupDetailed(session.auth_token);
     if (!lookedUp || lookedUp.user.user_id !== session.user_id) {
-      return NextResponse.redirect(loginUrl);
+      return redirectNoStore(loginUrl);
     }
 
     if (!lookedUp.portalUrl) {
@@ -26,11 +33,9 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const dest = NextResponse.redirect(resolvePortalLoginUrl(lookedUp.portalUrl));
-    dest.headers.set("Cache-Control", "no-store");
-    return dest;
+    return redirectNoStore(resolvePortalLoginUrl(lookedUp.portalUrl));
   } catch (err) {
     console.error("[/api/auth/study-portal]", err);
-    return NextResponse.redirect(loginUrl);
+    return redirectNoStore(loginUrl);
   }
 }

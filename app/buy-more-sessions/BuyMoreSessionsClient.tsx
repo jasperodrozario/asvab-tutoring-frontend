@@ -5,12 +5,14 @@ import { useSearchParams } from "next/navigation";
 import SquarePaymentForm, {
   CardState,
 } from "@/components/square-payment-form/SquarePaymentForm";
+import { parseIsVariant } from "@/lib/package-utils";
 import { useRef } from "react";
 
 interface TutoringPackage {
   package_id: string;
   session_id: string;
   course_id: string;
+  is_variant: 0 | 1;
   course_name: string;
   title: string;
   price: string;
@@ -32,6 +34,7 @@ interface UserData {
 interface CourseData {
   course_id: string;
   course_name: string;
+  is_variant?: 0 | 1;
 }
 
 export default function BuyMoreSessionsClient() {
@@ -116,6 +119,7 @@ export default function BuyMoreSessionsClient() {
           setCourse({
             course_id: String(data.course.course_id),
             course_name: String(data.course.course_name || ""),
+            is_variant: parseIsVariant(data.course.is_variant),
           });
           setSelectedCourseId(String(data.course.course_id));
         } else {
@@ -128,11 +132,17 @@ export default function BuyMoreSessionsClient() {
           ? data.packages
           : Object.values(data.package_details || {}).flat();
 
+        const defaultIsVariant = parseIsVariant(data.course?.is_variant);
         const normalized = rawPackages
           .map((pkg: any) => ({
             package_id: String(pkg.package_id || ""),
             session_id: String(pkg.session_id || ""),
             course_id: String(pkg.course_id || ""),
+            is_variant: parseIsVariant(
+              pkg.is_variant !== undefined && pkg.is_variant !== null
+                ? pkg.is_variant
+                : defaultIsVariant,
+            ),
             course_name: String(pkg.course_name || data.course?.course_name || ""),
             title: String(pkg.title || ""),
             price: String(pkg.price || "0"),
@@ -343,6 +353,7 @@ export default function BuyMoreSessionsClient() {
                   ref={paymentRef}
                   amount={Math.round(parseFloat(selectedPackage!.price) * 100)}
                   course_id={selectedPackage!.course_id}
+                  is_variant={selectedPackage!.is_variant}
                   session_id={selectedPackage!.session_id}
                   package_id={selectedPackage!.package_id}
                   user={user as any}
