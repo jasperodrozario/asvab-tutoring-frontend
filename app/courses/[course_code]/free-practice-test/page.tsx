@@ -1,6 +1,8 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import FreeTest from "@/components/free-test/FreeTest";
+import VariantFreeTest from "@/components/free-test/VariantFreeTest";
+import { getReadyFreeTestVariants } from "@/lib/course-types";
 import { isKnownCourseCode } from "@/lib/known-route-validation";
 import { freePracticeTestMetadata } from "@/lib/page-metadata";
 import {
@@ -9,7 +11,7 @@ import {
   fetchFreePredTestByCode,
   isCoursePublishable,
 } from "@/lib/php-api";
-import { isFreePredTestReady } from "@/lib/prediction-test-types";
+import { isFreePredTestResponseReady } from "@/lib/prediction-test-types";
 
 export const revalidate = 3600;
 
@@ -43,13 +45,26 @@ export default async function Page({
     fetchFreePredTestByCode(course_code),
   ]);
 
-  const hasFreePredTest = isFreePredTestReady(
-    predTestData?.data?.categories,
-    predTestData?.data?.questions,
-  );
+  const hasFreePredTest = isFreePredTestResponseReady(predTestData);
 
   if (!freeTestData?.data) {
     notFound();
+  }
+
+  // Variant courses (e.g. State Math Test Prep) keep one test per grade, so the
+  // parent page lets the student pick the grade instead of holding its own test.
+  const gradeVariants = getReadyFreeTestVariants(freeTestData.variants);
+
+  if (gradeVariants.length > 0) {
+    return (
+      <VariantFreeTest
+        courseName={freeTestData.course_name}
+        courseCode={course_code}
+        variants={gradeVariants}
+        packagesByService={packagesByService}
+        hasFreePredTest={hasFreePredTest}
+      />
+    );
   }
 
   return (

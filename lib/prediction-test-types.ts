@@ -19,6 +19,13 @@ export interface FreePredTestData {
   questions: { [category: string]: FreePredTestQuestion[] };
 }
 
+/** One grade of a variant course; see FreePracticeTestVariant. */
+export interface FreePredTestVariant {
+  main_course_id: number | string;
+  course_name: string;
+  data?: FreePredTestData;
+}
+
 export interface FreePredTestResponse {
   status: number;
   isSuccess: boolean;
@@ -28,6 +35,8 @@ export interface FreePredTestResponse {
   course_code?: string;
   full_form?: string;
   data?: FreePredTestData;
+  has_variants?: 0 | 1 | boolean;
+  variants?: FreePredTestVariant[];
 }
 
 export interface CategoryScore {
@@ -143,6 +152,46 @@ export function isFreePredTestReady(
   if (!categories?.length || !questions) return false;
   return getFreeTestCategoryNames(categories).every(
     (cat) => (questions[cat]?.length ?? 0) >= FREE_TEST_QUESTION_COUNT,
+  );
+}
+
+/** Grades that have a complete prediction test, in the order the API returned them. */
+export function getReadyFreePredTestVariants(
+  variants?: FreePredTestVariant[],
+): FreePredTestVariant[] {
+  if (!Array.isArray(variants)) return [];
+  return variants.filter((variant) =>
+    isFreePredTestReady(variant.data?.categories, variant.data?.questions),
+  );
+}
+
+export function isFreePredTestResponseReady(
+  response?: FreePredTestResponse | null,
+): boolean {
+  if (!response) return false;
+
+  if (response.variants?.length) {
+    return getReadyFreePredTestVariants(response.variants).length > 0;
+  }
+
+  return isFreePredTestReady(response.data?.categories, response.data?.questions);
+}
+
+/** True when there is any question at all, on the course itself or any grade. */
+export function hasAnyFreePredTestContent(
+  response?: FreePredTestResponse | null,
+): boolean {
+  if (!response) return false;
+
+  if (response.variants?.length) {
+    return response.variants.some((variant) =>
+      hasFreePredTestQuestions(variant.data?.categories, variant.data?.questions),
+    );
+  }
+
+  return hasFreePredTestQuestions(
+    response.data?.categories,
+    response.data?.questions,
   );
 }
 

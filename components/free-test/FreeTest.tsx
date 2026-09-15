@@ -150,6 +150,8 @@ interface FreeTestProps {
   ft_ques_list?: { [key: string]: Question[] };
   packagesByService?: PackagesByService;
   hasFreePredTest?: boolean;
+  /** Rendered above the test, below the page heading. Used for the grade picker. */
+  headerSlot?: React.ReactNode;
 }
 
 function CategoryDescription({ html }: { html: string }) {
@@ -169,6 +171,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
   ft_ques_list,
   packagesByService,
   hasFreePredTest = false,
+  headerSlot,
 }) => {
   const categoryNames = useMemo(
     () => getFreeTestCategoryNames(ft_categories ?? []),
@@ -337,6 +340,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
         </div>
         <ShowAllFreeTestsLink />
         <div className="container pb-5">
+          {headerSlot ? <div className="mb-4">{headerSlot}</div> : null}
           <div className="row justify-content-center">
             <div className="col-lg-8 text-center">
                 <div className="alert alert-info">
@@ -379,6 +383,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
         </div>
         <ShowAllFreeTestsLink />
         <div className="container pb-5">
+          {headerSlot ? <div className="mb-4">{headerSlot}</div> : null}
           <div className="row justify-content-center">
             <div className="col-lg-8 text-center">
                 <div className="alert alert-info">
@@ -557,6 +562,8 @@ const FreeTest: React.FC<FreeTestProps> = ({
 
       <div className="container">
         <div className="row g-4">
+          {headerSlot ? <div className="col-12">{headerSlot}</div> : null}
+
           <div className="col-12">
             <TestRulesIntro variant="practice" courseName={courseName} />
           </div>

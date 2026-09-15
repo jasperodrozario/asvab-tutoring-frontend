@@ -28,6 +28,16 @@ export interface FreePracticeTestData {
   questions: { [category: string]: FreePracticeTestQuestion[] };
 }
 
+/**
+ * One grade of a variant course. Variant parents own no test content, so the
+ * API returns a payload per grade and `data` mirrors the first populated one.
+ */
+export interface FreePracticeTestVariant {
+  main_course_id: number | string;
+  course_name: string;
+  data?: FreePracticeTestData;
+}
+
 export interface FreePracticeTestResponse {
   status: number;
   isSuccess: boolean;
@@ -36,6 +46,8 @@ export interface FreePracticeTestResponse {
   course_code?: string;
   full_form?: string;
   data?: FreePracticeTestData;
+  has_variants?: 0 | 1 | boolean;
+  variants?: FreePracticeTestVariant[];
 }
 
 export interface RelatedCourse {
@@ -316,6 +328,47 @@ export function isFreeTestReady(
   return getFreeTestCategoryNames(ft_categories).every(
     (cat) => (ft_ques_list[cat]?.length ?? 0) >= FREE_TEST_QUESTION_COUNT,
   );
+}
+
+/** Grades that have a complete practice test, in the order the API returned them. */
+export function getReadyFreeTestVariants(
+  variants?: FreePracticeTestVariant[],
+): FreePracticeTestVariant[] {
+  if (!Array.isArray(variants)) return [];
+  return variants.filter((variant) =>
+    isFreeTestReady(variant.data?.categories, variant.data?.questions),
+  );
+}
+
+/**
+ * A variant course is ready when at least one grade has a complete test; a
+ * normal course is ready when its own test is complete.
+ */
+export function isFreePracticeTestResponseReady(
+  response?: FreePracticeTestResponse | null,
+): response is FreePracticeTestResponse {
+  if (!response) return false;
+
+  if (response.variants?.length) {
+    return getReadyFreeTestVariants(response.variants).length > 0;
+  }
+
+  return isFreeTestReady(response.data?.categories, response.data?.questions);
+}
+
+/** True when there is any question at all, on the course itself or any grade. */
+export function hasAnyFreeTestContent(
+  response?: FreePracticeTestResponse | null,
+): boolean {
+  if (!response) return false;
+
+  if (response.variants?.length) {
+    return response.variants.some((variant) =>
+      hasFreeTestQuestions(variant.data?.categories, variant.data?.questions),
+    );
+  }
+
+  return hasFreeTestQuestions(response.data?.categories, response.data?.questions);
 }
 
 /** Shuffle questions and keep at most `limit` (default 10). */

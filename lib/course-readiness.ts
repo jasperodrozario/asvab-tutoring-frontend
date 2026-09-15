@@ -1,5 +1,5 @@
 import type { CourseData, FreePracticeTestResponse } from "@/lib/course-types";
-import { isFreeTestReady } from "@/lib/course-types";
+import { isFreePracticeTestResponseReady } from "@/lib/course-types";
 import type { PackagesByService } from "@/lib/package-types";
 import type { ServiceType } from "@/types/Services";
 import { convertCourseCodeToId } from "@/lib/package-utils";
@@ -30,7 +30,7 @@ export const DEFAULT_PUBLISH_REQUIREMENTS: CourseReadinessRequirements = {
  *
  * Example: new Set(["shsat", "cna"])
  */
-const FORCE_PUBLISHABLE_COURSE_CODES = new Set<string>([]);
+const FORCE_PUBLISHABLE_COURSE_CODES = new Set<string>([""]);
 
 const NO_PUBLISH_REQUIREMENTS: CourseReadinessRequirements = {
   details: false,
@@ -116,13 +116,15 @@ export function hasMappedCourseId(courseCode: string): boolean {
   return mappedId !== normalized;
 }
 
+/**
+ * For a variant course (e.g. State Math Test Prep) the parent owns no test
+ * content, so one ready grade is enough. Everything else a course must have
+ * still comes from the parent.
+ */
 export function hasFreePracticeTestReady(
   response?: FreePracticeTestResponse | null,
 ): boolean {
-  return isFreeTestReady(
-    response?.data?.categories,
-    response?.data?.questions,
-  );
+  return isFreePracticeTestResponseReady(response);
 }
 
 export function assessCourseReadiness(
@@ -155,7 +157,11 @@ export function assessCourseReadiness(
     requirements.freePracticeTest &&
     !hasFreePracticeTestReady(input.freePracticeTest)
   ) {
-    missing.push("free_practice_test");
+    missing.push(
+      input.freePracticeTest?.variants?.length
+        ? "variant_free_practice_test"
+        : "free_practice_test",
+    );
   }
 
   if (requirements.mappedCourseId && !hasMappedCourseId(input.courseCode)) {

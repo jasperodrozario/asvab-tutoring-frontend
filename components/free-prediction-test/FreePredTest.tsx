@@ -77,6 +77,8 @@ interface FreePredTestProps {
   ft_categories?: FreeTestCategory[];
   ft_ques_list?: { [key: string]: FreePredTestQuestion[] };
   packagesByService?: PackagesByService;
+  /** Rendered above the test, below the page heading. Used for the grade picker. */
+  headerSlot?: React.ReactNode;
 }
 
 function ShowAllFreePredictionTestsLink({
@@ -146,10 +148,12 @@ function UnavailableMessage({
   courseName,
   predictionTestName,
   courseCode,
+  headerSlot,
 }: {
   courseName?: string;
   predictionTestName?: string;
   courseCode: string;
+  headerSlot?: React.ReactNode;
 }) {
   const testName = predictionTestName?.trim() || courseName?.trim() || "COURSE";
 
@@ -172,6 +176,7 @@ function UnavailableMessage({
       </div>
       <ShowAllFreePredictionTestsLink />
       <div className="container pb-5">
+        {headerSlot ? <div className="mb-4">{headerSlot}</div> : null}
         <div className="row justify-content-center">
           <div className="col-lg-8 text-center">
             <div className="alert alert-info">
@@ -202,6 +207,7 @@ export default function FreePredTest({
   ft_categories,
   ft_ques_list,
   packagesByService,
+  headerSlot,
 }: FreePredTestProps) {
   const categoryNames = useMemo(
     () => getFreeTestCategoryNames(ft_categories ?? []),
@@ -335,6 +341,7 @@ export default function FreePredTest({
         courseName={courseName}
         predictionTestName={predictionTestName}
         courseCode={courseCode}
+        headerSlot={headerSlot}
       />
     );
   }
@@ -345,6 +352,7 @@ export default function FreePredTest({
         courseName={courseName}
         predictionTestName={predictionTestName}
         courseCode={courseCode}
+        headerSlot={headerSlot}
       />
     );
   }
@@ -533,6 +541,8 @@ export default function FreePredTest({
 
       <div className="container pb-5">
         <div className="row g-4">
+          {headerSlot ? <div className="col-12">{headerSlot}</div> : null}
+
           <div className="col-12">
             <TestRulesIntro variant="prediction" courseName={testName} />
           </div>

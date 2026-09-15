@@ -11,8 +11,8 @@ import {
   fetchFreePracticeTestByCode,
   isCoursePublishable,
 } from "@/lib/php-api";
-import { isFreePredTestReady } from "@/lib/prediction-test-types";
-import { isFreeTestReady } from "@/lib/course-types";
+import { isFreePredTestResponseReady } from "@/lib/prediction-test-types";
+import { isFreePracticeTestResponseReady } from "@/lib/course-types";
 
 export const revalidate = 3600;
 
@@ -61,15 +61,9 @@ export default async function Page({
   const courseOverviewVideoData =
     await fetchCourseOverviewVideoByCode(course_code);
 
-  const hasFreePredTest = isFreePredTestReady(
-    predTestData?.data?.categories,
-    predTestData?.data?.questions,
-  );
+  const hasFreePredTest = isFreePredTestResponseReady(predTestData);
 
-  const hasFreePracticeTest = isFreeTestReady(
-    freeTestData?.data?.categories,
-    freeTestData?.data?.questions,
-  );
+  const hasFreePracticeTest = isFreePracticeTestResponseReady(freeTestData);
 
   if (!courseData) {
     notFound();

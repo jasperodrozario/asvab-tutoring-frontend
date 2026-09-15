@@ -3,9 +3,17 @@ import type {
   FreePracticeTestResponse,
   UserFeedback,
 } from "@/lib/course-types";
-import { isFreeTestReady } from "@/lib/course-types";
+import {
+  getReadyFreeTestVariants,
+  hasAnyFreeTestContent,
+  isFreePracticeTestResponseReady,
+} from "@/lib/course-types";
 import type { FreePredTestResponse } from "@/lib/prediction-test-types";
-import { isFreePredTestReady } from "@/lib/prediction-test-types";
+import {
+  getReadyFreePredTestVariants,
+  hasAnyFreePredTestContent,
+  isFreePredTestReady,
+} from "@/lib/prediction-test-types";
 import type {
   PackageDetailsData,
   PackagesByService,
@@ -28,11 +36,6 @@ import {
   type CourseReadinessResult,
 } from "@/lib/course-readiness";
 import { unstable_cache } from "next/cache";
-import {
-  toStateMathGradeOptions,
-  type StateMathGradeOption,
-  type StateTestPreparationCourseRow,
-} from "@/lib/state-math-test";
 
 export const PHP_API_REVALIDATE_SECONDS = 3600;
 
@@ -651,6 +654,12 @@ export async function fetchFreePracticeTestByCode(
     return null;
   }
 
+  // A variant parent resolves to no content of its own, so the API answers 200
+  // with empty lists. Treat that as no test rather than rendering an empty one.
+  if (!hasAnyFreeTestContent(result)) {
+    return null;
+  }
+
   return result;
 }
 
@@ -941,22 +950,25 @@ export async function fetchFreePracticeTestCatalog(): Promise<
 
   const entries = await Promise.all(
     courses.map(async (course) => {
-      const bundle = await getCachedCourseAssessmentBundle(
-        course.course_code,
-        getPublishRequirementsForCourse(course.course_code),
-      );
-      const freeTest = bundle.freePracticeTest;
-      const ft_cat_list = freeTest?.data?.categories;
-      const ft_ques_list = freeTest?.data?.questions;
+      // Fetch the test itself, not the publishability bundle. That bundle skips
+      // the free-test call when a course is force-publishable, which would hide
+      // it from Free Tests even though it appears under Courses.
+      const freeTest = await fetchFreePracticeTestByCode(course.course_code);
+      if (!freeTest || !isFreePracticeTestResponseReady(freeTest)) {
+        return null;
+      }
 
-      if (!isFreeTestReady(ft_cat_list, ft_ques_list) || !ft_cat_list) {
+      const testData =
+        getReadyFreeTestVariants(freeTest.variants)[0]?.data ?? freeTest.data;
+      const ft_cat_list = testData?.categories;
+      if (!ft_cat_list?.length) {
         return null;
       }
 
       const entry: FreePracticeTestCourse = {
         courseCode: course.course_code,
-        courseName: freeTest?.course_name || course.name,
-        fullForm: course.full_form || freeTest?.full_form,
+        courseName: freeTest.course_name || course.name,
+        fullForm: course.full_form || freeTest.full_form,
         imageSrc: course.image_src,
         sectionCount: ft_cat_list.length,
         sectionNames: ft_cat_list.map((category) => category.name),
@@ -983,6 +995,10 @@ export async function fetchFreePredTestByCode(
     return null;
   }
 
+  if (!hasAnyFreePredTestContent(result)) {
+    return null;
+  }
+
   result.prediction_test_name = result.course_name ?? "";
 
   if (normalizedCode === "asvab") {
@@ -998,8 +1014,11 @@ export async function fetchFreePredTestCatalog(): Promise<FreePredTestCourse[]> 
   const entries = await Promise.all(
     courses.map(async (course) => {
       const predTest = await fetchFreePredTestByCode(course.course_code);
-      const categories = predTest?.data?.categories;
-      const questions = predTest?.data?.questions;
+      const testData =
+        getReadyFreePredTestVariants(predTest?.variants)[0]?.data ??
+        predTest?.data;
+      const categories = testData?.categories;
+      const questions = testData?.questions;
 
       if (!isFreePredTestReady(categories, questions) || !categories) {
         return null;
@@ -1022,19 +1041,5 @@ export async function fetchFreePredTestCatalog(): Promise<FreePredTestCourse[]> 
   );
 
   return entries.filter((entry): entry is FreePredTestCourse => entry !== null);
-}
-
-export async function fetchStateTestPreparationCourses(): Promise<
-  StateMathGradeOption[]
-> {
-  const result = await postPhpApi<
-    PhpApiSuccess<StateTestPreparationCourseRow[]>
-  >("get-state-test-preparation-courses");
-
-  if (!result?.isSuccess || !Array.isArray(result.data)) {
-    return [];
-  }
-
-  return toStateMathGradeOptions(result.data);
 }
 
