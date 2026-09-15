@@ -31,6 +31,7 @@ import CheckoutPackageSummary from "@/components/checkout/CheckoutPackageSummary
 import CourseVariantGradeSelect from "@/components/checkout/CourseVariantGradeSelect";
 import {
   courseRequiresGradeSelection,
+  isSelectedCheckoutGradeAllowed,
   resolvePaymentCourseIdentity,
   type CheckoutVariantInfo,
 } from "@/lib/course-variants";
@@ -105,10 +106,15 @@ export default function OfferCheckout({
     () =>
       resolvePaymentCourseIdentity({
         parentCourseId: course_id,
-        selectedGradeMainId,
+        selectedGradeMainId: isSelectedCheckoutGradeAllowed(
+          variantInfo,
+          selectedGradeMainId,
+        )
+          ? selectedGradeMainId
+          : "",
         requiresGrade,
       }),
-    [course_id, selectedGradeMainId, requiresGrade],
+    [course_id, selectedGradeMainId, requiresGrade, variantInfo],
   );
 
   const is_variant = paymentIdentity.is_variant;
@@ -517,7 +523,8 @@ export default function OfferCheckout({
         !!user.user_id &&
         !!authToken &&
         !invalidBase &&
-        (!requiresGrade || !!selectedGradeMainId)
+        (!requiresGrade ||
+          isSelectedCheckoutGradeAllowed(variantInfo, selectedGradeMainId))
       );
     }
     return (
@@ -534,7 +541,8 @@ export default function OfferCheckout({
       !fieldErrors.mobile &&
       !fieldErrors.confirm_password &&
       !invalidBase &&
-      (!requiresGrade || !!selectedGradeMainId)
+      (!requiresGrade ||
+        isSelectedCheckoutGradeAllowed(variantInfo, selectedGradeMainId))
     );
   }, [
     isAuthenticated,
@@ -546,6 +554,7 @@ export default function OfferCheckout({
     invalidBase,
     requiresGrade,
     selectedGradeMainId,
+    variantInfo,
   ]);
 
   const cardBlockedByEmail = !isAuthenticated && !emailReady;
@@ -559,7 +568,7 @@ export default function OfferCheckout({
   const submitMobilePayment = async () => {
     setMobileResult(null);
 
-    if (requiresGrade && !selectedGradeMainId) {
+    if (requiresGrade && !isSelectedCheckoutGradeAllowed(variantInfo, selectedGradeMainId)) {
       setShowGradeError(true);
       setMobileResult({
         type: "danger",
@@ -1273,7 +1282,7 @@ export default function OfferCheckout({
                       type="button"
                       className="btn btn-primary-custom mt-2 px-5 py-2 d-block mx-auto"
                       onClick={() => {
-                        if (requiresGrade && !selectedGradeMainId) {
+                        if (requiresGrade && !isSelectedCheckoutGradeAllowed(variantInfo, selectedGradeMainId)) {
                           setShowGradeError(true);
                           return;
                         }

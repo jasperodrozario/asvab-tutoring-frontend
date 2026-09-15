@@ -24,6 +24,7 @@ import CheckoutPackageSummary from "@/components/checkout/CheckoutPackageSummary
 import CourseVariantGradeSelect from "@/components/checkout/CourseVariantGradeSelect";
 import {
   courseRequiresGradeSelection,
+  isSelectedCheckoutGradeAllowed,
   resolvePaymentCourseIdentity,
   type CheckoutVariantInfo,
 } from "@/lib/course-variants";
@@ -147,10 +148,15 @@ export default function CheckoutContent({
     () =>
       resolvePaymentCourseIdentity({
         parentCourseId: course_id,
-        selectedGradeMainId,
+        selectedGradeMainId: isSelectedCheckoutGradeAllowed(
+          variantInfo,
+          selectedGradeMainId,
+        )
+          ? selectedGradeMainId
+          : "",
         requiresGrade,
       }),
-    [course_id, selectedGradeMainId, requiresGrade],
+    [course_id, selectedGradeMainId, requiresGrade, variantInfo],
   );
 
   // Trust server-derived variant metadata, not URL query params.
@@ -599,7 +605,8 @@ export default function CheckoutContent({
         !!user.user_id &&
         !!authToken &&
         !invalidBase &&
-        (!requiresGrade || !!selectedGradeMainId)
+        (!requiresGrade ||
+          isSelectedCheckoutGradeAllowed(variantInfo, selectedGradeMainId))
       );
     }
     return (
@@ -616,7 +623,8 @@ export default function CheckoutContent({
       !fieldErrors.mobile &&
       !fieldErrors.confirm_password &&
       !invalidBase &&
-      (!requiresGrade || !!selectedGradeMainId)
+      (!requiresGrade ||
+        isSelectedCheckoutGradeAllowed(variantInfo, selectedGradeMainId))
     );
   }, [
     isAuthenticated,
@@ -628,12 +636,13 @@ export default function CheckoutContent({
     invalidBase,
     requiresGrade,
     selectedGradeMainId,
+    variantInfo,
   ]);
 
   const submitMobilePayment = async () => {
     setMobileResult(null);
 
-    if (requiresGrade && !selectedGradeMainId) {
+    if (requiresGrade && !isSelectedCheckoutGradeAllowed(variantInfo, selectedGradeMainId)) {
       setShowGradeError(true);
       setMobileResult({
         type: "danger",
@@ -1293,7 +1302,7 @@ export default function CheckoutContent({
                     type="button"
                     className="btn btn-primary-custom mt-2 px-5 py-2 d-block mx-auto"
                     onClick={() => {
-                      if (requiresGrade && !selectedGradeMainId) {
+                      if (requiresGrade && !isSelectedCheckoutGradeAllowed(variantInfo, selectedGradeMainId)) {
                         setShowGradeError(true);
                         return;
                       }
