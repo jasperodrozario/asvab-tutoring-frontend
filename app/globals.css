@@ -1114,7 +1114,7 @@ input[type="radio"]:checked::before {
   top: 0;
   left: 100%;
   margin: 0 0 0 0.1rem;
-  min-width: 10.5rem;
+  min-width: 11rem;
   padding: 0.35rem 0;
   opacity: 0;
   visibility: hidden;

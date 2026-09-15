@@ -11,6 +11,12 @@ import {
   getServiceKeywords,
   packagePageTarget,
 } from "@/lib/keywords";
+import {
+  getFreePracticeTestFallbackSeo,
+  getFreePredictionTestFallbackSeo,
+  MIXED_CATEGORY_PHRASE,
+  MIXED_EXAM_LIST,
+} from "@/lib/category-copy";
 import { buildPageMetadata } from "@/lib/seo";
 
 export type PageSeo = {
@@ -81,22 +87,22 @@ export const TERMS_OF_SERVICE_SEO: PageSeo = {
 };
 
 export const FREE_PRACTICE_TESTS_SEO: PageSeo = {
-  title: "Free Online Practice Tests for US Army, Marine, Navy | ASVAB Tutoring",
+  title: "Free Online Practice Tests for Military, Healthcare & Academic Exams | ASVAB Tutoring",
   description:
-    "Take free online practice tests for the U.S. Army, Navy, and Marine Corps. Assess your skills, prepare for military exams, and boost your confidence.",
+    `Take free online practice tests for ${MIXED_CATEGORY_PHRASE} exams, including ${MIXED_EXAM_LIST}. Assess your skills, prepare for test day, and boost your confidence — no signup required.`,
 };
 
 export const FREE_PREDICTION_TESTS_SEO: PageSeo = {
-  title: "Free Online Prediction Tests for US Army, Air Force | ASVAB Tutoring",
+  title: "Free Online Prediction Tests for Military, Healthcare & Academic Exams | ASVAB Tutoring",
   description:
-    "Take free online prediction tests for military entrance exams. Estimate your ASVAB/AFQT, AFOQT, and other scores before test day — no signup required.",
+    `Take free online prediction tests for ${MIXED_CATEGORY_PHRASE} exams, including ${MIXED_EXAM_LIST}. Estimate your score before test day — no signup required.`,
 };
 
-const FREE_ONLINE_TEST_EXAMS = "ASVAB, AFOQT, SIFT, ASTB, and OAR";
+export const FREE_PRACTICE_TESTS_BANNER_SUBTITLE =
+  "Prepare for military, healthcare, and academic exams with free online practice tests — no signup required.";
 
-export const FREE_PRACTICE_TESTS_BANNER_SUBTITLE = `Prepare for ${FREE_ONLINE_TEST_EXAMS} with free online practice tests — no signup required.`;
-
-export const FREE_PREDICTION_TESTS_BANNER_SUBTITLE = `Prepare for ${FREE_ONLINE_TEST_EXAMS} with free online prediction tests — no signup required.`;
+export const FREE_PREDICTION_TESTS_BANNER_SUBTITLE =
+  "Prepare for military, healthcare, and academic exams with free online prediction tests — no signup required.";
 
 export const COURSE_SEO: Record<string, PageSeo> = {
   asvab: {
@@ -531,14 +537,14 @@ export function courseMetadata(courseCode: string): Metadata {
 export function getFreePracticeTestDescription(courseCode: string): string {
   const meta =
     FREE_PRACTICE_TEST_SEO[courseCode.toLowerCase()] ??
-    FREE_PRACTICE_TEST_FALLBACK_SEO;
+    getFreePracticeTestFallbackSeo(courseCode);
   return meta.description;
 }
 
 export function freePracticeTestMetadata(courseCode: string): Metadata {
   const meta =
     FREE_PRACTICE_TEST_SEO[courseCode.toLowerCase()] ??
-    FREE_PRACTICE_TEST_FALLBACK_SEO;
+    getFreePracticeTestFallbackSeo(courseCode);
   const path = `/courses/${courseCode.toLowerCase()}/free-practice-test`;
 
   return buildPageMetadata({
@@ -551,14 +557,14 @@ export function freePracticeTestMetadata(courseCode: string): Metadata {
 export function getFreePredictionTestDescription(courseCode: string): string {
   const meta =
     FREE_PREDICTION_TEST_SEO[courseCode.toLowerCase()] ??
-    FREE_PREDICTION_TEST_FALLBACK_SEO;
+    getFreePredictionTestFallbackSeo(courseCode);
   return meta.description;
 }
 
 export function freePredictionTestMetadata(courseCode: string): Metadata {
   const meta =
     FREE_PREDICTION_TEST_SEO[courseCode.toLowerCase()] ??
-    FREE_PREDICTION_TEST_FALLBACK_SEO;
+    getFreePredictionTestFallbackSeo(courseCode);
   const path = `/courses/${courseCode.toLowerCase()}/free-prediction-test`;
 
   return buildPageMetadata({

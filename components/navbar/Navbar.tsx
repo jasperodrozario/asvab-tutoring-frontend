@@ -74,20 +74,16 @@ function NavbarUserAvatar({ user }: { user: AuthUser }) {
   );
 }
 
-function orderedCourses(courses: Course[]): Course[] {
-  const { militaryTestPrep, healthcareTestPrep, academicTestPrep } =
-    groupCoursesByCategory(courses);
-  return [...militaryTestPrep, ...healthcareTestPrep, ...academicTestPrep];
-}
-
 function CourseNavGroups({
   courses,
   variant,
   onLinkClick,
+  hrefFor = (course) => `/courses/${course.course_code}`,
 }: {
   courses: Course[];
   variant: "desktop" | "mobile";
   onLinkClick?: () => void;
+  hrefFor?: (course: Course) => string;
 }) {
   const { militaryTestPrep, healthcareTestPrep, academicTestPrep } =
     groupCoursesByCategory(courses);
@@ -106,7 +102,7 @@ function CourseNavGroups({
     >
       <Link
         className={variant === "desktop" ? "dropdown-item" : "nav-link text-white"}
-        href={`/courses/${course.course_code}`}
+        href={hrefFor(course)}
         onClick={onLinkClick}
       >
         {course.name}
@@ -184,8 +180,6 @@ function FreeTestsNavGroups({
   onTogglePrediction?: () => void;
   isParentOpen?: boolean;
 }) {
-  const practiceList = orderedCourses(practiceCourses);
-  const predictionList = orderedCourses(predictionCourses);
   const [desktopOpenGroup, setDesktopOpenGroup] = useState<
     "practice" | "prediction" | null
   >(null);
@@ -196,26 +190,17 @@ function FreeTestsNavGroups({
     }
   }, [variant, isParentOpen]);
 
-  const renderCourseLinks = (
+  const renderTestCourseGroups = (
     courses: Course[],
     testPathSuffix: "free-practice-test" | "free-prediction-test",
-  ) =>
-    courses.map((course) => (
-      <li
-        key={`${testPathSuffix}-${course.course_id}`}
-        className={`navbar-course-item ${variant === "mobile" ? "nav-item" : ""}`}
-      >
-        <Link
-          className={
-            variant === "desktop" ? "dropdown-item" : "nav-link text-white"
-          }
-          href={`/courses/${course.course_code}/${testPathSuffix}`}
-          onClick={onLinkClick}
-        >
-          {course.name}
-        </Link>
-      </li>
-    ));
+  ) => (
+    <CourseNavGroups
+      courses={courses}
+      variant={variant}
+      onLinkClick={onLinkClick}
+      hrefFor={(course) => `/courses/${course.course_code}/${testPathSuffix}`}
+    />
+  );
 
   const renderDesktopGroup = (
     groupKey: "practice" | "prediction",
@@ -249,7 +234,7 @@ function FreeTestsNavGroups({
         <ul
           className={`dropdown-menu navbar-free-tests-submenu-menu ${isOpen ? "show" : ""}`}
         >
-          {renderCourseLinks(courses, testPathSuffix)}
+          {renderTestCourseGroups(courses, testPathSuffix)}
         </ul>
       </li>
     );
@@ -282,7 +267,7 @@ function FreeTestsNavGroups({
         <ul
           className={`navbar-nav ps-3 navbar-mobile-submenu ${isOpen ? "show" : ""}`}
         >
-          {renderCourseLinks(courses, testPathSuffix)}
+          {renderTestCourseGroups(courses, testPathSuffix)}
         </ul>
       </li>
     );
@@ -294,14 +279,14 @@ function FreeTestsNavGroups({
         {renderMobileGroup(
           "Free Practice Tests",
           "free-practice-test",
-          practiceList,
+          practiceCourses,
           practiceOpen,
           onTogglePractice,
         )}
         {renderMobileGroup(
           "Free Prediction Tests",
           "free-prediction-test",
-          predictionList,
+          predictionCourses,
           predictionOpen,
           onTogglePrediction,
         )}
@@ -316,14 +301,14 @@ function FreeTestsNavGroups({
         "Free Practice Tests",
         "/free-practice-tests",
         "free-practice-test",
-        practiceList,
+        practiceCourses,
       )}
       {renderDesktopGroup(
         "prediction",
         "Free Prediction Tests",
         "/free-prediction-tests",
         "free-prediction-test",
-        predictionList,
+        predictionCourses,
       )}
     </>
   );

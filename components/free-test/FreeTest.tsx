@@ -32,6 +32,7 @@ import {
   type PreparedTestQuestion,
 } from "@/lib/course-types";
 import { getFreePracticeTestDescription } from "@/lib/page-metadata";
+import { getPracticeTestLowScoreMessage } from "@/lib/package-utils";
 import FreeTestSidebar from "./FreeTestSidebar";
 import TestRulesIntro from "./TestRulesIntro";
 
@@ -516,8 +517,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
     } else {
       return {
         title: "Practice Makes Perfect!",
-        message:
-          "Don't worry, military exams require targeted practice. We can help you master this section.",
+        message: getPracticeTestLowScoreMessage(courseCode),
         alertClass: "alert-danger",
         badgeText: "Practice Needed",
         badgeBg: "#dc3545",

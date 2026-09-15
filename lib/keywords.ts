@@ -205,12 +205,20 @@ const SHARED_FREE_PRACTICE_TESTS_KEYWORDS = [
   "free online practice tests",
   "free military practice test",
   "military entrance exam practice test",
+  "free healthcare practice test",
+  "nursing school practice test",
+  "free academic practice test",
+  "state math practice test",
 ] as const;
 
 const SHARED_FREE_PREDICTION_TESTS_KEYWORDS = [
   "free online prediction tests",
   "free military prediction test",
   "military entrance exam prediction test",
+  "free healthcare prediction test",
+  "nursing school prediction test",
+  "free academic prediction test",
+  "state math prediction test",
 ] as const;
 
 export type PageKeywordTarget = keyof typeof PAGE_KEYWORD_GROUPS;

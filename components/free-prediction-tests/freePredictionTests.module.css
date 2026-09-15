@@ -21,6 +21,26 @@
   font-size: 1.65rem;
 }
 
+.categoryBlock + .categoryBlock {
+  margin-top: 1.75rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid #dee2e6;
+}
+
+.categoryHeading {
+  color: #002341;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  font-size: 1.35rem;
+}
+
+.categoryIntro {
+  color: #495057;
+  font-size: 0.98rem;
+  line-height: 1.5;
+  margin-bottom: 1.25rem;
+}
+
 .courseCard {
   position: relative;
   scroll-margin-top: 6rem;

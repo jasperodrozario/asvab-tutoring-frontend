@@ -65,6 +65,18 @@ export function getCourseCategory(courseCode: string): CourseCategory {
   return "academic test prep";
 }
 
+/** Low-score copy after a free practice section is submitted. */
+export function getPracticeTestLowScoreMessage(courseCode: string): string {
+  switch (getCourseCategory(courseCode)) {
+    case "healthcare test prep":
+      return "Don't worry, healthcare exams require targeted practice. We can help you master this section.";
+    case "academic test prep":
+      return "Don't worry, academic exams require targeted practice. We can help you master this section.";
+    default:
+      return "Don't worry, military exams require targeted practice. We can help you master this section.";
+  }
+}
+
 export function getCourseCategorySelectPrompt(category: CourseCategory): string {
   return `Select a ${category} course`;
 }
