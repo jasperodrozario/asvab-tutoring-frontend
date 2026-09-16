@@ -5,6 +5,7 @@ import FreePredTest from "./FreePredTest";
 import TestGradeSelector from "@/components/free-test/TestGradeSelector";
 import type { PackagesByService } from "@/lib/package-types";
 import type { FreePredTestVariant } from "@/lib/prediction-test-types";
+import { convertCourseCodeToId } from "@/lib/package-utils";
 
 type VariantFreePredTestProps = {
   courseName: string;
@@ -48,8 +49,9 @@ export default function VariantFreePredTest({
       courseName={courseName}
       predictionTestName={predictionTestName}
       courseCode={courseCode}
-      // Scoring is keyed on the grade's own course id, not the parent's.
-      courseId={Number(activeVariant?.data?.course_id ?? 0)}
+      // Scoring uses the parent asvab id; checkout still needs the grade MAIN.
+      courseId={Number(convertCourseCodeToId(courseCode))}
+      gradeMainId={Number(activeVariant?.main_course_id ?? 0) || undefined}
       ft_categories={activeVariant?.data?.categories}
       ft_ques_list={activeVariant?.data?.questions}
       packagesByService={packagesByService}

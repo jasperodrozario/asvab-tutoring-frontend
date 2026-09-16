@@ -73,11 +73,48 @@ const PRED_SCORE_THRESHOLDS: Record<string, PredScoreThresholds> = {
   astb: { good: 60, excellence: 75 },
   asvab: { good: 75, excellence: 90 },
   afoqt: { good: 75, excellence: 90 },
+  "state-math-test-prep": { good: 400, excellence: 500 },
 };
 
+function normalizePredCourseCode(courseCode: string): string {
+  return courseCode.toLowerCase().replace(/-tutor$/, "");
+}
+
 function getPredScoreThresholds(courseCode: string): PredScoreThresholds {
-  const normalized = courseCode.toLowerCase().replace(/-tutor$/, "");
-  return PRED_SCORE_THRESHOLDS[normalized] ?? PRED_SCORE_THRESHOLDS.sift;
+  return (
+    PRED_SCORE_THRESHOLDS[normalizePredCourseCode(courseCode)] ??
+    PRED_SCORE_THRESHOLDS.sift
+  );
+}
+
+function getStateMathPredScoreFeedback(score: number): PredScoreFeedback {
+  if (score >= 500) {
+    return {
+      title: "Excellence Achieved!",
+      message: `You scored ${score} in your test. This is an Advanced Level SOL pass. You are highly likely to pass the real exam with this level of preparation.`,
+      color: "#198754",
+      iconClass: "bi-check-circle-fill",
+      badgeText: "Pass Advanced Level SOL",
+    };
+  }
+
+  if (score >= 400) {
+    return {
+      title: "Good Progress!",
+      message: `You scored ${score}. You passed the SOL test. Keep practicing to further solidify your knowledge and reach an Advanced Level pass.`,
+      color: "#e58a34",
+      iconClass: "bi-info-circle-fill",
+      badgeText: "Pass SOL Test",
+    };
+  }
+
+  return {
+    title: "Focus Required",
+    message: `You scored ${score}. This is below the SOL passing score of 400. Consistent practice will help you improve.`,
+    color: "#dc3545",
+    iconClass: "bi-exclamation-triangle-fill",
+    badgeText: "Fail SOL",
+  };
 }
 
 export function getPredScoreExcellenceThreshold(courseCode: string): number {
@@ -90,6 +127,10 @@ export function getPredScoreFeedback(
   courseName: string,
   passingScore?: number,
 ): PredScoreFeedback {
+  if (normalizePredCourseCode(courseCode) === "state-math-test-prep") {
+    return getStateMathPredScoreFeedback(score);
+  }
+
   const { excellence, good } = getPredScoreThresholds(courseCode);
 
   if (score >= excellence) {

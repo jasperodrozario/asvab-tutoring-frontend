@@ -51,6 +51,15 @@ export function isSelectedCheckoutGradeAllowed(
   );
 }
 
+/** Valid checkout grade from a URL `main_course_id`, or empty. */
+export function getPreselectedCheckoutGrade(
+  info: CheckoutVariantInfo | null | undefined,
+  mainCourseId: string | null | undefined,
+): string {
+  const id = String(mainCourseId ?? "").trim();
+  return isSelectedCheckoutGradeAllowed(info, id) ? id : "";
+}
+
 /** Resolve payment identity: parent asvab id in URL, grade MAIN + is_variant=1 at pay. */
 export function resolvePaymentCourseIdentity(args: {
   parentCourseId: string;

@@ -36,8 +36,9 @@ export function buildSubscriptionCheckoutHref(args: {
   courseId: string;
   packageId: string | number;
   session: PackageSession;
+  mainCourseId?: string | number;
 }): string {
-  const { courseId, packageId, session } = args;
+  const { courseId, packageId, session, mainCourseId } = args;
   const query = new URLSearchParams({
     course_id: courseId,
     package_id: String(packageId),
@@ -47,6 +48,9 @@ export function buildSubscriptionCheckoutHref(args: {
     product: String(session.product ?? ""),
     cadence: String(session.cadence ?? ""),
   });
+  if (mainCourseId != null && String(mainCourseId).trim() !== "") {
+    query.set("main_course_id", String(mainCourseId));
+  }
   return `/checkout?${query.toString()}`;
 }
 
@@ -54,6 +58,7 @@ export function buildSubscriptionCheckoutHref(args: {
 export function getFullPredictionTestCheckoutHref(args: {
   courseCode: string;
   courseId?: number | string;
+  mainCourseId?: number | string;
   packagesByService?: PackagesByService;
 }): string | null {
   const match = findMonthlySubscriptionSession(args.packagesByService);
@@ -68,5 +73,6 @@ export function getFullPredictionTestCheckoutHref(args: {
     courseId,
     packageId: match.packageId,
     session: match.session,
+    mainCourseId: args.mainCourseId,
   });
 }

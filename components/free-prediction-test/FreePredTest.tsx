@@ -74,6 +74,8 @@ interface FreePredTestProps {
   predictionTestName?: string;
   courseCode: string;
   courseId: number;
+  /** Grade MAIN for variant courses; used on the full-prediction checkout link. */
+  gradeMainId?: number;
   ft_categories?: FreeTestCategory[];
   ft_ques_list?: { [key: string]: FreePredTestQuestion[] };
   packagesByService?: PackagesByService;
@@ -204,6 +206,7 @@ export default function FreePredTest({
   predictionTestName,
   courseCode,
   courseId,
+  gradeMainId,
   ft_categories,
   ft_ques_list,
   packagesByService,
@@ -1000,6 +1003,7 @@ export default function FreePredTest({
               courseCode={courseCode}
               passingScore={scoreResult?.passing_score}
               courseId={courseId}
+              gradeMainId={gradeMainId}
               packagesByService={packagesByService}
             />
             {packagesByService ? (

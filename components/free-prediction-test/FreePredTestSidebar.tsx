@@ -29,6 +29,7 @@ type Props = {
   courseCode: string;
   passingScore?: number;
   courseId: number;
+  gradeMainId?: number;
   packagesByService?: PackagesByService;
 };
 
@@ -44,6 +45,7 @@ export default function FreePredTestSidebar({
   courseCode,
   passingScore,
   courseId,
+  gradeMainId,
   packagesByService,
 }: Props) {
   const excellenceScore = getPredScoreExcellenceThreshold(courseCode);
@@ -54,6 +56,7 @@ export default function FreePredTestSidebar({
   const fullPredictionTestHref = getFullPredictionTestCheckoutHref({
     courseCode,
     courseId,
+    mainCourseId: gradeMainId,
     packagesByService,
   });
 

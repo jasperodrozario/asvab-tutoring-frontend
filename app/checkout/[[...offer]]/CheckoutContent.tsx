@@ -24,6 +24,7 @@ import CheckoutPackageSummary from "@/components/checkout/CheckoutPackageSummary
 import CourseVariantGradeSelect from "@/components/checkout/CourseVariantGradeSelect";
 import {
   courseRequiresGradeSelection,
+  getPreselectedCheckoutGrade,
   isSelectedCheckoutGradeAllowed,
   resolvePaymentCourseIdentity,
   type CheckoutVariantInfo,
@@ -141,7 +142,12 @@ export default function CheckoutContent({
   const session_id = searchParams.get("session_id") || "";
   const package_id = searchParams.get("package_id") || "";
   const requiresGrade = courseRequiresGradeSelection(variantInfo);
-  const [selectedGradeMainId, setSelectedGradeMainId] = useState("");
+  const gradeLockedFromUrl = getPreselectedCheckoutGrade(
+    variantInfo,
+    searchParams.get("main_course_id"),
+  );
+  const [selectedGradeMainId, setSelectedGradeMainId] =
+    useState(gradeLockedFromUrl);
   const [showGradeError, setShowGradeError] = useState(false);
 
   const paymentIdentity = useMemo(
