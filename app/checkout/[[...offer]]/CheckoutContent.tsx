@@ -30,6 +30,7 @@ import {
   type CheckoutVariantInfo,
 } from "@/lib/course-variants";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { parsePhpJsonText } from "@/lib/php-json";
 
 type PaymentMode = "one_time" | "subscription";
 type Product =
@@ -572,6 +573,7 @@ export default function CheckoutContent({
   // });
 
   const [mobileSubmitting, setMobileSubmitting] = useState(false);
+  const mobileSubmitLockRef = useRef(false);
   const [mobileResult, setMobileResult] = useState<{
     type: "success" | "danger" | "info";
     text: string;
@@ -646,7 +648,13 @@ export default function CheckoutContent({
   ]);
 
   const submitMobilePayment = async () => {
+    if (mobileSubmitLockRef.current) return;
+    mobileSubmitLockRef.current = true;
     setMobileResult(null);
+
+    const unlock = () => {
+      mobileSubmitLockRef.current = false;
+    };
 
     if (requiresGrade && !isSelectedCheckoutGradeAllowed(variantInfo, selectedGradeMainId)) {
       setShowGradeError(true);
@@ -654,6 +662,7 @@ export default function CheckoutContent({
         type: "danger",
         text: "Please select a grade before continuing.",
       });
+      unlock();
       return;
     }
 
@@ -662,6 +671,7 @@ export default function CheckoutContent({
         type: "danger",
         text: "Please agree to the Terms & Conditions to continue.",
       });
+      unlock();
       return;
     }
 
@@ -698,6 +708,7 @@ export default function CheckoutContent({
           type: "danger",
           text: "Please fix all the errors in the form before submitting.",
         });
+        unlock();
         return;
       }
     }
@@ -707,6 +718,7 @@ export default function CheckoutContent({
         type: "danger",
         text: "Please complete all required registration and mobile payment fields correctly.",
       });
+      unlock();
       return;
     }
 
@@ -720,6 +732,7 @@ export default function CheckoutContent({
           type: "info",
           text: "We are checking your email. Please wait a moment and try again.",
         });
+        unlock();
         return;
       }
 
@@ -728,11 +741,13 @@ export default function CheckoutContent({
           type: "danger",
           text: emailCheckMsg || "This email address is already registered.",
         });
+        unlock();
         return;
       }
     }
 
     setMobileSubmitting(true);
+    let submittedOk = false;
 
     try {
       const body = new URLSearchParams();
@@ -749,6 +764,7 @@ export default function CheckoutContent({
       body.append("amount", String(amountCents));
       body.append("currency", "USD");
       body.append("created_at", todayYYYYMMDD());
+      body.append("payment_source_type", "mobile");
       if (authToken) {
         body.append("auth_token", authToken);
         body.append("user_id", user.user_id);
@@ -760,12 +776,13 @@ export default function CheckoutContent({
         body,
       });
 
-      const raw = await res.text();
-      let data: any = null;
+      const data = parsePhpJsonText<{
+        isSuccess?: boolean;
+        message?: string;
+        code?: string;
+      }>(await res.text());
 
-      try {
-        data = JSON.parse(raw);
-      } catch {
+      if (!data) {
         setMobileResult({
           type: "danger",
           text: "We received an unexpected response. Please try again.",
@@ -774,6 +791,7 @@ export default function CheckoutContent({
       }
 
       if (data?.isSuccess) {
+        submittedOk = true;
         setMobileResult({
           type: "success",
           text: data?.message || "Submitted successfully.",
@@ -783,6 +801,13 @@ export default function CheckoutContent({
           : `?method=mobile`;
         router.push(`/thank-you${q}`);
         return;
+      }
+
+      if (data?.code === "EMAIL_EXISTS") {
+        setEmailExists(true);
+        setEmailCheckMsg(
+          data?.message || "This email address is already registered.",
+        );
       }
 
       setMobileResult({
@@ -795,7 +820,16 @@ export default function CheckoutContent({
         text: "Network error. Please try again.",
       });
     } finally {
-      setMobileSubmitting(false);
+      if (!submittedOk) {
+        mobileSubmitLockRef.current = false;
+        setMobileSubmitting(false);
+        if (!isAuthenticated) {
+          lastCheckedEmailRef.current = "";
+          void runEmailCheck(user.email);
+        }
+      } else {
+        setMobileSubmitting(false);
+      }
     }
   };
 

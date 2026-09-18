@@ -8,6 +8,7 @@ import {
   forwardRef,
   useImperativeHandle,
 } from "react";
+import { parsePhpJsonText } from "@/lib/php-json";
 
 declare global {
   interface Window {
@@ -173,19 +174,9 @@ async function waitForWindowSquare(maxMs = 10_000): Promise<boolean> {
 }
 
 async function readJsonSafe(res: Response): Promise<any> {
-  const ct = (res.headers.get("content-type") || "").toLowerCase();
   const text = await res.text();
-
-  if (ct.includes("application/json")) {
-    try {
-      return JSON.parse(text);
-    } catch {
-      return {
-        success: false,
-        error: "We received an invalid response from the server.",
-      };
-    }
-  }
+  const parsed = parsePhpJsonText<Record<string, unknown>>(text);
+  if (parsed && typeof parsed === "object") return parsed;
 
   return {
     success: false,

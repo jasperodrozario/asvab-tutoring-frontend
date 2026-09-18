@@ -1,4 +1,5 @@
 import { parseIsVariant } from "@/lib/package-utils";
+import { parsePhpJsonText } from "@/lib/php-json";
 
 export type PhpCheckoutJson = {
   status?: number;
@@ -44,13 +45,7 @@ export async function postPhpCheckout(
   });
 
   const raw = await res.text();
-  let data: PhpCheckoutJson | null = null;
-  try {
-    const start = raw.indexOf("{");
-    data = JSON.parse(start >= 0 ? raw.slice(start) : raw) as PhpCheckoutJson;
-  } catch {
-    data = null;
-  }
+  const data = parsePhpJsonText<PhpCheckoutJson>(raw);
 
   return { httpOk: res.ok, data };
 }

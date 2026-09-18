@@ -8,6 +8,7 @@ import {
 } from "@/lib/php-checkout";
 import { phpAuthTokenLookup } from "@/lib/auth-php";
 import { getSession } from "@/lib/auth-session";
+import { parsePhpJsonText } from "@/lib/php-json";
 
 export const runtime = "nodejs";
 
@@ -461,10 +462,8 @@ export async function POST(req: NextRequest) {
       });
 
       const phpText = await phpRes.text();
-
-      try {
-        registrationResponse = phpText ? JSON.parse(phpText) : null;
-      } catch {
+      registrationResponse = parsePhpJsonText(phpText);
+      if (!registrationResponse) {
         console.error("[/api/payment] Unable to parse PHP response");
         registrationResponse = {
           raw: phpText?.slice?.(0, 2000) || "",

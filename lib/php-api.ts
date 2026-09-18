@@ -36,6 +36,7 @@ import {
   type CourseReadinessResult,
 } from "@/lib/course-readiness";
 import { unstable_cache } from "next/cache";
+import { parsePhpJsonText } from "@/lib/php-json";
 
 export const PHP_API_REVALIDATE_SECONDS = 3600;
 
@@ -297,13 +298,12 @@ export async function postPhpApi<T>(
       }
 
       const text = await response.text();
-
-      try {
-        return JSON.parse(text) as T;
-      } catch {
+      const parsed = parsePhpJsonText<T>(text);
+      if (parsed == null) {
         console.error(`PHP API "${action}": response was not valid JSON`);
         return null;
       }
+      return parsed;
     } catch (error) {
       if (attempt < maxAttempts) {
         console.warn(
