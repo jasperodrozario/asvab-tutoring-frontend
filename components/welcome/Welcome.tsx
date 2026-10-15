@@ -42,8 +42,7 @@ export default function Welcome({
               </h1>
 
               <p className="lead mt-3">
-                11,000+ successful candidates. Online Test Prep for the ASVAB,
-                ASTB, OAR, AFOQT, and SIFT
+                11,000+ successful candidates. The Best Military Enlisted and Officer Candidate Test Prep Program: ASVAB, ASTB, OAR, AFOQT, and SIFT
               </p>
 
               <HeroPromoVideo />
