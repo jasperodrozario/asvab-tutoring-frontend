@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import FreeTest from "./FreeTest";
-import TestGradeSelector from "./TestGradeSelector";
+import TestGradeSelector, {
+  courseNameWithSelectedGrade,
+} from "./TestGradeSelector";
 import type { FreePracticeTestVariant } from "@/lib/course-types";
 import type { PackagesByService } from "@/lib/package-types";
 
@@ -22,20 +24,17 @@ export default function VariantFreeTest({
   packagesByService,
   hasFreePredTest = false,
 }: VariantFreeTestProps) {
-  const [selectedGradeId, setSelectedGradeId] = useState(
-    String(variants[0]?.main_course_id ?? ""),
-  );
+  const [selectedGradeId, setSelectedGradeId] = useState("");
 
-  const activeVariant =
-    variants.find(
-      (variant) => String(variant.main_course_id) === selectedGradeId,
-    ) ?? variants[0];
+  const activeVariant = variants.find(
+    (variant) => String(variant.main_course_id) === selectedGradeId,
+  );
 
   const gradeSelector = (
     <TestGradeSelector
       variant="practice"
       options={variants}
-      value={String(activeVariant?.main_course_id ?? "")}
+      value={selectedGradeId}
       onChange={setSelectedGradeId}
     />
   );
@@ -44,9 +43,14 @@ export default function VariantFreeTest({
     <FreeTest
       // Remounting on grade change discards answers and section progress from
       // the previous grade.
-      key={String(activeVariant?.main_course_id ?? "")}
+      key={selectedGradeId || "awaiting-grade"}
       courseName={courseName}
+      rulesCourseName={courseNameWithSelectedGrade(
+        courseName,
+        activeVariant?.course_name,
+      )}
       courseCode={courseCode}
+      awaitingGrade={!activeVariant}
       ft_categories={activeVariant?.data?.categories}
       ft_ques_list={activeVariant?.data?.questions}
       packagesByService={packagesByService}

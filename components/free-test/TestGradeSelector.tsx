@@ -7,6 +7,17 @@ export type TestGradeOption = {
   course_name: string;
 };
 
+/** "State Math Test Prep" + "… Grade 3" → "State Math Test Prep - Grade 3". */
+export function courseNameWithSelectedGrade(
+  courseName: string | undefined,
+  variantName: string | undefined,
+): string {
+  const base = courseName?.trim() || "Course";
+  const match = String(variantName ?? "").match(/\bgrade\s*(\d+)\b/i);
+  if (!match) return base;
+  return `${base} - Grade ${match[1]}`;
+}
+
 type TestGradeSelectorProps = {
   options: TestGradeOption[];
   value: string;
@@ -46,6 +57,7 @@ export default function TestGradeSelector({
             value={value}
             onChange={(event) => onChange(event.target.value)}
           >
+            <option value="">Select a grade</option>
             {options.map((option) => (
               <option
                 key={String(option.main_course_id)}

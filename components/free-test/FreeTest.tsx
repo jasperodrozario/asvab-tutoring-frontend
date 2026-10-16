@@ -146,11 +146,15 @@ interface CategoryState {
 
 interface FreeTestProps {
   courseName?: string;
+  /** How-to card name. Variant courses append the selected grade. */
+  rulesCourseName?: string;
   courseCode: string;
   ft_categories?: FreeTestCategory[];
   ft_ques_list?: { [key: string]: Question[] };
   packagesByService?: PackagesByService;
   hasFreePredTest?: boolean;
+  /** Variant courses hide the test until the student picks a grade. */
+  awaitingGrade?: boolean;
   /** Rendered above the test, below the page heading. Used for the grade picker. */
   headerSlot?: React.ReactNode;
 }
@@ -167,11 +171,13 @@ function CategoryDescription({ html }: { html: string }) {
 
 const FreeTest: React.FC<FreeTestProps> = ({
   courseName,
+  rulesCourseName,
   courseCode,
   ft_categories,
   ft_ques_list,
   packagesByService,
   hasFreePredTest = false,
+  awaitingGrade = false,
   headerSlot,
 }) => {
   const categoryNames = useMemo(
@@ -320,6 +326,39 @@ const FreeTest: React.FC<FreeTestProps> = ({
       shuffleQuestionsByCategory(categoryNames, rawQuestionsByCategory),
     );
   }, [ft_categories, ft_ques_list, hasSufficientQuestions, rawQuestionsByCategory, categoryNames]);
+
+  const howToCourseName = rulesCourseName?.trim() || courseName;
+
+  if (awaitingGrade) {
+    return (
+      <>
+        <div className="page-title-area text-white py-5">
+          <div className="container text-center">
+            <h1>
+              FREE {courseName?.toUpperCase() || "COURSE"} PRACTICE TEST
+            </h1>
+            <h2 className="h4">
+              {getFreePracticeTestDescription(courseCode)}
+            </h2>
+            <Breadcrumb
+              segments={[...BREADCRUMB_SEGMENTS(courseCode)]}
+              segmentLabels={{ 1: courseName || courseCode.toUpperCase() }}
+              dynamicTitle={BREADCRUMB_TITLE}
+            />
+          </div>
+        </div>
+        <ShowAllFreeTestsLink anchorRef={showAllTestsRef} />
+        <div className="container pb-5">
+          <div className="row g-4">
+            {headerSlot ? <div className="col-12">{headerSlot}</div> : null}
+            <div className="col-12">
+              <TestRulesIntro variant="practice" courseName={howToCourseName} />
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   if (!ft_categories || !ft_ques_list || ft_categories.length === 0) {
     return (
@@ -565,7 +604,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
           {headerSlot ? <div className="col-12">{headerSlot}</div> : null}
 
           <div className="col-12">
-            <TestRulesIntro variant="practice" courseName={courseName} />
+            <TestRulesIntro variant="practice" courseName={howToCourseName} />
           </div>
 
           <div className="col-lg-8">

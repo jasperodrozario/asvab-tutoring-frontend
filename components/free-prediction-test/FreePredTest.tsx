@@ -71,6 +71,8 @@ type UserAnswers = Record<string, number>;
 
 interface FreePredTestProps {
   courseName: string;
+  /** How-to card name. Variant courses append the selected grade. */
+  rulesCourseName?: string;
   predictionTestName?: string;
   courseCode: string;
   courseId: number;
@@ -79,6 +81,8 @@ interface FreePredTestProps {
   ft_categories?: FreeTestCategory[];
   ft_ques_list?: { [key: string]: FreePredTestQuestion[] };
   packagesByService?: PackagesByService;
+  /** Variant courses hide the test until the student picks a grade. */
+  awaitingGrade?: boolean;
   /** Rendered above the test, below the page heading. Used for the grade picker. */
   headerSlot?: React.ReactNode;
 }
@@ -203,6 +207,7 @@ function UnavailableMessage({
 
 export default function FreePredTest({
   courseName,
+  rulesCourseName,
   predictionTestName,
   courseCode,
   courseId,
@@ -210,6 +215,7 @@ export default function FreePredTest({
   ft_categories,
   ft_ques_list,
   packagesByService,
+  awaitingGrade = false,
   headerSlot,
 }: FreePredTestProps) {
   const categoryNames = useMemo(
@@ -337,6 +343,39 @@ export default function FreePredTest({
   }, [ft_categories, ft_ques_list, hasSufficientQuestions, rawQuestionsByCategory, categoryNames]);
 
   const testName = predictionTestName?.trim() || courseName?.trim() || "COURSE";
+  const howToCourseName = rulesCourseName?.trim() || testName;
+
+  if (awaitingGrade) {
+    return (
+      <>
+        <div className="page-title-area text-white py-5">
+          <div className="container text-center">
+            <h1>FREE {testName.toUpperCase()} PREDICTION TEST</h1>
+            <h2 className="h4">
+              {getFreePredictionTestDescription(courseCode)}
+            </h2>
+            <Breadcrumb
+              segments={[...BREADCRUMB_SEGMENTS(courseCode)]}
+              segmentLabels={{ 1: courseName || courseCode.toUpperCase() }}
+              dynamicTitle={BREADCRUMB_TITLE}
+            />
+          </div>
+        </div>
+        <ShowAllFreePredictionTestsLink anchorRef={showAllTestsRef} />
+        <div className="container pb-5">
+          <div className="row g-4">
+            {headerSlot ? <div className="col-12">{headerSlot}</div> : null}
+            <div className="col-12">
+              <TestRulesIntro
+                variant="prediction"
+                courseName={howToCourseName}
+              />
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   if (!ft_categories || !ft_ques_list || ft_categories.length === 0) {
     return (
@@ -547,7 +586,7 @@ export default function FreePredTest({
           {headerSlot ? <div className="col-12">{headerSlot}</div> : null}
 
           <div className="col-12">
-            <TestRulesIntro variant="prediction" courseName={testName} />
+            <TestRulesIntro variant="prediction" courseName={howToCourseName} />
           </div>
 
           <div className="col-lg-8">
