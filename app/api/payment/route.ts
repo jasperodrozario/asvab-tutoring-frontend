@@ -8,6 +8,7 @@ import {
 } from "@/lib/php-checkout";
 import { phpAuthTokenLookup } from "@/lib/auth-php";
 import { getSession } from "@/lib/auth-session";
+import { resolveEnrolledPaymentIdentity } from "@/lib/enrolled-grade";
 import { parsePhpJsonText } from "@/lib/php-json";
 
 export const runtime = "nodejs";
@@ -162,10 +163,10 @@ export async function POST(req: NextRequest) {
 
     const sourceId = getSourceId(body?.sourceId);
     const amount = body?.amount;
-    const course_id = safeStr(body?.course_id ?? "", 50);
+    const postedCourseId = safeStr(body?.course_id ?? "", 50);
     const session_id = safeStr(body?.session_id ?? "", 50);
     const package_id = safeStr(body?.package_id ?? "", 50);
-    const is_variant = parseIsVariant(body?.is_variant);
+    const postedIsVariant = parseIsVariant(body?.is_variant);
     const user = body?.user || {};
     const postedUserId = safeStr(
       body?.user_id ?? user?.user_id ?? user?.id ?? "",
@@ -204,6 +205,15 @@ export async function POST(req: NextRequest) {
       user.email = user.email || lookedUp.email;
       user.user_id = resolvedUserId;
     }
+
+    const { course_id, is_variant } = auth_token
+      ? await resolveEnrolledPaymentIdentity({
+          course_id: postedCourseId,
+          is_variant: postedIsVariant,
+          auth_token,
+          user_id: resolvedUserId,
+        })
+      : { course_id: postedCourseId, is_variant: postedIsVariant };
 
     // Get Referral Data from Cookies
     const cookieStore = await cookies();

@@ -11,6 +11,7 @@ import {
 } from "@/lib/php-checkout";
 import { phpAuthTokenLookup } from "@/lib/auth-php";
 import { getSession } from "@/lib/auth-session";
+import { resolveEnrolledPaymentIdentity } from "@/lib/enrolled-grade";
 
 export const runtime = "nodejs";
 
@@ -410,8 +411,8 @@ export async function POST(req: NextRequest) {
     // Resolve IDs early before charging Square.
     // Never use planRow.course_id — that comes from asvab_tutor_package_sessions
     // and is an ambiguous MAIN/ASVAB mix. package_id from the plan row is safe.
-    const resolvedCourseId = String(body.course_id || "").trim();
-    const resolvedIsVariant = parseIsVariant(body.is_variant);
+    const postedCourseId = String(body.course_id || "").trim();
+    const postedIsVariant = parseIsVariant(body.is_variant);
     const resolvedPackageId = String(
       body.package_id || planRow.package_id || "",
     ).trim();
@@ -419,7 +420,7 @@ export async function POST(req: NextRequest) {
       body.session_id || planRow.session_id || "",
     ).trim();
 
-    if (!resolvedCourseId || resolvedCourseId === "0") {
+    if (!postedCourseId || postedCourseId === "0") {
       return NextResponse.json(
         {
           success: false,
@@ -437,19 +438,6 @@ export async function POST(req: NextRequest) {
           message:
             "Package ID is required. Please return to the course page and try again.",
         },
-        { status: 400 },
-      );
-    }
-
-    const courseCheck = await validateCheckoutCourseId({
-      course_id: resolvedCourseId,
-      session_id: resolvedSessionId,
-      package_id: resolvedPackageId,
-      is_variant: resolvedIsVariant,
-    });
-    if (!courseCheck.ok) {
-      return NextResponse.json(
-        { success: false, message: courseCheck.message, error: "course_id" },
         { status: 400 },
       );
     }
@@ -492,6 +480,29 @@ export async function POST(req: NextRequest) {
           `${lookedUp.first_name} ${lookedUp.last_name}`.trim() ||
           lookedUp.email;
       }
+    }
+
+    const { course_id: resolvedCourseId, is_variant: resolvedIsVariant } =
+      auth_token
+        ? await resolveEnrolledPaymentIdentity({
+            course_id: postedCourseId,
+            is_variant: postedIsVariant,
+            auth_token,
+            user_id: resolvedUserId,
+          })
+        : { course_id: postedCourseId, is_variant: postedIsVariant };
+
+    const courseCheck = await validateCheckoutCourseId({
+      course_id: resolvedCourseId,
+      session_id: resolvedSessionId,
+      package_id: resolvedPackageId,
+      is_variant: resolvedIsVariant,
+    });
+    if (!courseCheck.ok) {
+      return NextResponse.json(
+        { success: false, message: courseCheck.message, error: "course_id" },
+        { status: 400 },
+      );
     }
 
     if (!isExistingUser) {

@@ -872,7 +872,8 @@ export async function isCoursePublishable(
   return publishable;
 }
 
-async function fetchAllCoursesRaw(): Promise<NavCourse[]> {
+/** Every course from the API, publishable or not, with its variants. */
+export async function fetchAllCoursesRaw(): Promise<NavCourse[]> {
   const result = await postPhpApi<PhpApiSuccess<NavCourse[]>>("get-all-courses");
 
   if (result?.isSuccess && Array.isArray(result.data)) {

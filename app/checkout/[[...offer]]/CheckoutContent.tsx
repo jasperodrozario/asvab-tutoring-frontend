@@ -22,9 +22,10 @@ import { convertCourseIdToProduct } from "@/lib/package-utils";
 import type { CheckoutPackageSummaryData } from "@/lib/checkout-package-info";
 import CheckoutPackageSummary from "@/components/checkout/CheckoutPackageSummary";
 import CourseVariantGradeSelect from "@/components/checkout/CourseVariantGradeSelect";
+import EnrolledGradeSummary from "@/components/checkout/EnrolledGradeSummary";
 import {
   courseRequiresGradeSelection,
-  getPreselectedCheckoutGrade,
+  getInitialCheckoutGrade,
   isSelectedCheckoutGradeAllowed,
   resolvePaymentCourseIdentity,
   type CheckoutVariantInfo,
@@ -143,12 +144,10 @@ export default function CheckoutContent({
   const session_id = searchParams.get("session_id") || "";
   const package_id = searchParams.get("package_id") || "";
   const requiresGrade = courseRequiresGradeSelection(variantInfo);
-  const gradeLockedFromUrl = getPreselectedCheckoutGrade(
-    variantInfo,
-    searchParams.get("main_course_id"),
+  const enrolledGrade = variantInfo?.enrolledGrade ?? null;
+  const [selectedGradeMainId, setSelectedGradeMainId] = useState(() =>
+    getInitialCheckoutGrade(variantInfo, searchParams.get("main_course_id")),
   );
-  const [selectedGradeMainId, setSelectedGradeMainId] =
-    useState(gradeLockedFromUrl);
   const [showGradeError, setShowGradeError] = useState(false);
 
   const paymentIdentity = useMemo(
@@ -1080,17 +1079,20 @@ export default function CheckoutContent({
                   : "Your Registration Information"}
               </h5>
 
-              {requiresGrade && (
-                <CourseVariantGradeSelect
-                  variants={variantInfo?.variants ?? []}
-                  value={selectedGradeMainId}
-                  onChange={(gradeId) => {
-                    setSelectedGradeMainId(gradeId);
-                    if (gradeId) setShowGradeError(false);
-                  }}
-                  showError={showGradeError}
-                />
-              )}
+              {requiresGrade &&
+                (enrolledGrade ? (
+                  <EnrolledGradeSummary grade={enrolledGrade} />
+                ) : (
+                  <CourseVariantGradeSelect
+                    variants={variantInfo?.variants ?? []}
+                    value={selectedGradeMainId}
+                    onChange={(gradeId) => {
+                      setSelectedGradeMainId(gradeId);
+                      if (gradeId) setShowGradeError(false);
+                    }}
+                    showError={showGradeError}
+                  />
+                ))}
 
               {isAuthenticated ? (
                 <div

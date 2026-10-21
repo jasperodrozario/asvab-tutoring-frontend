@@ -8,27 +8,11 @@ import {
 export type CheckoutVariantInfo = {
   has_variants: 0 | 1;
   variants: CourseVariantOption[];
+  /** Grade the logged-in account is already registered on, when it belongs to this course. */
+  enrolledGrade?: CourseVariantOption | null;
 };
 
 export { parseHasVariants };
-
-/**
- * Temporary checkout-only hide for Grade 3 and Grade 4.
- * User-registration still lists every variant from the API.
- */
-const CHECKOUT_BLOCKED_GRADE_PATTERN = /\bgrade\s*[34]\b/i;
-
-export function isCheckoutBlockedGrade(
-  variant: Pick<CourseVariantOption, "course_name">,
-): boolean {
-  return CHECKOUT_BLOCKED_GRADE_PATTERN.test(String(variant.course_name ?? ""));
-}
-
-export function filterCheckoutGrades(
-  variants: readonly CourseVariantOption[],
-): CourseVariantOption[] {
-  return variants.filter((variant) => !isCheckoutBlockedGrade(variant));
-}
 
 export function courseRequiresGradeSelection(
   info: CheckoutVariantInfo | null | undefined,
@@ -60,6 +44,15 @@ export function getPreselectedCheckoutGrade(
   return isSelectedCheckoutGradeAllowed(info, id) ? id : "";
 }
 
+/** The enrolled grade wins over a URL `main_course_id`. */
+export function getInitialCheckoutGrade(
+  info: CheckoutVariantInfo | null | undefined,
+  mainCourseId: string | null | undefined,
+): string {
+  if (info?.enrolledGrade) return String(info.enrolledGrade.main_course_id);
+  return getPreselectedCheckoutGrade(info, mainCourseId);
+}
+
 /** Resolve payment identity: parent asvab id in URL, grade MAIN + is_variant=1 at pay. */
 export function resolvePaymentCourseIdentity(args: {
   parentCourseId: string;
@@ -87,9 +80,7 @@ export async function resolveCheckoutVariants(
   }
 
   const details = await fetchCourseDetailsByCode(code);
-  const variants = filterCheckoutGrades(
-    Array.isArray(details?.variants) ? details.variants : [],
-  );
+  const variants = Array.isArray(details?.variants) ? details.variants : [];
   const has_variants =
     parseHasVariants(details?.has_variants) === 1 && variants.length > 0
       ? 1

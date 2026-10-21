@@ -1,4 +1,5 @@
 import type { AuthUser } from "@/lib/auth-session";
+import { parseIsVariant } from "@/lib/package-utils";
 
 function phpApiUrl(): string {
   const url = process.env.NEXT_PUBLIC_PHP_API_URL?.trim() || "";
@@ -128,6 +129,36 @@ export async function phpAuthTokenLookup(
 ): Promise<AuthUser | null> {
   const detailed = await phpAuthTokenLookupDetailed(auth_token);
   return detailed?.user ?? null;
+}
+
+export type PhpEnrolledCourse = {
+  main_course_id: string;
+  is_variant: 0 | 1;
+};
+
+/**
+ * The account's `subscription.course_id`, as resolved by `buy-more-sessions`.
+ * Null for accounts with no course, such as website free registration.
+ */
+export async function phpEnrolledCourseLookup(
+  auth_token: string,
+  user_id: number | string,
+): Promise<PhpEnrolledCourse | null> {
+  const { ok, json } = await postPhp({
+    action: "buy-more-sessions",
+    auth_token,
+    user_id: String(user_id),
+  });
+
+  if (!ok || !json || json.ok !== true || !json.course) return null;
+
+  const main_course_id = String(json.course.main_course_id ?? "").trim();
+  if (!main_course_id || main_course_id === "0") return null;
+
+  return {
+    main_course_id,
+    is_variant: parseIsVariant(json.course.is_variant),
+  };
 }
 
 export async function phpAuthTokenLookupDetailed(
