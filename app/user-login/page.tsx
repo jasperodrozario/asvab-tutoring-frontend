@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { BsEye, BsEyeSlash } from "react-icons/bs";
 import { useAuth } from "@/components/auth/AuthProvider";
 import AlreadySignedInCard from "@/components/auth/AlreadySignedInCard";
+import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 import { resolvePortalLoginUrl } from "@/lib/portal-login";
 
 type LoginStatus = { type: "success" | "error"; text: string } | null;
@@ -17,11 +18,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
 
   const [submitting, setSubmitting] = useState(false);
+  const [googleBusy, setGoogleBusy] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [status, setStatus] = useState<LoginStatus>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting || googleBusy) return;
     setStatus(null);
     setSubmitting(true);
     let redirecting = false;
@@ -67,7 +70,7 @@ export default function LoginPage() {
     }
   };
 
-  if (user && !submitting) {
+  if (user && !submitting && !googleBusy) {
     return (
       <AlreadySignedInCard
         variant="login"
@@ -127,6 +130,12 @@ export default function LoginPage() {
                     {status.text}
                   </div>
                 )}
+
+                <GoogleSignInButton
+                  dividerPosition="after"
+                  disabled={submitting}
+                  onBusyChange={setGoogleBusy}
+                />
 
                 <form onSubmit={handleSubmit}>
                     <div className="mb-3">
@@ -226,7 +235,7 @@ export default function LoginPage() {
                     <button
                       type="submit"
                       className="btn w-100 fw-bold"
-                      disabled={submitting}
+                      disabled={submitting || googleBusy}
                       style={{
                         background: "#f2a155",
                         color: "#002341",
@@ -251,9 +260,6 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div className="text-center mt-3 small text-muted">
-              By logging in, you agree to our terms and privacy policy.
-            </div>
           </div>
         </div>
       </div>

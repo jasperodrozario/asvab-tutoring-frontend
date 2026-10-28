@@ -16,3 +16,16 @@ export function sanitizeMobileInput(
 
   return cleaned.slice(0, 10);
 }
+
+/** Registration uses a 10-digit US number, without the country code. */
+export function validateRegistrationMobile(mobile: string): string {
+  const digits = mobile.replace(/\D/g, "");
+  if (!digits) return "Mobile number is required.";
+  if (digits.length !== 10) return "Enter a valid 10-digit US number.";
+  if (/^(\d)\1{9}$/.test(digits)) return "Enter a valid US number.";
+  if (digits[0] === "0" || digits[0] === "1")
+    return "Area code cannot start with 0 or 1.";
+  if (digits[3] === "0" || digits[3] === "1")
+    return "Exchange code cannot start with 0 or 1.";
+  return "";
+}

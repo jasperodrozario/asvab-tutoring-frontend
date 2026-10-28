@@ -2,8 +2,10 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
+import legalStyles from "@/components/auth/LegalLinks.module.css";
 import { BsEye, BsEyeSlash } from "react-icons/bs";
-import { sanitizeMobileInput } from "@/lib/sanitize-mobile-input";
+import { sanitizeMobileInput, validateRegistrationMobile as validateMobile } from "@/lib/sanitize-mobile-input";
 import { postPhpBrowser } from "@/lib/php-browser";
 import {
   registrationSessionKey,
@@ -34,11 +36,6 @@ type SessionsByCourseService = Record<string, SessionPkg[]>;
 
 async function postForm(body: Record<string, string>) {
   return postPhpBrowser(body);
-}
-
-function moneyUsd(price: string) {
-  const n = Number(price);
-  return Number.isFinite(n) ? n.toFixed(2) : price;
 }
 
 type EmailCheckResult = {
@@ -127,6 +124,7 @@ export default function RegisterForm({
   const [agree, setAgree] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [googleBusy, setGoogleBusy] = useState(false);
   const [status, setStatus] = useState<Status>(null);
   const [fieldErrors, setFieldErrors] = useState({
     first_name: "",
@@ -191,18 +189,6 @@ export default function RegisterForm({
 
   const validateLastName = (lastName: string) => {
     if (!lastName.trim()) return "Last name is required.";
-    return "";
-  };
-
-  const validateMobile = (mobile: string) => {
-    const digits = mobile.replace(/\D/g, "");
-    if (digits.length === 0) return "Mobile number is required.";
-    if (digits.length !== 10) return "Enter a valid 10-digit US number.";
-    if (/^(\d)\1{9}$/.test(digits)) return "Enter a valid US number."; // All same digits
-    if (digits[0] === "0" || digits[0] === "1")
-      return "Area code cannot start with 0 or 1.";
-    if (digits[3] === "0" || digits[3] === "1")
-      return "Exchange code cannot start with 0 or 1.";
     return "";
   };
 
@@ -510,7 +496,7 @@ export default function RegisterForm({
       !fieldErrors.mobile &&
       !fieldErrors.confirm_password &&
       agree &&
-      !submitting;
+      !submitting && !googleBusy;
 
     if (!userFieldsOk) return false;
 
@@ -526,12 +512,14 @@ export default function RegisterForm({
     sessionId,
     agree,
     submitting,
+    googleBusy,
     emailReady,
     hasPurchase,
   ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting || googleBusy) return;
     setEmailTouched(true);
     setEmailBlurred(true);
 
@@ -791,6 +779,7 @@ export default function RegisterForm({
                           name="purchaseStatus"
                           id="ps-yes"
                           checked={purchaseStatus === "already_purchased"}
+                          disabled={submitting || googleBusy}
                           onChange={() => setPurchaseStatus("already_purchased")}
                         />
                         <label className="form-check-label" htmlFor="ps-yes">
@@ -804,6 +793,7 @@ export default function RegisterForm({
                           name="purchaseStatus"
                           id="ps-no"
                           checked={purchaseStatus === "not_purchased"}
+                          disabled={submitting || googleBusy}
                           onChange={() => setPurchaseStatus("not_purchased")}
                         />
                         <label className="form-check-label" htmlFor="ps-no">
@@ -812,6 +802,15 @@ export default function RegisterForm({
                       </div>
                     </div>
                   </div>
+
+                  {!hasPurchase && (
+                    <GoogleSignInButton
+                      intent="register"
+                      dividerPosition="after"
+                      disabled={submitting}
+                      onBusyChange={setGoogleBusy}
+                    />
+                  )}
 
                   {/* Package selection — only when already purchased */}
                   {hasPurchase && (
@@ -1108,6 +1107,10 @@ export default function RegisterForm({
                       type="text"
                       className={`form-control ${fieldErrors.mobile ? "is-invalid" : ""}`}
                       name="mobile"
+                      aria-label="Mobile number"
+                      autoComplete="tel-national"
+                      inputMode="numeric"
+                      disabled={submitting || googleBusy}
                       placeholder="Mobile number"
                       value={form.mobile}
                       onChange={handleChange}
@@ -1231,7 +1234,7 @@ export default function RegisterForm({
 
                       <label
                         htmlFor="agree"
-                        className="form-check-label"
+                        className={`form-check-label ${legalStyles.legalLinks}`}
                         style={{
                           color: "#002341",
                           fontWeight: 800,
@@ -1247,13 +1250,16 @@ export default function RegisterForm({
                           rel="noreferrer"
                           style={{
                             color: "#0d6efd",
-                            textDecoration: "underline",
                             fontWeight: 900,
                           }}
                         >
                           Terms &amp; Conditions
                         </a>
-                        .
+                        {" and "}
+                        <Link href="/privacy-policy" target="_blank" rel="noreferrer"
+                          style={{ color: "#0d6efd", fontWeight: 900 }}>
+                          Privacy Policy
+                        </Link>.
                         <div
                           style={{
                             fontSize: 12,

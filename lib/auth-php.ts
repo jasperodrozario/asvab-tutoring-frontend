@@ -63,8 +63,45 @@ export async function phpUserLogin(
     password,
   });
 
+  return parsePhpLogin({ ok, status, json }, email);
+}
+
+/** Called only after the Firebase ID token has been verified on the server. */
+export async function phpFirebaseSocialLogin(identity: {
+  provider: "google" | "apple";
+  id_token: string;
+  firebase_uid: string;
+  provider_subject: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  intent: "begin" | "login" | "register";
+  mobile?: string;
+}) {
+  if (!process.env.INTERNAL_API_SECRET?.trim()) {
+    throw new Error("INTERNAL_API_SECRET is required for Google sign-in");
+  }
+  const response = await postPhp({
+    action: "social-register",
+    verification: "firebase",
+    ...identity,
+    ...(identity.intent === "register" ? { terms_accepted: "1" } : {}),
+  });
+  if (response.ok && identity.intent === "begin" && response.json?.needs_onboarding === true) {
+    return { ok: true as const, needsOnboarding: true as const };
+  }
+  return parsePhpLogin(response, identity.email);
+}
+
+function parsePhpLogin(
+  { ok, status, json }: { ok: boolean; status: number; json: any },
+  email: string,
+):
+  | { ok: true; data: PhpLoginSuccess }
+  | { ok: false; message: string; status: number } {
+
   const phpLoginOk =
-    Boolean(json) &&
+    ok && Boolean(json) &&
     (json.isSuccess === true ||
       json.isSuccess === 1 ||
       json.isSuccess === "true" ||

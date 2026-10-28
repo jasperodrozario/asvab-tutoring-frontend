@@ -1,0 +1,11 @@
+.legalLinks a {
+  color: #0d6efd;
+  text-decoration: none;
+}
+
+.legalLinks a:hover,
+.legalLinks a:focus-visible {
+  /* Override the global a:hover rule that removes underlines with !important. */
+  text-decoration: underline !important;
+  text-underline-offset: 2px;
+}
