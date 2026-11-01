@@ -601,7 +601,7 @@ export default function RegisterForm({
     if (!agree)
       return setStatus({
         type: "error",
-        text: "Please agree to the terms & conditions.",
+        text: "Please agree to the Terms of Service and Privacy Policy.",
       });
 
     try {

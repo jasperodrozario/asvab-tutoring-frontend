@@ -6,8 +6,11 @@ import { FcGoogle } from "react-icons/fc";
 import { BsCheckCircleFill } from "react-icons/bs";
 import { sanitizeMobileInput, validateRegistrationMobile } from "@/lib/sanitize-mobile-input";
 import { resolvePortalLoginUrl } from "@/lib/portal-login";
+import legalStyles from "@/components/auth/LegalLinks.module.css";
 
 export default function CompleteGoogleRegistration({ email, firstName }: { email: string; firstName: string }) {
+  const needsName = !firstName.trim();
+  const [name, setName] = useState("");
   const [mobile, setMobile] = useState("");
   const [agree, setAgree] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -19,9 +22,13 @@ export default function CompleteGoogleRegistration({ email, firstName }: { email
   async function complete(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (inFlight.current || expired) return;
+    if (needsName && !name.trim()) {
+      setError("Please enter your full name.");
+      return;
+    }
     const mobileError = validateRegistrationMobile(mobile);
     if (mobileError || !agree) {
-      setError(mobileError || "Please accept the Terms & Conditions and Privacy Policy.");
+      setError(mobileError || "Please accept the Terms of Service and Privacy Policy.");
       return;
     }
     setError("");
@@ -32,7 +39,7 @@ export default function CompleteGoogleRegistration({ email, firstName }: { email
       const response = await fetch("/api/auth/google/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mobile, termsAccepted: agree }),
+        body: JSON.stringify({ mobile, termsAccepted: agree, ...(needsName ? { name: name.trim() } : {}) }),
       });
       const result = await response.json();
       if (!response.ok || !result.success) {
@@ -87,6 +94,17 @@ export default function CompleteGoogleRegistration({ email, firstName }: { email
                 </div>
                 {error && <div className="alert alert-danger" role="alert">{error}</div>}
                 <form onSubmit={(event) => void complete(event)}>
+                  {needsName && (
+                    <div className="mb-4">
+                      <label htmlFor="googleName" className="form-label fw-semibold">Full name <span aria-hidden="true">*</span></label>
+                      <input id="googleName" type="text" className="form-control" autoComplete="name"
+                        placeholder="Enter your full name" value={name} required disabled={busy || cancelling || expired}
+                        onChange={(event) => {
+                          setName(event.target.value);
+                          setError("");
+                        }} />
+                    </div>
+                  )}
                   <label htmlFor="googleMobile" className="form-label fw-semibold">Mobile number <span aria-hidden="true">*</span></label>
                   <div className="input-group mb-2">
                     <span className="input-group-text">US +1</span>
@@ -103,7 +121,7 @@ export default function CompleteGoogleRegistration({ email, firstName }: { email
                   <div className="form-check mb-4">
                     <input id="googleCompleteAgree" type="checkbox" className="form-check-input" checked={agree} required
                       disabled={busy || cancelling || expired} onChange={(event) => setAgree(event.target.checked)} />
-                    <label htmlFor="googleCompleteAgree" className="form-check-label small">
+                    <label htmlFor="googleCompleteAgree" className={`form-check-label small ${legalStyles.legalLinks}`}>
                       I agree to the <Link href="/terms-of-service" target="_blank" rel="noreferrer">Terms &amp; Conditions</Link>
                       {" and "}<Link href="/privacy-policy" target="_blank" rel="noreferrer">Privacy Policy</Link>.
                     </label>

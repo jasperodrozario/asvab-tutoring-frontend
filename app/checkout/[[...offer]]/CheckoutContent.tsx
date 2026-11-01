@@ -668,7 +668,7 @@ export default function CheckoutContent({
     if (!agreeTerms) {
       setMobileResult({
         type: "danger",
-        text: "Please agree to the Terms & Conditions to continue.",
+        text: "Please agree to the Terms of Service and Privacy Policy to continue.",
       });
       unlock();
       return;

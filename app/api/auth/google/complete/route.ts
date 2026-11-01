@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   }
   const body = await req.json().catch(() => null);
   if (!body || body.termsAccepted !== true) {
-    return NextResponse.json({ success: false, message: "Please accept the Terms & Conditions and Privacy Policy." }, { status: 400 });
+    return NextResponse.json({ success: false, message: "Please accept the Terms of Service and Privacy Policy." }, { status: 400 });
   }
   const mobile = typeof body.mobile === "string" ? body.mobile.replace(/\D/g, "") : "";
   const mobileError = validateRegistrationMobile(mobile);
@@ -34,6 +34,15 @@ export async function POST(req: NextRequest) {
   try {
     // Recheck the original Google proof, including revocation, before creating a user.
     const identity = await verifyGoogleIdentity(idToken);
+    if (!identity.first_name.trim()) {
+      const name = typeof body.name === "string" ? body.name.trim() : "";
+      if (!name) {
+        return NextResponse.json({ success: false, message: "Please enter your full name." }, { status: 400 });
+      }
+      const [firstName, ...lastName] = name.split(/\s+/);
+      identity.first_name = firstName;
+      identity.last_name = lastName.join(" ");
+    }
     const result = await phpFirebaseSocialLogin({ ...identity, intent: "register", mobile });
     if (!result.ok) {
       return NextResponse.json({ success: false, message: result.message }, { status: result.status });

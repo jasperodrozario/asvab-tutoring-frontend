@@ -594,7 +594,7 @@ export default function OfferCheckout({
     if (!agreeTerms) {
       setMobileResult({
         type: "danger",
-        text: "Please agree to the Terms & Conditions to continue.",
+        text: "Please agree to the Terms of Service and Privacy Policy to continue.",
       });
       unlock();
       return;
@@ -1295,7 +1295,7 @@ export default function OfferCheckout({
                         target="_blank"
                         rel="noreferrer"
                       >
-                        Terms & Conditions
+                        Terms of Service
                       </a>
                     </span>
                   </label>

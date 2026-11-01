@@ -36,7 +36,7 @@ appears above the email registration fields and does not require mobile or
 checkbox input. The login page also offers Google sign-in above its email/password
 fields. Existing Google accounts sign in immediately; new users continue
 to `/user-registration/complete` to enter their mobile number and explicitly
-accept the Terms & Conditions and Privacy Policy.
+accept the Terms of Service and Privacy Policy.
 
 The Google identity is verified before the PHP lookup and again on completion.
 An encrypted, HTTP-only onboarding cookie expires after 10 minutes and grants no
@@ -94,8 +94,10 @@ Existing password accounts require email/password login and are not silently
 linked; that conflict is shown before onboarding. Purchased-course registration
 continues through the existing form, which does not offer Google registration.
 The completion screen requires a valid US mobile number and an unchecked consent
-checkbox that the user must select. Its profile comes only from the protected
-onboarding identity, not browser-supplied email/name fields. The mobile number is
+checkbox that the user must select. Its profile comes from the protected
+onboarding identity. When Google supplies no name, completion requires a full
+name from the user; the server accepts it only when the verified name is missing.
+Email and provider identity always come from the verified token. The mobile number is
 validated by the browser and Next.js, checked again before PHP creates an account,
 and stored in `user.mobile`. Existing-account Google login does not ask for mobile
 or overwrite the saved number. The mobile API source remains unchanged.
