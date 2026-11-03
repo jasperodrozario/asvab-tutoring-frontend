@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import AppleSignInButton from "@/components/auth/AppleSignInButton";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 import legalStyles from "@/components/auth/LegalLinks.module.css";
 import { BsEye, BsEyeSlash } from "react-icons/bs";
@@ -803,14 +804,16 @@ export default function RegisterForm({
                     </div>
                   </div>
 
-                  {!hasPurchase && (
-                    <GoogleSignInButton
-                      intent="register"
-                      dividerPosition="after"
-                      disabled={submitting}
-                      onBusyChange={setGoogleBusy}
-                    />
-                  )}
+                  <AppleSignInButton
+                    disabled={submitting}
+                    onBusyChange={setGoogleBusy}
+                  />
+                  <GoogleSignInButton
+                    intent="register"
+                    dividerPosition="after"
+                    disabled={submitting}
+                    onBusyChange={setGoogleBusy}
+                  />
 
                   {/* Package selection — only when already purchased */}
                   {hasPurchase && (

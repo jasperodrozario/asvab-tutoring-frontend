@@ -116,7 +116,8 @@ foreach (explode("\r\n", $respHeaders) as $line) {
     if (trim($line) === '') continue;
     if (stripos($line, 'Transfer-Encoding:') === 0) continue;
     if (stripos($line, 'Connection:') === 0) continue;
-    header($line, true);
+    // Set-Cookie can repeat; replacing would keep only the last cookie.
+    header($line, stripos($line, 'Set-Cookie:') !== 0);
 }
 
 echo $respBody;

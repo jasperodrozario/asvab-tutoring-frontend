@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { BsEye, BsEyeSlash } from "react-icons/bs";
 import { useAuth } from "@/components/auth/AuthProvider";
 import AlreadySignedInCard from "@/components/auth/AlreadySignedInCard";
+import AppleSignInButton from "@/components/auth/AppleSignInButton";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 import { resolvePortalLoginUrl } from "@/lib/portal-login";
 
@@ -130,6 +131,11 @@ export default function LoginPage() {
                     {status.text}
                   </div>
                 )}
+
+                <AppleSignInButton
+                  disabled={submitting}
+                  onBusyChange={setGoogleBusy}
+                />
 
                 <GoogleSignInButton
                   dividerPosition="after"
