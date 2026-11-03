@@ -202,15 +202,7 @@ export default function Footer() {
 
           {/* Contact */}
           <div className="col-12 col-md-4 col-lg-auto">
-            <h5 className="fw-semibold mb-3">
-              <Link
-                href="/contact-us"
-                className="text-decoration-none text-white"
-                style={{ cursor: "pointer" }}
-              >
-                CONTACT US
-              </Link>
-            </h5>
+            <h5 className="fw-semibold mb-3">CONTACT US</h5>
             <p className="small mb-2 footer-text">
               <i className="bi bi-geo-alt-fill me-2 primary-color-custom"></i>
               United States
@@ -230,6 +222,15 @@ export default function Footer() {
               <a href="tel:(718)-200-6396" className="footer-contact-link">
                 (718)-200-6396
               </a>
+            </p>
+            <p className="small mb-2 footer-text">
+              <i
+                className="bi bi-chat-dots-fill me-2 primary-color-custom"
+                aria-hidden="true"
+              ></i>
+              <Link href="/contact-us" className="footer-contact-link">
+                Get in Touch
+              </Link>
             </p>
           </div>
         </div>
