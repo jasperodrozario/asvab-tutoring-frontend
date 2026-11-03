@@ -159,54 +159,54 @@ export const COURSE_SEO: Record<string, PageSeo> = {
 
 export const FREE_PRACTICE_TEST_SEO: Record<string, PageSeo> = {
   asvab: {
-    title: "Free ASVAB Practice Test Online 2026 | ASVAB Tutoring",
+    title: "Free ASVAB Practice Test Online 2027 | ASVAB Tutoring",
     description:
-      "Take our free online ASVAB practice test 2026. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.",
+      "Take our free online ASVAB practice test 2027. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.",
   },
   afoqt: {
-    title: "Free AFOQT Practice Test Online 2026 | ASVAB Tutoring",
+    title: "Free AFOQT Practice Test Online 2027 | ASVAB Tutoring",
     description:
-      "Take our free online AFOQT practice test 2026. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.",
+      "Take our free online AFOQT practice test 2027. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.",
   },
   sift: {
-    title: "Free SIFT Practice Test Online 2026 | ASVAB Tutoring",
+    title: "Free SIFT Practice Test Online 2027 | ASVAB Tutoring",
     description:
-      "Take our free online SIFT practice test 2026. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.",
+      "Take our free online SIFT practice test 2027. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.",
   },
   oar: {
-    title: "Free OAR Practice Test Online 2026 | ASVAB Tutoring",
+    title: "Free OAR Practice Test Online 2027 | ASVAB Tutoring",
     description:
-      "Take our free online OAR practice test 2026. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.",
+      "Take our free online OAR practice test 2027. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.",
   },
   astb: {
-    title: "Free ASTB Practice Test Online 2026 | ASVAB Tutoring",
+    title: "Free ASTB Practice Test Online 2027 | ASVAB Tutoring",
     description:
-      "Take our free online ASTB practice test 2026. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.",
+      "Take our free online ASTB practice test 2027. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.",
   },
   "hesi-a2": {
-    title: "Free HESI A2 Practice Test Online 2026 | ASVAB Tutoring",
+    title: "Free HESI A2 Practice Test Online 2027 | ASVAB Tutoring",
     description:
-      "Take our free online HESI A2 practice test 2026. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.",
+      "Take our free online HESI A2 practice test 2027. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.",
   },
   "ati-teas": {
-    title: "Free ATI TEAS Practice Test Online 2026 | ASVAB Tutoring",
+    title: "Free ATI TEAS Practice Test Online 2027 | ASVAB Tutoring",
     description:
-      "Take our free online ATI TEAS practice test 2026. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.",
+      "Take our free online ATI TEAS practice test 2027. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.",
   },
   cna: {
-    title: "Free CNA Practice Test Online 2026 | ASVAB Tutoring",
+    title: "Free CNA Practice Test Online 2027 | ASVAB Tutoring",
     description:
-      "Take our free online CNA practice test 2026. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.",
+      "Take our free online CNA practice test 2027. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.",
   },
   shsat: {
-    title: "Free SHSAT Practice Test Online 2026 | ASVAB Tutoring",
+    title: "Free SHSAT Practice Test Online 2027 | ASVAB Tutoring",
     description:
-      "Take our free online SHSAT practice test 2026. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.",
+      "Take our free online SHSAT practice test 2027. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.",
   },
   "state-math-test-prep": {
-    title: "Free State Math Test Prep Practice Test Online 2026 | ASVAB Tutoring",
+    title: "Free State Math Test Prep Practice Test Online 2027 | ASVAB Tutoring",
     description:
-      "Take our free online State Math Test Prep practice test 2026. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.",
+      "Take our free online State Math Test Prep practice test 2027. Distraction-free test environment with realistic questions, scoring, and step-by-step reviews.",
   },
 };
 
@@ -218,52 +218,52 @@ export const FREE_PRACTICE_TEST_FALLBACK_SEO: PageSeo = {
 
 export const FREE_PREDICTION_TEST_SEO: Record<string, PageSeo> = {
   asvab: {
-    title: "Free ASVAB/AFQT Prediction Test Online 2026 | ASVAB Tutoring",
+    title: "Free ASVAB/AFQT Prediction Test Online 2027 | ASVAB Tutoring",
     description:
       "Take our free online ASVAB/AFQT prediction test. Complete all sections to see your predicted ASVAB/AFQT score — no signup required.",
   },
   afoqt: {
-    title: "Free AFOQT Prediction Test Online 2026 | ASVAB Tutoring",
+    title: "Free AFOQT Prediction Test Online 2027 | ASVAB Tutoring",
     description:
       "Take our free online AFOQT prediction test. Complete every section to see your predicted exam score and personalized feedback.",
   },
   sift: {
-    title: "Free SIFT Prediction Test Online 2026 | ASVAB Tutoring",
+    title: "Free SIFT Prediction Test Online 2027 | ASVAB Tutoring",
     description:
       "Take our free online SIFT prediction test. Estimate your score with realistic questions across every test section.",
   },
   oar: {
-    title: "Free OAR Prediction Test Online 2026 | ASVAB Tutoring",
+    title: "Free OAR Prediction Test Online 2027 | ASVAB Tutoring",
     description:
       "Take our free online OAR prediction test. Complete all sections to receive your predicted score and section results.",
   },
   astb: {
-    title: "Free ASTB Prediction Test Online 2026 | ASVAB Tutoring",
+    title: "Free ASTB Prediction Test Online 2027 | ASVAB Tutoring",
     description:
       "Take our free online ASTB prediction test. Answer every section to view your predicted score and detailed breakdown.",
   },
   "hesi-a2": {
-    title: "Free HESI A2 Prediction Test Online 2026 | ASVAB Tutoring",
+    title: "Free HESI A2 Prediction Test Online 2027 | ASVAB Tutoring",
     description:
       "Take our free online HESI A2 prediction test. Complete all sections to receive your predicted score and section results.",
   },
   "ati-teas": {
-    title: "Free ATI TEAS Prediction Test Online 2026 | ASVAB Tutoring",
+    title: "Free ATI TEAS Prediction Test Online 2027 | ASVAB Tutoring",
     description:
       "Take our free online ATI TEAS prediction test. Complete all sections to receive your predicted score and section results.",
   },
   cna: {
-    title: "Free CNA Prediction Test Online 2026 | ASVAB Tutoring",
+    title: "Free CNA Prediction Test Online 2027 | ASVAB Tutoring",
     description:
       "Take our free online CNA prediction test. Complete all sections to receive your predicted score and section results.",
   },
   shsat: {
-    title: "Free SHSAT Prediction Test Online 2026 | ASVAB Tutoring",
+    title: "Free SHSAT Prediction Test Online 2027 | ASVAB Tutoring",
     description:
       "Take our free online SHSAT prediction test. Complete all sections to receive your predicted score and section results.",
   },
   "state-math-test-prep": {
-    title: "Free State Math Test Prep Prediction Test Online 2026 | ASVAB Tutoring",
+    title: "Free State Math Test Prep Prediction Test Online 2027 | ASVAB Tutoring",
     description:
       "Take our free online State Math Test Prep prediction test. Complete all sections to receive your predicted score and section results.",
   },
