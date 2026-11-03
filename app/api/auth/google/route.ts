@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyGoogleIdentity } from "@/lib/google-identity";
-import { clearGoogleOnboarding, startGoogleOnboarding } from "@/lib/google-onboarding";
+import { clearAppleOnboarding, clearGoogleOnboarding, startGoogleOnboarding } from "@/lib/google-onboarding";
 import { phpFirebaseSocialLogin } from "@/lib/auth-php";
 import { setSession } from "@/lib/auth-session";
 import { getPublicRequestOrigin } from "@/lib/public-origin";
@@ -21,6 +21,7 @@ export async function POST(req: NextRequest) {
   }
   try {
     await clearGoogleOnboarding();
+    await clearAppleOnboarding();
     const identity = await verifyGoogleIdentity(body.idToken);
     // The PHP lookup logs in known Google accounts without asking for extra fields.
     const result = await phpFirebaseSocialLogin({ ...identity, intent: "begin" });

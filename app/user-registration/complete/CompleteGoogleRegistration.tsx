@@ -3,12 +3,22 @@
 import { useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { FcGoogle } from "react-icons/fc";
-import { BsCheckCircleFill } from "react-icons/bs";
+import { BsApple, BsCheckCircleFill } from "react-icons/bs";
 import { sanitizeMobileInput, validateRegistrationMobile } from "@/lib/sanitize-mobile-input";
 import { resolvePortalLoginUrl } from "@/lib/portal-login";
 import legalStyles from "@/components/auth/LegalLinks.module.css";
 
-export default function CompleteGoogleRegistration({ email, firstName }: { email: string; firstName: string }) {
+export default function CompleteGoogleRegistration({
+  email,
+  firstName,
+  provider = "google",
+}: {
+  email: string;
+  firstName: string;
+  provider?: "google" | "apple";
+}) {
+  const providerName = provider === "apple" ? "Apple" : "Google";
+  const completeUrl = `/api/auth/${provider}/complete`;
   const needsName = !firstName.trim();
   const [name, setName] = useState("");
   const [mobile, setMobile] = useState("");
@@ -36,7 +46,7 @@ export default function CompleteGoogleRegistration({ email, firstName }: { email
     inFlight.current = true;
     let redirecting = false;
     try {
-      const response = await fetch("/api/auth/google/complete", {
+      const response = await fetch(completeUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mobile, termsAccepted: agree, ...(needsName ? { name: name.trim() } : {}) }),
@@ -63,7 +73,7 @@ export default function CompleteGoogleRegistration({ email, firstName }: { email
     inFlight.current = true;
     setCancelling(true);
     try {
-      const response = await fetch("/api/auth/google/complete", { method: "DELETE" });
+      const response = await fetch(completeUrl, { method: "DELETE" });
       if (!response.ok) throw new Error("Unable to restart. Please try again.");
       window.location.href = "/user-registration";
     } catch {
@@ -85,12 +95,14 @@ export default function CompleteGoogleRegistration({ email, firstName }: { email
               </div>
               <div className="card-body p-4">
                 <div className="d-flex align-items-center gap-3 p-3 mb-4 rounded-3 border bg-light">
-                  <FcGoogle size={28} aria-hidden="true" className="flex-shrink-0" />
+                  {provider === "apple"
+                    ? <BsApple size={28} aria-hidden="true" className="flex-shrink-0" />
+                    : <FcGoogle size={28} aria-hidden="true" className="flex-shrink-0" />}
                   <div className="flex-grow-1" style={{ minWidth: 0 }}>
-                    <div className="small text-muted">Signed in via Google</div>
+                    <div className="small text-muted">Signed in via {providerName}</div>
                     <div className="fw-semibold text-break">{email}</div>
                   </div>
-                  <BsCheckCircleFill className="text-success flex-shrink-0" aria-label="Verified Google account" />
+                  <BsCheckCircleFill className="text-success flex-shrink-0" aria-label={`Verified ${providerName} account`} />
                 </div>
                 {error && <div className="alert alert-danger" role="alert">{error}</div>}
                 <form onSubmit={(event) => void complete(event)}>
