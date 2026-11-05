@@ -11,12 +11,38 @@ export const metadata = buildPageMetadata({
 export default function Page() {
   return (
     <AsvabResourceLayout
+      faqs={[
+        {
+          id: "are-the-classes-online",
+          question: "Are the classes online?",
+          answers: "Yes. Live group instruction is conducted through Microsoft Teams."
+        },
+        {
+          id: "what-equipment-do-i-need",
+          question: "What equipment do I need?",
+          answers: "A computer or laptop and a stable internet connection are listed requirements for the group service."
+        },
+        {
+          id: "can-i-join-a-group-as-an-individual",
+          question: "Can I join a group as an individual?",
+          answers: "Contact us to ask about availability. The published ASVAB group package is designed for recruiting stations and schools; individual placement depends on the arrangements available."
+        },
+        {
+          id: "how-long-will-preparation-take",
+          question: "How long will preparation take?",
+          answers: "That depends on your starting skills, goals, and study time. Ask about the current class schedule and whether it fits your needs before enrolling."
+        },
+        {
+          id: "should-i-choose-a-class-or-a-private-tutor",
+          question: "Should I choose a class or a private tutor?",
+          answers: "A class may suit you if you want shared instruction and a regular routine. Private tutoring may be more suitable when you need extended help with particular concepts or a different pace."
+        }
+      ]}
       title="Online ASVAB Prep Classes With a Clear Study Routine"
-      label="ASVAB Prep Classes"
       intro={<><p>{"ASVAB Tutoring offers live online group instruction for organized groups, including recruiting stations and schools. Combine guided lessons with practice between sessions, or explore private tutoring if you are preparing individually."}</p>
         <p>{"For the wider curriculum and available preparation formats, visit our "}<Link href={"/courses/asvab"}>{"ASVAB course"}</Link>{"."}</p></>}
       action={{ href: "/contact-us", label: "Ask About ASVAB Group Classes" }}
-      contents={[{"id": "choose-how-you-want-to-learn", "label": "Choose how you want to learn"}, {"id": "what-group-classes-include", "label": "What group classes include"}, {"id": "organizing-preparation-for-a-group", "label": "Organizing preparation for a group"}, {"id": "make-time-for-practice-between-classes", "label": "Make time for practice between classes"}, {"id": "questions-to-ask-before-enrolling", "label": "Questions to ask before enrolling"}, {"id": "frequently-asked-questions", "label": "Frequently asked questions"}]}
+      contents={[{"id": "choose-how-you-want-to-learn", "label": "Choose how you want to learn"}, {"id": "what-group-classes-include", "label": "What group classes include"}, {"id": "organizing-preparation-for-a-group", "label": "Organizing preparation for a group"}, {"id": "make-time-for-practice-between-classes", "label": "Make time for practice between classes"}, {"id": "questions-to-ask-before-enrolling", "label": "Questions to ask before enrolling"}, {"id": "faqs", "label": "Frequently asked questions"}]}
       secondaryAction={{ href: "/package-details/group-tutoring/asvab", label: "View ASVAB Group Package Details" }}
       closing={<>{"Tell us about your group, planned test dates, and subjects that need work. Ask about an ASVAB preparation arrangement that fits your learners."}</>}
     >
@@ -34,17 +60,6 @@ export default function Page() {
         <p>{"After a lesson, review your notes, complete the assigned work, and record the questions you cannot explain. Bring those questions to your next session. Use the "}<Link href={"/courses/asvab/free-practice-test"}>{"free ASVAB practice test"}</Link>{" to identify subject areas you want to discuss. Include mistakes you corrected only after looking at an answer: they can reveal a step that still needs practice."}</p>
         <h2 id="questions-to-ask-before-enrolling">{"Questions to ask before enrolling"}</h2>
         <ul><li>{"Which subjects does this class cover?"}</li><li>{"How does the schedule fit my official test date?"}</li><li>{"What work should I complete between sessions?"}</li><li>{"What is the current total price, and what does it include?"}</li><li>{"How will my progress be reviewed?"}</li></ul>
-        <h2 id="frequently-asked-questions">{"Frequently asked questions"}</h2>
-        <h3 id="are-the-classes-online">{"Are the classes online?"}</h3>
-        <p>{"Yes. Live group instruction is conducted through Microsoft Teams."}</p>
-        <h3 id="what-equipment-do-i-need">{"What equipment do I need?"}</h3>
-        <p>{"A computer or laptop and a stable internet connection are listed requirements for the group service."}</p>
-        <h3 id="can-i-join-a-group-as-an-individual">{"Can I join a group as an individual?"}</h3>
-        <p>{"Contact us to ask about availability. The published ASVAB group package is designed for recruiting stations and schools; individual placement depends on the arrangements available."}</p>
-        <h3 id="how-long-will-preparation-take">{"How long will preparation take?"}</h3>
-        <p>{"That depends on your starting skills, goals, and study time. Ask about the current class schedule and whether it fits your needs before enrolling."}</p>
-        <h3 id="should-i-choose-a-class-or-a-private-tutor">{"Should I choose a class or a private tutor?"}</h3>
-        <p>{"A class may suit you if you want shared instruction and a regular routine. Private tutoring may be more suitable when you need extended help with particular concepts or a different pace."}</p>
     </AsvabResourceLayout>
   );
 }

@@ -11,13 +11,29 @@ export const metadata = buildPageMetadata({
 export default function Page() {
   return (
     <AsvabResourceLayout
+      faqs={[
+        {
+          id: "should-i-study-every-subject-for-the-same-amount-of-time",
+          question: "Should I study every subject for the same amount of time?",
+          answers: "Use your results and goals to allocate time. Give more attention to weak skills while periodically checking stronger areas."
+        },
+        {
+          id: "should-i-keep-repeating-the-same-practice-test",
+          question: "Should I keep repeating the same practice test?",
+          answers: "Reviewing mistakes is useful, but remembering answers can hide gaps. Include unfamiliar questions when checking progress."
+        },
+        {
+          id: "when-should-i-ask-for-help",
+          question: "When should I ask for help?",
+          answers: "Consider tutoring when you repeatedly miss the same concept, cannot follow an explanation, or need help deciding what to study next."
+        }
+      ]}
       title="ASVAB Study Guide: Decide What to Study Next"
-      label="ASVAB Study Guide"
       intro={<><p>{"A useful study plan tells you more than how many questions to answer. It helps you identify a gap, learn the missing skill, and check whether you can use it independently."}</p>
         <p>{"Start with your results from the "}<Link href={"/courses/asvab/free-practice-test"}>{"free ASVAB practice test"}</Link>{", then build a routine you can follow consistently."}</p>
         <p>{"Explore the "}<Link href={"/courses/asvab"}>{"ASVAB course"}</Link>{" for our curriculum and preparation options, then use this guide to organize your work."}</p></>}
       action={{ href: "/courses/asvab/free-practice-test", label: "Check Your Starting Point" }}
-      contents={[{"id": "step-1-make-a-subject-checklist", "label": "Step 1: Make a subject checklist"}, {"id": "step-2-record-why-you-miss-questions", "label": "Step 2: Record why you miss questions"}, {"id": "step-3-adapt-this-four-week-study-plan", "label": "Step 3: Adapt this four-week study plan"}, {"id": "step-4-give-each-study-session-a-purpose", "label": "Step 4: Give each study session a purpose"}, {"id": "step-5-choose-materials-that-support-your-routine", "label": "Step 5: Choose materials that support your routine"}, {"id": "frequently-asked-questions", "label": "Frequently asked questions"}]}
+      contents={[{"id": "step-1-make-a-subject-checklist", "label": "Step 1: Make a subject checklist"}, {"id": "step-2-record-why-you-miss-questions", "label": "Step 2: Record why you miss questions"}, {"id": "step-3-adapt-this-four-week-study-plan", "label": "Step 3: Adapt this four-week study plan"}, {"id": "step-4-give-each-study-session-a-purpose", "label": "Step 4: Give each study session a purpose"}, {"id": "step-5-choose-materials-that-support-your-routine", "label": "Step 5: Choose materials that support your routine"}, {"id": "faqs", "label": "Frequently asked questions"}]}
       closing={<>{"Turn your next practice result into a plan. Choose one weak topic, review it, and check it again with new questions."}</>}
     >
         <h2 id="step-1-make-a-subject-checklist">{"Step 1: Make a subject checklist"}</h2>
@@ -42,13 +58,6 @@ export default function Page() {
         <p>{"Explore the "}<Link href={"/services/self-study"}>{"self-study service"}</Link>{", or use the "}<Link href={"/courses/asvab/free-practice-test"}>{"free ASVAB practice test"}</Link>{" to identify a starting point."}</p>
         <p>{"For access and subscription details, review the "}<Link href={"/package-details/self-study/asvab"}>{"ASVAB self-study package"}</Link>{". If you need guided feedback, compare our "}<Link href={"/services/1-on-1-tutoring"}>{"one-on-one tutoring service"}</Link>{"."}</p>
         <p>{"Read "}<Link href={"/how-it-works"}>{"how we assess skills and organize preparation"}</Link>{" if you want help adapting a routine. You can also "}<Link href={"/contact-us"}>{"contact our team about your study priorities"}</Link>{"."}</p>
-        <h2 id="frequently-asked-questions">{"Frequently asked questions"}</h2>
-        <h3 id="should-i-study-every-subject-for-the-same-amount-of-time">{"Should I study every subject for the same amount of time?"}</h3>
-        <p>{"Use your results and goals to allocate time. Give more attention to weak skills while periodically checking stronger areas."}</p>
-        <h3 id="should-i-keep-repeating-the-same-practice-test">{"Should I keep repeating the same practice test?"}</h3>
-        <p>{"Reviewing mistakes is useful, but remembering answers can hide gaps. Include unfamiliar questions when checking progress."}</p>
-        <h3 id="when-should-i-ask-for-help">{"When should I ask for help?"}</h3>
-        <p>{"Consider tutoring when you repeatedly miss the same concept, cannot follow an explanation, or need help deciding what to study next."}</p>
     </AsvabResourceLayout>
   );
 }

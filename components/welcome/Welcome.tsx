@@ -48,7 +48,11 @@ export default function Welcome({
               <HeroPromoVideo />
             </div>
 
-            <div className="col-lg-6 hero-form-col">
+            <div
+              id="request-a-tutor"
+              className="col-lg-6 hero-form-col"
+              style={{ scrollMarginTop: "calc(var(--navbar-header-height, 120px) + 24px)" }}
+            >
               <TutorRequestForm initialStates={initialStates} />
             </div>
           </div>

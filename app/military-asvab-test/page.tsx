@@ -11,12 +11,28 @@ export const metadata = buildPageMetadata({
 export default function Page() {
   return (
     <AsvabResourceLayout
+      faqs={[
+        {
+          id: "is-the-afqt-a-separate-exam",
+          question: "Is the AFQT a separate exam?",
+          answers: "No. It is calculated from four ASVAB subtests."
+        },
+        {
+          id: "what-score-should-i-aim-for",
+          question: "What score should I aim for?",
+          answers: "Confirm the current requirements for your circumstances and intended job with your recruiter. Then use those requirements to guide your preparation."
+        },
+        {
+          id: "will-a-practice-test-tell-me-my-official-score",
+          question: "Will a practice test tell me my official score?",
+          answers: "No. Practice results help identify study needs. They are not an official score report or a determination of eligibility."
+        }
+      ]}
       title="Military ASVAB Test Prep for Your Next Step"
-      label="Military ASVAB Test"
       intro={<><p>{"Preparing to enlist starts with understanding the test and the skills you need to strengthen. ASVAB Tutoring helps you connect your practice results with a focused preparation plan."}</p>
         <p>{"Begin with our "}<Link href={"/courses/asvab/free-practice-test"}>{"free ASVAB practice test"}</Link>{", review the areas that need work, and choose the level of support that fits your schedule."}</p></>}
       action={{ href: "/courses/asvab/free-practice-test", label: "Take a Free ASVAB Practice Test" }}
-      contents={[{"id": "understand-what-your-scores-mean", "label": "Understand what your scores mean"}, {"id": "build-a-preparation-plan-around-your-needs", "label": "Build a preparation plan around your needs"}, {"id": "prepare-beyond-the-four-afqt-subjects", "label": "Prepare beyond the four AFQT subjects"}, {"id": "choose-your-next-step", "label": "Choose your next step"}, {"id": "frequently-asked-questions", "label": "Frequently asked questions"}]}
+      contents={[{"id": "understand-what-your-scores-mean", "label": "Understand what your scores mean"}, {"id": "build-a-preparation-plan-around-your-needs", "label": "Build a preparation plan around your needs"}, {"id": "prepare-beyond-the-four-afqt-subjects", "label": "Prepare beyond the four AFQT subjects"}, {"id": "choose-your-next-step", "label": "Choose your next step"}, {"id": "faqs", "label": "Frequently asked questions"}]}
       secondaryAction={{ href: "/courses/asvab", label: "Explore ASVAB Prep Options" }}
       closing={<>{"Find your starting point. Take the free ASVAB practice test and use your results to choose what to study next."}</>}
     >
@@ -38,13 +54,6 @@ export default function Page() {
         <h3 id="check-your-progress-after-studying">{"Check your progress after studying"}</h3>
         <p>{"Our "}<Link href={"/courses/asvab/free-prediction-test"}>{"free ASVAB/AFQT prediction test"}</Link>{" offers another way to review your preparation. Its result is a practice estimate, not an official score or eligibility decision."}</p>
         <p>{"If you are unsure which preparation option fits, "}<Link href={"/contact-us"}>{"contact ASVAB Tutoring"}</Link>{" with your test date and current study needs."}</p>
-        <h2 id="frequently-asked-questions">{"Frequently asked questions"}</h2>
-        <h3 id="is-the-afqt-a-separate-exam">{"Is the AFQT a separate exam?"}</h3>
-        <p>{"No. It is calculated from four ASVAB subtests."}</p>
-        <h3 id="what-score-should-i-aim-for">{"What score should I aim for?"}</h3>
-        <p>{"Confirm the current requirements for your circumstances and intended job with your recruiter. Then use those requirements to guide your preparation."}</p>
-        <h3 id="will-a-practice-test-tell-me-my-official-score">{"Will a practice test tell me my official score?"}</h3>
-        <p>{"No. Practice results help identify study needs. They are not an official score report or a determination of eligibility."}</p>
     </AsvabResourceLayout>
   );
 }

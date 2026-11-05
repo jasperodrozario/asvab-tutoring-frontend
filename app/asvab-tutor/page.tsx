@@ -11,15 +11,36 @@ export const metadata = buildPageMetadata({
 export default function Page() {
   return (
     <AsvabResourceLayout
+      faqs={[
+        {
+          id: "can-i-study-from-home",
+          question: "Can I study from home?",
+          answers: "Yes. The one-on-one service is online. You need a computer or laptop and a stable internet connection."
+        },
+        {
+          id: "can-i-ask-about-help-with-a-specific-subject",
+          question: "Can I ask about help with a specific subject?",
+          answers: "Yes. Describe the subject and your difficulties when requesting tutoring so the team can discuss suitable support."
+        },
+        {
+          id: "what-if-i-have-already-studied-on-my-own",
+          question: "What if I have already studied on my own?",
+          answers: "Bring your practice work. It can help identify concepts that need explanation and skills that need more independent practice."
+        },
+        {
+          id: "does-tutoring-guarantee-enlistment-or-a-particular-job",
+          question: "Does tutoring guarantee enlistment or a particular job?",
+          answers: "Preparation supports skill development. Military eligibility and job placement also depend on requirements and decisions outside a tutoring program."
+        }
+      ]}
       title="Work With an Online ASVAB Tutor"
-      label="Online ASVAB Tutor"
       intro={<><p>{"If you understand an explanation while reading it but struggle to solve the next problem, individual instruction can help you identify where the process breaks down."}</p>
         <p>{"ASVAB Tutoring offers online one-on-one support for learners who want a clearer plan and help working through difficult material."}</p>
         <p>{"See our "}<Link href={"/courses/asvab"}>{"ASVAB course"}</Link>{" for the wider curriculum and preparation options."}</p></>}
-      action={{ href: "/contact-us", label: "Request an ASVAB Tutor" }}
-      contents={[{"id": "begin-with-your-current-skills", "label": "Begin with your current skills"}, {"id": "how-online-tutoring-works", "label": "How online tutoring works"}, {"id": "use-tutoring-to-understand-your-reasoning", "label": "Use tutoring to understand your reasoning"}, {"id": "is-private-tutoring-a-good-fit", "label": "Is private tutoring a good fit?"}, {"id": "meet-the-team-behind-your-preparation", "label": "Meet the team behind your preparation"}, {"id": "choose-the-subject-coverage-you-need", "label": "Choose the subject coverage you need"}, {"id": "prepare-for-your-first-conversation", "label": "Prepare for your first conversation"}, {"id": "frequently-asked-questions", "label": "Frequently asked questions"}]}
+      action={{ href: "/#request-a-tutor", label: "Request an ASVAB Tutor" }}
+      contents={[{"id": "begin-with-your-current-skills", "label": "Begin with your current skills"}, {"id": "how-online-tutoring-works", "label": "How online tutoring works"}, {"id": "use-tutoring-to-understand-your-reasoning", "label": "Use tutoring to understand your reasoning"}, {"id": "is-private-tutoring-a-good-fit", "label": "Is private tutoring a good fit?"}, {"id": "meet-the-team-behind-your-preparation", "label": "Meet the team behind your preparation"}, {"id": "choose-the-subject-coverage-you-need", "label": "Choose the subject coverage you need"}, {"id": "prepare-for-your-first-conversation", "label": "Prepare for your first conversation"}, {"id": "faqs", "label": "Frequently asked questions"}]}
       secondaryAction={{ href: "/package-details/1-on-1-tutoring/asvab", label: "View ASVAB Private Tutoring Packages" }}
-      closing={<>{"Tell us your test date, the subjects you find difficult, and what you have tried so far. "}<Link href={"/contact-us"}>{"Contact our team about a focused preparation plan"}</Link>{"."}</>}
+      closing={<>{"Tell us your test date, the subjects you find difficult, and what you have tried so far. "}<Link href={"/#request-a-tutor"}>{"Contact our team about a focused preparation plan"}</Link>{"."}</>}
     >
         <h2 id="begin-with-your-current-skills">{"Begin with your current skills"}</h2>
         <p>{"Our "}<Link href={"/services/1-on-1-tutoring"}>{"one-on-one tutoring service"}</Link>{" begins with a Math and English assessment. Tutors use the results to develop a personalized learning plan."}</p>
@@ -40,15 +61,6 @@ export default function Page() {
         <p>{"Our private tutoring options include preparation focused on the four AFQT subjects as well as broader ASVAB preparation. Review the "}<Link href={"/package-details/1-on-1-tutoring/asvab"}>{"ASVAB private tutoring packages"}</Link>{" and discuss the subjects you need before enrolling."}</p>
         <h2 id="prepare-for-your-first-conversation">{"Prepare for your first conversation"}</h2>
         <p>{"Have your intended test date, available study times, practice results, and main questions ready. If you have a target military job, ask your recruiter which score requirements apply and bring that information too."}</p>
-        <h2 id="frequently-asked-questions">{"Frequently asked questions"}</h2>
-        <h3 id="can-i-study-from-home">{"Can I study from home?"}</h3>
-        <p>{"Yes. The one-on-one service is online. You need a computer or laptop and a stable internet connection."}</p>
-        <h3 id="can-i-ask-about-help-with-a-specific-subject">{"Can I ask about help with a specific subject?"}</h3>
-        <p>{"Yes. Describe the subject and your difficulties when requesting tutoring so the team can discuss suitable support."}</p>
-        <h3 id="what-if-i-have-already-studied-on-my-own">{"What if I have already studied on my own?"}</h3>
-        <p>{"Bring your practice work. It can help identify concepts that need explanation and skills that need more independent practice."}</p>
-        <h3 id="does-tutoring-guarantee-enlistment-or-a-particular-job">{"Does tutoring guarantee enlistment or a particular job?"}</h3>
-        <p>{"Preparation supports skill development. Military eligibility and job placement also depend on requirements and decisions outside a tutoring program."}</p>
     </AsvabResourceLayout>
   );
 }

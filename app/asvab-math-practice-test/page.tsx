@@ -11,12 +11,23 @@ export const metadata = buildPageMetadata({
 export default function Page() {
   return (
     <AsvabResourceLayout
+      faqs={[
+        {
+          id: "can-i-use-a-calculator-on-the-asvab",
+          question: "Can I use a calculator on the ASVAB?",
+          answers: "No. Build your practice routine around hand calculations."
+        },
+        {
+          id: "does-studying-math-cover-everything-i-need",
+          question: "Does studying math cover everything I need?",
+          answers: "No. Include vocabulary, reading, and any additional subjects relevant to your preparation goals."
+        }
+      ]}
       title="ASVAB Math Practice Test With Worked Answers"
-      label="ASVAB Math Practice Test"
       intro={<><p>{"Try these eight original practice questions to check your math foundations. Work without a calculator, write down your steps, and review the explanations after you finish."}</p>
         <p>{"This short learning exercise covers both ASVAB math areas. It is not an official test, an adaptive simulation, or an AFQT score predictor."}</p></>}
       action={{ href: "/courses/asvab/free-practice-test", label: "Continue to Free ASVAB Practice" }}
-      contents={[{"id": "arithmetic-reasoning-and-mathematics-knowledge", "label": "Arithmetic Reasoning and Mathematics Knowledge"}, {"id": "practice-questions", "label": "Practice questions"}, {"id": "answers-and-explanations", "label": "Answers and explanations"}, {"id": "turn-your-results-into-a-study-plan", "label": "Turn your results into a study plan"}, {"id": "continue-practicing", "label": "Continue practicing"}]}
+      contents={[{"id": "arithmetic-reasoning-and-mathematics-knowledge", "label": "Arithmetic Reasoning and Mathematics Knowledge"}, {"id": "practice-questions", "label": "Practice questions"}, {"id": "answers-and-explanations", "label": "Answers and explanations"}, {"id": "turn-your-results-into-a-study-plan", "label": "Turn your results into a study plan"}, {"id": "continue-practicing", "label": "Continue practicing"}, {"id": "faqs", "label": "Frequently asked questions"}]}
     >
         <h2 id="arithmetic-reasoning-and-mathematics-knowledge">{"Arithmetic Reasoning and Mathematics Knowledge"}</h2>
         <p>{"Arithmetic Reasoning asks you to apply math to word problems. Mathematics Knowledge checks your understanding of mathematical principles. Practice both: knowing how to solve an equation is useful, but you also need to recognize when a word problem requires one."}</p>
@@ -62,10 +73,6 @@ export default function Page() {
         <p>{"Open our "}<Link href={"/courses/asvab/free-practice-test"}>{"free ASVAB practice test"}</Link>{" and choose Arithmetic Reasoning or Math Knowledge. If you need guided review, explore the "}<Link href={"/courses/asvab"}>{"ASVAB course"}</Link>{"."}</p>
         <p>{"If you can follow the explanations but struggle with fresh problems, consider our "}<Link href={"/services/1-on-1-tutoring"}>{"one-on-one tutoring service"}</Link>{" for guided review. See the "}<Link href={"/package-details/1-on-1-tutoring/asvab"}>{"ASVAB private tutoring packages"}</Link>{" for preparation options."}</p>
         <p>{"If you prefer independent practice, explore the "}<Link href={"/services/self-study"}>{"self-study learning materials"}</Link>{", then review the "}<Link href={"/package-details/self-study/asvab"}>{"ASVAB self-study package"}</Link>{" for subscription details. If you need help choosing, "}<Link href={"/contact-us"}>{"ask our team about your math preparation"}</Link>{"."}</p>
-        <h3 id="can-i-use-a-calculator-on-the-asvab">{"Can I use a calculator on the ASVAB?"}</h3>
-        <p>{"No. Build your practice routine around hand calculations."}</p>
-        <h3 id="does-studying-math-cover-everything-i-need">{"Does studying math cover everything I need?"}</h3>
-        <p>{"No. Include vocabulary, reading, and any additional subjects relevant to your preparation goals."}</p>
     </AsvabResourceLayout>
   );
 }

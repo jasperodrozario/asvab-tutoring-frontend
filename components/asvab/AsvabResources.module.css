@@ -11,24 +11,8 @@
   border-bottom: 5px solid var(--primary-color, #f2a155);
 }
 
-.breadcrumb ol {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-  padding: 0;
-  list-style: none;
-  font-size: 0.9rem;
-}
-
-.breadcrumb li + li::before {
-  content: "/";
-  margin-right: 0.6rem;
-  color: #b8c9d8;
-}
-
-.breadcrumb a {
-  text-decoration: underline;
-  text-underline-offset: 3px;
+.page :global(#faqs) {
+  scroll-margin-top: calc(var(--navbar-header-height, 120px) + 24px);
 }
 
 .eyebrow {

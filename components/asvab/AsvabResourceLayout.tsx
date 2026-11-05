@@ -1,12 +1,14 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import Faq from "@/components/faq/Faq";
+import type { FaqItem } from "@/lib/php-api";
 import styles from "./AsvabResources.module.css";
 
 type ResourceAction = { href: string; label: string };
 
 type Props = {
   title: string;
-  label: string;
+  faqs: FaqItem[];
   intro: ReactNode;
   action: ResourceAction;
   secondaryAction?: ResourceAction;
@@ -17,7 +19,7 @@ type Props = {
 
 export default function AsvabResourceLayout({
   title,
-  label,
+  faqs,
   intro,
   action,
   secondaryAction,
@@ -29,13 +31,6 @@ export default function AsvabResourceLayout({
     <article className={styles.page}>
       <header className={styles.hero}>
         <div className="container">
-          <nav aria-label="Breadcrumb" className={styles.breadcrumb}>
-            <ol>
-              <li><Link href="/">Home</Link></li>
-              <li><Link href="/courses/asvab">ASVAB</Link></li>
-              <li aria-current="page">{label}</li>
-            </ol>
-          </nav>
           <p className={styles.eyebrow}>ASVAB Tutoring · Preparation resources</p>
           <h1>{title}</h1>
           <div className={styles.intro}>{intro}</div>
@@ -76,6 +71,7 @@ export default function AsvabResourceLayout({
           </section>
         </div>
       </div>
+      <Faq initialFaqs={faqs} />
     </article>
   );
 }
