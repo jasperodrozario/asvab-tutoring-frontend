@@ -2,6 +2,24 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+### ASVAB preparation resources
+
+The app includes five authored resource pages: `/military-asvab-test`,
+`/asvab-math-practice-test`, `/asvab-prep-classes`, `/asvab-study-guide`, and
+`/asvab-tutor`. Their copy lives in each route's `page.tsx`; shared presentation
+is in `components/asvab/`. `lib/asvab-resources.ts` supplies resource links to
+the existing course, service, package, and tutor pages and both sitemaps.
+
+The ASVAB course overview is rendered from
+`components/asvab/AsvabCourseOverview.tsx`, including the official CAT-ASVAB
+question counts and timing reviewed November 5, 2026. Other course overviews
+continue to use backend content. Review the cited official sources when updating
+the test facts. ASVAB curriculum, packages, pricing, and policy text still come
+from the backend: reconcile the previously identified prediction-test label,
+package subject lists, subscription prices, and continued-tutoring conditions
+in that maintained content before repeating those details elsewhere. The new
+resource pages link to those destinations without duplicating prices or policies.
+
 First, run the development server:
 
 ```bash

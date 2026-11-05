@@ -7,6 +7,8 @@ import {
 import PackageDetailsContent from "./PackageDetailsContent";
 import { packageDetailsMetadata } from "@/lib/page-metadata";
 import { fetchPackageDetails, isCoursePublishable } from "@/lib/php-api";
+import AsvabResourceLinks from "@/components/asvab/AsvabResourceLinks";
+import { ASVAB_SERVICE_RESOURCE_PATHS } from "@/lib/asvab-resources";
 
 export const revalidate = 3600;
 
@@ -45,10 +47,17 @@ export default async function Page({
   }
 
   return (
+    <>
     <PackageDetailsContent
       service_type={service_type}
       course_code={course_code}
       initialCourseData={initialCourseData}
     />
+    {course_code === "asvab" ? (
+      <div className="container">
+        <AsvabResourceLinks paths={ASVAB_SERVICE_RESOURCE_PATHS[service_type]} />
+      </div>
+    ) : null}
+    </>
   );
 }

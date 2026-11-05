@@ -2,6 +2,7 @@ import {
   fetchFreePracticeTestCatalog,
   fetchFreePredTestCatalog,
 } from "@/lib/php-api";
+import { ASVAB_RESOURCES } from "@/lib/asvab-resources";
 
 export const SITEMAP_REVALIDATE_SECONDS = 3600;
 
@@ -18,6 +19,7 @@ export interface SitemapSection {
 
 /** Core indexable routes used when the API is unavailable. */
 export const CORE_SITEMAP_PATHS: string[] = [
+  ...ASVAB_RESOURCES.map((resource) => resource.path),
   "/",
   "/about-us",
   "/how-it-works",
@@ -261,7 +263,17 @@ export async function fetchSitemapPageSections(): Promise<SitemapSection[]> {
     buildFreeTestsSitemapSection(),
   ]);
 
-  const sections = mergeSectionsByCategory(apiSections);
+  const sections = mergeSectionsByCategory([
+    ...apiSections,
+    {
+      category: "ASVAB Preparation Resources",
+      links: ASVAB_RESOURCES.map((resource) => ({
+        path: resource.path,
+        url: resource.path,
+        label: resource.label,
+      })),
+    },
+  ]);
 
   if (!freeTestsSection) {
     return sections;

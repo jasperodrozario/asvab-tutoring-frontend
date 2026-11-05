@@ -12,6 +12,7 @@ import {
   isCoursePublishable,
 } from "@/lib/php-api";
 import { isFreePredTestResponseReady } from "@/lib/prediction-test-types";
+import AsvabResourceLinks from "@/components/asvab/AsvabResourceLinks";
 
 export const revalidate = 3600;
 
@@ -68,6 +69,7 @@ export default async function Page({
   }
 
   return (
+    <>
     <FreeTest
       courseName={freeTestData.course_name}
       courseCode={course_code}
@@ -76,5 +78,11 @@ export default async function Page({
       packagesByService={packagesByService}
       hasFreePredTest={hasFreePredTest}
     />
+    {course_code === "asvab" ? (
+      <div className="container">
+        <AsvabResourceLinks paths={["/asvab-math-practice-test", "/asvab-study-guide"]} />
+      </div>
+    ) : null}
+    </>
   );
 }

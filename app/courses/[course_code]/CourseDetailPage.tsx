@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import type { ReactNode } from "react";
 import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
 import LessonPlanTab from "@/components/tabs/LessonPlanTab";
 import FreeLessonVideosTab, {
@@ -28,6 +29,8 @@ export type CourseDetailPageProps = {
   hasFreePracticeTest?: boolean;
   practiceTestCourseName?: string;
   predictionTestCourseName?: string;
+  overviewContent?: ReactNode;
+  resources?: ReactNode;
 };
 
 export default function CourseDetailPage({
@@ -40,6 +43,8 @@ export default function CourseDetailPage({
   hasFreePracticeTest = false,
   practiceTestCourseName,
   predictionTestCourseName,
+  overviewContent,
+  resources,
 }: CourseDetailPageProps) {
   const [activeTab, setActiveTab] = useState<number>(0);
 
@@ -54,7 +59,7 @@ export default function CourseDetailPage({
     );
   }
 
-  const hasOverview = Boolean(courseData.overview?.trim());
+  const hasOverview = Boolean(overviewContent || courseData.overview?.trim());
   const hasCurriculum = Boolean(courseData.curriculum?.trim());
   const hasVideo = hasFreeLessonVideos(courseData.video);
   const hasSessions = (courseData.sessions?.length ?? 0) > 0;
@@ -181,13 +186,15 @@ export default function CourseDetailPage({
                       role="tabpanel"
                       hidden={activeTab !== 0}
                     >
-                      <div
-                        dangerouslySetInnerHTML={{
-                          __html: processHtmlContent(
-                            courseData.overview || "No description available",
-                          ),
-                        }}
-                      />
+                      {overviewContent ?? (
+                        <div
+                          dangerouslySetInnerHTML={{
+                            __html: processHtmlContent(
+                              courseData.overview || "No description available",
+                            ),
+                          }}
+                        />
+                      )}
                       {(showFreeTestLink || hasFreePredTest) && (
                         <div className={styles.overviewTestActions}>
                           {showFreeTestLink ? (
@@ -261,6 +268,7 @@ export default function CourseDetailPage({
                   )}
                 </div>
               </div>
+              {resources}
             </div>
 
             <div className="col-lg-4 align-self-start">

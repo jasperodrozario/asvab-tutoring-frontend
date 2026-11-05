@@ -2,6 +2,8 @@ import Breadcrumb from "@/components/breadcrumb/Breadcrumb";
 import Button from "@/components/button/Button";
 import { decodeHtml } from "@/lib/decode-html";
 import type { ServiceDetail } from "@/lib/php-api";
+import AsvabResourceLinks from "@/components/asvab/AsvabResourceLinks";
+import { ASVAB_SERVICE_RESOURCE_PATHS } from "@/lib/asvab-resources";
 
 type Props = {
   data: ServiceDetail;
@@ -41,6 +43,7 @@ export default function ServiceDetailView({ data, serviceType }: Props) {
             {serviceType === "self-study" ? "Subscribe Now" : "Enroll Now"}
           </Button>
         </div>
+        <AsvabResourceLinks paths={ASVAB_SERVICE_RESOURCE_PATHS[serviceType]} />
       </div>
     </>
   );

@@ -2,6 +2,8 @@ import { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import { isKnownCourseCode } from "@/lib/known-route-validation";
 import CourseDetailPage from "./CourseDetailPage";
+import AsvabCourseOverview from "@/components/asvab/AsvabCourseOverview";
+import AsvabResourceLinks from "@/components/asvab/AsvabResourceLinks";
 import { courseMetadata } from "@/lib/page-metadata";
 import {
   fetchCourseDetailsByCode,
@@ -72,6 +74,8 @@ export default async function Page({
   return (
     <CourseDetailPage
       courseCode={course_code}
+      overviewContent={course_code === "asvab" ? <AsvabCourseOverview /> : undefined}
+      resources={course_code === "asvab" ? <AsvabResourceLinks /> : undefined}
       courseData={courseData}
       courseOverviewVideoData={courseOverviewVideoData}
       packagesByService={packagesByService}
