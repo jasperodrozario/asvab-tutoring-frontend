@@ -1,6 +1,6 @@
 .page {
   background: #fff;
-  color: #17344b;
+  color: inherit;
   color-scheme: light;
 }
 
@@ -17,7 +17,7 @@
 
 .eyebrow {
   margin-top: 2rem;
-  color: #f6b579;
+  color: var(--primary-color);
   font-size: 0.85rem;
   font-weight: 700;
   letter-spacing: 0.07em;
@@ -37,11 +37,11 @@
   max-width: 760px;
   font-size: 1.08rem;
   line-height: 1.75;
-  color: #e3ebf2;
+  color: inherit;
 }
 
 .intro a {
-  color: #ffbf84;
+  color: var(--primary-color);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -70,7 +70,7 @@
 
 .primaryAction {
   background: var(--primary-color, #f2a155);
-  color: #002341 !important;
+  color: var(--secondary-color) !important;
 }
 
 .primaryAction:hover {
@@ -105,7 +105,7 @@
 
 .contentsTitle {
   font-weight: 700;
-  color: #002341;
+  color: inherit;
 }
 
 .contents ul {
@@ -119,7 +119,7 @@
 }
 
 .contents a {
-  color: #164f7b;
+  color: var(--bs-link-color, #0d6efd);
   line-height: 1.5;
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -144,7 +144,7 @@
   margin-top: 2.5rem;
   margin-bottom: 1rem;
   font-size: clamp(1.5rem, 2.5vw, 1.85rem);
-  color: #002341;
+  color: inherit;
   font-weight: 700;
   line-height: 1.3;
 }
@@ -157,7 +157,7 @@
   margin: 1.8rem 0 0.75rem;
   font-size: 1.2rem;
   font-weight: 700;
-  color: #002341;
+  color: inherit;
   line-height: 1.45;
 }
 
@@ -173,14 +173,14 @@
 }
 
 .article a {
-  color: #14527e;
+  color: var(--bs-link-color, #0d6efd);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
 
 .article a:hover,
 .contents a:hover {
-  color: #93450b;
+  color: var(--bs-link-hover-color, #0a58ca);
 }
 
 .article li + li {
@@ -210,7 +210,7 @@
 
 .article th {
   background: #eef3f7;
-  color: #002341;
+  color: inherit;
 }
 
 .article tbody tr:last-child td {
@@ -231,11 +231,11 @@
 
 .resources {
   margin: 2.5rem 0;
-  color: #17344b;
+  color: inherit;
 }
 
 .resources h2 {
-  color: #002341;
+  color: inherit;
   font-size: 1.65rem;
   font-weight: 700;
 }
@@ -257,18 +257,18 @@
   background: #f5f8fa;
   border: 1px solid #dce4eb;
   border-radius: 8px;
-  color: #17344b;
+  color: inherit;
   line-height: 1.6;
   text-decoration: none;
 }
 
 .resourceCard:hover {
   border-color: #ba6a25;
-  color: #17344b;
+  color: inherit;
 }
 
 .resourceTitle {
-  color: #124f7c;
+  color: var(--bs-link-color, #0d6efd);
   font-weight: 700;
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -276,7 +276,7 @@
 
 .resourceArrow {
   margin-top: auto;
-  color: #93450b;
+  color: var(--primary-color-dark);
 }
 
 .page a:focus-visible,
