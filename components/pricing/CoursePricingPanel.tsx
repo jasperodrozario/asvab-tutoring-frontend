@@ -56,6 +56,7 @@ function hasPackages(data: PackagesByService[ServiceType] | undefined): boolean 
 
 type BaseProps = {
   embedded?: boolean;
+  disableSticky?: boolean;
 };
 
 type FixedCourseProps = BaseProps & {
@@ -76,6 +77,7 @@ type CoursePricingPanelProps = FixedCourseProps | SelectableCourseProps;
 
 export default function CoursePricingPanel(props: CoursePricingPanelProps) {
   const { embedded = false } = props;
+  const disableSticky = "disableSticky" in props && props.disableSticky;
   const isCourseSelectable = "courseOptions" in props && props.courseOptions != null;
 
   const [selectedCourseCode, setSelectedCourseCode] = useState(() =>
@@ -123,7 +125,7 @@ export default function CoursePricingPanel(props: CoursePricingPanelProps) {
 
   return (
     <div
-      className={`${styles.panel} ${embedded ? styles.panelEmbedded : ""}`}
+      className={`${styles.panel} ${embedded ? styles.panelEmbedded : ""} ${disableSticky ? styles.panelStatic : ""}`}
     >
       <h3 className={styles.panelTitle}>
         Invest in Your Success <br /> - Find a Plan that Fits You

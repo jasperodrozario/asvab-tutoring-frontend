@@ -185,6 +185,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
     [ft_categories],
   );
   const [activeCategory, setActiveCategory] = useState<number>(0);
+  const [subjectSelected, setSubjectSelected] = useState(false);
   const [userAnswers, setUserAnswers] = useState<UserAnswers>({});
   const [categoryStates, setCategoryStates] = useState<
     Record<number, CategoryState>
@@ -607,40 +608,28 @@ const FreeTest: React.FC<FreeTestProps> = ({
             <TestRulesIntro variant="practice" courseName={howToCourseName} />
           </div>
 
-          <div className="col-lg-8">
-            {/* Section pills navigation */}
-            <div className="card shadow-sm border-0 mb-4 rounded-3 overflow-hidden">
-              <div className="bg-light px-4 py-3 border-bottom">
-                <h5 className="mb-0 fw-semibold text-secondary">
-                  Select Section
-                </h5>
+          {!subjectSelected ? (
+            <section className={`col-12 ${freeTestStyles.subjectChooser}`} aria-labelledby="subject-heading">
+              <h2 id="subject-heading">Choose a subject</h2>
+              <p>Focus your practice on one subject at a time.</p>
+              <div className={`${freeTestStyles.subjectGrid} ${categoryNames.length === 1 ? freeTestStyles.subjectGridSingle : ""}`}>
+                {categoryNames.map((name, index) => (
+                  <button type="button" key={name} className={freeTestStyles.subjectCard}
+                    onClick={() => { setActiveCategory(index); setSubjectSelected(true); }}>
+                    <i className="bi bi-journal-text" aria-hidden="true" />
+                    <span><strong>{name}</strong><small>{questionsByCategory[name]?.length ?? 0} questions</small></span>
+                    <i className="bi bi-arrow-right" aria-hidden="true" />
+                  </button>
+                ))}
               </div>
-              <div className="card-body p-3">
-                <ul className="nav nav-pills gap-2 justify-content-start">
-                  {ft_categories.map((cat, idx) => (
-                    <li key={idx} className="nav-item">
-                      <button
-                        className={`nav-link px-4 py-2 fw-semibold transition-all ${
-                          activeCategory === idx ? "active shadow-sm" : ""
-                        }`}
-                        onClick={() => setActiveCategory(idx)}
-                        style={{
-                          backgroundColor:
-                            activeCategory === idx ? "#e58a34" : "#f8f9fa",
-                          color: activeCategory === idx ? "#fff" : "#495057",
-                          border: "1px solid",
-                          borderColor:
-                            activeCategory === idx ? "#e58a34" : "#e9ecef",
-                          borderRadius: "20px",
-                        }}
-                      >
-                        {cat.name}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
+            </section>
+          ) : null}
+
+          <div className="col-lg-8" hidden={!subjectSelected}>
+            <button type="button" className="btn btn-outline-secondary mb-4"
+              onClick={() => setSubjectSelected(false)}>
+              <i className="bi bi-arrow-left me-2" aria-hidden="true" />Choose another subject
+            </button>
 
             {/* Test Questions Section — all categories stay mounted to avoid re-typesetting on switch */}
             <div
@@ -1024,6 +1013,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
 
           <div
             ref={resultsSectionRef}
+            hidden={!subjectSelected}
             className={`col-lg-4 align-self-start ${freeTestStyles.resultsScrollTarget}`}
           >
             <FreeTestSidebar

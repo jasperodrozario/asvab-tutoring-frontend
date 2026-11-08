@@ -313,3 +313,24 @@
 .resultsScrollTarget {
   scroll-margin-top: 1rem;
 }
+
+.subjectChooser { text-align: center; padding: 24px 12px 48px; }
+.subjectChooser h2 { font-size: 1.6rem; font-weight: 700; }
+.subjectChooser > p { color: #64748b; margin-bottom: 24px; }
+.subjectGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; max-width: 760px; margin: auto; }
+.subjectCard { display: flex; align-items: center; gap: 16px; text-align: left; padding: 24px; background: white; border: 1px solid #e2e8f0; border-radius: 12px; color: #002341; box-shadow: 0 3px 8px #00234110; }
+.subjectCard > i:first-child { font-size: 1.8rem; color: #e58a34; }
+.subjectCard > i:last-child { margin-left: auto; }
+.subjectCard strong, .subjectCard small { display: block; }
+.subjectCard small { color: #64748b; margin-top: 4px; }
+.subjectCard:hover { border-color: #e58a34; background: #fffaf5; }
+.subjectCard:focus-visible { outline: 3px solid #e58a34; outline-offset: 3px; }
+.predictionSubjectGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.predictionSubjectGrid > li { min-width: 0; }
+.predictionSubjectGrid > li > button { width: 100%; height: 100%; white-space: normal; }
+@media (max-width: 575px) {
+  .subjectGrid { grid-template-columns: 1fr; }
+  .subjectCard { padding: 18px; }
+}
+
+.subjectGridSingle { grid-template-columns: minmax(280px, 1fr); max-width: 420px; }

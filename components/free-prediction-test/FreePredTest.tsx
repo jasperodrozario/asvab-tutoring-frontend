@@ -595,7 +595,7 @@ export default function FreePredTest({
                 <h5 className="mb-0 fw-semibold text-secondary">Select Section</h5>
               </div>
               <div className="card-body p-3">
-                <ul className="nav nav-pills gap-2 justify-content-start flex-wrap">
+                <ul className={`nav nav-pills ${freeTestStyles.predictionSubjectGrid}`}>
                   {ft_categories.map((cat, idx) => {
                     const complete = isCategoryComplete(idx);
                     return (

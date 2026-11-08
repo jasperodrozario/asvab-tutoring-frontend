@@ -283,33 +283,18 @@ function FreeTestsNavGroups({
           practiceOpen,
           onTogglePractice,
         )}
-        {renderMobileGroup(
-          "Free Prediction Tests",
-          "free-prediction-test",
-          predictionCourses,
-          predictionOpen,
-          onTogglePrediction,
-        )}
       </>
     );
   }
 
   return (
     <>
-      {renderDesktopGroup(
-        "practice",
-        "Free Practice Tests",
-        "/free-practice-tests",
-        "free-practice-test",
-        practiceCourses,
-      )}
-      {renderDesktopGroup(
-        "prediction",
-        "Free Prediction Tests",
-        "/free-prediction-tests",
-        "free-prediction-test",
-        predictionCourses,
-      )}
+      <li className="navbar-course-category navbar-course-category--link">
+        <Link className="dropdown-item" href="/free-practice-tests" onClick={onLinkClick}>
+          All Free Practice Tests
+        </Link>
+      </li>
+      {renderTestCourseGroups(practiceCourses, "free-practice-test")}
     </>
   );
 }

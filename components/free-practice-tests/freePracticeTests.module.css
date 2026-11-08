@@ -86,3 +86,27 @@
   max-width: 32rem;
   margin: 0 auto;
 }
+
+.pricingStickyStack {
+  position: static;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.predictionPromo {
+  flex: 0 0 auto;
+}
+
+@media (min-width: 1180px) {
+  /* Sticky pricing only where the navbar stays visible while scrolling. */
+  .pricingStickyStack {
+    position: sticky;
+    top: calc(var(--navbar-header-height, 120px) + 1rem);
+  }
+
+  .pricingColumn {
+    /* Shorten the sticky boundary so the sidebar releases sooner. */
+    padding-bottom: 940px;
+  }
+}

@@ -6,7 +6,7 @@ type TestRulesIntroProps = {
 };
 
 const PRACTICE_STEPS = [
-  "Choose a section from the tabs below. Each one matches a subject area for this course.",
+  "Choose a subject from the cards below. Each one matches a subject area for this course.",
   "Answer every question at your own pace. You can switch sections at any time.",
   "Submit when you finish a section to see your score and a question-by-question review.",
   "Use your section breakdown to see where you scored well and where to focus your study time.",
