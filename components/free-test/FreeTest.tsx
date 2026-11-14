@@ -35,6 +35,12 @@ import { getFreePracticeTestDescription } from "@/lib/page-metadata";
 import { getPracticeTestLowScoreMessage } from "@/lib/package-utils";
 import FreeTestSidebar from "./FreeTestSidebar";
 import TestRulesIntro from "./TestRulesIntro";
+import SubjectSwitcher from "./SubjectSwitcher";
+import { getCourseFreePredictionTestHref } from "@/lib/prediction-test-links";
+import {
+  findFreePracticeTestSubjectIndex,
+  getFreePracticeTestSubjectHref,
+} from "@/lib/free-practice-test-routes";
 
 const BREADCRUMB_SEGMENTS = (courseCode: string) =>
   ["courses", courseCode, "free-practice-test"] as const;
@@ -50,29 +56,8 @@ const MOBILE_MAX_WIDTH_PX = 991.98;
 /** Pixels above the results sidebar when auto-scrolling after submit on mobile. */
 const POST_SUBMIT_RESULTS_SCROLL_TOP_PADDING = 120;
 
-/** Pixels below the "Show all Free Tests" row when using the Top button. Increase to scroll lower. */
-const TOP_SCROLL_BELOW_SHOW_ALL_PADDING = -120;
-
-function ShowAllFreeTestsLink({
-  anchorRef,
-}: {
-  anchorRef?: React.Ref<HTMLDivElement>;
-}) {
-  return (
-    <div
-      ref={anchorRef}
-      className={`container ${freeTestStyles.showAllTestsWrap}`}
-    >
-      <Link
-        href="/free-practice-tests"
-        className={`btn btn-secondary-custom px-4 py-2 fw-semibold d-inline-flex align-items-center gap-2 ${freeTestStyles.showAllTestsBtn}`}
-      >
-        <i className="bi bi-clipboard-check" aria-hidden />
-        Show all Free Practice Tests
-      </Link>
-    </div>
-  );
-}
+/** Leaves the active test rail visible directly beneath the fixed navbar. */
+const ACTIVE_TEST_SCROLL_TOP_OFFSET_PX = 92;
 
 export type Question = FreePracticeTestQuestion;
 
@@ -157,6 +142,8 @@ interface FreeTestProps {
   awaitingGrade?: boolean;
   /** Rendered above the test, below the page heading. Used for the grade picker. */
   headerSlot?: React.ReactNode;
+  /** Opens a specific subject when rendered from the subject-slug route. */
+  initialSubjectSlug?: string;
 }
 
 function CategoryDescription({ html }: { html: string }) {
@@ -179,13 +166,22 @@ const FreeTest: React.FC<FreeTestProps> = ({
   hasFreePredTest = false,
   awaitingGrade = false,
   headerSlot,
+  initialSubjectSlug,
 }) => {
   const categoryNames = useMemo(
     () => getFreeTestCategoryNames(ft_categories ?? []),
     [ft_categories],
   );
-  const [activeCategory, setActiveCategory] = useState<number>(0);
-  const [subjectSelected, setSubjectSelected] = useState(false);
+  const initialCategoryIndex = findFreePracticeTestSubjectIndex(
+    categoryNames,
+    initialSubjectSlug,
+  );
+  const [activeCategory, setActiveCategory] = useState<number>(() =>
+    initialCategoryIndex >= 0 ? initialCategoryIndex : 0,
+  );
+  const [subjectSelected, setSubjectSelected] = useState(
+    initialCategoryIndex >= 0,
+  );
   const [userAnswers, setUserAnswers] = useState<UserAnswers>({});
   const [categoryStates, setCategoryStates] = useState<
     Record<number, CategoryState>
@@ -206,11 +202,11 @@ const FreeTest: React.FC<FreeTestProps> = ({
   const mathContentRef = useRef<HTMLDivElement>(null);
   const resultsActionsRef = useRef<HTMLDivElement>(null);
   const resultsSectionRef = useRef<HTMLDivElement>(null);
-  const showAllTestsRef = useRef<HTMLDivElement>(null);
+  const testTopRef = useRef<HTMLDivElement>(null);
   const shouldScrollToResultsRef = useRef(false);
 
   const scrollToTestTop = useCallback(() => {
-    const el = showAllTestsRef.current;
+    const el = testTopRef.current;
     if (!el) {
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
@@ -218,12 +214,19 @@ const FreeTest: React.FC<FreeTestProps> = ({
 
     const rect = el.getBoundingClientRect();
     const targetTop =
-      window.scrollY + rect.bottom + TOP_SCROLL_BELOW_SHOW_ALL_PADDING;
+      window.scrollY + rect.top - ACTIVE_TEST_SCROLL_TOP_OFFSET_PX;
     window.scrollTo({
       top: Math.max(0, targetTop),
       behavior: "smooth",
     });
   }, []);
+
+  useEffect(() => {
+    if (initialCategoryIndex < 0) return;
+    setActiveCategory(initialCategoryIndex);
+    setSubjectSelected(true);
+    requestAnimationFrame(() => requestAnimationFrame(scrollToTestTop));
+  }, [initialCategoryIndex, scrollToTestTop]);
 
   const scrollToResultsSection = useCallback(() => {
     const el = resultsSectionRef.current;
@@ -348,7 +351,6 @@ const FreeTest: React.FC<FreeTestProps> = ({
             />
           </div>
         </div>
-        <ShowAllFreeTestsLink anchorRef={showAllTestsRef} />
         <div className="container pb-5">
           <div className="row g-4">
             {headerSlot ? <div className="col-12">{headerSlot}</div> : null}
@@ -379,7 +381,6 @@ const FreeTest: React.FC<FreeTestProps> = ({
             />
           </div>
         </div>
-        <ShowAllFreeTestsLink />
         <div className="container pb-5">
           {headerSlot ? <div className="mb-4">{headerSlot}</div> : null}
           <div className="row justify-content-center">
@@ -422,7 +423,6 @@ const FreeTest: React.FC<FreeTestProps> = ({
             />
           </div>
         </div>
-        <ShowAllFreeTestsLink />
         <div className="container pb-5">
           {headerSlot ? <div className="mb-4">{headerSlot}</div> : null}
           <div className="row justify-content-center">
@@ -533,6 +533,25 @@ const FreeTest: React.FC<FreeTestProps> = ({
   const answeredCount = getAnsweredCount(activeCategory, questions);
   const progressPercentage =
     totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
+  const questionCounts = categoryNames.map(
+    (name) => questionsByCategory[name]?.length ?? 0,
+  );
+  const answeredCounts = categoryNames.map((name, index) =>
+    getAnsweredCount(index, questionsByCategory[name] ?? []),
+  );
+  const submittedCategories = categoryNames.map(
+    (_, index) => categoryStates[index]?.submitted ?? false,
+  );
+
+  const switchSubject = (index: number) => {
+    setActiveCategory(index);
+    requestAnimationFrame(scrollToTestTop);
+  };
+
+  const openSubject = (index: number) => {
+    setActiveCategory(index);
+    setSubjectSelected(true);
+  };
 
   // Feedback based on score
   const getScoreFeedback = (percentage: number) => {
@@ -598,15 +617,28 @@ const FreeTest: React.FC<FreeTestProps> = ({
         </div>
       </div>
 
-      <ShowAllFreeTestsLink anchorRef={showAllTestsRef} />
+      <div
+        className={`${
+          subjectSelected ? freeTestStyles.activeTestContainer : "container"
+        } pt-4`}
+        ref={testTopRef}
+      >
+        <div
+          className={`row g-4 ${
+            subjectSelected ? freeTestStyles.activeTestRow : ""
+          }`}
+        >
+          {headerSlot ? (
+            <div className={`col-12 ${freeTestStyles.activeTestHeader}`}>
+              {headerSlot}
+            </div>
+          ) : null}
 
-      <div className="container">
-        <div className="row g-4">
-          {headerSlot ? <div className="col-12">{headerSlot}</div> : null}
-
-          <div className="col-12">
-            <TestRulesIntro variant="practice" courseName={howToCourseName} />
-          </div>
+          {!subjectSelected ? (
+            <div className="col-12">
+              <TestRulesIntro variant="practice" courseName={howToCourseName} />
+            </div>
+          ) : null}
 
           {!subjectSelected ? (
             <section className={`col-12 ${freeTestStyles.subjectChooser}`} aria-labelledby="subject-heading">
@@ -614,23 +646,84 @@ const FreeTest: React.FC<FreeTestProps> = ({
               <p>Focus your practice on one subject at a time.</p>
               <div className={`${freeTestStyles.subjectGrid} ${categoryNames.length === 1 ? freeTestStyles.subjectGridSingle : ""}`}>
                 {categoryNames.map((name, index) => (
-                  <button type="button" key={name} className={freeTestStyles.subjectCard}
-                    onClick={() => { setActiveCategory(index); setSubjectSelected(true); }}>
+                  <Link
+                    key={name}
+                    href={getFreePracticeTestSubjectHref(courseCode, name)}
+                    scroll={false}
+                    className={freeTestStyles.subjectCard}
+                    onClick={() => openSubject(index)}
+                  >
                     <i className="bi bi-journal-text" aria-hidden="true" />
                     <span><strong>{name}</strong><small>{questionsByCategory[name]?.length ?? 0} questions</small></span>
                     <i className="bi bi-arrow-right" aria-hidden="true" />
-                  </button>
+                  </Link>
                 ))}
               </div>
             </section>
           ) : null}
 
-          <div className="col-lg-8" hidden={!subjectSelected}>
-            <button type="button" className="btn btn-outline-secondary mb-4"
-              onClick={() => setSubjectSelected(false)}>
-              <i className="bi bi-arrow-left me-2" aria-hidden="true" />Choose another subject
-            </button>
+          {!subjectSelected && hasFreePredTest ? (
+            <div className={`col-12 ${freeTestStyles.subjectChooserPromo}`}>
+              <section className={freeTestStyles.subjectPredictionCard}>
+                <div
+                  className={freeTestStyles.subjectPredictionIcon}
+                  aria-hidden="true"
+                >
+                  <i className="bi bi-speedometer2" />
+                </div>
+                <div className={freeTestStyles.subjectPredictionCopy}>
+                  <p>Ready for the complete picture?</p>
+                  <h2>Predict your {courseName || "exam"} score</h2>
+                  <span>
+                    Combine every section in one realistic test and get an
+                    estimated score before exam day.
+                  </span>
+                </div>
+                <Link
+                  href={getCourseFreePredictionTestHref(courseCode)}
+                  className={freeTestStyles.subjectPredictionButton}
+                >
+                  Start Free Prediction Test
+                  <i className="bi bi-arrow-right" aria-hidden="true" />
+                </Link>
+              </section>
+            </div>
+          ) : null}
 
+          {subjectSelected ? (
+            <div className="col-12 d-xl-none">
+              <SubjectSwitcher
+                categoryNames={categoryNames}
+                activeCategory={activeCategory}
+                questionCounts={questionCounts}
+                answeredCounts={answeredCounts}
+                submittedCategories={submittedCategories}
+                onSelectCategory={switchSubject}
+                courseCode={courseCode}
+              />
+            </div>
+          ) : null}
+
+          {subjectSelected ? (
+            <aside
+              className={`d-none d-xl-block ${freeTestStyles.subjectsColumn}`}
+            >
+              <SubjectSwitcher
+                categoryNames={categoryNames}
+                activeCategory={activeCategory}
+                questionCounts={questionCounts}
+                answeredCounts={answeredCounts}
+                submittedCategories={submittedCategories}
+                onSelectCategory={switchSubject}
+                courseCode={courseCode}
+              />
+            </aside>
+          ) : null}
+
+          <div
+            className={`col-lg-8 ${freeTestStyles.questionsColumn}`}
+            hidden={!subjectSelected}
+          >
             {/* Test Questions Section — all categories stay mounted to avoid re-typesetting on switch */}
             <div
               ref={mathContentRef}
@@ -1014,7 +1107,7 @@ const FreeTest: React.FC<FreeTestProps> = ({
           <div
             ref={resultsSectionRef}
             hidden={!subjectSelected}
-            className={`col-lg-4 align-self-start ${freeTestStyles.resultsScrollTarget}`}
+            className={`col-lg-4 align-self-start ${freeTestStyles.resultsColumn} ${freeTestStyles.resultsScrollTarget}`}
           >
             <FreeTestSidebar
               activeCategoryName={activeCategoryName}
@@ -1024,9 +1117,6 @@ const FreeTest: React.FC<FreeTestProps> = ({
               answeredCount={answeredCount}
               totalQuestions={totalQuestions}
               progressPercentage={progressPercentage}
-              courseCode={courseCode}
-              courseName={courseName}
-              hasFreePredTest={hasFreePredTest}
             />
             {packagesByService && (
               <div className={`mt-4 ${prepStyles.prepStack}`}>

@@ -541,11 +541,15 @@ export function getFreePracticeTestDescription(courseCode: string): string {
   return meta.description;
 }
 
-export function freePracticeTestMetadata(courseCode: string): Metadata {
+export function freePracticeTestMetadata(
+  courseCode: string,
+  subjectSlug?: string,
+): Metadata {
   const meta =
     FREE_PRACTICE_TEST_SEO[courseCode.toLowerCase()] ??
     getFreePracticeTestFallbackSeo(courseCode);
-  const path = `/courses/${courseCode.toLowerCase()}/free-practice-test`;
+  const basePath = `/courses/${courseCode.toLowerCase()}/free-practice-test`;
+  const path = subjectSlug ? `${basePath}/${subjectSlug}` : basePath;
 
   return buildPageMetadata({
     ...meta,
