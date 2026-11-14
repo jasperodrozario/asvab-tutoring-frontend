@@ -2,10 +2,7 @@
 
 import React from "react";
 import type { TestResults } from "./FreeTest";
-import PredictionTestPromoCard from "@/components/prediction-test/PredictionTestPromoCard";
 import ctaStyles from "@/components/prediction-test/predictionTestCta.module.css";
-import freeTestStyles from "./freeTest.module.css";
-import { getCourseFreePredictionTestHref } from "@/lib/prediction-test-links";
 
 interface ScoreFeedback {
   title: string;
@@ -22,9 +19,6 @@ interface FreeTestSidebarProps {
   answeredCount: number;
   totalQuestions: number;
   progressPercentage: number;
-  courseCode?: string;
-  courseName?: string;
-  hasFreePredTest?: boolean;
 }
 
 const FreeTestSidebar: React.FC<FreeTestSidebarProps> = ({
@@ -35,12 +29,8 @@ const FreeTestSidebar: React.FC<FreeTestSidebarProps> = ({
   answeredCount,
   totalQuestions,
   progressPercentage,
-  courseCode,
-  courseName,
-  hasFreePredTest = false,
 }) => {
   const hasResults = testSubmitted && testResults && feedback;
-  const examLabel = courseName || "exam";
   const unansweredCount = hasResults
     ? testResults.results.filter((r) => r.userAnswer === null).length
     : 0;
@@ -186,17 +176,6 @@ const FreeTestSidebar: React.FC<FreeTestSidebarProps> = ({
         </div>
       </div>
 
-      {hasResults && hasFreePredTest && courseCode ? (
-        <PredictionTestPromoCard
-          href={getCourseFreePredictionTestHref(courseCode)}
-          eyebrow="Next Level Prep"
-          title={`See your predicted ${examLabel} score`}
-          text={`You've reviewed your practice test results. Take our free prediction test to estimate your real exam score before test day — without visiting the recruiter's office.`}
-          buttonLabel="Take Free Prediction Test"
-          buttonClassName={freeTestStyles.predictionPromoBtn}
-          buttonIconClass="bi-stars"
-        />
-      ) : null}
     </div>
   );
 };

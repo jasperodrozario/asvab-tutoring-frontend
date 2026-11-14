@@ -411,6 +411,10 @@
   padding-top: 1rem;
 }
 
+.panelStatic {
+  position: static;
+}
+
 /* On mobile the panel is no longer sticky */
 @media (max-width: 991.98px) {
   .panel {

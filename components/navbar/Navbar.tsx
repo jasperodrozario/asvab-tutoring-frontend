@@ -283,19 +283,13 @@ function FreeTestsNavGroups({
           practiceOpen,
           onTogglePractice,
         )}
-        {renderMobileGroup(
-          "Free Prediction Tests",
-          "free-prediction-test",
-          predictionCourses,
-          predictionOpen,
-          onTogglePrediction,
-        )}
       </>
     );
   }
 
   return (
     <>
+
       {renderTestCourseGroups(practiceCourses, "free-practice-test")}
     </>
   );

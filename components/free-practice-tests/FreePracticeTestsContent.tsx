@@ -146,6 +146,7 @@ export default function FreePracticeTestsContent({ courses }: Props) {
           </section>
         ))}
       </div>
+
     </>
   );
 }
