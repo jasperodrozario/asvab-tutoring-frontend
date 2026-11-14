@@ -119,10 +119,12 @@
 }
 
 .contents a {
-  color: var(--bs-link-color, #0d6efd);
+  color: #002341;
   line-height: 1.5;
   text-decoration: underline;
-  text-underline-offset: 3px;
+  text-decoration-color: #f2a155;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
 }
 
 .courseLink {
@@ -172,15 +174,18 @@
   margin-bottom: 1.25rem;
 }
 
-.article a {
-  color: var(--bs-link-color, #0d6efd);
+.article a:not(.primaryAction):not(.secondaryAction) {
+  color: #002341;
   text-decoration: underline;
-  text-underline-offset: 3px;
+  text-decoration-color: #f2a155;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
 }
 
-.article a:hover,
+.article a:not(.primaryAction):not(.secondaryAction):hover,
 .contents a:hover {
-  color: var(--bs-link-hover-color, #0a58ca);
+  color: #e58a34;
+  text-decoration-thickness: 3px;
 }
 
 .article li + li {
@@ -242,41 +247,75 @@
 
 .resourceGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 235px), 1fr));
+  gap: 1.1rem;
   padding: 0;
   list-style: none;
 }
 
 .resourceCard {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
-  gap: 0.6rem;
-  padding: 1.25rem;
-  background: #f5f8fa;
-  border: 1px solid #dce4eb;
-  border-radius: 8px;
-  color: inherit;
-  line-height: 1.6;
+  gap: 0.7rem;
+  min-height: 170px;
+  padding: 1.35rem 1.35rem 1.1rem;
+  background: linear-gradient(145deg, #fff 0%, #f7f9fb 100%);
+  border: 1px solid #d7e1e9;
+  border-top: 3px solid #f2a155;
+  border-radius: 10px;
+  color: #243746;
+  line-height: 1.65;
   text-decoration: none;
+  box-shadow: 0 3px 12px rgb(0 35 65 / 5%);
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
 }
 
 .resourceCard:hover {
-  border-color: #ba6a25;
-  color: inherit;
+  transform: translateY(-3px);
+  border-color: #e58a34;
+  border-top-color: #e58a34;
+  color: #243746;
+  box-shadow: 0 9px 22px rgb(0 35 65 / 12%);
+}
+
+.resourceCard:focus-visible {
+  outline: 3px solid #e58a34;
+  outline-offset: 3px;
 }
 
 .resourceTitle {
-  color: var(--bs-link-color, #0d6efd);
+  color: #002341;
   font-weight: 700;
   text-decoration: underline;
-  text-underline-offset: 3px;
+  text-decoration-color: #f2a155;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+
+.resourceCard:hover .resourceTitle {
+  color: #e58a34;
+  text-decoration-thickness: 3px;
 }
 
 .resourceArrow {
   margin-top: auto;
-  color: var(--primary-color-dark);
+  color: #e58a34;
+  font-size: 1.1rem;
+  font-weight: 700;
+  transition: transform 160ms ease;
+}
+
+.resourceCard:hover .resourceArrow {
+  transform: translateX(4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .resourceCard,
+  .resourceArrow {
+    transition: none;
+  }
 }
 
 .page a:focus-visible,

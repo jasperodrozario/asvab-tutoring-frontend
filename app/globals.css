@@ -56,6 +56,19 @@ a {
   text-decoration: none;
 }
 
+.text-link-regular {
+  color: #002341;
+  text-decoration: underline;
+  text-decoration-color: #f2a155;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+
+.text-link-regular:hover {
+  color: #e58a34;
+  text-decoration-thickness: 3px;
+}
+
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;

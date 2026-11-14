@@ -21,7 +21,7 @@ export default function AsvabCourseOverview() {
       <p>
         The Armed Services Vocational Aptitude Battery measures abilities used
         in military enlistment and job qualification decisions. Our{" "}
-        <Link href="/military-asvab-test">military ASVAB test guide</Link>{" "}
+        <Link className="text-link-regular" href="/military-asvab-test">military ASVAB test guide</Link>{" "}
         explains how to connect those goals with your preparation.
       </p>
 
@@ -78,11 +78,11 @@ export default function AsvabCourseOverview() {
         </table>
       </div>
       <p className="small">
-        Source: <a href="https://www.officialasvab.com/applicants/cat-asvab/">
+        Source: <a className="text-link-regular" href="https://www.officialasvab.com/applicants/cat-asvab/">
           Official CAT-ASVAB test lengths and time limits
         </a>. Reviewed November 5, 2026. For paper-and-pencil testing, Auto and
         Shop are combined and Assembling Objects is not administered; see the{" "}
-        <a href="https://www.officialasvab.com/counselors-educators/subtests/">
+        <a className="text-link-regular" href="https://www.officialasvab.com/counselors-educators/subtests/">
           official ASVAB subtest descriptions
         </a> for format differences.
       </p>
@@ -97,9 +97,9 @@ export default function AsvabCourseOverview() {
         study priorities.
       </p>
       <p>
-        See the <a href="https://www.officialasvab.com/applicants/scores/">
+        See the <a className="text-link-regular" href="https://www.officialasvab.com/applicants/scores/">
           official explanation of ASVAB scores
-        </a>, then use our <Link href="/asvab-study-guide">ASVAB study guide</Link>{" "}
+        </a>, then use our <Link className="text-link-regular" href="/asvab-study-guide">ASVAB study guide</Link>{" "}
         to organize your preparation.
       </p>
     </div>
