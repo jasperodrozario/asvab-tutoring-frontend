@@ -3,9 +3,16 @@ import AsvabResourceLayout from "@/components/asvab/AsvabResourceLayout";
 import { buildPageMetadata } from "@/lib/seo";
 
 export const metadata = buildPageMetadata({
-  title: "Military ASVAB Test Prep | ASVAB Tutoring",
-  description: "Understand the military ASVAB test, identify your study priorities, and explore practice questions, online classes, and personalized tutoring.",
+  title: "Military ASVAB Test Prep and Practice | ASVAB Tutoring",
+  description: "Prepare for the military ASVAB test with free online practice, focused test prep, and a study plan based on your results.",
   path: "/military-asvab-test",
+  keywords: [
+    "military asvab test",
+    "military asvab test practice",
+    "free military asvab test",
+    "military asvab test prep",
+    "military asvab test online",
+  ],
 });
 
 export default function Page() {
@@ -30,7 +37,8 @@ export default function Page() {
       ]}
       title="Military ASVAB Test Prep for Your Next Step"
       intro={<><p>{"Preparing to enlist starts with understanding the test and the skills you need to strengthen. ASVAB Tutoring helps you connect your practice results with a focused preparation plan."}</p>
-        <p>{"Begin with our "}<Link href={"/courses/asvab/free-practice-test"}>{"free ASVAB practice test"}</Link>{", review the areas that need work, and choose the level of support that fits your schedule."}</p></>}
+        <p>{"Begin with our "}<Link href={"/courses/asvab/free-practice-test"}>{"free ASVAB practice test"}</Link>{", review the areas that need work, and choose the level of support that fits your schedule. This free military ASVAB test practice is an unofficial study resource, not an official exam or score report."}</p>
+        <p>{"Use military ASVAB test prep to build familiarity with the subjects and question types. Looking for a military ASVAB test online? Start with the free practice questions, study at your own pace, and use your results to decide what to review next."}</p></>}
       action={{ href: "/courses/asvab/free-practice-test", label: "Take a Free ASVAB Practice Test" }}
       contents={[{"id": "understand-what-your-scores-mean", "label": "Understand what your scores mean"}, {"id": "build-a-preparation-plan-around-your-needs", "label": "Build a preparation plan around your needs"}, {"id": "prepare-beyond-the-four-afqt-subjects", "label": "Prepare beyond the four AFQT subjects"}, {"id": "choose-your-next-step", "label": "Choose your next step"}, {"id": "faqs", "label": "Frequently asked questions"}]}
       secondaryAction={{ href: "/courses/asvab", label: "Explore ASVAB Prep Options" }}

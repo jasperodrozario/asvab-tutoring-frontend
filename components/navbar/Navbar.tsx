@@ -296,20 +296,7 @@ function FreeTestsNavGroups({
 
   return (
     <>
-      {renderDesktopGroup(
-        "practice",
-        "Free Practice Tests",
-        "/free-practice-tests",
-        "free-practice-test",
-        practiceCourses,
-      )}
-      {renderDesktopGroup(
-        "prediction",
-        "Free Prediction Tests",
-        "/free-prediction-tests",
-        "free-prediction-test",
-        predictionCourses,
-      )}
+      {renderTestCourseGroups(practiceCourses, "free-practice-test")}
     </>
   );
 }

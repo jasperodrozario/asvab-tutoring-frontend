@@ -3,9 +3,16 @@ import AsvabResourceLayout from "@/components/asvab/AsvabResourceLayout";
 import { buildPageMetadata } from "@/lib/seo";
 
 export const metadata = buildPageMetadata({
-  title: "Online ASVAB Tutor | Personalized ASVAB Tutoring",
-  description: "Get individual help with ASVAB preparation. Explore online tutoring, assessment-based study plans, and guided practice for your weak areas.",
+  title: "ASVAB Tutor Online | Personalized ASVAB Tutoring",
+  description: "Find an online ASVAB tutor for focused one-on-one prep. Explore ASVAB tutors, guided practice, and assessment-based study plans.",
   path: "/asvab-tutor",
+  keywords: [
+    "asvab tutor",
+    "asvab tutor near me",
+    "asvab tutors",
+    "tutor for asvab near me",
+    "asvab tutor online",
+  ],
 });
 
 export default function Page() {
@@ -35,7 +42,7 @@ export default function Page() {
       ]}
       title="Work With an Online ASVAB Tutor"
       intro={<><p>{"If you understand an explanation while reading it but struggle to solve the next problem, individual instruction can help you identify where the process breaks down."}</p>
-        <p>{"ASVAB Tutoring offers online one-on-one support for learners who want a clearer plan and help working through difficult material."}</p>
+        <p>{"ASVAB Tutoring offers online one-on-one support for learners who want a clearer plan and help working through difficult material. If you are searching for an ASVAB tutor near me or a tutor for ASVAB near me, our tutoring is delivered online, so you can connect from home wherever you are."}</p>
         <p>{"See our "}<Link href={"/courses/asvab"}>{"ASVAB course"}</Link>{" for the wider curriculum and preparation options."}</p></>}
       action={{ href: "/#request-a-tutor", label: "Request an ASVAB Tutor" }}
       contents={[{"id": "begin-with-your-current-skills", "label": "Begin with your current skills"}, {"id": "how-online-tutoring-works", "label": "How online tutoring works"}, {"id": "use-tutoring-to-understand-your-reasoning", "label": "Use tutoring to understand your reasoning"}, {"id": "is-private-tutoring-a-good-fit", "label": "Is private tutoring a good fit?"}, {"id": "meet-the-team-behind-your-preparation", "label": "Meet the team behind your preparation"}, {"id": "choose-the-subject-coverage-you-need", "label": "Choose the subject coverage you need"}, {"id": "prepare-for-your-first-conversation", "label": "Prepare for your first conversation"}, {"id": "faqs", "label": "Frequently asked questions"}]}
@@ -47,6 +54,7 @@ export default function Page() {
         <p>{"Bring any recent practice results and describe where you get stuck. Specific examples—such as choosing the wrong operation in word problems or struggling to identify a passage’s main idea—give the conversation a useful starting point."}</p>
         <p>{"You can bring results from our "}<Link href={"/courses/asvab/free-practice-test"}>{"free ASVAB practice test"}</Link>{" to help explain where you need support. Read "}<Link href={"/how-it-works"}>{"how our assessment and learning-plan process works"}</Link>{" before your first conversation."}</p>
         <h2 id="how-online-tutoring-works">{"How online tutoring works"}</h2>
+        <p>{"An ASVAB tutor online can review your work with you, explain difficult steps, and help you set priorities based on your assessment. Ask about instructor availability and subject coverage when you request a match."}</p>
         <p>{"Sessions take place through Microsoft Teams and last two hours. The platform provides homework, practice tests, recorded video lessons, prediction tests, and progress reports."}</p>
         <p>{"Between sessions, use assigned practice to identify questions for your next meeting. Tell your tutor which step you attempted, where you became uncertain, and whether the same mistake appears in other problems."}</p>
         <h2 id="use-tutoring-to-understand-your-reasoning">{"Use tutoring to understand your reasoning"}</h2>

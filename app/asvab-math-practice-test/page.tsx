@@ -3,9 +3,16 @@ import AsvabResourceLayout from "@/components/asvab/AsvabResourceLayout";
 import { buildPageMetadata } from "@/lib/seo";
 
 export const metadata = buildPageMetadata({
-  title: "ASVAB Math Practice Test With Answers | ASVAB Tutoring",
-  description: "Practice ASVAB Arithmetic Reasoning and Mathematics Knowledge with original questions, worked answers, and a clear plan for reviewing mistakes.",
+  title: "Free ASVAB Math Practice Test With Answers | ASVAB Tutoring",
+  description: "Try a free ASVAB math practice test with worked answers. Review ASVAB math prep topics and find math help or tutoring for difficult skills.",
   path: "/asvab-math-practice-test",
+  keywords: [
+    "asvab math practice test",
+    "free asvab math practice test",
+    "asvab math tutor",
+    "asvab math prep",
+    "asvab math help",
+  ],
 });
 
 export default function Page() {
@@ -24,7 +31,7 @@ export default function Page() {
         }
       ]}
       title="ASVAB Math Practice Test With Worked Answers"
-      intro={<><p>{"Try these eight original practice questions to check your math foundations. Work without a calculator, write down your steps, and review the explanations after you finish."}</p>
+      intro={<><p>{"Try these eight original questions in this free ASVAB math practice test to check your math foundations. Work without a calculator, write down your steps, and review the explanations after you finish."}</p>
         <p>{"This short learning exercise covers both ASVAB math areas. It is not an official test, an adaptive simulation, or an AFQT score predictor."}</p></>}
       action={{ href: "/courses/asvab/free-practice-test", label: "Continue to Free ASVAB Practice" }}
       contents={[{"id": "arithmetic-reasoning-and-mathematics-knowledge", "label": "Arithmetic Reasoning and Mathematics Knowledge"}, {"id": "practice-questions", "label": "Practice questions"}, {"id": "answers-and-explanations", "label": "Answers and explanations"}, {"id": "turn-your-results-into-a-study-plan", "label": "Turn your results into a study plan"}, {"id": "continue-practicing", "label": "Continue practicing"}, {"id": "faqs", "label": "Frequently asked questions"}]}
@@ -70,6 +77,7 @@ export default function Page() {
         <p>{"Review missed questions by skill. A mistake on Question 4 suggests reviewing fractions and whole-part relationships. A mistake on Question 7 suggests reviewing area formulas and identifying perpendicular dimensions. Correct answers reached by guessing also deserve review."}</p>
         <p>{"After reviewing a skill, solve a fresh problem with different values. This checks whether you understand the method rather than remember the answer. Use our "}<Link href={"/asvab-study-guide"}>{"ASVAB study guide"}</Link>{" to organize your next review sessions."}</p>
         <h2 id="continue-practicing">{"Continue practicing"}</h2>
+        <p>{"Use these questions as one part of your ASVAB math prep. If you need ASVAB math help with a recurring skill, an "}<Link href={"/asvab-tutor"}>{"ASVAB math tutor"}</Link>{" can help you work through your reasoning and practice similar problems."}</p>
         <p>{"Open our "}<Link href={"/courses/asvab/free-practice-test"}>{"free ASVAB practice test"}</Link>{" and choose Arithmetic Reasoning or Math Knowledge. If you need guided review, explore the "}<Link href={"/courses/asvab"}>{"ASVAB course"}</Link>{"."}</p>
         <p>{"If you can follow the explanations but struggle with fresh problems, consider our "}<Link href={"/services/1-on-1-tutoring"}>{"one-on-one tutoring service"}</Link>{" for guided review. See the "}<Link href={"/package-details/1-on-1-tutoring/asvab"}>{"ASVAB private tutoring packages"}</Link>{" for preparation options."}</p>
         <p>{"If you prefer independent practice, explore the "}<Link href={"/services/self-study"}>{"self-study learning materials"}</Link>{", then review the "}<Link href={"/package-details/self-study/asvab"}>{"ASVAB self-study package"}</Link>{" for subscription details. If you need help choosing, "}<Link href={"/contact-us"}>{"ask our team about your math preparation"}</Link>{"."}</p>

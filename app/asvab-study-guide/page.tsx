@@ -3,9 +3,17 @@ import AsvabResourceLayout from "@/components/asvab/AsvabResourceLayout";
 import { buildPageMetadata } from "@/lib/seo";
 
 export const metadata = buildPageMetadata({
-  title: "ASVAB Study Guide and Study Plan | ASVAB Tutoring",
-  description: "Organize your ASVAB study with a subject roadmap, a flexible four-week plan, and practical ways to learn from missed practice questions.",
+  title: "ASVAB Study Guide and Study Program | ASVAB Tutoring",
+  description: "Use this ASVAB study guide to organize study material, build an online study program, and plan a course of focused practice.",
   path: "/asvab-study-guide",
+  keywords: [
+    "asvab study",
+    "asvab study guide",
+    "asvab study material",
+    "asvab study course",
+    "asvab study program",
+    "asvab study program online",
+  ],
 });
 
 export default function Page() {
@@ -31,7 +39,7 @@ export default function Page() {
       title="ASVAB Study Guide: Decide What to Study Next"
       intro={<><p>{"A useful study plan tells you more than how many questions to answer. It helps you identify a gap, learn the missing skill, and check whether you can use it independently."}</p>
         <p>{"Start with your results from the "}<Link href={"/courses/asvab/free-practice-test"}>{"free ASVAB practice test"}</Link>{", then build a routine you can follow consistently."}</p>
-        <p>{"Explore the "}<Link href={"/courses/asvab"}>{"ASVAB course"}</Link>{" for our curriculum and preparation options, then use this guide to organize your work."}</p></>}
+        <p>{"Explore the "}<Link href={"/courses/asvab"}>{"ASVAB course"}</Link>{" for our curriculum and preparation options, then use this guide to organize your work. Use it as a practical ASVAB study program online, adapting the schedule to your available time and current skills."}</p></>}
       action={{ href: "/courses/asvab/free-practice-test", label: "Check Your Starting Point" }}
       contents={[{"id": "step-1-make-a-subject-checklist", "label": "Step 1: Make a subject checklist"}, {"id": "step-2-record-why-you-miss-questions", "label": "Step 2: Record why you miss questions"}, {"id": "step-3-adapt-this-four-week-study-plan", "label": "Step 3: Adapt this four-week study plan"}, {"id": "step-4-give-each-study-session-a-purpose", "label": "Step 4: Give each study session a purpose"}, {"id": "step-5-choose-materials-that-support-your-routine", "label": "Step 5: Choose materials that support your routine"}, {"id": "faqs", "label": "Frequently asked questions"}]}
       closing={<>{"Turn your next practice result into a plan. Choose one weak topic, review it, and check it again with new questions."}</>}
@@ -54,6 +62,7 @@ export default function Page() {
         <p>{"Try a 45-minute session: spend 10 minutes reviewing an earlier skill, 20 minutes learning and practicing your main topic, and 15 minutes checking answers and updating your error log."}</p>
         <p>{"When reviewing an explanation, cover it and solve the problem again. Later, try a different problem that uses the same principle. This helps reveal whether you can work independently."}</p>
         <h2 id="step-5-choose-materials-that-support-your-routine">{"Step 5: Choose materials that support your routine"}</h2>
+        <p>{"Choose ASVAB study material that includes explanations and gives you a way to check your understanding. A study guide, focused practice questions, and progress checks can work together as a flexible ASVAB study course."}</p>
         <p>{"ASVAB Tutoring’s self-study service includes lesson videos, homework with explanations, lesson tests, a final practice test, prediction tests, flashcards, and progress reports."}</p>
         <p>{"Explore the "}<Link href={"/services/self-study"}>{"self-study service"}</Link>{", or use the "}<Link href={"/courses/asvab/free-practice-test"}>{"free ASVAB practice test"}</Link>{" to identify a starting point."}</p>
         <p>{"For access and subscription details, review the "}<Link href={"/package-details/self-study/asvab"}>{"ASVAB self-study package"}</Link>{". If you need guided feedback, compare our "}<Link href={"/services/1-on-1-tutoring"}>{"one-on-one tutoring service"}</Link>{"."}</p>

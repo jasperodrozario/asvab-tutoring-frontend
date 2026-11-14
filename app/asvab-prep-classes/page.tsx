@@ -3,9 +3,17 @@ import AsvabResourceLayout from "@/components/asvab/AsvabResourceLayout";
 import { buildPageMetadata } from "@/lib/seo";
 
 export const metadata = buildPageMetadata({
-  title: "Online ASVAB Prep Classes | ASVAB Tutoring",
-  description: "Explore online ASVAB group classes for schools and recruiting stations. Compare live instruction, private tutoring, and self-study options.",
+  title: "ASVAB Prep Classes and Courses Online | ASVAB Tutoring",
+  description: "Explore ASVAB test prep classes and online preparation courses for schools, recruiting stations, and organized groups. Compare learning formats.",
   path: "/asvab-prep-classes",
+  keywords: [
+    "asvab prep",
+    "asvab test prep",
+    "asvab prep class",
+    "asvab prep course",
+    "asvab preparation classes",
+    "asvab classes near me",
+  ],
 });
 
 export default function Page() {
@@ -39,7 +47,7 @@ export default function Page() {
         }
       ]}
       title="Online ASVAB Prep Classes With a Clear Study Routine"
-      intro={<><p>{"ASVAB Tutoring offers live online group instruction for organized groups, including recruiting stations and schools. Combine guided lessons with practice between sessions, or explore private tutoring if you are preparing individually."}</p>
+      intro={<><p>{"ASVAB Tutoring offers live online group instruction for organized groups, including recruiting stations and schools. These ASVAB preparation classes combine guided lessons with practice between sessions; individuals can explore private tutoring or self-study."}</p>
         <p>{"For the wider curriculum and available preparation formats, visit our "}<Link href={"/courses/asvab"}>{"ASVAB course"}</Link>{"."}</p></>}
       action={{ href: "/contact-us", label: "Ask About ASVAB Group Classes" }}
       contents={[{"id": "choose-how-you-want-to-learn", "label": "Choose how you want to learn"}, {"id": "what-group-classes-include", "label": "What group classes include"}, {"id": "organizing-preparation-for-a-group", "label": "Organizing preparation for a group"}, {"id": "make-time-for-practice-between-classes", "label": "Make time for practice between classes"}, {"id": "questions-to-ask-before-enrolling", "label": "Questions to ask before enrolling"}, {"id": "faqs", "label": "Frequently asked questions"}]}
@@ -47,6 +55,7 @@ export default function Page() {
       closing={<>{"Tell us about your group, planned test dates, and subjects that need work. Ask about an ASVAB preparation arrangement that fits your learners."}</>}
     >
         <h2 id="choose-how-you-want-to-learn">{"Choose how you want to learn"}</h2>
+        <p>{"If you are comparing an ASVAB prep class, ASVAB prep course, or other ASVAB test prep, start by checking who the format is designed for and what instruction it includes. People searching for ASVAB classes near me can ask about our live online group option, which is intended for organized groups; contact us about availability before planning to join."}</p>
         <div className="table-responsive" role="region" aria-label="Preparation options" tabIndex={0}><table><caption className="visually-hidden">{"Preparation options"}</caption><thead><tr><th scope="col">{"Format"}</th><th scope="col">{"Consider it if…"}</th><th scope="col">{"Learn more"}</th></tr></thead><tbody><tr><td>{"Group classes"}</td><td>{"You represent a recruiting station, school, or organized group seeking shared instruction"}</td><td><Link href={"/package-details/group-tutoring/asvab"}>{"ASVAB group package"}</Link></td></tr><tr><td>{"One-on-one tutoring"}</td><td>{"You need individual attention or help with specific gaps"}</td><td><Link href={"/asvab-tutor"}>{"Individual ASVAB tutoring"}</Link></td></tr><tr><td>{"Self-study"}</td><td>{"You prefer to organize your own learning time"}</td><td><Link href={"/services/self-study"}>{"Self-study course"}</Link></td></tr></tbody></table></div>
         <p>{"The right choice depends on your current skills, available study time, and need for feedback. If you are unsure, "}<Link href={"/contact-us"}>{"contact our team about preparation options"}</Link>{" and share your test date and practice results."}</p>
         <h2 id="what-group-classes-include">{"What group classes include"}</h2>
