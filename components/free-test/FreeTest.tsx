@@ -642,8 +642,8 @@ const FreeTest: React.FC<FreeTestProps> = ({
 
           {!subjectSelected ? (
             <section className={`col-12 ${freeTestStyles.subjectChooser}`} aria-labelledby="subject-heading">
-              <h2 id="subject-heading">Choose a subject</h2>
-              <p>Focus your practice on one subject at a time.</p>
+              <h2 id="subject-heading">{categoryNames.length === 1 ? "Start your practice" : "Choose a subject"}</h2>
+              <p>{categoryNames.length === 1 ? "Select the subject below to begin your practice test." : "Focus your practice on one subject at a time."}</p>
               <div className={`${freeTestStyles.subjectGrid} ${categoryNames.length === 1 ? freeTestStyles.subjectGridSingle : ""}`}>
                 {categoryNames.map((name, index) => (
                   <Link
